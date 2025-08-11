@@ -1,0 +1,50 @@
+? Git – Backup & Wiederherstellung für deine Flutter-App
+1. Neues Git-Repo anlegen
+(Nur beim ersten Mal nötig)
+
+cd /pfad/zu/deinem/flutterprojekt
+git init
+git add .
+git commit -m "Erste funktionierende Version"
+
+2. Backup machen
+(Jedes Mal, wenn die App stabil läuft)
+
+git add .
+git commit -m "Beschreibung der Version"
+? Schreibe ins -m kurz, was diese Version besonders macht, z. B.:
+"Backup vor Designänderung" oder "Version mit neuem BWL-Modul".
+
+3. Alle Versionen anzeigen
+
+git log --oneline
+? Beispielausgabe:
+pgsql
+
+a1b2c3d Erste funktionierende Version
+e4f5g6h Backup vor Design-Update
+9x8y7z0 Stand vor Supabase Änderung
+Links steht immer die Commit-ID (z. B. a1b2c3d).
+
+4. Alte Version öffnen
+
+git checkout <commit-id>
+? Beispiel:
+
+git checkout a1b2c3d
+?? Du bist jetzt genau in dieser Version (Read-only-Modus).
+
+5. Zur aktuellen Version zurück
+
+git checkout main
+(oder master, falls dein Hauptbranch so heißt)
+
+6. Dauerhaft auf alte Version zurücksetzen
+?? Vorsicht: Alle neueren Änderungen werden gelöscht!
+
+git reset --hard <commit-id>
+
+? Tipp
+    • Immer vor großen Änderungen ein git commit machen ? So hast du einen sicheren Wiederherstellungspunkt.
+    • Für zusätzliche Sicherheit Code regelmäßig auf GitHub pushen.
+

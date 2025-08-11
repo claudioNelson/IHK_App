@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -177,7 +175,8 @@ class _TestFragenState extends State<TestFragen> {
   Future<void> ladeFragen() async {
     final response = await supabase
         .from('fragen')
-        .select('*, antworten(*)')
+        // NEU: Erklärungen pro Antwort mitladen
+        .select('*, antworten(id, text, ist_richtig, erklaerung)')
         .eq('modul_id', widget.modulId);
     setState(() {
       fragen = response;
@@ -321,7 +320,8 @@ class _TestFragenState extends State<TestFragen> {
                                 ),
                                 onPressed: () => pruefeAntwort(
                                   a['ist_richtig'] == true,
-                                  frage['erklaerung'] ?? '',
+                                  // NEU: zuerst Antwort-Erklärung, sonst Fragen-Erklärung
+                                  a['erklaerung'] ?? frage['erklaerung'] ?? '',
                                   frage['id'],
                                 ),
                                 child: Align(
@@ -332,6 +332,43 @@ class _TestFragenState extends State<TestFragen> {
                             ),
                           )
                         else ...[
+                          // NEU: Feedback-Banner (Richtig/Falsch)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: istAntwortRichtig
+                                  ? Colors.green.shade100
+                                  : Colors.red.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  istAntwortRichtig
+                                      ? Icons.check_circle
+                                      : Icons.cancel,
+                                  color: istAntwortRichtig
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  istAntwortRichtig ? 'Richtig!' : 'Falsch!',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: istAntwortRichtig
+                                        ? Colors.green.shade800
+                                        : Colors.red.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 16),
+
+                          // Antworten farbig markieren (wie gehabt)
                           ...antworten.map(
                             (a) => Padding(
                               padding:
@@ -356,6 +393,8 @@ class _TestFragenState extends State<TestFragen> {
                             ),
                           ),
                           SizedBox(height: 20),
+
+                          // Erklärungskarte (wie gehabt, jetzt mit neuer Quelle)
                           Card(
                             color: Colors.blue.shade50,
                             shape: RoundedRectangleBorder(
@@ -369,7 +408,11 @@ class _TestFragenState extends State<TestFragen> {
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold)),
                                   SizedBox(height: 4),
-                                  Text(erklaerung),
+                                  Text(
+                                    erklaerung.isNotEmpty
+                                        ? erklaerung
+                                        : 'Keine Erklärung vorhanden.',
+                                  ),
                                 ],
                               ),
                             ),
