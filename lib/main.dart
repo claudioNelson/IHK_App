@@ -165,6 +165,7 @@ class _TestFragenState extends State<TestFragen> {
   bool antwortGewaehlt = false;
   bool istAntwortRichtig = false;
   String erklaerung = '';
+  int? pressedIndex;
 
   @override
   void initState() {
@@ -175,8 +176,7 @@ class _TestFragenState extends State<TestFragen> {
   Future<void> ladeFragen() async {
     final response = await supabase
         .from('fragen')
-        // NEU: Erklärungen pro Antwort mitladen
-        .select('*, antworten(id, text, ist_richtig, erklaerung)')
+        .select('*, antworten(*)')
         .eq('modul_id', widget.modulId);
     setState(() {
       fragen = response;
@@ -198,6 +198,7 @@ class _TestFragenState extends State<TestFragen> {
       antwortGewaehlt = true;
       istAntwortRichtig = korrekt;
       erklaerung = erklaerungText;
+      pressedIndex = null;
       if (korrekt) {
         richtig++;
         speichereFortschritt(frageId);
@@ -266,7 +267,6 @@ class _TestFragenState extends State<TestFragen> {
       ),
       body: Column(
         children: [
-          // Fortschrittsleiste
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -304,120 +304,128 @@ class _TestFragenState extends State<TestFragen> {
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 20),
-                        if (!antwortGewaehlt)
-                          ...antworten.map(
-                            (a) => Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 6.0),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.indigo.shade50,
-                                  foregroundColor: Colors.black,
-                                  padding: EdgeInsets.all(14),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                        AnimatedSwitcher(
+                          duration: Duration(milliseconds: 300),
+                          child: !antwortGewaehlt
+                              ? Column(
+                                  children: [
+                                    for (int i = 0; i < antworten.length; i++)
+                                      AnimatedScale(
+                                        duration:
+                                            Duration(milliseconds: 150),
+                                        scale: pressedIndex == i ? 0.95 : 1.0,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 6.0),
+                                          child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.indigo.shade50,
+                                              foregroundColor: Colors.black,
+                                              padding: EdgeInsets.all(14),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                pressedIndex = i;
+                                              });
+                                              Future.delayed(
+                                                  Duration(milliseconds: 100),
+                                                  () {
+                                                pruefeAntwort(
+                                                  antworten[i]['ist_richtig'] ==
+                                                      true,
+                                                  frage['erklaerung'] ?? '',
+                                                  frage['id'],
+                                                );
+                                              });
+                                            },
+                                            child: Align(
+                                              alignment: Alignment.centerLeft,
+                                              child:
+                                                  Text(antworten[i]['text']),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                )
+                              : Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    ...antworten.map(
+                                      (a) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 6.0),
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                a['ist_richtig'] == true
+                                                    ? Colors.green.shade100
+                                                    : Colors.red.shade100,
+                                            foregroundColor: Colors.black,
+                                            padding: EdgeInsets.all(14),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                          onPressed: null,
+                                          child: Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(a['text']),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 20),
+                                    AnimatedOpacity(
+                                      opacity: 1.0,
+                                      duration: Duration(milliseconds: 400),
+                                      child: Card(
+                                        color: istAntwortRichtig
+                                            ? Colors.green.shade50
+                                            : Colors.red.shade50,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12)),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                istAntwortRichtig
+                                                    ? 'Richtig!'
+                                                    : 'Falsch!',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: istAntwortRichtig
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                ),
+                                              ),
+                                              SizedBox(height: 6),
+                                              Text('Erklärung:',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                              SizedBox(height: 4),
+                                              Text(erklaerung),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                onPressed: () => pruefeAntwort(
-                                  a['ist_richtig'] == true,
-                                  // NEU: zuerst Antwort-Erklärung, sonst Fragen-Erklärung
-                                  a['erklaerung'] ?? frage['erklaerung'] ?? '',
-                                  frage['id'],
-                                ),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(a['text']),
-                                ),
-                              ),
-                            ),
-                          )
-                        else ...[
-                          // NEU: Feedback-Banner (Richtig/Falsch)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: istAntwortRichtig
-                                  ? Colors.green.shade100
-                                  : Colors.red.shade100,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  istAntwortRichtig
-                                      ? Icons.check_circle
-                                      : Icons.cancel,
-                                  color: istAntwortRichtig
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  istAntwortRichtig ? 'Richtig!' : 'Falsch!',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: istAntwortRichtig
-                                        ? Colors.green.shade800
-                                        : Colors.red.shade800,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 16),
-
-                          // Antworten farbig markieren (wie gehabt)
-                          ...antworten.map(
-                            (a) => Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 6.0),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: a['ist_richtig'] == true
-                                      ? Colors.green.shade100
-                                      : Colors.red.shade100,
-                                  foregroundColor: Colors.black,
-                                  padding: EdgeInsets.all(14),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                onPressed: null,
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(a['text']),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 20),
-
-                          // Erklärungskarte (wie gehabt, jetzt mit neuer Quelle)
-                          Card(
-                            color: Colors.blue.shade50,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Erklärung:',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold)),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    erklaerung.isNotEmpty
-                                        ? erklaerung
-                                        : 'Keine Erklärung vorhanden.',
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
