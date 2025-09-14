@@ -23,11 +23,155 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.indigo,
         scaffoldBackgroundColor: Colors.grey[100],
         textTheme: Theme.of(context).textTheme.apply(fontFamily: 'Roboto'),
+        useMaterial3: true,
       ),
-      home: ModulListe(),
+      home: NavRoot(),
     );
   }
 }
+
+/// ============================================================================
+/// NAVIGATION SHELL (Bottom Tabs via Material NavigationBar)
+/// ============================================================================
+
+class NavRoot extends StatefulWidget {
+  const NavRoot({super.key});
+
+  @override
+  State<NavRoot> createState() => _NavRootState();
+}
+
+class _NavRootState extends State<NavRoot> {
+  int _index = 0;
+
+  // KEIN const – da einige Kinder nicht-const sind (z.B. ModulListe, AdminPanel).
+  late final List<Widget> _pages = [
+    _NavKeepAlive(child: ModulListe()),
+    _NavKeepAlive(child: SimulationPage()),
+    _NavKeepAlive(child: AdminPanel()),
+    _NavKeepAlive(child: ProfilePage()),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_index],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (i) => setState(() => _index = i),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.book_outlined),
+            selectedIcon: Icon(Icons.book),
+            label: 'Module',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.quiz_outlined),
+            selectedIcon: Icon(Icons.quiz),
+            label: 'Simulation',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.admin_panel_settings_outlined),
+            selectedIcon: Icon(Icons.admin_panel_settings),
+            label: 'Admin',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profil',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Hält die State der Kinder beim Tabwechsel am Leben (kein Reload).
+class _NavKeepAlive extends StatefulWidget {
+  final Widget child;
+  const _NavKeepAlive({required this.child, super.key});
+
+  @override
+  State<_NavKeepAlive> createState() => _NavKeepAliveState();
+}
+
+class _NavKeepAliveState extends State<_NavKeepAlive>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
+  }
+}
+
+/// ============================================================================
+/// Platzhalter-Seiten für Tabs (lauffähig, später ersetzen)
+/// ============================================================================
+
+class SimulationPage extends StatelessWidget {
+  const SimulationPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Prüfungssimulation'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+      ),
+      body: const Center(
+        child: Text('Hier kommt deine Simulation hin.'),
+      ),
+    );
+  }
+}
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profil & Einstellungen'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const ListTile(
+            leading: Icon(Icons.person),
+            title: Text('Benutzername'),
+            subtitle: Text('Max Mustermann'),
+          ),
+          const Divider(),
+          SwitchListTile(
+            value: true,
+            onChanged: (v) {},
+            title: const Text('Benachrichtigungen'),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Abmelden'),
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Logout (Demo)')),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+/// AB HIER: DEIN BESTEHENDER CODE – STRUKTUR UNVERÄNDERT
+/// ============================================================================
 
 class ModulListe extends StatefulWidget {
   @override
@@ -59,7 +203,6 @@ class _ModulListeState extends State<ModulListe> {
   }
 
   Future<int> _ladeModulFortschritt(int modulId) async {
-    // Achtung: Modul-Fortschritt hier simpel als Summe der gespeicherten Frage-IDs
     final prefs = await SharedPreferences.getInstance();
     final key = 'fortschritt_modul_$modulId';
     final value = prefs.get(key);
@@ -212,7 +355,6 @@ class _ThemenListeState extends State<ThemenListe> {
     final double prevScore = cachedScores[unlockedBy] ?? 0.0;
     final int needed = themenRequired[unlockedBy] ?? 80;
     return prevScore >= needed;
-    // Logik: Thema X wird frei, wenn das Thema unlocked_by (zuvor) >= dessen required_score erreicht hat
   }
 
   @override
@@ -278,7 +420,6 @@ class _ThemenListeState extends State<ThemenListe> {
                                 ),
                               ),
                             );
-                            // Nach Rückkehr neu laden (Score könnte sich geändert haben)
                             await _load();
                             setState(() {});
                           }
@@ -307,7 +448,7 @@ class _ThemenListeState extends State<ThemenListe> {
 class TestFragen extends StatefulWidget {
   final int modulId;
   final String modulName;
-  final int? themaId; // neu: optionales Untermodul
+  final int? themaId;
 
   TestFragen({required this.modulId, required this.modulName, this.themaId});
 
@@ -347,7 +488,6 @@ class _TestFragenState extends State<TestFragen> {
 
   Future<void> speichereFortschritt(int frageId) async {
     final prefs = await SharedPreferences.getInstance();
-    // modulweiter Fortschritt wie zuvor
     final keyModule = 'fortschritt_mod_${widget.modulId}';
     final gespeichert = prefs.getStringList(keyModule) ?? [];
     if (!gespeichert.contains(frageId.toString())) {
@@ -384,7 +524,7 @@ class _TestFragenState extends State<TestFragen> {
         erklaerung = '';
       });
     } else {
-      await _speichereThemaScore(); // Score persistieren
+      await _speichereThemaScore();
       setState(() => fertig = true);
     }
   }
@@ -394,7 +534,7 @@ class _TestFragenState extends State<TestFragen> {
     if (fragen.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: Text(widget.modulName)),
-        body: Center(child: CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -406,16 +546,16 @@ class _TestFragenState extends State<TestFragen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.emoji_events, size: 80, color: Colors.amber),
-              SizedBox(height: 20),
-              Text('Test abgeschlossen!',
+              const Icon(Icons.emoji_events, size: 80, color: Colors.amber),
+              const SizedBox(height: 20),
+              const Text('Test abgeschlossen!',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text('Du hast $richtig von ${fragen.length} Fragen richtig. ($prozent%)'),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Zur Themenübersicht'),
+                child: const Text('Zur Themenübersicht'),
               ),
             ],
           ),
@@ -436,7 +576,7 @@ class _TestFragenState extends State<TestFragen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0), // benannt ✅
             child: Column(
               children: [
                 LinearProgressIndicator(
@@ -445,7 +585,7 @@ class _TestFragenState extends State<TestFragen> {
                   color: Colors.indigo,
                   minHeight: 8,
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text('Frage ${aktuelleFrage + 1} von ${fragen.length}',
                     style: TextStyle(color: Colors.grey[700])),
               ],
@@ -453,38 +593,38 @@ class _TestFragenState extends State<TestFragen> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0), // benannt ✅
               child: Card(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16)),
                 elevation: 3,
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16.0), // benannt ✅
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(frage['frage'],
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
                         AnimatedSwitcher(
-                          duration: Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 300),
                           child: !antwortGewaehlt
                               ? Column(
                                   children: [
                                     for (int i = 0; i < antworten.length; i++)
                                       AnimatedScale(
-                                        duration: Duration(milliseconds: 150),
-                                        scale: (i == 0) ? 1.0 : 1.0,
+                                        duration: const Duration(milliseconds: 150),
+                                        scale: 1.0,
                                         child: Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 6.0),
+                                          padding: const EdgeInsets.symmetric(vertical: 6.0), // benannt ✅
                                           child: ElevatedButton(
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor: Colors.indigo.shade50,
                                               foregroundColor: Colors.black,
-                                              padding: EdgeInsets.all(14),
+                                              padding: const EdgeInsets.all(14),
                                               shape: RoundedRectangleBorder(
                                                 borderRadius: BorderRadius.circular(12),
                                               ),
@@ -543,17 +683,17 @@ class _TestFragenState extends State<TestFragen> {
                                         ],
                                       ),
                                     ),
-                                    SizedBox(height: 16),
+                                    const SizedBox(height: 16),
                                     ...antworten.map(
                                       (a) => Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                                        padding: const EdgeInsets.symmetric(vertical: 6.0), // benannt ✅
                                         child: ElevatedButton(
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: a['ist_richtig'] == true
                                                 ? Colors.green.shade100
                                                 : Colors.red.shade100,
                                             foregroundColor: Colors.black,
-                                            padding: EdgeInsets.all(14),
+                                            padding: const EdgeInsets.all(14),
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(12),
                                             ),
@@ -566,19 +706,19 @@ class _TestFragenState extends State<TestFragen> {
                                         ),
                                       ),
                                     ),
-                                    SizedBox(height: 20),
+                                    const SizedBox(height: 20),
                                     Card(
                                       color: Colors.blue.shade50,
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12)),
                                       child: Padding(
-                                        padding: const EdgeInsets.all(12.0),
+                                        padding: const EdgeInsets.all(12.0), // benannt ✅
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('Erklärung:',
+                                            const Text('Erklärung:',
                                                 style: TextStyle(fontWeight: FontWeight.bold)),
-                                            SizedBox(height: 4),
+                                            const SizedBox(height: 4),
                                             Text(
                                               erklaerung.isNotEmpty
                                                   ? erklaerung
@@ -601,17 +741,17 @@ class _TestFragenState extends State<TestFragen> {
           if (antwortGewaehlt)
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0), // benannt ✅
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.indigo,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: naechsteFrage,
-                  child: Center(child: Text('Nächste Frage')),
+                  child: const Center(child: Text('Nächste Frage')),
                 ),
               ),
             ),
@@ -632,10 +772,7 @@ class _AdminPanelState extends State<AdminPanel> {
   List<dynamic> module = [];
   int? selectedModuleId;
 
-  // Themen des aktuell gewählten Moduls
   List<dynamic> themen = [];
-
-  // Fragen des aktuell gewählten Moduls (mit Antworten)
   List<dynamic> fragen = [];
   bool loading = false;
 
@@ -879,7 +1016,7 @@ class _AdminPanelState extends State<AdminPanel> {
     final nameCtrl = TextEditingController();
     final beschrCtrl = TextEditingController();
     final scoreCtrl = TextEditingController(text: '80');
-    int? unlockedBy; // ID des vorherigen Themas
+    int? unlockedBy;
 
     await showDialog(
       context: context,
@@ -1225,7 +1362,6 @@ class _AdminPanelState extends State<AdminPanel> {
 
       _snack('Erfolg: $summary');
 
-      // Liste neu laden
       await _loadModules();
       if (alsoDeleteModule) {
         setState(() {
@@ -1265,7 +1401,6 @@ class _AdminPanelState extends State<AdminPanel> {
           ? const Center(child: CircularProgressIndicator())
           : Row(
               children: [
-                // Linke Spalte: Module + "+Thema" + Danger Zone
                 SizedBox(
                   width: 280,
                   child: Column(
@@ -1290,9 +1425,8 @@ class _AdminPanelState extends State<AdminPanel> {
                       ),
                       if (selectedModuleId != null) ...[
                         const Divider(height: 16),
-                        // + Thema
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0), // benannt ✅
                           child: ElevatedButton.icon(
                             icon: const Icon(Icons.add),
                             label: const Text('Thema'),
@@ -1305,9 +1439,8 @@ class _AdminPanelState extends State<AdminPanel> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        // Danger Zone
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0), // benannt ✅
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -1344,18 +1477,16 @@ class _AdminPanelState extends State<AdminPanel> {
                   ),
                 ),
                 const VerticalDivider(width: 1),
-                // Rechte Spalte: Fragen & Antworten
                 Expanded(
                   child: selectedModuleId == null
                       ? const Center(child: Text('Bitte ein Modul auswählen.'))
                       : ListView.builder(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(12), // benannt ✅
                           itemCount: fragen.length,
                           itemBuilder: (context, i) {
                             final f = fragen[i];
                             final List<dynamic> antw = (f['antworten'] ?? []) as List<dynamic>;
 
-                            // Lesbarer Themenname
                             String themaName = '— Kein Thema —';
                             final tid = f['thema_id'] as int?;
                             if (tid != null) {
@@ -1371,7 +1502,7 @@ class _AdminPanelState extends State<AdminPanel> {
                               elevation: 2,
                               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                               child: Padding(
-                                padding: const EdgeInsets.all(12.0),
+                                padding: const EdgeInsets.all(12.0), // benannt ✅
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
