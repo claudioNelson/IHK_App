@@ -1,17 +1,60 @@
-﻿# Build & Dependencies
-node_modules/
-dist/
+﻿# ========================================
+# Flutter / Dart
+# ========================================
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
 build/
-*.log
+generated_plugin_registrant.*
+*.dill
+*.tmp
+*.lock
 
-# Python/venv
-.venv/
-__pycache__/
+# ========================================
+# Plattform-spezifisch
+# ========================================
+# Android
+android/.gradle/
+android/local.properties
+android/key.properties
 
-# IDE
+# iOS
+ios/Pods/
+ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Windows
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
+
+# Linux
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+linux/flutter/generated_plugins.cmake
+
+# ========================================
+# IDE / Editor
+# ========================================
 .vscode/
 .idea/
+*.iml
 
-# Secrets
-.env
-*.secret
+# ========================================
+# Supabase
+# ========================================
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+supabase/config.toml
+
+# ========================================
+# Sonstiges
+# ========================================
+*.log
+backups/
