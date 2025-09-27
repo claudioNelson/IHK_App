@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
     url: 'https://ybvwjmaicoffitngtmzl.supabase.co',
@@ -20,15 +20,17 @@ class MyApp extends StatelessWidget {
       title: 'IHK App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        useMaterial3: true,
         primarySwatch: Colors.indigo,
         scaffoldBackgroundColor: Colors.grey[100],
         textTheme: Theme.of(context).textTheme.apply(fontFamily: 'Roboto'),
-        useMaterial3: true,
       ),
       home: NavRoot(),
     );
   }
 }
+
+
 
 /// ============================================================================
 /// NAVIGATION SHELL (Bottom Tabs via Material NavigationBar)
