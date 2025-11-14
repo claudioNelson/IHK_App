@@ -226,9 +226,9 @@ class SimulationPage extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------------
-// MODUL LISTE
-// -------------------------------------------------------------
+// ============================================================================
+// MODUL LISTE - MODERNISIERT
+// ============================================================================
 class ModulListe extends StatefulWidget {
   const ModulListe({super.key});
 
@@ -236,17 +236,43 @@ class ModulListe extends StatefulWidget {
   State<ModulListe> createState() => _ModulListeState();
 }
 
-class _ModulListeState extends State<ModulListe> {
+class _ModulListeState extends State<ModulListe> with TickerProviderStateMixin {
   final supabase = Supabase.instance.client;
 
   List<dynamic> module = [];
   Map<int, int> anzahlFragen = {};
   Map<int, int> beantworteteFragen = {};
+  Map<int, int> letzteThemaId = {}; // Letztes aktives Thema pro Modul
+  bool loading = true;
+
+  late AnimationController _headerController;
+  late Animation<double> _headerAnimation;
 
   @override
   void initState() {
     super.initState();
+    _setupAnimations();
     ladeModule();
+  }
+
+  @override
+  void dispose() {
+    _headerController.dispose();
+    super.dispose();
+  }
+
+  void _setupAnimations() {
+    _headerController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _headerAnimation = CurvedAnimation(
+      parent: _headerController,
+      curve: Curves.easeOutCubic,
+    );
+    
+    _headerController.forward();
   }
 
   Future<void> ladeModule() async {
@@ -262,15 +288,22 @@ class _ModulListeState extends State<ModulListe> {
         beantworteteFragen[modul['id']] = await _ladeModulFortschritt(
           modul['id'],
         );
+        
+        // Lade letztes Thema
+        letzteThemaId[modul['id']] = await _ladeLetzteThemaId(modul['id']);
       }
 
       if (!mounted) return;
-      setState(() => module = response);
+      setState(() {
+        module = response;
+        loading = false;
+      });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Fehler beim Laden der Module: $e')),
       );
+      setState(() => loading = false);
     }
   }
 
@@ -287,142 +320,587 @@ class _ModulListeState extends State<ModulListe> {
     }
   }
 
+  Future<int> _ladeLetzteThemaId(int modulId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getInt('letztes_thema_modul_$modulId') ?? 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  Future<void> _speichereLetzteThemaId(int modulId, int themaId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('letztes_thema_modul_$modulId', themaId);
+    } catch (e) {
+      print('Fehler beim Speichern: $e');
+    }
+  }
+
+  Color _getModulColor(int index) {
+    final colors = [
+      Colors.indigo,
+      Colors.purple,
+      Colors.teal,
+      Colors.orange,
+      Colors.pink,
+      Colors.blue,
+      Colors.green,
+      Colors.deepOrange,
+    ];
+    return colors[index % colors.length];
+  }
+
+  IconData _getModulIcon(int index) {
+    final icons = [
+      Icons.school,
+      Icons.code,
+      Icons.science,
+      Icons.business,
+      Icons.design_services,
+      Icons.psychology,
+      Icons.engineering,
+      Icons.architecture,
+    ];
+    return icons[index % icons.length];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Lernmodule',
-          style: TextStyle(fontWeight: FontWeight.bold),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // Modern App Bar
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              title: FadeTransition(
+                opacity: _headerAnimation,
+                child: const Text(
+                  'Lernmodule',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.indigo.shade50,
+                      Colors.white,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              IconButton(
+                tooltip: 'Statistiken',
+                icon: const Icon(Icons.analytics_outlined, color: Colors.indigo),
+                onPressed: () {
+                  _showStatisticsDialog();
+                },
+              ),
+            ],
+          ),
+
+          // Loading oder Content
+          if (loading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (module.isEmpty)
+            const SliverFillRemaining(
+              child: Center(
+                child: Text(
+                  'Keine Module verfügbar',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return TweenAnimationBuilder<double>(
+                      duration: Duration(milliseconds: 300 + (index * 100)),
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      builder: (context, value, child) {
+                        return Transform.translate(
+                          offset: Offset(0, 50 * (1 - value)),
+                          child: Opacity(
+                            opacity: value,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: _buildModulCard(module[index], index),
+                    );
+                  },
+                  childCount: module.length,
+                ),
+              ),
+            ),
+        ],
+      ),
+      backgroundColor: Colors.grey[50],
+    );
+  }
+
+  Widget _buildModulCard(Map<String, dynamic> modul, int index) {
+    final modulId = modul['id'];
+    final gesamt = anzahlFragen[modulId] ?? 1;
+    final fertig = beantworteteFragen[modulId] ?? 0;
+    final progress = (fertig / gesamt).clamp(0.0, 1.0);
+    final color = _getModulColor(index);
+    final icon = _getModulIcon(index);
+    final letzteThema = letzteThemaId[modulId] ?? 0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ThemenListe(
+                  modulId: modul['id'],
+                  modulName: modul['name'],
+                  onThemaSelected: (themaId) {
+                    _speichereLetzteThemaId(modulId, themaId);
+                  },
+                ),
+              ),
+            );
+            ladeModule();
+          },
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  color.withOpacity(0.05),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Row
+                  Row(
+                    children: [
+                      // Icon mit Gradient
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              color,
+                              color.withOpacity(0.7),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: color.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Icon(icon, color: Colors.white, size: 30),
+                      ),
+                      
+                      const SizedBox(width: 16),
+                      
+                      // Title & Description
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              modul['name'] ?? '',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                height: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              modul['beschreibung'] ?? '',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 13,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Circular Progress
+                      SizedBox(
+                        width: 70,
+                        height: 70,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Background Circle
+                            SizedBox(
+                              width: 70,
+                              height: 70,
+                              child: CircularProgressIndicator(
+                                value: 1.0,
+                                strokeWidth: 6,
+                                backgroundColor: Colors.transparent,
+                                valueColor: AlwaysStoppedAnimation(
+                                  color.withOpacity(0.1),
+                                ),
+                              ),
+                            ),
+                            // Progress Circle
+                            SizedBox(
+                              width: 70,
+                              height: 70,
+                              child: TweenAnimationBuilder<double>(
+                                duration: const Duration(milliseconds: 1000),
+                                tween: Tween(begin: 0.0, end: progress),
+                                curve: Curves.easeOutCubic,
+                                builder: (context, value, child) {
+                                  return CircularProgressIndicator(
+                                    value: value,
+                                    strokeWidth: 6,
+                                    backgroundColor: Colors.transparent,
+                                    valueColor: AlwaysStoppedAnimation(color),
+                                    strokeCap: StrokeCap.round,
+                                  );
+                                },
+                              ),
+                            ),
+                            // Percentage Text
+                            Text(
+                              '${(progress * 100).toInt()}%',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: color,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Stats Row
+                  Row(
+                    children: [
+                      _buildStatChip(
+                        Icons.quiz_outlined,
+                        '$fertig / $gesamt',
+                        color,
+                      ),
+                      const SizedBox(width: 8),
+                      if (progress >= 1.0)
+                        _buildBadge(
+                          Icons.emoji_events,
+                          'Abgeschlossen',
+                          Colors.amber,
+                        ),
+                    ],
+                  ),
+                  
+                  // Continue Button (wenn Fortschritt vorhanden)
+                  if (progress > 0 && progress < 1.0 && letzteThema > 0) ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          // Direkt zum letzten Thema
+                          final themen = await supabase
+                              .from('themen')
+                              .select('id, name')
+                              .eq('module_id', modulId)
+                              .eq('id', letzteThema)
+                              .maybeSingle();
+                          
+                          if (themen != null && mounted) {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TestFragen(
+                                  modulId: modulId,
+                                  modulName: '${modul['name']} • ${themen['name']}',
+                                  themaId: letzteThema,
+                                ),
+                              ),
+                            );
+                            ladeModule();
+                          }
+                        },
+                        icon: const Icon(Icons.play_arrow, size: 20),
+                        label: const Text('Weitermachen'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-        actions: [
-          IconButton(
-            tooltip: 'Admin',
-            icon: const Icon(Icons.admin_panel_settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AdminPanel()),
-              );
-            },
+      ),
+    );
+  }
+
+  Widget _buildStatChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
         ],
       ),
-      body: module.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: module.length,
-              itemBuilder: (context, index) {
-                final modul = module[index];
-                final modulId = modul['id'];
-                final gesamt = anzahlFragen[modulId] ?? 1;
-                final fertig = beantworteteFragen[modulId] ?? 0;
+    );
+  }
 
-                return GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ThemenListe(
-                        modulId: modul['id'],
-                        modulName: modul['name'],
-                      ),
-                    ),
-                  ).then((_) => ladeModule()),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.15),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          modul['name'] ?? '',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          modul['beschreibung'] ?? '',
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
-                        const SizedBox(height: 12),
-                        LinearProgressIndicator(
-                          value: (fertig / gesamt).clamp(0.0, 1.0),
-                          backgroundColor: Colors.grey.shade300,
-                          color: Colors.green,
-                          minHeight: 6,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '$fertig / $gesamt Fragen richtig beantwortet',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+  Widget _buildBadge(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color, color.withOpacity(0.8)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.white),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
-      backgroundColor: Colors.grey[100],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStatisticsDialog() {
+    final totalFragen = anzahlFragen.values.fold(0, (a, b) => a + b);
+    final totalRichtig = beantworteteFragen.values.fold(0, (a, b) => a + b);
+    final avgProgress = totalFragen > 0 ? (totalRichtig / totalFragen * 100) : 0;
+    final abgeschlossen = module.where((m) {
+      final id = m['id'];
+      final gesamt = anzahlFragen[id] ?? 1;
+      final fertig = beantworteteFragen[id] ?? 0;
+      return fertig >= gesamt;
+    }).length;
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.analytics, color: Colors.indigo),
+            SizedBox(width: 12),
+            Text('Deine Statistiken'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildStatRow(
+              'Gesamtfortschritt',
+              '${avgProgress.toStringAsFixed(1)}%',
+              Icons.trending_up,
+              Colors.indigo,
+            ),
+            const Divider(height: 24),
+            _buildStatRow(
+              'Richtig beantwortet',
+              '$totalRichtig / $totalFragen',
+              Icons.check_circle,
+              Colors.green,
+            ),
+            const Divider(height: 24),
+            _buildStatRow(
+              'Module abgeschlossen',
+              '$abgeschlossen / ${module.length}',
+              Icons.emoji_events,
+              Colors.amber,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Schließen'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, String value, IconData icon, Color color) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 15),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 }
 
-// -------------------------------------------------------------
-// THEMEN LISTE
-// -------------------------------------------------------------
+// ============================================================================
+// THEMEN LISTE - MODERNISIERT
+// ============================================================================
 class ThemenListe extends StatefulWidget {
   final int modulId;
   final String modulName;
+  final Function(int)? onThemaSelected;
 
   const ThemenListe({
     super.key,
     required this.modulId,
     required this.modulName,
+    this.onThemaSelected,
   });
 
   @override
   State<ThemenListe> createState() => _ThemenListeState();
 }
 
-class _ThemenListeState extends State<ThemenListe> {
+class _ThemenListeState extends State<ThemenListe>
+    with TickerProviderStateMixin {
   final supabase = Supabase.instance.client;
 
   List<dynamic> themen = [];
   bool loading = true;
   Map<int, double> cachedScores = {};
   Map<int, int> themenRequired = {};
+  Map<int, int> fragenCount = {}; // Anzahl Fragen pro Thema
+
+  late AnimationController _lockAnimController;
 
   @override
   void initState() {
     super.initState();
+    _setupAnimations();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _lockAnimController.dispose();
+    super.dispose();
+  }
+
+  void _setupAnimations() {
+    _lockAnimController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
   }
 
   Future<void> _load() async {
     await _loadThemen();
     await _loadScores();
+    await _loadFragenCount();
     if (!mounted) return;
     setState(() => loading = false);
   }
@@ -461,7 +939,22 @@ class _ThemenListeState extends State<ThemenListe> {
         cachedScores[id] = val;
       }
     } catch (e) {
-      // Fehler beim Laden der Scores ignorieren
+      // Fehler ignorieren
+    }
+  }
+
+  Future<void> _loadFragenCount() async {
+    try {
+      for (final t in themen) {
+        final id = t['id'] as int;
+        final response = await supabase
+            .from('fragen')
+            .select('id')
+            .eq('thema_id', id);
+        fragenCount[id] = (response as List).length;
+      }
+    } catch (e) {
+      print('Fehler beim Laden der Fragen-Counts: $e');
     }
   }
 
@@ -476,91 +969,525 @@ class _ThemenListeState extends State<ThemenListe> {
     return prevScore >= needed;
   }
 
+  Color _getDifficultyColor(String? difficulty) {
+    if (difficulty == null) return Colors.blue; // Default wenn nicht vorhanden
+    switch (difficulty.toLowerCase()) {
+      case 'leicht':
+        return Colors.green;
+      case 'mittel':
+        return Colors.orange;
+      case 'schwer':
+        return Colors.red;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  IconData _getDifficultyIcon(String? difficulty) {
+    if (difficulty == null) return Icons.help_outline; // Default wenn nicht vorhanden
+    switch (difficulty.toLowerCase()) {
+      case 'leicht':
+        return Icons.sentiment_satisfied;
+      case 'mittel':
+        return Icons.sentiment_neutral;
+      case 'schwer':
+        return Icons.sentiment_very_dissatisfied;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  int _getEstimatedMinutes(int? fragenAnzahl) {
+    if (fragenAnzahl == null || fragenAnzahl == 0) return 5;
+    return (fragenAnzahl * 1.5).ceil(); // ~1.5 Min pro Frage
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${widget.modulName} • Themen'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : themen.isEmpty
-          ? const Center(child: Text('Keine Themen vorhanden'))
-          : ListView.builder(
-              itemCount: themen.length,
-              itemBuilder: (context, i) {
-                final t = themen[i] as Map<String, dynamic>;
-                final id = t['id'] as int;
-                final unlocked = _isUnlocked(t);
-                final score = cachedScores[id] ?? 0.0;
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // Modern App Bar
+          SliverAppBar(
+            expandedHeight: 140,
+            floating: false,
+            pinned: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                widget.modulName,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.indigo.shade50,
+                      Colors.white,
+                    ],
+                  ),
+                ),
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16, bottom: 60),
+                    child: Text(
+                      'Themen',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo.shade700,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
 
-                return Opacity(
-                  opacity: unlocked ? 1.0 : 0.5,
-                  child: ListTile(
-                    title: Text(t['name'] ?? ''),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if ((t['beschreibung'] ?? '').toString().isNotEmpty)
-                          Text(t['beschreibung']),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: LinearProgressIndicator(
-                                value: (score / 100).clamp(0.0, 1.0),
-                                minHeight: 6,
-                                backgroundColor: Colors.grey.shade300,
-                                color: score >= (t['required_score'] ?? 80)
-                                    ? Colors.green
-                                    : Colors.indigo,
+          // Loading oder Content
+          if (loading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (themen.isEmpty)
+            const SliverFillRemaining(
+              child: Center(
+                child: Text(
+                  'Keine Themen vorhanden',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) {
+                    return TweenAnimationBuilder<double>(
+                      duration: Duration(milliseconds: 200 + (i * 100)),
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      builder: (context, value, child) {
+                        return Transform.translate(
+                          offset: Offset(0, 30 * (1 - value)),
+                          child: Opacity(opacity: value, child: child),
+                        );
+                      },
+                      child: _buildThemaCard(themen[i] as Map<String, dynamic>),
+                    );
+                  },
+                  childCount: themen.length,
+                ),
+              ),
+            ),
+        ],
+      ),
+      backgroundColor: Colors.grey[50],
+    );
+  }
+
+  Widget _buildThemaCard(Map<String, dynamic> thema) {
+    final id = thema['id'] as int;
+    final unlocked = _isUnlocked(thema);
+    final score = cachedScores[id] ?? 0.0;
+    final difficulty = thema['schwierigkeitsgrad'] as String?;
+    final fragenAnzahl = fragenCount[id] ?? 0;
+    final estimatedMin = _getEstimatedMinutes(fragenAnzahl);
+    final requiredScore = thema['required_score'] ?? 80;
+    final isPerfect = score >= 100;
+    final isPassed = score >= requiredScore;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => unlocked ? _openThema(thema) : _showLockedDialog(thema),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: unlocked
+                    ? [Colors.white, Colors.indigo.shade50.withOpacity(0.3)]
+                    : [Colors.grey.shade100, Colors.grey.shade200],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: unlocked
+                      ? Colors.indigo.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Row
+                  Row(
+                    children: [
+                      // Lock/Unlock Icon mit Animation
+                      AnimatedBuilder(
+                        animation: _lockAnimController,
+                        builder: (context, child) {
+                          return Transform.rotate(
+                            angle: unlocked
+                                ? 0
+                                : _lockAnimController.value * 0.1 - 0.05,
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: unlocked
+                                      ? [Colors.green, Colors.green.shade700]
+                                      : [Colors.grey, Colors.grey.shade700],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (unlocked
+                                            ? Colors.green
+                                            : Colors.grey)
+                                        .withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                unlocked ? Icons.lock_open : Icons.lock,
+                                color: Colors.white,
+                                size: 24,
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            Text('${score.toStringAsFixed(0)}%'),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      // Title & Badges
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    thema['name'] ?? '',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: unlocked
+                                          ? Colors.black
+                                          : Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ),
+                                if (isPerfect && unlocked)
+                                  _buildBadge(
+                                    Icons.star,
+                                    '100%',
+                                    Colors.amber,
+                                  )
+                                else if (isPassed && unlocked)
+                                  _buildBadge(
+                                    Icons.check_circle,
+                                    'Bestanden',
+                                    Colors.green,
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            if (thema['beschreibung'] != null &&
+                                thema['beschreibung'].toString().isNotEmpty)
+                              Text(
+                                thema['beschreibung'],
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                           ],
                         ),
-                      ],
-                    ),
-                    leading: Icon(
-                      unlocked ? Icons.lock_open : Icons.lock_outline,
-                      color: unlocked ? Colors.green : Colors.grey,
-                    ),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: unlocked
-                        ? () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => TestFragen(
-                                  modulId: widget.modulId,
-                                  modulName:
-                                      '${widget.modulName} • ${t['name']}',
-                                  themaId: id,
+                      ),
+
+                      // Score Circle
+                      if (unlocked)
+                        SizedBox(
+                          width: 60,
+                          height: 60,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 60,
+                                height: 60,
+                                child: CircularProgressIndicator(
+                                  value: 1.0,
+                                  strokeWidth: 5,
+                                  backgroundColor: Colors.transparent,
+                                  valueColor: AlwaysStoppedAnimation(
+                                    Colors.grey.shade300,
+                                  ),
                                 ),
                               ),
-                            );
-                            await _load();
-                          }
-                        : () {
-                            final prevId = t['unlocked_by'];
-                            final need = themenRequired[prevId] ?? 80;
-                            final have = cachedScores[prevId] ?? 0.0;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Dieses Thema ist gesperrt. Vorheriges Thema mindestens $need% (aktuell ${have.toStringAsFixed(0)}%).',
+                              SizedBox(
+                                width: 60,
+                                height: 60,
+                                child: TweenAnimationBuilder<double>(
+                                  duration: const Duration(milliseconds: 800),
+                                  tween: Tween(begin: 0.0, end: score / 100),
+                                  curve: Curves.easeOutCubic,
+                                  builder: (context, value, child) {
+                                    return CircularProgressIndicator(
+                                      value: value,
+                                      strokeWidth: 5,
+                                      backgroundColor: Colors.transparent,
+                                      valueColor: AlwaysStoppedAnimation(
+                                        score >= requiredScore
+                                            ? Colors.green
+                                            : Colors.indigo,
+                                      ),
+                                      strokeCap: StrokeCap.round,
+                                    );
+                                  },
                                 ),
                               ),
-                            );
-                          },
+                              Text(
+                                '${score.toStringAsFixed(0)}%',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: score >= requiredScore
+                                      ? Colors.green
+                                      : Colors.indigo,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
-                );
-              },
+
+                  const SizedBox(height: 16),
+
+                  // Info Chips Row
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      // Nur zeigen wenn Schwierigkeitsgrad vorhanden
+                      if (difficulty != null && difficulty.isNotEmpty)
+                        _buildInfoChip(
+                          _getDifficultyIcon(difficulty),
+                          difficulty,
+                          _getDifficultyColor(difficulty),
+                        ),
+                      _buildInfoChip(
+                        Icons.quiz_outlined,
+                        '$fragenAnzahl Fragen',
+                        Colors.blue,
+                      ),
+                      _buildInfoChip(
+                        Icons.timer_outlined,
+                        '~$estimatedMin Min',
+                        Colors.orange,
+                      ),
+                      if (!unlocked)
+                        _buildInfoChip(
+                          Icons.military_tech,
+                          'Mind. $requiredScore%',
+                          Colors.purple,
+                        ),
+                    ],
+                  ),
+
+                  // Unlock Info
+                  if (!unlocked) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.orange.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 20,
+                            color: Colors.orange.shade700,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _getUnlockMessage(thema),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.orange.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadge(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color, color.withOpacity(0.8)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.white),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getUnlockMessage(Map<String, dynamic> thema) {
+    final prevId = thema['unlocked_by'];
+    final need = themenRequired[prevId] ?? 80;
+    final have = cachedScores[prevId] ?? 0.0;
+
+    final prevThema = themen.firstWhere(
+      (t) => t['id'] == prevId,
+      orElse: () => {'name': 'vorheriges Thema'},
+    );
+
+    return 'Erreiche mindestens $need% in "${prevThema['name']}" (aktuell ${have.toStringAsFixed(0)}%)';
+  }
+
+  void _openThema(Map<String, dynamic> thema) async {
+    final id = thema['id'] as int;
+
+    // Callback für letztes Thema
+    widget.onThemaSelected?.call(id);
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TestFragen(
+          modulId: widget.modulId,
+          modulName: '${widget.modulName} • ${thema['name']}',
+          themaId: id,
+        ),
+      ),
+    );
+    await _load();
+  }
+
+  void _showLockedDialog(Map<String, dynamic> thema) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.lock, color: Colors.orange.shade700),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(child: Text('Thema gesperrt')),
+          ],
+        ),
+        content: Text(_getUnlockMessage(thema)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Verstanden'),
+          ),
+        ],
+      ),
     );
   }
 }
