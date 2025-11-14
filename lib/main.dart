@@ -846,7 +846,6 @@ class _ModulListeState extends State<ModulListe> with TickerProviderStateMixin {
   }
 }
 
-// ============================================================================
 // THEMEN LISTE - MODERNISIERT
 // ============================================================================
 class ThemenListe extends StatefulWidget {
@@ -910,7 +909,7 @@ class _ThemenListeState extends State<ThemenListe>
       final res = await supabase
           .from('themen')
           .select(
-            'id, name, beschreibung, sort_index, required_score, unlocked_by',
+            'id, name, beschreibung, sort_index, required_score, unlocked_by, schwierigkeitsgrad',
           )
           .eq('module_id', widget.modulId)
           .order('sort_index, id');
@@ -1491,7 +1490,6 @@ class _ThemenListeState extends State<ThemenListe>
     );
   }
 }
-
 // -------------------------------------------------------------
 // TEST FRAGEN
 // -------------------------------------------------------------
