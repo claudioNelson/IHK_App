@@ -10,24 +10,26 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 
-
 // -------------------------------------------------------------
 // App-Start
 // -------------------------------------------------------------
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   print('🔄 Initialisiere Supabase...');
-  
+
   await Supabase.initialize(
     url: 'https://ybvwjmaicoffitngtmzl.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlidndqbWFpY29mZml0bmd0bXpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMjI3MjAsImV4cCI6MjA2OTc5ODcyMH0.JzSoVS9P5RxtNx4C2Zou_-NJbQq3TdcJd39L8WC4wGo',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlidndqbWFpY29mZml0bmd0bXpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMjI3MjAsImV4cCI6MjA2OTc5ODcyMH0.JzSoVS9P5RxtNx4C2Zou_-NJbQq3TdcJd39L8WC4wGo',
   );
 
   print('✅ Supabase initialisiert');
-  
+
   final session = Supabase.instance.client.auth.currentSession;
-  print('🔐 Aktuelle Session: ${session != null ? "Eingeloggt" : "Nicht eingeloggt"}');
+  print(
+    '🔐 Aktuelle Session: ${session != null ? "Eingeloggt" : "Nicht eingeloggt"}',
+  );
 
   runApp(const MyApp());
 }
@@ -71,6 +73,7 @@ class _NavRootState extends State<NavRoot> {
 
   late final List<Widget> _pages = [
     const _NavKeepAlive(child: ModulListe()),
+    const _NavKeepAlive(child: ZertifikatePage()), // ← NEU!
     const _NavKeepAlive(child: SimulationPage()),
     const _NavKeepAlive(child: AdminPanel()),
     const _NavKeepAlive(child: NewProfilePage()),
@@ -88,6 +91,11 @@ class _NavRootState extends State<NavRoot> {
             icon: Icon(Icons.book_outlined),
             selectedIcon: Icon(Icons.book),
             label: 'Module',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.card_membership_outlined), // ← NEU!
+            selectedIcon: Icon(Icons.card_membership),
+            label: 'Zertifikate',
           ),
           NavigationDestination(
             icon: Icon(Icons.quiz_outlined),
@@ -123,7 +131,7 @@ class _NavKeepAliveState extends State<_NavKeepAlive>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-  
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -229,7 +237,7 @@ class ModulListe extends StatefulWidget {
 
 class _ModulListeState extends State<ModulListe> {
   final supabase = Supabase.instance.client;
-  
+
   List<dynamic> module = [];
   Map<int, int> anzahlFragen = {};
   Map<int, int> beantworteteFragen = {};
@@ -243,7 +251,7 @@ class _ModulListeState extends State<ModulListe> {
   Future<void> ladeModule() async {
     try {
       final response = await supabase.from('module').select().order('id');
-      
+
       for (var modul in response) {
         final fragen = await supabase
             .from('fragen')
@@ -254,7 +262,7 @@ class _ModulListeState extends State<ModulListe> {
           modul['id'],
         );
       }
-      
+
       if (!mounted) return;
       setState(() => module = response);
     } catch (e) {
@@ -364,7 +372,10 @@ class _ModulListeState extends State<ModulListe> {
                         const SizedBox(height: 4),
                         Text(
                           '$fertig / $gesamt Fragen richtig beantwortet',
-                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ],
                     ),
@@ -383,7 +394,7 @@ class _ModulListeState extends State<ModulListe> {
 class ThemenListe extends StatefulWidget {
   final int modulId;
   final String modulName;
-  
+
   const ThemenListe({
     super.key,
     required this.modulId,
@@ -396,7 +407,7 @@ class ThemenListe extends StatefulWidget {
 
 class _ThemenListeState extends State<ThemenListe> {
   final supabase = Supabase.instance.client;
-  
+
   List<dynamic> themen = [];
   bool loading = true;
   Map<int, double> cachedScores = {};
@@ -424,9 +435,9 @@ class _ThemenListeState extends State<ThemenListe> {
           )
           .eq('module_id', widget.modulId)
           .order('sort_index, id');
-      
+
       if (!mounted) return;
-      
+
       themen = res;
       for (final t in res) {
         themenRequired[t['id'] as int] = (t['required_score'] ?? 80) as int;
@@ -476,78 +487,79 @@ class _ThemenListeState extends State<ThemenListe> {
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : themen.isEmpty
-              ? const Center(child: Text('Keine Themen vorhanden'))
-              : ListView.builder(
-                  itemCount: themen.length,
-                  itemBuilder: (context, i) {
-                    final t = themen[i] as Map<String, dynamic>;
-                    final id = t['id'] as int;
-                    final unlocked = _isUnlocked(t);
-                    final score = cachedScores[id] ?? 0.0;
-                    
-                    return Opacity(
-                      opacity: unlocked ? 1.0 : 0.5,
-                      child: ListTile(
-                        title: Text(t['name'] ?? ''),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+          ? const Center(child: Text('Keine Themen vorhanden'))
+          : ListView.builder(
+              itemCount: themen.length,
+              itemBuilder: (context, i) {
+                final t = themen[i] as Map<String, dynamic>;
+                final id = t['id'] as int;
+                final unlocked = _isUnlocked(t);
+                final score = cachedScores[id] ?? 0.0;
+
+                return Opacity(
+                  opacity: unlocked ? 1.0 : 0.5,
+                  child: ListTile(
+                    title: Text(t['name'] ?? ''),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if ((t['beschreibung'] ?? '').toString().isNotEmpty)
+                          Text(t['beschreibung']),
+                        const SizedBox(height: 6),
+                        Row(
                           children: [
-                            if ((t['beschreibung'] ?? '').toString().isNotEmpty)
-                              Text(t['beschreibung']),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: LinearProgressIndicator(
-                                    value: (score / 100).clamp(0.0, 1.0),
-                                    minHeight: 6,
-                                    backgroundColor: Colors.grey.shade300,
-                                    color: score >= (t['required_score'] ?? 80)
-                                        ? Colors.green
-                                        : Colors.indigo,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text('${score.toStringAsFixed(0)}%'),
-                              ],
+                            Expanded(
+                              child: LinearProgressIndicator(
+                                value: (score / 100).clamp(0.0, 1.0),
+                                minHeight: 6,
+                                backgroundColor: Colors.grey.shade300,
+                                color: score >= (t['required_score'] ?? 80)
+                                    ? Colors.green
+                                    : Colors.indigo,
+                              ),
                             ),
+                            const SizedBox(width: 10),
+                            Text('${score.toStringAsFixed(0)}%'),
                           ],
                         ),
-                        leading: Icon(
-                          unlocked ? Icons.lock_open : Icons.lock_outline,
-                          color: unlocked ? Colors.green : Colors.grey,
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: unlocked
-                            ? () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => TestFragen(
-                                      modulId: widget.modulId,
-                                      modulName: '${widget.modulName} • ${t['name']}',
-                                      themaId: id,
-                                    ),
-                                  ),
-                                );
-                                await _load();
-                              }
-                            : () {
-                                final prevId = t['unlocked_by'];
-                                final need = themenRequired[prevId] ?? 80;
-                                final have = cachedScores[prevId] ?? 0.0;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Dieses Thema ist gesperrt. Vorheriges Thema mindestens $need% (aktuell ${have.toStringAsFixed(0)}%).',
-                                    ),
-                                  ),
-                                );
-                              },
-                      ),
-                    );
-                  },
-                ),
+                      ],
+                    ),
+                    leading: Icon(
+                      unlocked ? Icons.lock_open : Icons.lock_outline,
+                      color: unlocked ? Colors.green : Colors.grey,
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: unlocked
+                        ? () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TestFragen(
+                                  modulId: widget.modulId,
+                                  modulName:
+                                      '${widget.modulName} • ${t['name']}',
+                                  themaId: id,
+                                ),
+                              ),
+                            );
+                            await _load();
+                          }
+                        : () {
+                            final prevId = t['unlocked_by'];
+                            final need = themenRequired[prevId] ?? 80;
+                            final have = cachedScores[prevId] ?? 0.0;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Dieses Thema ist gesperrt. Vorheriges Thema mindestens $need% (aktuell ${have.toStringAsFixed(0)}%).',
+                                ),
+                              ),
+                            );
+                          },
+                  ),
+                );
+              },
+            ),
     );
   }
 }
@@ -572,9 +584,10 @@ class TestFragen extends StatefulWidget {
   State<TestFragen> createState() => _TestFragenState();
 }
 
-class _TestFragenState extends State<TestFragen> with SingleTickerProviderStateMixin {
+class _TestFragenState extends State<TestFragen>
+    with SingleTickerProviderStateMixin {
   final supabase = Supabase.instance.client;
-  
+
   List<dynamic> fragen = [];
   int aktuelleFrage = 0;
   int richtig = 0;
@@ -585,11 +598,11 @@ class _TestFragenState extends State<TestFragen> with SingleTickerProviderStateM
   String erklaerung = '';
   int? gewaehlteAntwortId;
   int? richtigeAntwortId;
-  
+
   // KI State
   bool generatingExplanation = false;
   String? aiError;
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -606,17 +619,18 @@ class _TestFragenState extends State<TestFragen> with SingleTickerProviderStateM
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
-    
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
   }
 
   @override
@@ -638,7 +652,7 @@ class _TestFragenState extends State<TestFragen> with SingleTickerProviderStateM
 
       final response = await query.order('id');
       if (!mounted) return;
-      
+
       setState(() => fragen = response);
       _animationController.forward();
     } catch (e) {
@@ -680,80 +694,28 @@ class _TestFragenState extends State<TestFragen> with SingleTickerProviderStateM
   // ============================================================================
   // KI ERKLÄRUNGS-GENERATOR (LIVE)
   // ============================================================================
-  
-Future<String?> _generateLiveExplanation({
-  required String frage,
-  required String richtigeAntwort,
-  required String falscheAntwort,
-}) async {
-  print('🤖 Starte KI-Generierung (Gemini)...');
-  print('📝 Frage: $frage');
-  
-  try {
-    print('📡 Sende Request an Gemini API...');
-    
-    final apiKey = 'AIzaSyDyHPkXXFC52DX3wquuy-Ui4F9_gbPtUF4'; 
-    
-    final response = await http.post(
-  Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=$apiKey'),
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  // ... rest bleibt gleich
-  // ... rest bleibt gleich
-      body: jsonEncode({
-        'contents': [
-          {
-            'parts': [
-              {
-                'text': '''Du bist ein geduldiger IHK-Prüfungsexperte. Ein Lernender hat diese Frage falsch beantwortet.
 
-Frage: $frage
-Falsche Antwort: $falscheAntwort
-Richtige Antwort: $richtigeAntwort
-
-Erstelle eine hilfreiche, lehrreiche Erklärung (2-3 Sätze) die:
-- Erklärt WARUM die richtige Antwort korrekt ist
-- Den häufigen Denkfehler aufzeigt
-- Dem Lernenden hilft, es beim nächsten Mal richtig zu machen
-- Motivierend und freundlich formuliert ist
-- Fachlich präzise ist
-
-Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
-              }
-            ]
-          }
-        ]
-      }),
-    );
-
-    print('📨 Response Status: ${response.statusCode}');
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      print('📨 Response Data: $data');
-      
-      if (data['candidates'] != null && data['candidates'].isNotEmpty) {
-        final text = data['candidates'][0]['content']['parts'][0]['text'];
-        final explanation = text.toString().trim();
-        print('✅ Erklärung generiert: $explanation');
-        return explanation;
-      }
-    } else {
-      print('❌ API Error: ${response.statusCode}');
-      print('❌ Body: ${response.body}');
-    }
-    
-    return null;
-  } catch (e, stackTrace) {
-    print('❌ KI-Fehler: $e');
-    print('❌ StackTrace: $stackTrace');
-    return null;
+  Future<String?> _generateLiveExplanation({
+    required String frage,
+    required String richtigeAntwort,
+    required String falscheAntwort,
+  }) async {
+    // Einfacher Fallback ohne KI
+    return 'Die richtige Antwort ist: "$richtigeAntwort". '
+        'Tipp: Überlege dir den Unterschied zur gewählten Antwort "$falscheAntwort".';
   }
-}
-  Future<void> pruefeAntwort(int antwortId, bool korrekt, String erklaerungText, int frageId) async {
+
+  ////////////////////////////////////////////////
+  // Prüfe Antowort
+  ////////////////////////////////////////////////
+  Future<void> pruefeAntwort(
+    int antwortId,
+    bool korrekt,
+    String erklaerungText,
+    int frageId,
+  ) async {
     if (!mounted || antwortGewaehlt) return;
-    
+
     final frage = fragen[aktuelleFrage];
     final antworten = frage['antworten'] as List<dynamic>;
     final richtigeAntwort = antworten.firstWhere(
@@ -761,37 +723,36 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
       orElse: () => antworten.first,
     );
     final gewaehlteAntwort = antworten.firstWhere((a) => a['id'] == antwortId);
-    
+
     setState(() {
       antwortGewaehlt = true;
       istAntwortRichtig = korrekt;
       gewaehlteAntwortId = antwortId;
       richtigeAntwortId = richtigeAntwort['id'];
-      
+
       if (korrekt) {
         richtig++;
         speichereFortschritt(frageId);
-        // Bei richtiger Antwort: Vorhandene Erklärung verwenden
-        erklaerung = richtigeAntwort['erklaerung']?.toString().trim() ?? 
-                     frage['erklaerung']?.toString().trim() ?? 
-                     'Sehr gut! Das ist die richtige Antwort.';
+        erklaerung =
+            richtigeAntwort['erklaerung']?.toString().trim() ??
+            frage['erklaerung']?.toString().trim() ??
+            'Sehr gut! Das ist die richtige Antwort.';
       } else {
         falsch++;
-        // Bei falscher Antwort: Prüfe ob Erklärung vorhanden
-        final vorhandeneErklaerung = richtigeAntwort['erklaerung']?.toString().trim() ?? 
-                                      frage['erklaerung']?.toString().trim();
-        
+        final vorhandeneErklaerung =
+            richtigeAntwort['erklaerung']?.toString().trim() ??
+            frage['erklaerung']?.toString().trim();
+
         if (vorhandeneErklaerung != null && vorhandeneErklaerung.isNotEmpty) {
           erklaerung = vorhandeneErklaerung;
         } else {
-          // Keine Erklärung vorhanden -> KI generieren!
           erklaerung = 'Lade Erklärung...';
           generatingExplanation = true;
           aiError = null;
         }
       }
     });
-    
+
     // KI-Erklärung generieren wenn falsch und keine vorhanden
     if (!korrekt && (erklaerung == 'Lade Erklärung...')) {
       final aiErklaerung = await _generateLiveExplanation(
@@ -799,19 +760,43 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
         richtigeAntwort: richtigeAntwort['text'] as String,
         falscheAntwort: gewaehlteAntwort['text'] as String,
       );
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         generatingExplanation = false;
-        
+
         if (aiErklaerung != null) {
           erklaerung = aiErklaerung;
-          
+          _saveExplanationToDB(richtigeAntwort['id'] as int, aiErklaerung);
+        } else {
+          erklaerung =
+              'Die richtige Antwort lautet: ${richtigeAntwort['text']}';
+          aiError = 'Erklärung konnte nicht generiert werden';
+        }
+      });
+    }
+    // KI-Erklärung generieren wenn falsch und keine vorhanden
+    if (!korrekt && (erklaerung == 'Lade Erklärung...')) {
+      final aiErklaerung = await _generateLiveExplanation(
+        frage: frage['frage'] as String,
+        richtigeAntwort: richtigeAntwort['text'] as String,
+        falscheAntwort: gewaehlteAntwort['text'] as String,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        generatingExplanation = false;
+
+        if (aiErklaerung != null) {
+          erklaerung = aiErklaerung;
+
           // Optional: Speichere in DB für nächstes Mal
           _saveExplanationToDB(richtigeAntwort['id'] as int, aiErklaerung);
         } else {
-          erklaerung = 'Die richtige Antwort lautet: ${richtigeAntwort['text']}';
+          erklaerung =
+              'Die richtige Antwort lautet: ${richtigeAntwort['text']}';
           aiError = 'Erklärung konnte nicht generiert werden';
         }
       });
@@ -833,9 +818,9 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
   void naechsteFrage() async {
     if (aktuelleFrage + 1 < fragen.length) {
       if (!mounted) return;
-      
+
       _animationController.reset();
-      
+
       setState(() {
         aktuelleFrage++;
         antwortGewaehlt = false;
@@ -845,7 +830,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
         generatingExplanation = false;
         aiError = null;
       });
-      
+
       _animationController.forward();
     } else {
       await _speichereThemaScore();
@@ -885,7 +870,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
       body: Column(
         children: [
           _buildProgressHeader(),
-          
+
           Expanded(
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -897,7 +882,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
                     children: [
                       _buildFrageCard(frage),
                       const SizedBox(height: 20),
-                      
+
                       if (!antwortGewaehlt)
                         _buildAntwortenListe(antworten, frage['id'])
                       else
@@ -908,7 +893,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
               ),
             ),
           ),
-          
+
           if (antwortGewaehlt) _buildWeiterButton(),
         ],
       ),
@@ -917,7 +902,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
 
   Widget _buildProgressHeader() {
     final progress = (aktuelleFrage + 1) / fragen.length;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -981,10 +966,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
           const SizedBox(width: 4),
           Text(
             '$count',
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: color, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -994,9 +976,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
   Widget _buildFrageCard(Map<String, dynamic> frage) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -1004,10 +984,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.indigo.shade50,
-              Colors.white,
-            ],
+            colors: [Colors.indigo.shade50, Colors.white],
           ),
         ),
         child: Column(
@@ -1021,11 +998,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
                     color: Colors.indigo,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
-                    Icons.quiz,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+                  child: const Icon(Icons.quiz, color: Colors.white, size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -1060,17 +1033,14 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
       children: antworten.asMap().entries.map((entry) {
         final index = entry.key;
         final antwort = entry.value;
-        
+
         return TweenAnimationBuilder<double>(
           duration: Duration(milliseconds: 300 + (index * 100)),
           tween: Tween(begin: 0.0, end: 1.0),
           builder: (context, value, child) {
             return Transform.translate(
               offset: Offset(0, 20 * (1 - value)),
-              child: Opacity(
-                opacity: value,
-                child: child,
-              ),
+              child: Opacity(opacity: value, child: child),
             );
           },
           child: Padding(
@@ -1098,10 +1068,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.grey.shade300,
-              width: 2,
-            ),
+            border: Border.all(color: Colors.grey.shade300, width: 2),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.05),
@@ -1117,20 +1084,14 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
                 height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.indigo,
-                    width: 2,
-                  ),
+                  border: Border.all(color: Colors.indigo, width: 2),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   antwort['text'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    height: 1.4,
-                  ),
+                  style: const TextStyle(fontSize: 16, height: 1.4),
                 ),
               ),
             ],
@@ -1147,14 +1108,14 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: istAntwortRichtig 
-              ? Colors.green.shade50 
-              : Colors.red.shade50,
+            color: istAntwortRichtig
+                ? Colors.green.shade50
+                : Colors.red.shade50,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: istAntwortRichtig 
-                ? Colors.green.shade200 
-                : Colors.red.shade200,
+              color: istAntwortRichtig
+                  ? Colors.green.shade200
+                  : Colors.red.shade200,
               width: 2,
             ),
           ),
@@ -1175,19 +1136,17 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: istAntwortRichtig 
-                          ? Colors.green.shade800 
-                          : Colors.red.shade800,
+                        color: istAntwortRichtig
+                            ? Colors.green.shade800
+                            : Colors.red.shade800,
                       ),
                     ),
                     if (!istAntwortRichtig)
                       Text(
-                        generatingExplanation 
-                          ? 'KI erstellt Erklärung...'
-                          : 'Schau dir die Erklärung an',
-                        style: TextStyle(
-                          color: Colors.red.shade700,
-                        ),
+                        generatingExplanation
+                            ? 'KI erstellt Erklärung...'
+                            : 'Schau dir die Erklärung an',
+                        style: TextStyle(color: Colors.red.shade700),
                       ),
                   ],
                 ),
@@ -1202,35 +1161,41 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Antworten anzeigen
         ...antworten.map((a) {
           final istRichtig = a['ist_richtig'] == true;
           final wurdeGewaehlt = a['id'] == gewaehlteAntwortId;
-          
+
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: istRichtig 
-                  ? Colors.green.shade50 
-                  : (wurdeGewaehlt ? Colors.red.shade50 : Colors.grey.shade50),
+                color: istRichtig
+                    ? Colors.green.shade50
+                    : (wurdeGewaehlt
+                          ? Colors.red.shade50
+                          : Colors.grey.shade50),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: istRichtig 
-                    ? Colors.green 
-                    : (wurdeGewaehlt ? Colors.red : Colors.grey.shade300),
+                  color: istRichtig
+                      ? Colors.green
+                      : (wurdeGewaehlt ? Colors.red : Colors.grey.shade300),
                   width: 2,
                 ),
               ),
               child: Row(
                 children: [
                   Icon(
-                    istRichtig ? Icons.check_circle : 
-                    (wurdeGewaehlt ? Icons.cancel : Icons.circle_outlined),
-                    color: istRichtig ? Colors.green : 
-                    (wurdeGewaehlt ? Colors.red : Colors.grey),
+                    istRichtig
+                        ? Icons.check_circle
+                        : (wurdeGewaehlt
+                              ? Icons.cancel
+                              : Icons.circle_outlined),
+                    color: istRichtig
+                        ? Colors.green
+                        : (wurdeGewaehlt ? Colors.red : Colors.grey),
                     size: 24,
                   ),
                   const SizedBox(width: 16),
@@ -1239,8 +1204,12 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
                       a['text'],
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: istRichtig ? FontWeight.bold : FontWeight.normal,
-                        color: istRichtig ? Colors.green.shade900 : Colors.black87,
+                        fontWeight: istRichtig
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: istRichtig
+                            ? Colors.green.shade900
+                            : Colors.black87,
                       ),
                     ),
                   ),
@@ -1249,7 +1218,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
             ),
           );
         }),
-        
+
         // Erklärung (mit KI-Loading oder fertige Erklärung)
         if (erklaerung.isNotEmpty) ...[
           const SizedBox(height: 16),
@@ -1258,10 +1227,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
             decoration: BoxDecoration(
               color: Colors.blue.shade50,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.blue.shade200,
-                width: 2,
-              ),
+              border: Border.all(color: Colors.blue.shade200, width: 2),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1269,9 +1235,9 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
                 Row(
                   children: [
                     Icon(
-                      generatingExplanation 
-                        ? Icons.auto_awesome 
-                        : Icons.lightbulb,
+                      generatingExplanation
+                          ? Icons.auto_awesome
+                          : Icons.lightbulb,
                       color: Colors.blue.shade700,
                     ),
                     const SizedBox(width: 8),
@@ -1309,10 +1275,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
                   const SizedBox(height: 8),
                   Text(
                     '⚠️ $aiError',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.orange,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.orange),
                   ),
                 ],
               ],
@@ -1362,9 +1325,9 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
                 )
               else
                 Text(
-                  aktuelleFrage + 1 >= fragen.length 
-                    ? 'Ergebnis anzeigen' 
-                    : 'Nächste Frage',
+                  aktuelleFrage + 1 >= fragen.length
+                      ? 'Ergebnis anzeigen'
+                      : 'Nächste Frage',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -1383,10 +1346,10 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
 
   Widget _buildErgebnisScreen() {
     final prozent = ((richtig / fragen.length) * 100).round();
-    final Color scoreColor = prozent >= 80 
-      ? Colors.green 
-      : (prozent >= 50 ? Colors.orange : Colors.red);
-    
+    final Color scoreColor = prozent >= 80
+        ? Colors.green
+        : (prozent >= 50 ? Colors.orange : Colors.red);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.modulName),
@@ -1440,7 +1403,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
                 ),
               ),
               const SizedBox(height: 40),
-              
+
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
@@ -1475,7 +1438,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               ElevatedButton.icon(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.arrow_back),
@@ -1538,10 +1501,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
         ),
         Text(
@@ -1556,6 +1516,7 @@ Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
     );
   }
 }
+
 // -------------------------------------------------------------
 // ADMIN PANEL
 // -------------------------------------------------------------
@@ -1568,13 +1529,13 @@ class AdminPanel extends StatefulWidget {
 
 class _AdminPanelState extends State<AdminPanel> {
   final supabase = Supabase.instance.client;
-  
+
   List<dynamic> module = [];
   int? selectedModuleId;
   List<dynamic> themen = [];
   List<dynamic> fragen = [];
   bool loading = false;
-  
+
   // KI Generation State
   Map<int, bool> generatingAI = {}; // antwort_id -> loading
   Map<int, String> aiErrors = {}; // antwort_id -> error message
@@ -1603,7 +1564,9 @@ class _AdminPanelState extends State<AdminPanel> {
     try {
       final res = await supabase
           .from('themen')
-          .select('id, name, beschreibung, sort_index, required_score, unlocked_by')
+          .select(
+            'id, name, beschreibung, sort_index, required_score, unlocked_by',
+          )
           .eq('module_id', modulId)
           .order('sort_index, name');
       if (!mounted) return;
@@ -1624,7 +1587,9 @@ class _AdminPanelState extends State<AdminPanel> {
       await _loadThemen(modulId);
       final res = await supabase
           .from('fragen')
-          .select('id, frage, erklaerung, modul_id, thema_id, antworten(id, text, ist_richtig, erklaerung)')
+          .select(
+            'id, frage, erklaerung, modul_id, thema_id, antworten(id, text, ist_richtig, erklaerung)',
+          )
           .eq('modul_id', modulId)
           .order('id');
       if (!mounted) return;
@@ -1645,7 +1610,7 @@ class _AdminPanelState extends State<AdminPanel> {
   // ============================================================================
   // KI ERKLÄRUNGS-GENERATOR
   // ============================================================================
-  
+
   Future<void> _generateAIExplanation({
     required int antwortId,
     required String frage,
@@ -1659,16 +1624,15 @@ class _AdminPanelState extends State<AdminPanel> {
     try {
       final response = await http.post(
         Uri.parse('https://api.anthropic.com/v1/messages'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'model': 'claude-sonnet-4-20250514',
           'max_tokens': 1000,
           'messages': [
             {
               'role': 'user',
-              'content': '''Du bist ein IHK-Prüfungsexperte. Erstelle eine präzise, lehrreiche Erklärung (1-2 Sätze) für diese Frage und Antwort:
+              'content':
+                  '''Du bist ein IHK-Prüfungsexperte. Erstelle eine präzise, lehrreiche Erklärung (1-2 Sätze) für diese Frage und Antwort:
 
 Frage: $frage
 Richtige Antwort: $antwort
@@ -1680,28 +1644,28 @@ Die Erklärung soll:
 - Fachlich korrekt sein
 - Auf Deutsch sein
 
-Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
-            }
-          ]
+Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
+            },
+          ],
         }),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         if (data['content'] != null && data['content'].isNotEmpty) {
           final erklaerung = data['content'][0]['text'].toString().trim();
-          
+
           // Speichere in Supabase
           await supabase
               .from('antworten')
               .update({'erklaerung': erklaerung})
               .eq('id', antwortId);
-          
+
           if (!mounted) return;
-          
+
           _snack('✅ Erklärung generiert und gespeichert!');
-          
+
           // Reload Fragen
           if (selectedModuleId != null) {
             await _loadFragenForModule(selectedModuleId!);
@@ -1729,8 +1693,10 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
   // Generiere Erklärungen für ALLE richtigen Antworten einer Frage
   Future<void> _generateAllExplanations(Map<String, dynamic> frage) async {
     final antworten = (frage['antworten'] ?? []) as List<dynamic>;
-    final richtigeAntworten = antworten.where((a) => a['ist_richtig'] == true).toList();
-    
+    final richtigeAntworten = antworten
+        .where((a) => a['ist_richtig'] == true)
+        .toList();
+
     if (richtigeAntworten.isEmpty) {
       _snack('⚠️ Keine richtige Antwort gefunden');
       return;
@@ -1770,7 +1736,7 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
         frage: frage['frage'] as String,
         antwort: antwort['text'] as String,
       );
-      
+
       // Kurze Pause zwischen Requests
       await Future.delayed(const Duration(milliseconds: 500));
     }
@@ -1779,10 +1745,12 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
   // ============================================================================
   // BESTEHENDE ADMIN FUNCTIONS (Dialoge, etc.)
   // ============================================================================
-  
+
   Future<void> _editFrageDialog(Map<String, dynamic> frage) async {
     final frageCtrl = TextEditingController(text: frage['frage'] ?? '');
-    final erkCtrl = TextEditingController(text: (frage['erklaerung'] ?? '').toString());
+    final erkCtrl = TextEditingController(
+      text: (frage['erklaerung'] ?? '').toString(),
+    );
     int? selectedThemaId = frage['thema_id'] as int?;
 
     await showDialog(
@@ -1811,11 +1779,16 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
                   ),
                   isExpanded: true,
                   items: [
-                    const DropdownMenuItem<int?>(value: null, child: Text('— Kein Thema —')),
-                    ...themen.map<DropdownMenuItem<int?>>((t) => DropdownMenuItem(
-                      value: t['id'] as int,
-                      child: Text(t['name'] ?? ''),
-                    )),
+                    const DropdownMenuItem<int?>(
+                      value: null,
+                      child: Text('— Kein Thema —'),
+                    ),
+                    ...themen.map<DropdownMenuItem<int?>>(
+                      (t) => DropdownMenuItem(
+                        value: t['id'] as int,
+                        child: Text(t['name'] ?? ''),
+                      ),
+                    ),
                   ],
                   onChanged: (v) => selectedThemaId = v,
                 ),
@@ -1864,9 +1837,14 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
     );
   }
 
-  Future<void> _editAntwortDialog(Map<String, dynamic> antwort, String frageText) async {
+  Future<void> _editAntwortDialog(
+    Map<String, dynamic> antwort,
+    String frageText,
+  ) async {
     final textCtrl = TextEditingController(text: antwort['text'] ?? '');
-    final erkCtrl = TextEditingController(text: (antwort['erklaerung'] ?? '').toString());
+    final erkCtrl = TextEditingController(
+      text: (antwort['erklaerung'] ?? '').toString(),
+    );
     bool istRichtig = (antwort['ist_richtig'] == true);
 
     await showDialog(
@@ -1904,7 +1882,7 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
                     maxLines: 5,
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // KI-Generator Button
                   if (istRichtig)
                     ElevatedButton.icon(
@@ -2039,7 +2017,7 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
                   ),
                 ),
                 const VerticalDivider(width: 1),
-                
+
                 // Main Content: Fragen
                 Expanded(
                   child: selectedModuleId == null
@@ -2049,14 +2027,18 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
                           itemCount: fragen.length,
                           itemBuilder: (context, i) {
                             final f = fragen[i];
-                            final List<dynamic> antw = (f['antworten'] ?? []) as List<dynamic>;
+                            final List<dynamic> antw =
+                                (f['antworten'] ?? []) as List<dynamic>;
 
                             return Card(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               elevation: 2,
-                              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 8,
+                              ),
                               child: Padding(
                                 padding: const EdgeInsets.all(12.0),
                                 child: Column(
@@ -2068,43 +2050,65 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
                                         Expanded(
                                           child: Text(
                                             'Q${f['id']}: ${f['frage']}',
-                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
                                         // KI Button für alle Antworten
                                         IconButton(
-                                          tooltip: 'KI-Erklärungen für alle generieren',
-                                          icon: const Icon(Icons.auto_awesome, color: Colors.purple),
-                                          onPressed: () => _generateAllExplanations(f as Map<String, dynamic>),
+                                          tooltip:
+                                              'KI-Erklärungen für alle generieren',
+                                          icon: const Icon(
+                                            Icons.auto_awesome,
+                                            color: Colors.purple,
+                                          ),
+                                          onPressed: () =>
+                                              _generateAllExplanations(
+                                                f as Map<String, dynamic>,
+                                              ),
                                         ),
                                         IconButton(
                                           tooltip: 'Frage bearbeiten',
                                           icon: const Icon(Icons.edit),
-                                          onPressed: () => _editFrageDialog(f as Map<String, dynamic>),
+                                          onPressed: () => _editFrageDialog(
+                                            f as Map<String, dynamic>,
+                                          ),
                                         ),
                                       ],
                                     ),
                                     const SizedBox(height: 8),
-                                    
+
                                     // Antworten
                                     const Text(
                                       'Antworten:',
-                                      style: TextStyle(fontWeight: FontWeight.w600),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                     const SizedBox(height: 6),
                                     ...antw.map((a) {
                                       final bool ok = a['ist_richtig'] == true;
                                       final int aId = a['id'] as int;
-                                      final bool isGenerating = generatingAI[aId] == true;
+                                      final bool isGenerating =
+                                          generatingAI[aId] == true;
                                       final String? error = aiErrors[aId];
-                                      
+
                                       return Container(
-                                        margin: const EdgeInsets.only(bottom: 8),
+                                        margin: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
                                         decoration: BoxDecoration(
-                                          color: ok ? Colors.green.shade50 : Colors.grey.shade100,
-                                          borderRadius: BorderRadius.circular(8),
+                                          color: ok
+                                              ? Colors.green.shade50
+                                              : Colors.grey.shade100,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           border: Border.all(
-                                            color: ok ? Colors.green.shade200 : Colors.grey.shade300,
+                                            color: ok
+                                                ? Colors.green.shade200
+                                                : Colors.grey.shade300,
                                           ),
                                         ),
                                         child: Column(
@@ -2112,22 +2116,35 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
                                             ListTile(
                                               title: Text(a['text'] ?? ''),
                                               subtitle: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
-                                                  if ((a['erklaerung'] ?? '').toString().trim().isNotEmpty)
+                                                  if ((a['erklaerung'] ?? '')
+                                                      .toString()
+                                                      .trim()
+                                                      .isNotEmpty)
                                                     Padding(
-                                                      padding: const EdgeInsets.only(top: 4),
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            top: 4,
+                                                          ),
                                                       child: Text(
                                                         '💡 ${a['erklaerung']}',
                                                         style: TextStyle(
-                                                          color: Colors.blue.shade800,
-                                                          fontStyle: FontStyle.italic,
+                                                          color: Colors
+                                                              .blue
+                                                              .shade800,
+                                                          fontStyle:
+                                                              FontStyle.italic,
                                                         ),
                                                       ),
                                                     ),
                                                   if (error != null)
                                                     Padding(
-                                                      padding: const EdgeInsets.only(top: 4),
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            top: 4,
+                                                          ),
                                                       child: Text(
                                                         '❌ $error',
                                                         style: const TextStyle(
@@ -2144,31 +2161,55 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
                                                   // KI Button für einzelne Antwort
                                                   if (ok && !isGenerating)
                                                     IconButton(
-                                                      tooltip: 'KI-Erklärung generieren',
-                                                      icon: const Icon(Icons.auto_awesome, size: 20),
-                                                      color: Colors.purple,
-                                                      onPressed: () => _generateAIExplanation(
-                                                        antwortId: aId,
-                                                        frage: f['frage'] as String,
-                                                        antwort: a['text'] as String,
+                                                      tooltip:
+                                                          'KI-Erklärung generieren',
+                                                      icon: const Icon(
+                                                        Icons.auto_awesome,
+                                                        size: 20,
                                                       ),
+                                                      color: Colors.purple,
+                                                      onPressed: () =>
+                                                          _generateAIExplanation(
+                                                            antwortId: aId,
+                                                            frage:
+                                                                f['frage']
+                                                                    as String,
+                                                            antwort:
+                                                                a['text']
+                                                                    as String,
+                                                          ),
                                                     ),
                                                   if (isGenerating)
                                                     const Padding(
-                                                      padding: EdgeInsets.symmetric(horizontal: 12),
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            horizontal: 12,
+                                                          ),
                                                       child: SizedBox(
                                                         width: 20,
                                                         height: 20,
-                                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                              strokeWidth: 2,
+                                                            ),
                                                       ),
                                                     ),
                                                   IconButton(
-                                                    tooltip: 'Antwort bearbeiten',
-                                                    icon: const Icon(Icons.edit, size: 20),
-                                                    onPressed: () => _editAntwortDialog(
-                                                      a as Map<String, dynamic>,
-                                                      f['frage'] as String,
+                                                    tooltip:
+                                                        'Antwort bearbeiten',
+                                                    icon: const Icon(
+                                                      Icons.edit,
+                                                      size: 20,
                                                     ),
+                                                    onPressed: () =>
+                                                        _editAntwortDialog(
+                                                          a
+                                                              as Map<
+                                                                String,
+                                                                dynamic
+                                                              >,
+                                                          f['frage'] as String,
+                                                        ),
                                                   ),
                                                 ],
                                               ),
@@ -2189,6 +2230,7 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.'''
     );
   }
 }
+
 // ======================= AsyncDuelService ============================
 class AsyncDuelService {
   final c = Supabase.instance.client;
@@ -2292,9 +2334,9 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       await _attachProgress(id);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Erstellen: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler beim Erstellen: $e')));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -2315,9 +2357,9 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       await _attachProgress(id);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Beitreten: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler beim Beitreten: $e')));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -2418,53 +2460,53 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     _init();
   }
 
-Future<void> _init() async {
-  try {
-    print('🟢 _init() gestartet für Match: ${widget.matchId}');
-    
-    _store ??= await AsyncMatchProgressStore.instance;
-    _progress = await _store!.ensure(_userId, widget.matchId);
-    _idx = (_progress!.currentIdx).clamp(0, 1 << 30);
+  Future<void> _init() async {
+    try {
+      print('🟢 _init() gestartet für Match: ${widget.matchId}');
 
-    print('🟡 Lade Match-Daten...');
-    final data = await _svc.loadMatch(widget.matchId);
-    print('🟢 Match-Daten geladen: ${data}');
-    
-    final q = (data['questions'] as List<dynamic>).toList()
-      ..sort((a, b) => (a['idx'] as int).compareTo(b['idx'] as int));
-    
-    print('🟢 Anzahl Fragen: ${q.length}');
-    _questions = q;
+      _store ??= await AsyncMatchProgressStore.instance;
+      _progress = await _store!.ensure(_userId, widget.matchId);
+      _idx = (_progress!.currentIdx).clamp(0, 1 << 30);
 
-    if (_idx >= _questions.length) {
-      print('⚠️ Alle Fragen beantwortet, finalisiere...');
-      await _tryFinalize();
+      print('🟡 Lade Match-Daten...');
+      final data = await _svc.loadMatch(widget.matchId);
+      print('🟢 Match-Daten geladen: ${data}');
+
+      final q = (data['questions'] as List<dynamic>).toList()
+        ..sort((a, b) => (a['idx'] as int).compareTo(b['idx'] as int));
+
+      print('🟢 Anzahl Fragen: ${q.length}');
+      _questions = q;
+
+      if (_idx >= _questions.length) {
+        print('⚠️ Alle Fragen beantwortet, finalisiere...');
+        await _tryFinalize();
+      }
+    } catch (e, stackTrace) {
+      print('🔴 FEHLER in _init:');
+      print('🔴 Error: $e');
+      print('🔴 StackTrace: $stackTrace');
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler beim Laden: $e')));
+    } finally {
+      if (!mounted) return;
+      setState(() => _loading = false);
     }
-  } catch (e, stackTrace) {
-    print('🔴 FEHLER in _init:');
-    print('🔴 Error: $e');
-    print('🔴 StackTrace: $stackTrace');
-    
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Fehler beim Laden: $e')),
-    );
-  } finally {
-    if (!mounted) return;
-    setState(() => _loading = false);
   }
-}
 
   Future<void> _submit(int answerId, bool correct) async {
     if (_submitting || _answered) return;
-    
+
     setState(() {
       _submitting = true;
       _selectedAnswerId = answerId;
     });
 
     final q = _questions[_idx];
-    
+
     try {
       final ok = await _svc.submitAnswer(
         matchId: widget.matchId,
@@ -2496,9 +2538,9 @@ Future<void> _init() async {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Senden: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Fehler beim Senden: $e')));
         setState(() {
           _submitting = false;
           _selectedAnswerId = null;
@@ -2513,7 +2555,7 @@ Future<void> _init() async {
 
   Future<void> _nextQuestion() async {
     final nextIdx = _idx + 1;
-    
+
     if (nextIdx >= _questions.length) {
       await _tryFinalize();
       return;
@@ -2533,7 +2575,7 @@ Future<void> _init() async {
   Future<void> _tryFinalize() async {
     try {
       final status = await _svc.tryFinalize(widget.matchId);
-      
+
       if (status == 'finalized') {
         final scores = await _svc.loadScores(widget.matchId);
         if (mounted) {
@@ -2552,9 +2594,9 @@ Future<void> _init() async {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Finalisieren: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Fehler beim Finalisieren: $e')));
       }
     }
   }
@@ -2677,7 +2719,9 @@ Future<void> _init() async {
                           children: [
                             for (final a in answers)
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                ),
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
@@ -2686,10 +2730,10 @@ Future<void> _init() async {
                                     ),
                                     backgroundColor: _answered
                                         ? (a['ist_richtig'] == true
-                                            ? Colors.green.shade100
-                                            : (_selectedAnswerId == a['id']
-                                                ? Colors.red.shade100
-                                                : Colors.grey.shade100))
+                                              ? Colors.green.shade100
+                                              : (_selectedAnswerId == a['id']
+                                                    ? Colors.red.shade100
+                                                    : Colors.grey.shade100))
                                         : Colors.indigo.shade50,
                                     foregroundColor: Colors.black,
                                     shape: RoundedRectangleBorder(
@@ -2704,8 +2748,7 @@ Future<void> _init() async {
                                         ),
                                   child: Row(
                                     children: [
-                                      if (_answered &&
-                                          a['ist_richtig'] == true)
+                                      if (_answered && a['ist_richtig'] == true)
                                         const Icon(
                                           Icons.check,
                                           color: Colors.green,
@@ -2807,10 +2850,10 @@ Future<void> _init() async {
     final p2Score = _finalScores!['player2_score'] as int? ?? 0;
     final myUserId = _userId;
     final p1Id = _finalScores!['player1_id'] as String?;
-    
+
     final myScore = (p1Id == myUserId) ? p1Score : p2Score;
     final oppScore = (p1Id == myUserId) ? p2Score : p1Score;
-    
+
     final won = myScore > oppScore;
     final draw = myScore == oppScore;
 
@@ -2832,9 +2875,7 @@ Future<void> _init() async {
                     ? Icons.emoji_events
                     : (draw ? Icons.handshake : Icons.sentiment_neutral),
                 size: 80,
-                color: won
-                    ? Colors.amber
-                    : (draw ? Colors.blue : Colors.grey),
+                color: won ? Colors.amber : (draw ? Colors.blue : Colors.grey),
               ),
               const SizedBox(height: 20),
               Text(
@@ -2871,10 +2912,7 @@ Future<void> _init() async {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Gegner:',
-                            style: TextStyle(fontSize: 18),
-                          ),
+                          const Text('Gegner:', style: TextStyle(fontSize: 18)),
                           Text(
                             '$oppScore',
                             style: const TextStyle(
@@ -2906,6 +2944,741 @@ Future<void> _init() async {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ============================================================================
+// ZERTIFIKATE SEITE
+// ============================================================================
+class ZertifikatePage extends StatefulWidget {
+  const ZertifikatePage({super.key});
+
+  @override
+  State<ZertifikatePage> createState() => _ZertifikatePageState();
+}
+
+class _ZertifikatePageState extends State<ZertifikatePage> {
+  final supabase = Supabase.instance.client;
+
+  List<dynamic> zertifikate = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadZertifikate();
+  }
+
+  Future<void> _loadZertifikate() async {
+    try {
+      final data = await supabase
+          .from('zertifikate')
+          .select()
+          .order('anbieter, name');
+
+      if (!mounted) return;
+      setState(() {
+        zertifikate = data;
+        loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
+      setState(() => loading = false);
+    }
+  }
+
+  Color _getAnbieterColor(String anbieter) {
+    switch (anbieter.toLowerCase()) {
+      case 'aws':
+        return Colors.orange;
+      case 'sap':
+        return Colors.blue;
+      case 'microsoft':
+        return Colors.lightBlue;
+      case 'google cloud':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getAnbieterIcon(String anbieter) {
+    switch (anbieter.toLowerCase()) {
+      case 'aws':
+        return Icons.cloud;
+      case 'sap':
+        return Icons.business;
+      case 'microsoft':
+        return Icons.window;
+      case 'google cloud':
+        return Icons.cloud_circle;
+      default:
+        return Icons.card_membership;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Zertifikatsprüfungen',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+      ),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : zertifikate.isEmpty
+          ? const Center(
+              child: Text(
+                'Keine Zertifikate verfügbar',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: zertifikate.length,
+              itemBuilder: (context, index) {
+                final cert = zertifikate[index];
+                final color = _getAnbieterColor(cert['anbieter']);
+                final icon = _getAnbieterIcon(cert['anbieter']);
+
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ZertifikatTestPage(
+                          zertifikatId: cert['id'],
+                          zertifikatName: cert['name'],
+                          anzahlFragen: cert['anzahl_fragen'],
+                          pruefungsdauer: cert['pruefungsdauer'],
+                          mindestPunktzahl: cert['mindest_punktzahl'],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.15),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header mit Anbieter-Badge
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.1),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              topRight: Radius.circular(16),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  icon,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      cert['anbieter'],
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: color,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      cert['name'],
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.arrow_forward_ios, size: 16),
+                            ],
+                          ),
+                        ),
+
+                        // Details
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                cert['beschreibung'] ?? '',
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  height: 1.4,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  _buildInfoChip(
+                                    Icons.quiz,
+                                    '${cert['anzahl_fragen']} Fragen',
+                                    Colors.blue,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _buildInfoChip(
+                                    Icons.timer,
+                                    '${cert['pruefungsdauer']} Min',
+                                    Colors.orange,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _buildInfoChip(
+                                    Icons.check_circle,
+                                    '${cert['mindest_punktzahl']}%',
+                                    Colors.green,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+      backgroundColor: Colors.grey[100],
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// ZERTIFIKAT TEST SEITE
+// ============================================================================
+class ZertifikatTestPage extends StatefulWidget {
+  final int zertifikatId;
+  final String zertifikatName;
+  final int anzahlFragen;
+  final int pruefungsdauer;
+  final int mindestPunktzahl;
+
+  const ZertifikatTestPage({
+    super.key,
+    required this.zertifikatId,
+    required this.zertifikatName,
+    required this.anzahlFragen,
+    required this.pruefungsdauer,
+    required this.mindestPunktzahl,
+  });
+
+  @override
+  State<ZertifikatTestPage> createState() => _ZertifikatTestPageState();
+}
+
+class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
+  final supabase = Supabase.instance.client;
+  
+  List<dynamic> fragen = [];
+  int aktuelleFrage = 0;
+  Map<int, int> antworten = {}; // index -> antwort_id
+  bool loading = true;
+  bool pruefungAbgeschlossen = false;
+  
+  int? score;
+  bool? bestanden;
+
+  @override
+  void initState() {
+    super.initState();
+    _ladeFragen();
+  }
+
+  Future<void> _ladeFragen() async {
+    try {
+      final response = await supabase
+          .from('fragen')
+          .select('*, antworten(id, text, ist_richtig)')
+          .eq('zertifikat_id', widget.zertifikatId)
+          .limit(widget.anzahlFragen);
+      
+      if (!mounted) return;
+      
+      setState(() {
+        fragen = response;
+        loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler: $e')),
+      );
+      setState(() => loading = false);
+    }
+  }
+
+  void _antwortWaehlen(int antwortId) {
+    setState(() {
+      antworten[aktuelleFrage] = antwortId;
+    });
+  }
+
+  void _naechsteFrage() {
+    if (aktuelleFrage < fragen.length - 1) {
+      setState(() {
+        aktuelleFrage++;
+      });
+    }
+  }
+
+  void _zurueck() {
+    if (aktuelleFrage > 0) {
+      setState(() {
+        aktuelleFrage--;
+      });
+    }
+  }
+
+  void _pruefungAbschliessen() {
+    // Score berechnen
+    int richtig = 0;
+    
+    for (int i = 0; i < fragen.length; i++) {
+      final antwortId = antworten[i];
+      if (antwortId == null) continue;
+      
+      final frage = fragen[i];
+      final antwortListe = frage['antworten'] as List<dynamic>;
+      final gewaehlt = antwortListe.firstWhere((a) => a['id'] == antwortId);
+      
+      if (gewaehlt['ist_richtig'] == true) {
+        richtig++;
+      }
+    }
+    
+    final prozent = ((richtig / fragen.length) * 100).round();
+    final hatBestanden = prozent >= widget.mindestPunktzahl;
+    
+    setState(() {
+      score = prozent;
+      bestanden = hatBestanden;
+      pruefungAbgeschlossen = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.zertifikatName),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          foregroundColor: Colors.black,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (fragen.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.zertifikatName),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          foregroundColor: Colors.black,
+        ),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.warning, size: 64, color: Colors.orange),
+              SizedBox(height: 16),
+              Text(
+                'Keine Fragen verfügbar',
+                style: TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (pruefungAbgeschlossen) {
+      return _buildErgebnis();
+    }
+
+    return _buildPruefung();
+  }
+
+  Widget _buildPruefung() {
+    final frage = fragen[aktuelleFrage];
+    final antwortListe = (frage['antworten'] as List<dynamic>).toList()..shuffle();
+    final gewaehlteAntwortId = antworten[aktuelleFrage];
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.zertifikatName),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+      ),
+      body: Column(
+        children: [
+          // Progress Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Frage ${aktuelleFrage + 1} von ${fragen.length}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      '${antworten.length} beantwortet',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                LinearProgressIndicator(
+                  value: (aktuelleFrage + 1) / fragen.length,
+                  backgroundColor: Colors.grey[200],
+                  color: Colors.indigo,
+                  minHeight: 8,
+                ),
+              ],
+            ),
+          ),
+          
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Frage
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        frage['frage'],
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Antworten
+                  ...antwortListe.map((antwort) {
+                    final isSelected = gewaehlteAntwortId == antwort['id'];
+                    
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _antwortWaehlen(antwort['id']),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Colors.indigo.shade50 : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? Colors.indigo : Colors.grey.shade300,
+                                width: 2,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isSelected ? Colors.indigo : Colors.transparent,
+                                    border: Border.all(
+                                      color: isSelected ? Colors.indigo : Colors.grey,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: isSelected
+                                      ? const Icon(Icons.check, size: 16, color: Colors.white)
+                                      : null,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    antwort['text'],
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+          
+          // Navigation Buttons
+          SafeArea(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  if (aktuelleFrage > 0)
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _zurueck,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text('Zurück'),
+                      ),
+                    ),
+                  if (aktuelleFrage > 0) const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: aktuelleFrage < fragen.length - 1
+                          ? _naechsteFrage
+                          : _pruefungAbschliessen,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Text(
+                        aktuelleFrage < fragen.length - 1
+                            ? 'Weiter'
+                            : 'Prüfung abschließen',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErgebnis() {
+    final color = bestanden! ? Colors.green : Colors.red;
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Prüfungsergebnis'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withOpacity(0.1),
+                  border: Border.all(color: color, width: 8),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '$score%',
+                        style: TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                      Text(
+                        bestanden! ? 'Bestanden!' : 'Nicht bestanden',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+              
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      _buildStatRow(
+                        'Zertifikat',
+                        widget.zertifikatName,
+                        Icons.card_membership,
+                      ),
+                      const Divider(height: 24),
+                      _buildStatRow(
+                        'Erreichte Punktzahl',
+                        '$score%',
+                        Icons.trending_up,
+                      ),
+                      const Divider(height: 24),
+                      _buildStatRow(
+                        'Mindestpunktzahl',
+                        '${widget.mindestPunktzahl}%',
+                        Icons.flag,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('Zurück zur Übersicht'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.indigo),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }
