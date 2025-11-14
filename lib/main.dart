@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'async_match_progress.dart';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 
 // -------------------------------------------------------------
@@ -3210,13 +3211,13 @@ class _ZertifikatePageState extends State<ZertifikatePage> {
 }
 
 // ============================================================================
-// ZERTIFIKAT TEST SEITE
+// ZERTIFIKAT TEST SEITE MIT TIMER
 // ============================================================================
 class ZertifikatTestPage extends StatefulWidget {
   final int zertifikatId;
   final String zertifikatName;
   final int anzahlFragen;
-  final int pruefungsdauer;
+  final int pruefungsdauer; // in Minuten
   final int mindestPunktzahl;
 
   const ZertifikatTestPage({
@@ -3232,24 +3233,211 @@ class ZertifikatTestPage extends StatefulWidget {
   State<ZertifikatTestPage> createState() => _ZertifikatTestPageState();
 }
 
-class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
+class _ZertifikatTestPageState extends State<ZertifikatTestPage> with WidgetsBindingObserver {
   final supabase = Supabase.instance.client;
   
+  // Fragen & Antworten
   List<dynamic> fragen = [];
+  Map<int, List<dynamic>> gemischteAntworten = {}; // Cache für gemischte Antworten
   int aktuelleFrage = 0;
   Map<int, int> antworten = {}; // index -> antwort_id
   bool loading = true;
   bool pruefungAbgeschlossen = false;
   
+  // Ergebnis
   int? score;
   bool? bestanden;
+
+  // ⏱️ TIMER VARIABLES
+  Timer? _timer;
+  int _remainingSeconds = 0;
+  bool _timerWarningShown = false;
+  bool _autoSubmitted = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initTimer();
     _ladeFragen();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  // ============================================================================
+  // APP LIFECYCLE - Warnung beim Verlassen
+  // ============================================================================
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused && !pruefungAbgeschlossen) {
+      // App geht in den Hintergrund
+      print('⚠️ App pausiert - Timer läuft weiter!');
+    } else if (state == AppLifecycleState.resumed && !pruefungAbgeschlossen) {
+      // App kommt zurück
+      print('✅ App resumed - verbleibende Zeit: ${_formatTime(_remainingSeconds)}');
+      
+      // Optional: Zeige Dialog mit verbleibender Zeit
+      _showResumeDialog();
+    }
+  }
+
+  void _showResumeDialog() {
+    if (!mounted || pruefungAbgeschlossen) return;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.blue),
+            SizedBox(width: 8),
+            Text('Willkommen zurück!'),
+          ],
+        ),
+        content: Text(
+          'Die Prüfung läuft weiter.\n\n'
+          'Verbleibende Zeit: ${_formatTime(_remainingSeconds)}\n'
+          'Frage ${aktuelleFrage + 1} von ${fragen.length}',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Weiter'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================================
+  // TIMER FUNKTIONEN
+  // ============================================================================
+  void _initTimer() {
+    _remainingSeconds = widget.pruefungsdauer * 60; // Minuten → Sekunden
+    print('⏱️ Timer gestartet: ${widget.pruefungsdauer} Minuten');
+    
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || pruefungAbgeschlossen) {
+        timer.cancel();
+        return;
+      }
+
+      setState(() {
+        _remainingSeconds--;
+      });
+
+      // Warnung bei 10 Minuten (600 Sekunden)
+      if (_remainingSeconds == 600 && !_timerWarningShown) {
+        _timerWarningShown = true;
+        _show10MinWarning();
+      }
+
+      // Zeit abgelaufen
+      if (_remainingSeconds <= 0) {
+        timer.cancel();
+        _autoSubmit();
+      }
+    });
+  }
+
+  void _show10MinWarning() {
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.orange, size: 28),
+            SizedBox(width: 8),
+            Text('⚠️ Zeitwarnung'),
+          ],
+        ),
+        content: const Text(
+          'Noch 10 Minuten verbleibend!\n\n'
+          'Überprüfe deine Antworten und schließe die Prüfung rechtzeitig ab.',
+          style: TextStyle(fontSize: 16),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Verstanden'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _autoSubmit() {
+    if (_autoSubmitted || pruefungAbgeschlossen) return;
+    
+    _autoSubmitted = true;
+    print('🚨 Zeit abgelaufen - Auto-Submit');
+    
+    // Zeige kurzen Dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.alarm, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Zeit abgelaufen!'),
+          ],
+        ),
+        content: Text(
+          'Die Prüfungszeit ist abgelaufen.\n'
+          'Die Prüfung wird automatisch ausgewertet.',
+          style: TextStyle(fontSize: 16),
+        ),
+      ),
+    );
+
+    // Warte 2 Sekunden, dann auswerten
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      Navigator.pop(context); // Dialog schließen
+      _pruefungAbschliessen();
+    });
+  }
+
+  String _formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+  }
+
+  Color _getTimerColor() {
+    final percent = _remainingSeconds / (widget.pruefungsdauer * 60);
+    
+    if (percent > 0.30) {
+      return Colors.green; // > 30% Zeit übrig
+    } else if (percent > 0.10) {
+      return Colors.orange; // 10-30% Zeit übrig
+    } else {
+      return Colors.red; // < 10% Zeit übrig
+    }
+  }
+
+  // ============================================================================
+  // FRAGEN LADEN
+  // ============================================================================
   Future<void> _ladeFragen() async {
     try {
       final response = await supabase
@@ -3260,8 +3448,19 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
       
       if (!mounted) return;
       
+      // Shuffle Fragen für Abwechslung
+      final shuffled = (response as List<dynamic>)..shuffle();
+      
+      // Antworten für jede Frage einmal mischen und cachen
+      for (int i = 0; i < shuffled.length; i++) {
+        final frage = shuffled[i];
+        final antwortListe = (frage['antworten'] as List<dynamic>).toList();
+        antwortListe.shuffle(); // Einmal mischen
+        gemischteAntworten[i] = antwortListe; // Cachen
+      }
+      
       setState(() {
-        fragen = response;
+        fragen = shuffled;
         loading = false;
       });
     } catch (e) {
@@ -3273,6 +3472,9 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
     }
   }
 
+  // ============================================================================
+  // ANTWORT-FUNKTIONEN
+  // ============================================================================
   void _antwortWaehlen(int antwortId) {
     setState(() {
       antworten[aktuelleFrage] = antwortId;
@@ -3295,7 +3497,41 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
     }
   }
 
-  void _pruefungAbschliessen() {
+  Future<void> _pruefungAbschliessen() async {
+    // Bestätigungsdialog nur wenn noch Zeit und nicht auto-submitted
+    if (!_autoSubmitted && _remainingSeconds > 0) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Prüfung abschließen?'),
+          content: Text(
+            'Du hast ${antworten.length} von ${fragen.length} Fragen beantwortet.\n\n'
+            'Verbleibende Zeit: ${_formatTime(_remainingSeconds)}\n\n'
+            'Möchtest du die Prüfung jetzt abschließen?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Abbrechen'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.indigo,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Abschließen'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm != true) return;
+    }
+
+    // Timer stoppen
+    _timer?.cancel();
+
     // Score berechnen
     int richtig = 0;
     
@@ -3305,14 +3541,17 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
       
       final frage = fragen[i];
       final antwortListe = frage['antworten'] as List<dynamic>;
-      final gewaehlt = antwortListe.firstWhere((a) => a['id'] == antwortId);
+      final gewaehlt = antwortListe.firstWhere(
+        (a) => a['id'] == antwortId,
+        orElse: () => null,
+      );
       
-      if (gewaehlt['ist_richtig'] == true) {
+      if (gewaehlt != null && gewaehlt['ist_richtig'] == true) {
         richtig++;
       }
     }
     
-    final prozent = ((richtig / fragen.length) * 100).round();
+    final prozent = fragen.isEmpty ? 0 : ((richtig / fragen.length) * 100).round();
     final hatBestanden = prozent >= widget.mindestPunktzahl;
     
     setState(() {
@@ -3322,6 +3561,9 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
     });
   }
 
+  // ============================================================================
+  // BUILD METHODS
+  // ============================================================================
   @override
   Widget build(BuildContext context) {
     if (loading) {
@@ -3364,13 +3606,53 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
       return _buildErgebnis();
     }
 
-    return _buildPruefung();
+    return WillPopScope(
+      onWillPop: () async {
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.warning, color: Colors.orange),
+                SizedBox(width: 8),
+                Text('Prüfung verlassen?'),
+              ],
+            ),
+            content: Text(
+              'Die Prüfung läuft noch!\n\n'
+              'Verbleibende Zeit: ${_formatTime(_remainingSeconds)}\n'
+              'Beantwortete Fragen: ${antworten.length}/${fragen.length}\n\n'
+              'Möchtest du wirklich abbrechen? Dein Fortschritt geht verloren.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Weiter üben'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Abbrechen'),
+              ),
+            ],
+          ),
+        );
+        return confirm ?? false;
+      },
+      child: _buildPruefung(),
+    );
   }
 
   Widget _buildPruefung() {
     final frage = fragen[aktuelleFrage];
-    final antwortListe = (frage['antworten'] as List<dynamic>).toList()..shuffle();
+    final antwortListe = gemischteAntworten[aktuelleFrage] ?? []; // Gecachte Antworten verwenden
     final gewaehlteAntwortId = antworten[aktuelleFrage];
+    
+    final timerColor = _getTimerColor();
+    final timePercent = _remainingSeconds / (widget.pruefungsdauer * 60);
     
     return Scaffold(
       appBar: AppBar(
@@ -3381,7 +3663,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
       ),
       body: Column(
         children: [
-          // Progress Header
+          // ⏱️ TIMER & PROGRESS HEADER
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -3396,30 +3678,127 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
             ),
             child: Column(
               children: [
+                // Timer & Frage Info
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Frage ${aktuelleFrage + 1} von ${fragen.length}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                    // Timer
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: timerColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: timerColor.withOpacity(0.5),
+                          width: 2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.timer, color: timerColor, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            _formatTime(_remainingSeconds),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: timerColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      '${antworten.length} beantwortet',
-                      style: const TextStyle(color: Colors.grey),
+                    
+                    // Fragen-Info
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Frage ${aktuelleFrage + 1}/${fragen.length}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '${antworten.length} beantwortet',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+                
                 const SizedBox(height: 12),
-                LinearProgressIndicator(
-                  value: (aktuelleFrage + 1) / fragen.length,
-                  backgroundColor: Colors.grey[200],
-                  color: Colors.indigo,
-                  minHeight: 8,
+                
+                // Timer Fortschrittsbalken
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Stack(
+                    children: [
+                      // Hintergrund
+                      Container(
+                        height: 8,
+                        color: Colors.grey[200],
+                      ),
+                      // Fortschritt
+                      FractionallySizedBox(
+                        widthFactor: timePercent.clamp(0.0, 1.0),
+                        child: Container(
+                          height: 8,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                timerColor,
+                                timerColor.withOpacity(0.7),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 4),
+                
+                // Prozent-Anzeige
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${(timePercent * 100).toStringAsFixed(0)}% Zeit verbleibend',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: timerColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ],
+            ),
+          ),
+          
+          // Fragen-Fortschritt
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Colors.grey[100],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LinearProgressIndicator(
+                value: (aktuelleFrage + 1) / fragen.length,
+                backgroundColor: Colors.grey[300],
+                color: Colors.indigo,
+                minHeight: 6,
+              ),
             ),
           ),
           
@@ -3437,13 +3816,46 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(20),
-                      child: Text(
-                        frage['frage'],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          height: 1.4,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.indigo.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.quiz,
+                                  color: Colors.indigo,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Frage ${aktuelleFrage + 1}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            frage['frage'],
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -3451,54 +3863,90 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
                   const SizedBox(height: 20),
                   
                   // Antworten
-                  ...antwortListe.map((antwort) {
+                  ...antwortListe.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final antwort = entry.value;
                     final isSelected = gewaehlteAntwortId == antwort['id'];
                     
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => _antwortWaehlen(antwort['id']),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isSelected ? Colors.indigo.shade50 : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected ? Colors.indigo : Colors.grey.shade300,
-                                width: 2,
+                    return TweenAnimationBuilder<double>(
+                      duration: Duration(milliseconds: 200 + (index * 50)),
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      builder: (context, value, child) {
+                        return Transform.translate(
+                          offset: Offset(0, 10 * (1 - value)),
+                          child: Opacity(opacity: value, child: child),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _antwortWaehlen(antwort['id']),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.indigo.shade50
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.indigo
+                                      : Colors.grey.shade300,
+                                  width: 2,
+                                ),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.indigo.withOpacity(0.2),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: isSelected ? Colors.indigo : Colors.transparent,
-                                    border: Border.all(
-                                      color: isSelected ? Colors.indigo : Colors.grey,
-                                      width: 2,
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isSelected
+                                          ? Colors.indigo
+                                          : Colors.transparent,
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? Colors.indigo
+                                            : Colors.grey,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: isSelected
+                                        ? const Icon(
+                                            Icons.check,
+                                            size: 16,
+                                            color: Colors.white,
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      antwort['text'],
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                        height: 1.4,
+                                      ),
                                     ),
                                   ),
-                                  child: isSelected
-                                      ? const Icon(Icons.check, size: 16, color: Colors.white)
-                                      : null,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    antwort['text'],
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -3528,30 +3976,37 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
                 children: [
                   if (aktuelleFrage > 0)
                     Expanded(
-                      child: OutlinedButton(
+                      child: OutlinedButton.icon(
                         onPressed: _zurueck,
+                        icon: const Icon(Icons.arrow_back, size: 18),
+                        label: const Text('Zurück'),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        child: const Text('Zurück'),
                       ),
                     ),
                   if (aktuelleFrage > 0) const SizedBox(width: 12),
                   Expanded(
                     flex: 2,
-                    child: ElevatedButton(
+                    child: ElevatedButton.icon(
                       onPressed: aktuelleFrage < fragen.length - 1
                           ? _naechsteFrage
                           : _pruefungAbschliessen,
+                      icon: Icon(
+                        aktuelleFrage < fragen.length - 1
+                            ? Icons.arrow_forward
+                            : Icons.check_circle,
+                        size: 18,
+                      ),
+                      label: Text(
+                        aktuelleFrage < fragen.length - 1
+                            ? 'Weiter'
+                            : 'Abschließen',
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.indigo,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: Text(
-                        aktuelleFrage < fragen.length - 1
-                            ? 'Weiter'
-                            : 'Prüfung abschließen',
                       ),
                     ),
                   ),
@@ -3566,6 +4021,8 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
 
   Widget _buildErgebnis() {
     final color = bestanden! ? Colors.green : Colors.red;
+    final timeTaken = (widget.pruefungsdauer * 60) - _remainingSeconds;
+    final timeTakenFormatted = _formatTime(timeTaken);
     
     return Scaffold(
       appBar: AppBar(
@@ -3580,13 +4037,28 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Score Circle
               Container(
-                width: 150,
-                height: 150,
+                width: 180,
+                height: 180,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: color.withOpacity(0.1),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      color.withOpacity(0.2),
+                      color.withOpacity(0.05),
+                    ],
+                  ),
                   border: Border.all(color: color, width: 8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
                 child: Center(
                   child: Column(
@@ -3595,15 +4067,16 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
                       Text(
                         '$score%',
                         style: TextStyle(
-                          fontSize: 48,
+                          fontSize: 56,
                           fontWeight: FontWeight.bold,
                           color: color,
                         ),
                       ),
+                      const SizedBox(height: 4),
                       Text(
                         bestanden! ? 'Bestanden!' : 'Nicht bestanden',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: color,
                         ),
@@ -3612,9 +4085,15 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
                   ),
                 ),
               ),
+              
               const SizedBox(height: 40),
               
+              // Statistiken
               Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -3623,26 +4102,110 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
                         'Zertifikat',
                         widget.zertifikatName,
                         Icons.card_membership,
+                        Colors.indigo,
                       ),
                       const Divider(height: 24),
                       _buildStatRow(
                         'Erreichte Punktzahl',
                         '$score%',
                         Icons.trending_up,
+                        color,
                       ),
                       const Divider(height: 24),
                       _buildStatRow(
                         'Mindestpunktzahl',
                         '${widget.mindestPunktzahl}%',
                         Icons.flag,
+                        Colors.grey,
                       ),
+                      const Divider(height: 24),
+                      _buildStatRow(
+                        'Beantwortete Fragen',
+                        '${antworten.length}/${fragen.length}',
+                        Icons.quiz,
+                        Colors.blue,
+                      ),
+                      const Divider(height: 24),
+                      _buildStatRow(
+                        'Benötigte Zeit',
+                        timeTakenFormatted,
+                        Icons.timer,
+                        Colors.orange,
+                      ),
+                      if (_autoSubmitted) ...[
+                        const Divider(height: 24),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.red.shade200,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.alarm,
+                                color: Colors.red.shade700,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Zeit abgelaufen - automatisch abgeschlossen',
+                                  style: TextStyle(
+                                    color: Colors.red.shade700,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               
+              // Feedback
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: color.withOpacity(0.3)),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      bestanden! ? Icons.celebration : Icons.school,
+                      color: color,
+                      size: 32,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      bestanden!
+                          ? 'Herzlichen Glückwunsch! Du hast die Prüfung bestanden!'
+                          : 'Leider nicht bestanden. Weiter üben und nochmal versuchen!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Buttons
               ElevatedButton.icon(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.arrow_back),
@@ -3650,9 +4213,36 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.indigo,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
+              
+              if (!bestanden!) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    // Optional: Direkt neue Prüfung starten
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Nochmal versuchen'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -3660,22 +4250,35 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage> {
     );
   }
 
-  Widget _buildStatRow(String label, String value, IconData icon) {
+  Widget _buildStatRow(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Row(
       children: [
-        Icon(icon, color: Colors.indigo),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 15),
           ),
         ),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
+            color: color,
           ),
         ),
       ],
