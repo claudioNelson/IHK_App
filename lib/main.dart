@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'async_match_progress.dart';
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 
 
@@ -680,24 +681,32 @@ class _TestFragenState extends State<TestFragen> with SingleTickerProviderStateM
   // KI ERKLÄRUNGS-GENERATOR (LIVE)
   // ============================================================================
   
-  Future<String?> _generateLiveExplanation({
-    required String frage,
-    required String richtigeAntwort,
-    required String falscheAntwort,
-  }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('https://api.anthropic.com/v1/messages'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': 'claude-sonnet-4-20250514',
-          'max_tokens': 1000,
-          'messages': [
-            {
-              'role': 'user',
-              'content': '''Du bist ein geduldiger IHK-Prüfungsexperte. Ein Lernender hat diese Frage falsch beantwortet.
+Future<String?> _generateLiveExplanation({
+  required String frage,
+  required String richtigeAntwort,
+  required String falscheAntwort,
+}) async {
+  print('🤖 Starte KI-Generierung (Gemini)...');
+  print('📝 Frage: $frage');
+  
+  try {
+    print('📡 Sende Request an Gemini API...');
+    
+    final apiKey = 'AIzaSyDyHPkXXFC52DX3wquuy-Ui4F9_gbPtUF4'; 
+    
+    final response = await http.post(
+  Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=$apiKey'),
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  // ... rest bleibt gleich
+  // ... rest bleibt gleich
+      body: jsonEncode({
+        'contents': [
+          {
+            'parts': [
+              {
+                'text': '''Du bist ein geduldiger IHK-Prüfungsexperte. Ein Lernender hat diese Frage falsch beantwortet.
 
 Frage: $frage
 Falsche Antwort: $falscheAntwort
@@ -711,26 +720,37 @@ Erstelle eine hilfreiche, lehrreiche Erklärung (2-3 Sätze) die:
 - Fachlich präzise ist
 
 Antworte NUR mit der Erklärung auf Deutsch, ohne Einleitung oder Markdown.'''
-            }
-          ]
-        }),
-      );
+              }
+            ]
+          }
+        ]
+      }),
+    );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        
-        if (data['content'] != null && data['content'].isNotEmpty) {
-          return data['content'][0]['text'].toString().trim();
-        }
-      }
+    print('📨 Response Status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print('📨 Response Data: $data');
       
-      return null;
-    } catch (e) {
-      print('KI-Fehler: $e');
-      return null;
+      if (data['candidates'] != null && data['candidates'].isNotEmpty) {
+        final text = data['candidates'][0]['content']['parts'][0]['text'];
+        final explanation = text.toString().trim();
+        print('✅ Erklärung generiert: $explanation');
+        return explanation;
+      }
+    } else {
+      print('❌ API Error: ${response.statusCode}');
+      print('❌ Body: ${response.body}');
     }
+    
+    return null;
+  } catch (e, stackTrace) {
+    print('❌ KI-Fehler: $e');
+    print('❌ StackTrace: $stackTrace');
+    return null;
   }
-
+}
   Future<void> pruefeAntwort(int antwortId, bool korrekt, String erklaerungText, int frageId) async {
     if (!mounted || antwortGewaehlt) return;
     
