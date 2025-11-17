@@ -1,6 +1,6 @@
-import 'services/auth_service.dart';
-import 'widgets/auth_wrapper.dart';
-import 'screens/auth/login_screen.dart';
+import 'package:ihk_app/screens/auth/login_screen.dart';
+import 'package:ihk_app/widgets/auth_wrapper.dart';
+
 import 'screens/profile/new_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,10 +10,15 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+// import 'pages/pruefung/ap1_halbjahrespruefung_page.dart';
+
+
 
 // -------------------------------------------------------------
 // App-Start
 // -------------------------------------------------------------
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -35,6 +40,19 @@ void main() async {
   runApp(const MyApp());
 }
 
+
+
+
+//////////////// WIDGETS TEST ////////////////////////
+/*
+void main() {
+  runApp(const MaterialApp(
+    home: PruefungsDemoScreen(), // ← Direkt zur Demo
+    debugShowCheckedModeBanner: false,
+  ));
+}
+//////////////////////////////////////////////////////
+*/
 // -------------------------------------------------------------
 // Root
 // -------------------------------------------------------------
@@ -58,6 +76,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 
 // -------------------------------------------------------------
 // NAVIGATION SHELL (Bottom Tabs)
@@ -101,7 +120,7 @@ class _NavRootState extends State<NavRoot> {
           NavigationDestination(
             icon: Icon(Icons.quiz_outlined),
             selectedIcon: Icon(Icons.quiz),
-            label: 'Simulation',
+            label: 'Matchmaking',
           ),
           NavigationDestination(
             icon: Icon(Icons.admin_panel_settings_outlined),
