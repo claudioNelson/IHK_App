@@ -4,23 +4,11 @@ class AsyncDuelService {
   final c = Supabase.instance.client;
 
   Future<String> createMatch({int count = 10}) async {
-    try {
-      print('🔵 Rufe create_async_match auf mit: count=$count');
-      
-      final id = await c.rpc('create_async_match', params: {
-        'p_count': count,
-        'p_module_id': null,
-        'p_thema_id': null,
-      });
-      
-      print('✅ Match erstellt mit ID: $id');
-      return id as String;
-    } catch (e, stackTrace) {
-      print('❌ FEHLER beim Match erstellen:');
-      print('Error: $e');
-      print('StackTrace: $stackTrace');
-      rethrow;
-    }
+    final id = await c.rpc(
+      'create_async_match_any',
+      params: {'p_count': count},
+    );
+    return id as String;
   }
 
   Future<String?> joinRandomMatch() async {
@@ -56,6 +44,7 @@ class AsyncDuelService {
         )
         .eq('match_id', matchId)
         .order('idx');
+
     final myId = c.auth.currentUser?.id;
     final myAnswers = (myId == null)
         ? <dynamic>[]
@@ -64,6 +53,7 @@ class AsyncDuelService {
               .select('idx, antwort_id, is_correct')
               .eq('match_id', matchId)
               .eq('user_id', myId);
+
     return {'questions': q, 'myAnswers': myAnswers};
   }
 
