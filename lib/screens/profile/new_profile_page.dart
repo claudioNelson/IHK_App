@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/auth_service.dart';
 import '../auth/change_password_screen.dart';
+import '../admin/admin_panel_screen.dart';
 
 class NewProfilePage extends StatefulWidget {
   const NewProfilePage({super.key});
@@ -27,20 +28,20 @@ class _NewProfilePageState extends State<NewProfilePage> {
     try {
       print('📖 Lade Profil...');
       final profile = await _authService.getProfile();
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _profile = profile;
         _loading = false;
       });
-      
+
       print('✅ Profil geladen: ${profile?['username']}');
     } catch (e) {
       print('❌ Fehler beim Laden des Profils: $e');
-      
+
       if (!mounted) return;
-      
+
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -55,9 +56,9 @@ class _NewProfilePageState extends State<NewProfilePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final notifications = prefs.getBool('notifications_enabled') ?? true;
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _notificationsEnabled = notifications;
       });
@@ -70,19 +71,19 @@ class _NewProfilePageState extends State<NewProfilePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('notifications_enabled', value);
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _notificationsEnabled = value;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            value 
-              ? '✅ Benachrichtigungen aktiviert' 
-              : '🔕 Benachrichtigungen deaktiviert',
+            value
+                ? '✅ Benachrichtigungen aktiviert'
+                : '🔕 Benachrichtigungen deaktiviert',
           ),
           duration: const Duration(seconds: 2),
         ),
@@ -92,48 +93,48 @@ class _NewProfilePageState extends State<NewProfilePage> {
     }
   }
 
-Future<void> _handleLogout() async {
-  final confirm = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Abmelden?'),
-      content: const Text('Möchtest du dich wirklich abmelden?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Abbrechen'),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          child: const Text('Abmelden'),
-        ),
-      ],
-    ),
-  );
-
-  if (confirm != true) return;
-
-  // Zeige kurz Loading-Status
-  setState(() => _loading = true);
-
-  try {
-    await _authService.signOut();
-    // AuthWrapper reagiert automatisch auf signOut
-    // Kein manuelles Navigieren nötig!
-  } catch (e) {
-    if (!mounted) return;
-    
-    setState(() => _loading = false);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Fehler beim Abmelden: $e'),
-        backgroundColor: Colors.red,
+  Future<void> _handleLogout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Abmelden?'),
+        content: const Text('Möchtest du dich wirklich abmelden?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Abbrechen'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Abmelden'),
+          ),
+        ],
       ),
     );
+
+    if (confirm != true) return;
+
+    // Zeige kurz Loading-Status
+    setState(() => _loading = true);
+
+    try {
+      await _authService.signOut();
+      // AuthWrapper reagiert automatisch auf signOut
+      // Kein manuelles Navigieren nötig!
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _loading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler beim Abmelden: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
-}
 
   Future<void> _editProfile() async {
     final usernameController = TextEditingController(
@@ -174,7 +175,7 @@ Future<void> _handleLogout() async {
       try {
         await _authService.updateProfileInDB(username: result);
         await _loadProfile(); // Neu laden
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -186,10 +187,7 @@ Future<void> _handleLogout() async {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fehler: $e'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
           );
         }
       }
@@ -222,13 +220,17 @@ Future<void> _handleLogout() async {
     if (confirm == true) {
       try {
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Nur Lernfortschritt löschen, Auth-Daten behalten
-        final keysToRemove = prefs.getKeys().where(
-          (key) => key.startsWith('fortschritt_') || 
-                   key.startsWith('score_') ||
-                   key.startsWith('async_match/'),
-        ).toList();
+        final keysToRemove = prefs
+            .getKeys()
+            .where(
+              (key) =>
+                  key.startsWith('fortschritt_') ||
+                  key.startsWith('score_') ||
+                  key.startsWith('async_match/'),
+            )
+            .toList();
 
         for (final key in keysToRemove) {
           await prefs.remove(key);
@@ -245,10 +247,7 @@ Future<void> _handleLogout() async {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fehler: $e'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
           );
         }
       }
@@ -383,8 +382,7 @@ Future<void> _handleLogout() async {
                                 icon: Icons.access_time,
                                 label: 'Dabei seit',
                                 value: _formatDate(
-                                  _profile?['created_at'] ?? 
-                                  user?.createdAt,
+                                  _profile?['created_at'] ?? user?.createdAt,
                                 ),
                               ),
                             ],
@@ -398,10 +396,7 @@ Future<void> _handleLogout() async {
                   // Account-Einstellungen
                   const Text(
                     'Account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Card(
@@ -442,10 +437,7 @@ Future<void> _handleLogout() async {
                   // App-Einstellungen
                   const Text(
                     'Einstellungen',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Card(
@@ -471,12 +463,36 @@ Future<void> _handleLogout() async {
                             'Lokale Daten löschen',
                             style: TextStyle(color: Colors.orange),
                           ),
-                          subtitle: const Text(
-                            'Lernfortschritt zurücksetzen',
-                          ),
+                          subtitle: const Text('Lernfortschritt zurücksetzen'),
                           onTap: _clearLocalData,
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Admin-Bereich
+                  const Text(
+                    'Administration',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 1,
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.admin_panel_settings,
+                        color: Colors.indigo,
+                      ),
+                      title: const Text('Admin Panel'),
+                      subtitle: const Text('Fragen & Inhalte verwalten'),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AdminPanel()),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -554,10 +570,7 @@ Future<void> _handleLogout() async {
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 10, color: Colors.grey[600]),
               ),
               Text(
                 value,
@@ -575,15 +588,15 @@ Future<void> _handleLogout() async {
 
   String _formatDate(dynamic date) {
     if (date == null) return 'Unbekannt';
-    
+
     try {
-      final DateTime dateTime = date is String 
-        ? DateTime.parse(date) 
-        : date as DateTime;
-      
+      final DateTime dateTime = date is String
+          ? DateTime.parse(date)
+          : date as DateTime;
+
       final now = DateTime.now();
       final diff = now.difference(dateTime);
-      
+
       if (diff.inDays < 1) return 'Heute';
       if (diff.inDays < 7) return '${diff.inDays}d';
       if (diff.inDays < 30) return '${(diff.inDays / 7).floor()}w';

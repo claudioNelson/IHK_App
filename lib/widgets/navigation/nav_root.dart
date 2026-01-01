@@ -9,7 +9,6 @@ import '../../screens/exam_screens/specialization_selection_screen.dart';
 
 class NavRoot extends StatefulWidget {
   const NavRoot({super.key});
-
   @override
   State<NavRoot> createState() => _NavRootState();
 }
@@ -19,10 +18,9 @@ class _NavRootState extends State<NavRoot> {
 
   late final List<Widget> _pages = [
     const NavKeepAlive(child: ModulListe()),
-    const NavKeepAlive(child: ZertifikatePage()),
     const NavKeepAlive(child: SpecializationSelectionScreen()),
     const NavKeepAlive(child: SimulationPage()),
-    const NavKeepAlive(child: AdminPanel()),
+    const NavKeepAlive(child: ZertifikatePage()),
     const NavKeepAlive(child: NewProfilePage()),
   ];
 
@@ -30,41 +28,68 @@ class _NavRootState extends State<NavRoot> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_index],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.book_outlined),
-            selectedIcon: Icon(Icons.book),
-            label: 'Module',
+      extendBody: true,
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(0, Icons.menu_book_outlined, Icons.menu_book, 'Lernen'),
+              _buildNavItem(1, Icons.assignment_outlined, Icons.assignment, 'Prüfung'),
+              _buildNavItem(2, Icons.sports_esports_outlined, Icons.sports_esports, 'Match'),
+              _buildNavItem(3, Icons.workspace_premium_outlined, Icons.workspace_premium, 'Zertifikate'),
+              _buildNavItem(4, Icons.person_outline, Icons.person, 'Profil'),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.card_membership_outlined),
-            selectedIcon: Icon(Icons.card_membership),
-            label: 'Zertifikate',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.assignment_outlined),
-            selectedIcon: Icon(Icons.assignment),
-            label: 'Prüfung',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
-            label: 'Matchmaking',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.admin_panel_settings_outlined),
-            selectedIcon: Icon(Icons.admin_panel_settings),
-            label: 'Admin',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profil',
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, IconData activeIcon, String label) {
+    final isSelected = _index == index;
+    
+    return GestureDetector(
+      onTap: () => setState(() => _index = index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.indigo : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected ? activeIcon : icon,
+              color: isSelected ? Colors.white : Colors.grey.shade600,
+              size: 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.grey.shade600,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
