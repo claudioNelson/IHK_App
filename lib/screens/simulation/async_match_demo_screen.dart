@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/async_duel_service.dart';
 import '../../../async_match_progress.dart';
+import 'leaderboard_screen.dart';
 import 'async_match_play_screen.dart';
 
 class AsyncMatchDemoPage extends StatefulWidget {
@@ -128,92 +129,102 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('AsyncMatch (Beta)'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _busy ? null : _loadMatches,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (_busy) const LinearProgressIndicator(),
-          
-          // Buttons
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: const Text('Match erstellen'),
-                    onPressed: _busy ? null : _createMatch,
-                  ),
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('AsyncMatch (Beta)'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.emoji_events),
+          tooltip: 'Rangliste',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: _busy ? null : _loadMatches,
+        ),
+      ],
+    ),
+    body: Column(
+      children: [
+        if (_busy) const LinearProgressIndicator(),
+        
+        // Buttons
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text('Match erstellen'),
+                  onPressed: _busy ? null : _createMatch,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.shuffle),
-                    label: const Text('Zufällig beitreten'),
-                    onPressed: _busy ? null : _joinRandom,
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.shuffle),
+                  label: const Text('Zufällig beitreten'),
+                  onPressed: _busy ? null : _joinRandom,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
 
-          const Divider(),
+        const Divider(),
 
-          // Matches Liste
-          Expanded(
-            child: _myMatches.isEmpty
-                ? const Center(
-                    child: Text(
-                      'Keine Matches vorhanden.\nErstelle ein Match oder tritt einem bei!',
-                      textAlign: TextAlign.center,
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _myMatches.length,
-                    itemBuilder: (ctx, i) {
-                      final match = _myMatches[i];
-                      final matchId = match['id'] as String;
-                      final status = match['status'] as String;
-                      final canPlay = status == 'active' || status == 'open';
+        // Matches Liste
+        Expanded(
+          child: _myMatches.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Keine Matches vorhanden.\nErstelle ein Match oder tritt einem bei!',
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _myMatches.length,
+                  itemBuilder: (ctx, i) {
+                    final match = _myMatches[i];
+                    final matchId = match['id'] as String;
+                    final status = match['status'] as String;
+                    final canPlay = status == 'active' || status == 'open';
 
-                      return Card(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: _getStatusColor(status),
-                            child: Text(
-                              '${match['total_questions']}',
-                              style: const TextStyle(color: Colors.white),
-                            ),
+                    return Card(
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: _getStatusColor(status),
+                          child: Text(
+                            '${match['total_questions']}',
+                            style: const TextStyle(color: Colors.white),
                           ),
-                          title: Text('Match ${matchId.substring(0, 8)}...'),
-                          subtitle: Text(_getStatusText(match)),
-                          trailing: canPlay
-                              ? ElevatedButton(
-                                  onPressed: () => _playMatch(matchId),
-                                  child: const Text('Spielen'),
-                                )
-                              : status == 'completed'
-                                  ? const Icon(Icons.check, color: Colors.green)
-                                  : const Icon(Icons.hourglass_empty),
-                          onTap: () => _playMatch(matchId),
                         ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
+                        title: Text('Match ${matchId.substring(0, 8)}...'),
+                        subtitle: Text(_getStatusText(match)),
+                        trailing: canPlay
+                            ? ElevatedButton(
+                                onPressed: () => _playMatch(matchId),
+                                child: const Text('Spielen'),
+                              )
+                            : status == 'completed' || status == 'finalized'
+                                ? const Icon(Icons.check, color: Colors.green)
+                                : const Icon(Icons.hourglass_empty),
+                        onTap: () => _playMatch(matchId),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    ),
+  );
+}
 }

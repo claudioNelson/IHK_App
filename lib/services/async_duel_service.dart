@@ -81,22 +81,61 @@ Future<List<Map<String, dynamic>>> getMyMatches() async {
 Future<Map<String, dynamic>?> loadScores(String matchId) async {
   final userId = c.auth.currentUser?.id;
   
-  final rows = await c
+  // Lade Scores
+  final scores = await c
       .from('match_scores')
       .select()
       .eq('match_id', matchId)
       .maybeSingle();
 
-  if (rows == null) return null;
+  if (scores == null) return null;
 
-  // Bestimme wer "ich" und wer "Gegner" ist
-  final isPlayer1 = rows['player1_id'] == userId;
+  // Lade Spieler-Profile separat
+  final player1Profile = await c
+      .from('profiles')
+      .select('id, username, email')
+      .eq('id', scores['player1_id'])
+      .maybeSingle();
+
+  final player2Profile = await c
+      .from('profiles')
+      .select('id, username, email')
+      .eq('id', scores['player2_id'])
+      .maybeSingle();
+
+  final isPlayer1 = scores['player1_id'] == userId;
   
   return {
-    'my_score': isPlayer1 ? rows['player1_score'] : rows['player2_score'],
-    'opponent_score': isPlayer1 ? rows['player2_score'] : rows['player1_score'],
-    'user_id': userId,
-    'opponent_id': isPlayer1 ? rows['player2_id'] : rows['player1_id'],
+    'my_score': isPlayer1 ? scores['player1_score'] : scores['player2_score'],
+    'opponent_score': isPlayer1 ? scores['player2_score'] : scores['player1_score'],
+    'my_profile': isPlayer1 ? player1Profile : player2Profile,
+    'opponent_profile': isPlayer1 ? player2Profile : player1Profile,
   };
 }
+
+/// Lädt die Rangliste (Top-Spieler nach Elo)
+Future<List<Map<String, dynamic>>> getLeaderboard({int limit = 50}) async {
+  final result = await c
+      .from('player_stats')
+      .select()
+      .order('elo_rating', ascending: false)
+      .limit(limit);
+
+  return List<Map<String, dynamic>>.from(result);
+}
+
+/// Lädt die eigenen Stats
+Future<Map<String, dynamic>?> getMyStats() async {
+  final userId = c.auth.currentUser?.id;
+  if (userId == null) return null;
+
+  final result = await c
+      .from('player_stats')
+      .select()
+      .eq('user_id', userId)
+      .maybeSingle();
+
+  return result;
+}
+
 }
