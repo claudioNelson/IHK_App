@@ -11,10 +11,31 @@ class AsyncDuelService {
     return id as String;
   }
 
-  Future<String?> joinRandomMatch() async {
-    final id = await c.rpc('join_random_open_match');
-    return id == null ? null : id as String;
-  }
+Future<String?> joinRandomMatch() async {
+  print('🔵 joinRandomMatch aufgerufen');
+  print('🔵 User ID: ${c.auth.currentUser?.id}');
+  
+  final id = await c.rpc('join_random_open_match');
+  
+  print('🔵 Ergebnis: $id');
+  
+  return id == null ? null : id as String;
+}
+
+/// Lädt alle Matches wo der User beteiligt ist
+Future<List<Map<String, dynamic>>> getMyMatches() async {
+  final userId = c.auth.currentUser?.id;
+  if (userId == null) return [];
+
+  final result = await c
+      .from('matches')
+      .select('id, status, player1_id, player2_id, total_questions, created_at')
+      .or('player1_id.eq.$userId,player2_id.eq.$userId')
+      .order('created_at', ascending: false)
+      .limit(10);
+
+  return List<Map<String, dynamic>>.from(result);
+}
 
   Future<bool> submitAnswer({
     required String matchId,
@@ -57,12 +78,25 @@ class AsyncDuelService {
     return {'questions': q, 'myAnswers': myAnswers};
   }
 
-  Future<Map<String, dynamic>?> loadScores(String matchId) async {
-    final rows = await c
-        .from('match_scores')
-        .select()
-        .eq('match_id', matchId)
-        .maybeSingle();
-    return rows;
-  }
+Future<Map<String, dynamic>?> loadScores(String matchId) async {
+  final userId = c.auth.currentUser?.id;
+  
+  final rows = await c
+      .from('match_scores')
+      .select()
+      .eq('match_id', matchId)
+      .maybeSingle();
+
+  if (rows == null) return null;
+
+  // Bestimme wer "ich" und wer "Gegner" ist
+  final isPlayer1 = rows['player1_id'] == userId;
+  
+  return {
+    'my_score': isPlayer1 ? rows['player1_score'] : rows['player2_score'],
+    'opponent_score': isPlayer1 ? rows['player2_score'] : rows['player1_score'],
+    'user_id': userId,
+    'opponent_id': isPlayer1 ? rows['player2_id'] : rows['player1_id'],
+  };
+}
 }

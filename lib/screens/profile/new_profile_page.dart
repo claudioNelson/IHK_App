@@ -92,56 +92,48 @@ class _NewProfilePageState extends State<NewProfilePage> {
     }
   }
 
-  Future<void> _handleLogout() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Abmelden?'),
-        content: const Text('Möchtest du dich wirklich abmelden?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Abbrechen'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Abmelden'),
-          ),
-        ],
+Future<void> _handleLogout() async {
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Abmelden?'),
+      content: const Text('Möchtest du dich wirklich abmelden?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Abbrechen'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          child: const Text('Abmelden'),
+        ),
+      ],
+    ),
+  );
+
+  if (confirm != true) return;
+
+  // Zeige kurz Loading-Status
+  setState(() => _loading = true);
+
+  try {
+    await _authService.signOut();
+    // AuthWrapper reagiert automatisch auf signOut
+    // Kein manuelles Navigieren nötig!
+  } catch (e) {
+    if (!mounted) return;
+    
+    setState(() => _loading = false);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Fehler beim Abmelden: $e'),
+        backgroundColor: Colors.red,
       ),
     );
-
-    if (confirm == true) {
-      try {
-        // Loading anzeigen
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        await _authService.signOut();
-        
-        // Dialog schließen (falls noch offen)
-        if (mounted) Navigator.pop(context);
-      } catch (e) {
-        if (mounted) {
-          Navigator.pop(context); // Loading schließen
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fehler beim Abmelden: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
   }
+}
 
   Future<void> _editProfile() async {
     final usernameController = TextEditingController(

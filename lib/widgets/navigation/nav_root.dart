@@ -5,6 +5,7 @@ import '../../screens/zertifikate/zertifikate_screen.dart';
 import '../../screens/simulation/simulation_screen.dart';
 import '../../screens/admin/admin_panel_screen.dart';
 import '../../screens/profile/new_profile_page.dart';
+import '../../screens/exam_screens/specialization_selection_screen.dart';
 
 class NavRoot extends StatefulWidget {
   const NavRoot({super.key});
@@ -19,6 +20,7 @@ class _NavRootState extends State<NavRoot> {
   late final List<Widget> _pages = [
     const NavKeepAlive(child: ModulListe()),
     const NavKeepAlive(child: ZertifikatePage()),
+    const NavKeepAlive(child: SpecializationSelectionScreen()),
     const NavKeepAlive(child: SimulationPage()),
     const NavKeepAlive(child: AdminPanel()),
     const NavKeepAlive(child: NewProfilePage()),
@@ -43,9 +45,14 @@ class _NavRootState extends State<NavRoot> {
             label: 'Zertifikate',
           ),
           NavigationDestination(
-            icon: Icon(Icons.quiz_outlined),
-            selectedIcon: Icon(Icons.quiz),
-            label: 'Simulation',
+            icon: Icon(Icons.assignment_outlined),
+            selectedIcon: Icon(Icons.assignment),
+            label: 'Prüfung',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.people_outline),
+            selectedIcon: Icon(Icons.people),
+            label: 'Matchmaking',
           ),
           NavigationDestination(
             icon: Icon(Icons.admin_panel_settings_outlined),
