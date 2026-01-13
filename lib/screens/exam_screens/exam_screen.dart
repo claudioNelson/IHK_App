@@ -2,9 +2,9 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../models/question_model.dart';       // ✅ 2x hoch
-import '../../data/exam_data.dart';              // ✅ 2x hoch
-import '../../widgets/question_widget_router.dart';  // ✅ 2x hoch
+import '../../models/question_model.dart';
+import '../../data/exam_data.dart';
+import '../../widgets/question_widget_router.dart';
 import 'result_screen.dart';
 
 class ExamScreen extends StatefulWidget {

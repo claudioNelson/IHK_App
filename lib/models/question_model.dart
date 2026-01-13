@@ -19,8 +19,9 @@ class Question {
   final List<String>? options;           // Für Multiple Choice/Select
   final List<String>? correctAnswers;    // Richtige Antworten
   final String? hint;                    // Hinweise für die Lösung
-  final String? imageAsset;              // NEU: Pfad zum Bild (z.B. 'assets/images/hs2_graph.png')
-  final Map<String, dynamic>? additionalData; // Zusätzliche Daten (z.B. Tabellen, Diagramme)
+  final String? imageAsset;              // Pfad zum Bild
+  final Map<String, dynamic>? additionalData; // Zusätzliche Daten
+  final Map<String, dynamic>? calculationData; // NEU: Für Rechenaufgaben
 
   Question({
     required this.id,
@@ -31,8 +32,9 @@ class Question {
     this.options,
     this.correctAnswers,
     this.hint,
-    this.imageAsset,                     // NEU
+    this.imageAsset,
     this.additionalData,
+    this.calculationData, // NEU
   });
 
   Map<String, dynamic> toJson() => {
@@ -44,24 +46,57 @@ class Question {
     'options': options,
     'correctAnswers': correctAnswers,
     'hint': hint,
-    'imageAsset': imageAsset,            // NEU
+    'imageAsset': imageAsset,
     'additionalData': additionalData,
+    'calculationData': calculationData, // NEU
   };
 
   factory Question.fromJson(Map<String, dynamic> json) => Question(
-    id: json['id'],
-    title: json['title'],
-    description: json['description'],
-    type: QuestionType.values.firstWhere(
-      (e) => e.toString() == json['type'],
-    ),
-    points: json['points'],
+    id: json['id'].toString(),
+    title: json['title'] ?? json['aufgabe_nummer'] ?? '',
+    description: json['description'] ?? json['frage'] ?? '',
+    type: _parseQuestionType(json['question_type']),
+    points: json['points'] ?? json['punkte'] ?? 1,
     options: json['options'] != null ? List<String>.from(json['options']) : null,
     correctAnswers: json['correctAnswers'] != null ? List<String>.from(json['correctAnswers']) : null,
     hint: json['hint'],
-    imageAsset: json['imageAsset'],      // NEU
+    imageAsset: json['imageAsset'] ?? json['bild_url'],
     additionalData: json['additionalData'],
+    calculationData: json['calculation_data'], // NEU
   );
+
+  // NEU: Helper Funktion um DB question_type zu QuestionType Enum zu konvertieren
+  static QuestionType _parseQuestionType(dynamic type) {
+    if (type == null) return QuestionType.multipleChoice;
+    
+    final typeStr = type.toString().toLowerCase();
+    
+    switch (typeStr) {
+      case 'calculation':
+        return QuestionType.calculation;
+      case 'multiple_choice':
+      case 'multiplechoice':
+        return QuestionType.multipleChoice;
+      case 'multiple_select':
+      case 'multipleselect':
+        return QuestionType.multipleSelect;
+      case 'free_text':
+      case 'freetext':
+        return QuestionType.freeText;
+      case 'code':
+        return QuestionType.code;
+      case 'diagram':
+        return QuestionType.diagram;
+      case 'sql_query':
+      case 'sqlquery':
+        return QuestionType.sqlQuery;
+      case 'table_completion':
+      case 'tablecompletion':
+        return QuestionType.tableCompletion;
+      default:
+        return QuestionType.multipleChoice;
+    }
+  }
 }
 
 class ExamSection {

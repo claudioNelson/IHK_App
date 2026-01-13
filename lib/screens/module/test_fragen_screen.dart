@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../widgets/calculation_question_widget.dart';
 
 class TestFragen extends StatefulWidget {
   final int modulId;
@@ -29,6 +30,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
   bool hasAnswered = false;
   String? generatedExplanation;
   bool generatingExplanation = false;
+  String? calculationAnswer; // NEU: für Rechenaufgaben
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -75,11 +77,17 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
     _slideController.forward();
   }
 
+  bool get _isCalculationQuestion {
+    if (fragen.isEmpty || currentIndex >= fragen.length) return false;
+    final frage = fragen[currentIndex];
+    return frage['question_type'] == 'calculation';
+  }
+
   Future<void> _loadFragen() async {
     try {
       final res = await supabase
           .from('fragen')
-          .select('id, frage, antworten(id, text, ist_richtig, erklaerung)')
+          .select('id, frage, question_type, calculation_data, antworten(id, text, ist_richtig, erklaerung)')
           .eq('modul_id', widget.modulId)
           .eq('thema_id', widget.themaId);
 
@@ -172,6 +180,22 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
     }
   }
 
+  // NEU: Handler für Rechenaufgaben
+  void _handleCalculationAnswer(bool isCorrect, String? userAnswer) async {
+    if (hasAnswered) return;
+
+    setState(() {
+      hasAnswered = true;
+      calculationAnswer = userAnswer;
+    });
+
+    if (isCorrect) {
+      final frage = fragen[currentIndex];
+      await _saveProgress(frage['id']);
+      await _saveThemaScore();
+    }
+  }
+
   Future<void> _generateExplanation(
     Map<String, dynamic> frage,
     List antworten,
@@ -224,6 +248,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
         selectedAnswer = null;
         hasAnswered = false;
         generatedExplanation = null;
+        calculationAnswer = null; // NEU
       });
 
       await _fadeController.forward();
@@ -243,6 +268,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
         selectedAnswer = null;
         hasAnswered = false;
         generatedExplanation = null;
+        calculationAnswer = null; // NEU
       });
 
       await _fadeController.forward();
@@ -345,6 +371,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                 selectedAnswer = null;
                 hasAnswered = false;
                 generatedExplanation = null;
+                calculationAnswer = null;
               });
               _fadeController.forward(from: 0);
               _slideController.forward(from: 0);
@@ -422,6 +449,21 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
 
   Widget _buildQuestionContent() {
     final frage = fragen[currentIndex];
+
+    // NEU: Unterscheide zwischen Rechenaufgaben und Multiple Choice
+    if (_isCalculationQuestion) {
+      return SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.all(20),
+        child: CalculationQuestionWidget(
+          questionText: frage['frage'] ?? '',
+          calculationData: frage['calculation_data'] ?? {},
+          onAnswerSubmitted: _handleCalculationAnswer,
+        ),
+      );
+    }
+
+    // Original Multiple Choice Code
     final antworten = frage['antworten'] as List;
 
     return SingleChildScrollView(
@@ -606,7 +648,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
             );
           }),
 
-          if (hasAnswered) ...[
+          if (hasAnswered && !_isCalculationQuestion) ...[
             const SizedBox(height: 24),
             _buildExplanationCard(antworten),
           ],

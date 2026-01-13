@@ -1,5 +1,4 @@
 // widgets/question_widget_router.dart
-
 import 'package:flutter/material.dart';
 import '../models/question_model.dart';
 import 'exam_widgets/multiple_choice_widget.dart';
@@ -7,6 +6,7 @@ import 'exam_widgets/free_text_widget.dart';
 import 'exam_widgets/code_widget.dart';
 import 'exam_widgets/diagram_widget.dart';
 import 'exam_widgets/table_completion_widget.dart';
+import 'calculation_question_widget.dart'; // NEU
 
 class QuestionWidgetRouter extends StatelessWidget {
   final Question question;
@@ -75,22 +75,15 @@ class QuestionWidgetRouter extends StatelessWidget {
         );
         
       case QuestionType.calculation:
-        // Kann wie FreeText behandelt werden
-        return FreeTextWidget(
-          question: question,
-          questionNumber: questionNumber,
-          totalQuestions: totalQuestions,
-          onAnswerChanged: onAnswerChanged,
-          currentAnswer: currentAnswer as String?,
-        );
-        
-      default:
-        return FreeTextWidget(
-          question: question,
-          questionNumber: questionNumber,
-          totalQuestions: totalQuestions,
-          onAnswerChanged: onAnswerChanged,
-          currentAnswer: currentAnswer as String?,
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: CalculationQuestionWidget(
+            questionText: question.description,
+            calculationData: question.calculationData ?? {},
+            onAnswerSubmitted: (isCorrect, userAnswer) {
+              onAnswerChanged(userAnswer);
+            },
+          ),
         );
     }
   }
