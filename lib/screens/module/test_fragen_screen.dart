@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../widgets/calculation_question_widget.dart';
 import '../../widgets/fill_in_blank_widget.dart';
+import '../../widgets/sequence_question_widget.dart'; // NEU
 
 class TestFragen extends StatefulWidget {
   final int modulId;
@@ -85,6 +86,12 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
     if (fragen.isEmpty || currentIndex >= fragen.length) return false;
     final frage = fragen[currentIndex];
     return frage['question_type'] == 'fill_blank';
+  }
+
+  bool get _isSequenceQuestion {
+    if (fragen.isEmpty || currentIndex >= fragen.length) return false;
+    final frage = fragen[currentIndex];
+    return frage['question_type'] == 'sequence';
   }
 
   Future<void> _loadFragen() async {
@@ -483,6 +490,22 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
           blankData: frage['calculation_data'] ?? {}, // Nutzt das gleiche Feld
           onAnswerSubmitted: (isCorrect, userAnswers) {
             _handleCalculationAnswer(isCorrect, userAnswers.toString());
+          },
+        ),
+      );
+    }
+
+    // Für Sequence Aufgaben
+    if (_isSequenceQuestion) {
+      return SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.all(20),
+        child: SequenceQuestionWidget(
+          key: ValueKey('sequence_$currentIndex'),
+          questionText: frage['frage'] ?? '',
+          sequenceData: frage['calculation_data'] ?? {},
+          onAnswerSubmitted: (isCorrect, userOrder) {
+            _handleCalculationAnswer(isCorrect, userOrder.toString());
           },
         ),
       );

@@ -30,6 +30,36 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
 
   String get _explanation => widget.blankData['explanation'] ?? '';
 
+  // Alle verfügbaren Optionen aus allen Lücken
+  Set<String> get _allOptions {
+    final options = <String>{};
+    for (var blank in _blanks) {
+      final blankOptions = (blank['options'] as List).cast<String>();
+      options.addAll(blankOptions);
+    }
+    return options;
+  }
+
+  bool _isOptionSelected(String option) {
+    return selectedAnswers.values.contains(option);
+  }
+
+  void _selectOption(String option, int blankIndex) {
+    if (_hasSubmitted || _isOptionSelected(option)) return;
+
+    setState(() {
+      selectedAnswers[blankIndex] = option;
+    });
+  }
+
+  void _clearBlank(int index) {
+    if (_hasSubmitted) return;
+
+    setState(() {
+      selectedAnswers[index] = null;
+    });
+  }
+
   void _checkAnswer() {
     // Prüfe ob alle Lücken ausgefüllt sind
     if (selectedAnswers.length < _blanks.length) {
@@ -66,12 +96,28 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
     widget.onAnswerSubmitted(allCorrect, userAnswersMap);
   }
 
+  Color _getBlankColor(int index) {
+    if (!_hasSubmitted) return Colors.white;
+    final isCorrect = selectedAnswers[index] == _blanks[index]['correctAnswer'];
+    return isCorrect ? Colors.green.shade50 : Colors.red.shade50;
+  }
+
+  Color _getBlankBorderColor(int index) {
+    if (!_hasSubmitted) {
+      return selectedAnswers[index] != null
+          ? Colors.indigo.shade300
+          : Colors.grey.shade300;
+    }
+    final isCorrect = selectedAnswers[index] == _blanks[index]['correctAnswer'];
+    return isCorrect ? Colors.green : Colors.red;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Frage mit Lücken
+        // Frage mit Lücken-Nummern
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -121,10 +167,193 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
 
         const SizedBox(height: 24),
 
-        // Dropdowns für Lücken
-        ..._buildBlankDropdowns(),
+        // Lücken zum Befüllen
+        ...List.generate(_blanks.length, (index) {
+          final answer = selectedAnswers[index];
+          final isEmpty = answer == null;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Lücke ${index + 1}:',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.indigo,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: isEmpty || _hasSubmitted
+                        ? null
+                        : () => _clearBlank(index),
+                    borderRadius: BorderRadius.circular(12),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _getBlankColor(index),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _getBlankBorderColor(index),
+                          width: 2,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              isEmpty ? '__________' : answer,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: isEmpty
+                                    ? FontWeight.normal
+                                    : FontWeight.w500,
+                                color: isEmpty
+                                    ? Colors.grey.shade400
+                                    : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          if (!isEmpty && !_hasSubmitted)
+                            Icon(
+                              Icons.close,
+                              color: Colors.grey.shade600,
+                              size: 20,
+                            ),
+                          if (_hasSubmitted && !isEmpty)
+                            Icon(
+                              selectedAnswers[index] ==
+                                      _blanks[index]['correctAnswer']
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
+                              color:
+                                  selectedAnswers[index] ==
+                                      _blanks[index]['correctAnswer']
+                                  ? Colors.green
+                                  : Colors.red,
+                              size: 24,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (_hasSubmitted &&
+                    selectedAnswers[index] !=
+                        _blanks[index]['correctAnswer']) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.check,
+                          color: Colors.green.shade700,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Richtig: ${_blanks[index]['correctAnswer']}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.green.shade900,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }),
 
         const SizedBox(height: 24),
+
+        // Auswahl-Bereich
+        if (!_hasSubmitted) ...[
+          Text(
+            'Wähle aus:',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _allOptions.map((option) {
+              final isSelected = _isOptionSelected(option);
+
+              // Finde die nächste leere Lücke
+              int? nextBlankIndex;
+              if (!isSelected) {
+                for (int i = 0; i < _blanks.length; i++) {
+                  if (selectedAnswers[i] == null) {
+                    nextBlankIndex = i;
+                    break;
+                  }
+                }
+              }
+
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: isSelected || nextBlankIndex == null
+                      ? null
+                      : () => _selectOption(option, nextBlankIndex!),
+                  borderRadius: BorderRadius.circular(12),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.grey.shade200
+                          : Colors.indigo.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.grey.shade400
+                            : Colors.indigo.shade300,
+                        width: 2,
+                      ),
+                    ),
+                    child: Text(
+                      option,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isSelected
+                            ? Colors.grey.shade500
+                            : Colors.indigo.shade700,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 24),
+        ],
 
         // Submit Button
         if (!_hasSubmitted)
@@ -166,36 +395,23 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
         );
       }
 
-      // Lücke (außer nach dem letzten Teil)
+      // Lücken-Nummer (außer nach dem letzten Teil)
       if (i < parts.length - 1) {
         widgets.add(
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: _hasSubmitted
-                  ? (_isBlankCorrect(i)
-                        ? Colors.green.shade100
-                        : Colors.red.shade100)
-                  : Colors.indigo.shade100,
+              color: Colors.indigo.shade100,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: _hasSubmitted
-                    ? (_isBlankCorrect(i) ? Colors.green : Colors.red)
-                    : Colors.indigo.shade300,
-                width: 2,
-              ),
+              border: Border.all(color: Colors.indigo.shade300, width: 2),
             ),
             child: Text(
               '(${i + 1})',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: _hasSubmitted
-                    ? (_isBlankCorrect(i)
-                          ? Colors.green.shade900
-                          : Colors.red.shade900)
-                    : Colors.indigo.shade700,
+                color: Colors.indigo.shade700,
               ),
             ),
           ),
@@ -207,109 +423,6 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: widgets,
     );
-  }
-
-  bool _isBlankCorrect(int index) {
-    if (!_hasSubmitted || index >= _blanks.length) return false;
-    final correctAnswer = _blanks[index]['correctAnswer'];
-    final userAnswer = selectedAnswers[index];
-    return userAnswer == correctAnswer;
-  }
-
-  List<Widget> _buildBlankDropdowns() {
-    return List.generate(_blanks.length, (index) {
-      final blank = _blanks[index];
-      final options = (blank['options'] as List).cast<String>();
-      final correctAnswer = blank['correctAnswer'] as String;
-
-      return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Lücke ${index + 1}:',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.indigo,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _hasSubmitted
-                      ? (_isBlankCorrect(index) ? Colors.green : Colors.red)
-                      : Colors.grey.shade300,
-                  width: 2,
-                ),
-              ),
-              child: DropdownButtonFormField<String>(
-                value: selectedAnswers[index],
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  border: InputBorder.none,
-                  hintText: 'Wähle eine Antwort...',
-                  suffixIcon: _hasSubmitted
-                      ? Icon(
-                          _isBlankCorrect(index)
-                              ? Icons.check_circle
-                              : Icons.cancel,
-                          color: _isBlankCorrect(index)
-                              ? Colors.green
-                              : Colors.red,
-                        )
-                      : null,
-                ),
-                items: options.map((option) {
-                  return DropdownMenuItem(value: option, child: Text(option));
-                }).toList(),
-                onChanged: _hasSubmitted
-                    ? null
-                    : (value) {
-                        setState(() {
-                          selectedAnswers[index] = value;
-                        });
-                      },
-              ),
-            ),
-            if (_hasSubmitted && !_isBlankCorrect(index)) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.check, color: Colors.green.shade700, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Richtig: $correctAnswer',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.green.shade900,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      );
-    });
   }
 
   Widget _buildFeedback() {

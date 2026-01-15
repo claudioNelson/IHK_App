@@ -8,6 +8,7 @@ enum QuestionType {
   sqlQuery,
   tableCompletion,
   fillInBlank, // NEU
+  sequence,
 }
 
 class Question {

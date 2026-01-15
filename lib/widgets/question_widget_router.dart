@@ -8,6 +8,7 @@ import 'exam_widgets/diagram_widget.dart';
 import 'exam_widgets/table_completion_widget.dart';
 import 'calculation_question_widget.dart'; // NEU
 import 'fill_in_blank_widget.dart'; // NEU
+import 'sequence_question_widget.dart'; // NEU
 
 class QuestionWidgetRouter extends StatelessWidget {
   final Question question;
@@ -73,6 +74,18 @@ class QuestionWidgetRouter extends StatelessWidget {
           totalQuestions: totalQuestions,
           onAnswerChanged: onAnswerChanged,
           currentAnswer: currentAnswer as String?,
+        );
+
+      case QuestionType.sequence: // NEU
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SequenceQuestionWidget(
+            questionText: question.description,
+            sequenceData: question.additionalData ?? {},
+            onAnswerSubmitted: (isCorrect, userOrder) {
+              onAnswerChanged(userOrder);
+            },
+          ),
         );
 
       case QuestionType.fillInBlank: // NEU
