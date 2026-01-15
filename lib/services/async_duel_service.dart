@@ -11,31 +11,33 @@ class AsyncDuelService {
     return id as String;
   }
 
-Future<String?> joinRandomMatch() async {
-  print('🔵 joinRandomMatch aufgerufen');
-  print('🔵 User ID: ${c.auth.currentUser?.id}');
-  
-  final id = await c.rpc('join_random_open_match');
-  
-  print('🔵 Ergebnis: $id');
-  
-  return id == null ? null : id as String;
-}
+  Future<String?> joinRandomMatch() async {
+    print('🔵 joinRandomMatch aufgerufen');
+    print('🔵 User ID: ${c.auth.currentUser?.id}');
 
-/// Lädt alle Matches wo der User beteiligt ist
-Future<List<Map<String, dynamic>>> getMyMatches() async {
-  final userId = c.auth.currentUser?.id;
-  if (userId == null) return [];
+    final id = await c.rpc('join_random_open_match');
 
-  final result = await c
-      .from('matches')
-      .select('id, status, player1_id, player2_id, total_questions, created_at')
-      .or('player1_id.eq.$userId,player2_id.eq.$userId')
-      .order('created_at', ascending: false)
-      .limit(10);
+    print('🔵 Ergebnis: $id');
 
-  return List<Map<String, dynamic>>.from(result);
-}
+    return id == null ? null : id as String;
+  }
+
+  /// Lädt alle Matches wo der User beteiligt ist
+  Future<List<Map<String, dynamic>>> getMyMatches() async {
+    final userId = c.auth.currentUser?.id;
+    if (userId == null) return [];
+
+    final result = await c
+        .from('matches')
+        .select(
+          'id, status, player1_id, player2_id, total_questions, created_at',
+        )
+        .or('player1_id.eq.$userId,player2_id.eq.$userId')
+        .order('created_at', ascending: false)
+        .limit(10);
+
+    return List<Map<String, dynamic>>.from(result);
+  }
 
   Future<bool> submitAnswer({
     required String matchId,
@@ -61,7 +63,7 @@ Future<List<Map<String, dynamic>>> getMyMatches() async {
     final q = await c
         .from('match_questions')
         .select(
-          'idx, frage_id, fragen:frage_id(id, frage, antworten(id, text, ist_richtig))',
+          'idx, frage_id, fragen:frage_id(id, frage, question_type, calculation_data, antworten(id, text, ist_richtig))',
         )
         .eq('match_id', matchId)
         .order('idx');
@@ -78,64 +80,65 @@ Future<List<Map<String, dynamic>>> getMyMatches() async {
     return {'questions': q, 'myAnswers': myAnswers};
   }
 
-Future<Map<String, dynamic>?> loadScores(String matchId) async {
-  final userId = c.auth.currentUser?.id;
-  
-  // Lade Scores
-  final scores = await c
-      .from('match_scores')
-      .select()
-      .eq('match_id', matchId)
-      .maybeSingle();
+  Future<Map<String, dynamic>?> loadScores(String matchId) async {
+    final userId = c.auth.currentUser?.id;
 
-  if (scores == null) return null;
+    // Lade Scores
+    final scores = await c
+        .from('match_scores')
+        .select()
+        .eq('match_id', matchId)
+        .maybeSingle();
 
-  // Lade Spieler-Profile separat
-  final player1Profile = await c
-      .from('profiles')
-      .select('id, username, email')
-      .eq('id', scores['player1_id'])
-      .maybeSingle();
+    if (scores == null) return null;
 
-  final player2Profile = await c
-      .from('profiles')
-      .select('id, username, email')
-      .eq('id', scores['player2_id'])
-      .maybeSingle();
+    // Lade Spieler-Profile separat
+    final player1Profile = await c
+        .from('profiles')
+        .select('id, username, email')
+        .eq('id', scores['player1_id'])
+        .maybeSingle();
 
-  final isPlayer1 = scores['player1_id'] == userId;
-  
-  return {
-    'my_score': isPlayer1 ? scores['player1_score'] : scores['player2_score'],
-    'opponent_score': isPlayer1 ? scores['player2_score'] : scores['player1_score'],
-    'my_profile': isPlayer1 ? player1Profile : player2Profile,
-    'opponent_profile': isPlayer1 ? player2Profile : player1Profile,
-  };
-}
+    final player2Profile = await c
+        .from('profiles')
+        .select('id, username, email')
+        .eq('id', scores['player2_id'])
+        .maybeSingle();
 
-/// Lädt die Rangliste (Top-Spieler nach Elo)
-Future<List<Map<String, dynamic>>> getLeaderboard({int limit = 50}) async {
-  final result = await c
-      .from('player_stats')
-      .select()
-      .order('elo_rating', ascending: false)
-      .limit(limit);
+    final isPlayer1 = scores['player1_id'] == userId;
 
-  return List<Map<String, dynamic>>.from(result);
-}
+    return {
+      'my_score': isPlayer1 ? scores['player1_score'] : scores['player2_score'],
+      'opponent_score': isPlayer1
+          ? scores['player2_score']
+          : scores['player1_score'],
+      'my_profile': isPlayer1 ? player1Profile : player2Profile,
+      'opponent_profile': isPlayer1 ? player2Profile : player1Profile,
+    };
+  }
 
-/// Lädt die eigenen Stats
-Future<Map<String, dynamic>?> getMyStats() async {
-  final userId = c.auth.currentUser?.id;
-  if (userId == null) return null;
+  /// Lädt die Rangliste (Top-Spieler nach Elo)
+  Future<List<Map<String, dynamic>>> getLeaderboard({int limit = 50}) async {
+    final result = await c
+        .from('player_stats')
+        .select()
+        .order('elo_rating', ascending: false)
+        .limit(limit);
 
-  final result = await c
-      .from('player_stats')
-      .select()
-      .eq('user_id', userId)
-      .maybeSingle();
+    return List<Map<String, dynamic>>.from(result);
+  }
 
-  return result;
-}
+  /// Lädt die eigenen Stats
+  Future<Map<String, dynamic>?> getMyStats() async {
+    final userId = c.auth.currentUser?.id;
+    if (userId == null) return null;
 
+    final result = await c
+        .from('player_stats')
+        .select()
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    return result;
+  }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/async_duel_service.dart';
 import '../../../async_match_progress.dart';
+import '../../../widgets/fill_in_blank_widget.dart';
+import '../../../widgets/sequence_question_widget.dart';
 import 'dart:async';
 
 class AsyncMatchPlayPage extends StatefulWidget {
@@ -32,23 +34,23 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   Map<String, dynamic>? _finalScores;
 
   Timer? _timer;
-  int _timeLeft = 20;
-  final int _maxTime = 20;
+  int _timeLeft = 30;
+  final int _maxTime = 30;
 
   String get _userId =>
       Supabase.instance.client.auth.currentUser?.id ?? 'local';
 
   @override
-void initState() {
-  super.initState();
-  _init();
-}
+  void initState() {
+    super.initState();
+    _init();
+  }
 
-@override
-void dispose() {
-  _stopTimer();
-  super.dispose();
-}
+  @override
+  void dispose() {
+    _stopTimer();
+    super.dispose();
+  }
 
   Future<void> _init() async {
     try {
@@ -58,10 +60,6 @@ void dispose() {
       _progress = await _store!.ensure(_userId, widget.matchId);
 
       print('🟡 Lade Match-Daten...');
-      // Timer starten wenn Fragen geladen
-      if (_questions.isNotEmpty && _idx < _questions.length) {
-        _startTimer();
-      }
       final data = await _svc.loadMatch(widget.matchId);
       print('🟢 Match-Daten geladen: $data');
 
@@ -71,18 +69,15 @@ void dispose() {
       print('🟢 Anzahl Fragen: ${q.length}');
       _questions = q;
 
-      // Prüfe ob bereits alle Fragen beantwortet wurden (aus DB)
       final myAnswers = data['myAnswers'] as List<dynamic>;
       print('🟢 Bereits beantwortete Fragen: ${myAnswers.length}');
 
       if (myAnswers.length >= _questions.length) {
-        // Alle Fragen bereits beantwortet -> direkt finalisieren
         print('✅ Alle Fragen bereits beantwortet, finalisiere...');
         await _tryFinalize();
         return;
       }
 
-      // Setze Index auf erste unbeantwortete Frage
       final answeredIdxs = myAnswers.map((a) => a['idx'] as int).toSet();
       _idx = 0;
       for (int i = 0; i < _questions.length; i++) {
@@ -93,11 +88,13 @@ void dispose() {
         }
       }
 
-      // Sync lokalen Progress
       _progress!.currentIdx = _idx;
       await _store!.save(_progress!);
 
       print('🟢 Starte bei Frage $_idx');
+
+      // Timer starten
+      _startTimer();
     } catch (e, stackTrace) {
       print('🔴 FEHLER in _init:');
       print('🔴 Error: $e');
@@ -143,20 +140,19 @@ void dispose() {
 
     print('⏰ Zeit abgelaufen für Frage $_idx');
 
-    // Als falsch werten und weiter
     setState(() {
       _answered = true;
       _wasCorrect = false;
       _selectedAnswerId = null;
     });
 
-    // Kurz warten, dann automatisch weiter
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) _next();
     });
   }
 
-  Future<void> _submit(int answerId, bool correct) async {
+  // Für Multiple Choice
+  Future<void> _submitMultipleChoice(int answerId, bool correct) async {
     if (_submitting || _answered) return;
 
     _stopTimer();
@@ -209,6 +205,62 @@ void dispose() {
     }
   }
 
+  // Für fill_blank & sequence
+  Future<void> _submitSpecialQuestion(
+    bool isCorrect,
+    dynamic userAnswer,
+  ) async {
+    if (_submitting || _answered) return;
+
+    _stopTimer();
+
+    setState(() {
+      _submitting = true;
+    });
+
+    final q = _questions[_idx];
+
+    try {
+      // Für fill_blank/sequence: Wir speichern answerId = 0 (Dummy)
+      // Die eigentliche Korrektheit wird lokal ausgewertet
+      final ok = await _svc.submitAnswer(
+        matchId: widget.matchId,
+        idx: q['idx'] as int,
+        answerId: 0, // Dummy-ID für Supabase
+      );
+
+      if (!ok) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Antwort nicht akzeptiert ❌')),
+          );
+          setState(() {
+            _submitting = false;
+          });
+        }
+        return;
+      }
+
+      _progress!.answers[_idx] = 0;
+      await _store!.save(_progress!);
+
+      setState(() {
+        _answered = true;
+        _wasCorrect = isCorrect;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
+      setState(() {
+        _submitting = false;
+      });
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
   Future<void> _next() async {
     if (_idx + 1 >= _questions.length) {
       await _tryFinalize();
@@ -232,7 +284,6 @@ void dispose() {
       final status = await _svc.tryFinalize(widget.matchId);
       print('🏁 Finalize-Status: $status');
 
-      // "completed" ODER "finalized" = Match ist fertig
       if (status == 'completed' || status == 'finalized') {
         final scores = await _svc.loadScores(widget.matchId);
         setState(() {
@@ -260,6 +311,12 @@ void dispose() {
     }
   }
 
+  String _getQuestionType() {
+    final q = _questions[_idx];
+    final frageData = q['fragen'];
+    return frageData['question_type'] as String? ?? 'multiple_choice';
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -269,7 +326,6 @@ void dispose() {
       );
     }
 
-    // NEU: Waiting Screen
     if (_waitingForOpponent) {
       return _buildWaitingScreen();
     }
@@ -285,90 +341,165 @@ void dispose() {
       );
     }
 
-    final q = _questions[_idx];
-    final frageData = q['fragen'];
-    final frageText = frageData['frage'] as String;
-    final antworten = (frageData['antworten'] as List<dynamic>).toList();
+    final questionType = _getQuestionType();
 
     return Scaffold(
-appBar: AppBar(
+      appBar: AppBar(
         title: Text('Frage ${_idx + 1} / ${_questions.length}'),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: _timeLeft <= 5 ? Colors.red : _timeLeft <= 10 ? Colors.orange : Colors.green,
+              color: _timeLeft <= 5
+                  ? Colors.red
+                  : _timeLeft <= 10
+                  ? Colors.orange
+                  : Colors.green,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
                 const Icon(Icons.timer, color: Colors.white, size: 20),
                 const SizedBox(width: 4),
-                Text('$_timeLeft', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                Text(
+                  '$_timeLeft',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
               ],
             ),
           ),
         ],
-      ),      body: Padding(
+      ),
+      body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_submitting) const LinearProgressIndicator(),
             const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(frageText, style: const TextStyle(fontSize: 18)),
-              ),
-            ),
-            const SizedBox(height: 16),
+
+            // Render based on question type
             Expanded(
-              child: ListView.builder(
-                itemCount: antworten.length,
-                itemBuilder: (ctx, i) {
-                  final a = antworten[i];
-                  final aid = a['id'] as int;
-                  final text = a['text'] as String;
-                  final correct = a['ist_richtig'] == true;
-                  final selected = _selectedAnswerId == aid;
-
-                  Color? color;
-                  if (_answered && selected) {
-                    color = _wasCorrect ? Colors.green : Colors.red;
-                  } else if (selected) {
-                    color = Colors.blue.shade100;
-                  }
-
-                  return Card(
-                    color: color,
-                    child: ListTile(
-                      title: Text(text),
-                      onTap: _answered || _submitting
-                          ? null
-                          : () => _submit(aid, correct),
-                      trailing: _answered && selected
-                          ? Icon(
-                              _wasCorrect ? Icons.check : Icons.close,
-                              color: _wasCorrect ? Colors.green : Colors.red,
-                            )
-                          : null,
-                    ),
-                  );
-                },
+              child: SingleChildScrollView(
+                child: questionType == 'fill_blank'
+                    ? _buildFillBlankQuestion()
+                    : questionType == 'sequence'
+                    ? _buildSequenceQuestion()
+                    : _buildMultipleChoiceQuestion(),
               ),
             ),
+
+            const SizedBox(height: 16),
+
             if (_answered)
               ElevatedButton(
                 onPressed: _next,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.indigo,
+                ),
                 child: Text(
                   _idx + 1 >= _questions.length ? 'Beenden' : 'Weiter',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMultipleChoiceQuestion() {
+    final q = _questions[_idx];
+    final frageData = q['fragen'];
+    final frageText = frageData['frage'] as String;
+    final antworten = (frageData['antworten'] as List<dynamic>? ?? []).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(frageText, style: const TextStyle(fontSize: 18)),
+          ),
+        ),
+        const SizedBox(height: 16),
+        ...antworten.map((a) {
+          final aid = a['id'] as int;
+          final text = a['text'] as String;
+          final correct = a['ist_richtig'] == true;
+          final selected = _selectedAnswerId == aid;
+
+          Color? color;
+          if (_answered && selected) {
+            color = _wasCorrect ? Colors.green : Colors.red;
+          } else if (selected) {
+            color = Colors.blue.shade100;
+          }
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Card(
+              color: color,
+              child: ListTile(
+                title: Text(text),
+                onTap: _answered || _submitting
+                    ? null
+                    : () => _submitMultipleChoice(aid, correct),
+                trailing: _answered && selected
+                    ? Icon(
+                        _wasCorrect ? Icons.check : Icons.close,
+                        color: _wasCorrect ? Colors.green : Colors.red,
+                      )
+                    : null,
+              ),
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Widget _buildFillBlankQuestion() {
+    final q = _questions[_idx];
+    final frageData = q['fragen'];
+    final frageText = frageData['frage'] as String;
+    final calculationData =
+        frageData['calculation_data'] as Map<String, dynamic>? ?? {};
+
+    return FillInTheBlankWidget(
+      key: ValueKey('fill_blank_$_idx'),
+      questionText: frageText,
+      blankData: calculationData,
+      onAnswerSubmitted: (isCorrect, userAnswers) {
+        _submitSpecialQuestion(isCorrect, userAnswers);
+      },
+    );
+  }
+
+  Widget _buildSequenceQuestion() {
+    final q = _questions[_idx];
+    final frageData = q['fragen'];
+    final frageText = frageData['frage'] as String;
+    final calculationData =
+        frageData['calculation_data'] as Map<String, dynamic>? ?? {};
+
+    return SequenceQuestionWidget(
+      key: ValueKey('sequence_$_idx'),
+      questionText: frageText,
+      sequenceData: calculationData,
+      onAnswerSubmitted: (isCorrect, userOrder) {
+        _submitSpecialQuestion(isCorrect, userOrder);
+      },
     );
   }
 
@@ -437,7 +568,6 @@ appBar: AppBar(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Pokal mit Farbe basierend auf Ergebnis
               Icon(
                 isDraw ? Icons.handshake : Icons.emoji_events,
                 size: 80,
@@ -456,11 +586,8 @@ appBar: AppBar(
                 ),
               ),
               const SizedBox(height: 32),
-
-              // Spieler-Karten nebeneinander
               Row(
                 children: [
-                  // Meine Karte
                   Expanded(
                     child: _buildPlayerCard(
                       name: myName,
@@ -479,7 +606,6 @@ appBar: AppBar(
                       ),
                     ),
                   ),
-                  // Gegner-Karte
                   Expanded(
                     child: _buildPlayerCard(
                       name: oppName,
@@ -490,10 +616,7 @@ appBar: AppBar(
                   ),
                 ],
               ),
-
               const SizedBox(height: 32),
-
-              // Zurück-Button
               ElevatedButton.icon(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.arrow_back),
@@ -531,7 +654,6 @@ appBar: AppBar(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Avatar
             CircleAvatar(
               radius: 30,
               backgroundColor: isMe ? Colors.indigo : Colors.deepPurple,
@@ -545,7 +667,6 @@ appBar: AppBar(
               ),
             ),
             const SizedBox(height: 12),
-            // Name
             Text(
               isMe ? '$name (Du)' : name,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -553,7 +674,6 @@ appBar: AppBar(
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 8),
-            // Score
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
