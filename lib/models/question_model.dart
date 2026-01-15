@@ -1,13 +1,13 @@
-// models/question_model.dart
 enum QuestionType {
-  multipleChoice,      // Multiple Choice mit einer richtigen Antwort
-  multipleSelect,      // Mehrere richtige Antworten möglich
-  freeText,           // Freitext-Antwort
-  code,               // Code/Pseudocode schreiben
-  diagram,            // Diagramm erstellen (UML, ER)
-  calculation,        // Berechnungsaufgabe
-  sqlQuery,           // SQL-Abfrage schreiben
-  tableCompletion     // Tabelle ausfüllen
+  multipleChoice,
+  multipleSelect,
+  freeText,
+  code,
+  diagram,
+  calculation,
+  sqlQuery,
+  tableCompletion,
+  fillInBlank, // NEU
 }
 
 class Question {
@@ -16,10 +16,10 @@ class Question {
   final String description;
   final QuestionType type;
   final int points;
-  final List<String>? options;           // Für Multiple Choice/Select
-  final List<String>? correctAnswers;    // Richtige Antworten
-  final String? hint;                    // Hinweise für die Lösung
-  final String? imageAsset;              // Pfad zum Bild
+  final List<String>? options; // Für Multiple Choice/Select
+  final List<String>? correctAnswers; // Richtige Antworten
+  final String? hint; // Hinweise für die Lösung
+  final String? imageAsset; // Pfad zum Bild
   final Map<String, dynamic>? additionalData; // Zusätzliche Daten
   final Map<String, dynamic>? calculationData; // NEU: Für Rechenaufgaben
 
@@ -57,23 +57,31 @@ class Question {
     description: json['description'] ?? json['frage'] ?? '',
     type: _parseQuestionType(json['question_type']),
     points: json['points'] ?? json['punkte'] ?? 1,
-    options: json['options'] != null ? List<String>.from(json['options']) : null,
-    correctAnswers: json['correctAnswers'] != null ? List<String>.from(json['correctAnswers']) : null,
+    options: json['options'] != null
+        ? List<String>.from(json['options'])
+        : null,
+    correctAnswers: json['correctAnswers'] != null
+        ? List<String>.from(json['correctAnswers'])
+        : null,
     hint: json['hint'],
     imageAsset: json['imageAsset'] ?? json['bild_url'],
     additionalData: json['additionalData'],
     calculationData: json['calculation_data'], // NEU
   );
 
-  // NEU: Helper Funktion um DB question_type zu QuestionType Enum zu konvertieren
+  /// NEU: Helper Funktion um DB question_type zu QuestionType Enum zu konvertieren
   static QuestionType _parseQuestionType(dynamic type) {
     if (type == null) return QuestionType.multipleChoice;
-    
+
     final typeStr = type.toString().toLowerCase();
-    
+
     switch (typeStr) {
       case 'calculation':
         return QuestionType.calculation;
+      case 'fill_blank':
+      case 'fillblank':
+      case 'fill_in_blank':
+        return QuestionType.fillInBlank; // NEU
       case 'multiple_choice':
       case 'multiplechoice':
         return QuestionType.multipleChoice;
@@ -119,7 +127,7 @@ class ExamSection {
 
 class UserAnswer {
   final String questionId;
-  final dynamic answer;  // Kann String, List<String>, etc. sein
+  final dynamic answer; // Kann String, List<String>, etc. sein
   final DateTime timestamp;
 
   UserAnswer({
@@ -155,6 +163,6 @@ class ExamAttempt {
   });
 
   bool get isCompleted => endTime != null;
-  
+
   double get percentage => score != null ? (score! / totalPoints) * 100 : 0;
 }
