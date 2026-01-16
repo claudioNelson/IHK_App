@@ -3,7 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../widgets/calculation_question_widget.dart';
 import '../../widgets/fill_in_blank_widget.dart';
-import '../../widgets/sequence_question_widget.dart'; // NEU
+import '../../widgets/sequence_question_widget.dart';
+import '../../widgets/report_dialog.dart';
 
 class TestFragen extends StatefulWidget {
   final int modulId;
@@ -414,6 +415,22 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
         foregroundColor: Colors.black,
         elevation: 0,
         actions: [
+          // Report Button
+          IconButton(
+            icon: const Icon(Icons.flag_outlined),
+            tooltip: 'Problem melden',
+            onPressed: () {
+              if (fragen.isEmpty || currentIndex >= fragen.length) return;
+
+              final frageId = fragen[currentIndex]['id'] as int;
+
+              showDialog(
+                context: context,
+                builder: (context) =>
+                    ReportDialog(frageId: frageId, screenType: 'test_fragen'),
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Center(

@@ -5,6 +5,7 @@ import '../../../async_match_progress.dart';
 import '../../../widgets/fill_in_blank_widget.dart';
 import '../../../widgets/sequence_question_widget.dart';
 import 'dart:async';
+import '../../../widgets/report_dialog.dart';
 
 class AsyncMatchPlayPage extends StatefulWidget {
   final String matchId;
@@ -333,30 +334,26 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         body: const Center(child: CircularProgressIndicator()),
       );
     }
-
     if (_waitingForOpponent) {
       return _buildWaitingScreen();
     }
-
     if (_matchCompleted && _finalScores != null) {
       return _buildResultScreen();
     }
-
     if (_questions.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('AsyncMatch')),
         body: const Center(child: Text('Keine Fragen verfügbar')),
       );
     }
-
     final questionType = _getQuestionType();
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Frage ${_idx + 1} / ${_questions.length}'),
         actions: [
+          // Timer
           Container(
-            margin: const EdgeInsets.only(right: 16),
+            margin: const EdgeInsets.only(right: 8),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: _timeLeft <= 5
@@ -381,6 +378,24 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
               ],
             ),
           ),
+          // Report Button
+          IconButton(
+            icon: const Icon(Icons.flag_outlined),
+            tooltip: 'Problem melden',
+            onPressed: () {
+              if (_questions.isEmpty || _idx >= _questions.length) return;
+
+              final q = _questions[_idx];
+              final frageData = q['fragen'];
+              final frageId = frageData['id'] as int;
+
+              showDialog(
+                context: context,
+                builder: (context) =>
+                    ReportDialog(frageId: frageId, screenType: 'async_match'),
+              );
+            },
+          ),
         ],
       ),
       body: Padding(
@@ -390,7 +405,6 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
           children: [
             if (_submitting) const LinearProgressIndicator(),
             const SizedBox(height: 16),
-
             // Render based on question type
             Expanded(
               child: SingleChildScrollView(
@@ -401,9 +415,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                     : _buildMultipleChoiceQuestion(),
               ),
             ),
-
             const SizedBox(height: 16),
-
             if (_answered)
               ElevatedButton(
                 onPressed: _next,
