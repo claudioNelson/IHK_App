@@ -30,6 +30,10 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   int? _selectedAnswerId;
   bool _waitingForOpponent = false;
 
+  // NEU - Für fill_blank und sequence
+  Map<int, String> _fillBlankAnswers = {}; // Lücke-Index -> Antwort
+  List<String> _sequenceOrder = []; // Aktuelle Reihenfolge
+
   bool _matchCompleted = false;
   Map<String, dynamic>? _finalScores;
 
@@ -205,7 +209,6 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     }
   }
 
-  // Für fill_blank & sequence
   Future<void> _submitSpecialQuestion(
     bool isCorrect,
     dynamic userAnswer,
@@ -221,12 +224,10 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     final q = _questions[_idx];
 
     try {
-      // Für fill_blank/sequence: Wir speichern answerId = 0 (Dummy)
-      // Die eigentliche Korrektheit wird lokal ausgewertet
       final ok = await _svc.submitAnswer(
         matchId: widget.matchId,
         idx: q['idx'] as int,
-        answerId: 0, // Dummy-ID für Supabase
+        answerId: 1, // Dummy-ID für Supabase
       );
 
       if (!ok) {
@@ -241,12 +242,17 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         return;
       }
 
-      _progress!.answers[_idx] = 0;
+      _progress!.answers[_idx] = 1;
       await _store!.save(_progress!);
 
       setState(() {
         _answered = true;
         _wasCorrect = isCorrect;
+      });
+
+      // NEU: Automatisch weiter nach kurzer Pause
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) _next();
       });
     } catch (e) {
       if (!mounted) return;
@@ -272,6 +278,8 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       _answered = false;
       _wasCorrect = false;
       _selectedAnswerId = null;
+      _fillBlankAnswers = {}; // NEU - Reset
+      _sequenceOrder = []; // NEU - Reset
     });
 
     _progress!.currentIdx = _idx;
@@ -476,13 +484,199 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     final calculationData =
         frageData['calculation_data'] as Map<String, dynamic>? ?? {};
 
-    return FillInTheBlankWidget(
-      key: ValueKey('fill_blank_$_idx'),
-      questionText: frageText,
-      blankData: calculationData,
-      onAnswerSubmitted: (isCorrect, userAnswers) {
-        _submitSpecialQuestion(isCorrect, userAnswers);
-      },
+    final blanks =
+        (calculationData['blanks'] as List?)?.cast<Map<String, dynamic>>() ??
+        [];
+
+    // Alle ausgefüllt?
+    final allFilled = _fillBlankAnswers.length == blanks.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(frageText, style: const TextStyle(fontSize: 18)),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Lücken
+        ...List.generate(blanks.length, (index) {
+          final blank = blanks[index];
+          final options = (blank['options'] as List?)?.cast<String>() ?? [];
+          final selectedAnswer = _fillBlankAnswers[index];
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Lücke ${index + 1}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.indigo.shade700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    if (selectedAnswer != null)
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.indigo.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.indigo.shade300,
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  selectedAnswer,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              InkWell(
+                                onTap: _answered || _submitting
+                                    ? null
+                                    : () {
+                                        setState(() {
+                                          _fillBlankAnswers.remove(index);
+                                        });
+                                      },
+                                child: Icon(
+                                  Icons.close,
+                                  color: Colors.grey.shade600,
+                                  size: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      const Expanded(
+                        child: Text(
+                          '_____',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                  ],
+                ),
+                if (selectedAnswer == null) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: options.map((option) {
+                      final isUsed = _fillBlankAnswers.values.contains(option);
+
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _answered || _submitting || isUsed
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _fillBlankAnswers[index] = option;
+                                  });
+                                },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isUsed
+                                  ? Colors.grey.shade200
+                                  : Colors.indigo.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isUsed
+                                    ? Colors.grey.shade400
+                                    : Colors.indigo.shade300,
+                                width: 2,
+                              ),
+                            ),
+                            child: Text(
+                              option,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: isUsed
+                                    ? Colors.grey.shade500
+                                    : Colors.indigo.shade700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }),
+
+        const SizedBox(height: 16),
+
+        // Submit Button
+        if (!_answered)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_submitting || !allFilled)
+                  ? null
+                  : () {
+                      // Prüfe Korrektheit
+                      bool allCorrect = true;
+                      for (int i = 0; i < blanks.length; i++) {
+                        final correctAnswer =
+                            blanks[i]['correctAnswer'] as String;
+                        final userAnswer = _fillBlankAnswers[i];
+                        if (userAnswer != correctAnswer) {
+                          allCorrect = false;
+                          break;
+                        }
+                      }
+
+                      _submitSpecialQuestion(allCorrect, _fillBlankAnswers);
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.indigo,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: Text(
+                allFilled ? 'Prüfen' : 'Bitte alle Lücken ausfüllen',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -493,13 +687,223 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     final calculationData =
         frageData['calculation_data'] as Map<String, dynamic>? ?? {};
 
-    return SequenceQuestionWidget(
-      key: ValueKey('sequence_$_idx'),
-      questionText: frageText,
-      sequenceData: calculationData,
-      onAnswerSubmitted: (isCorrect, userOrder) {
-        _submitSpecialQuestion(isCorrect, userOrder);
-      },
+    final items = (calculationData['items'] as List?)?.cast<String>() ?? [];
+    final correctOrder =
+        (calculationData['correctOrder'] as List?)?.cast<String>() ?? [];
+
+    // Initialisiere _sequenceOrder wenn leer
+    if (_sequenceOrder.isEmpty && items.isNotEmpty) {
+      _sequenceOrder = List<String>.filled(items.length, '');
+    }
+
+    // Alle Slots gefüllt?
+    final allFilled =
+        _sequenceOrder.where((s) => s.isNotEmpty).length == items.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(frageText, style: const TextStyle(fontSize: 18)),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Slots
+        ...List.generate(items.length, (index) {
+          final item = _sequenceOrder.length > index
+              ? _sequenceOrder[index]
+              : '';
+          final isEmpty = item.isEmpty;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              children: [
+                // Positions-Nummer
+                Container(
+                  width: 40,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.indigo.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${index + 1}.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo.shade700,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Slot
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: isEmpty || _answered || _submitting
+                          ? null
+                          : () {
+                              setState(() {
+                                _sequenceOrder[index] = '';
+                              });
+                            },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isEmpty ? Colors.white : Colors.indigo.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isEmpty
+                                ? Colors.grey.shade300
+                                : Colors.indigo.shade300,
+                            width: 2,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                isEmpty ? '__________' : item,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: isEmpty
+                                      ? FontWeight.normal
+                                      : FontWeight.w500,
+                                  color: isEmpty
+                                      ? Colors.grey.shade400
+                                      : Colors.black87,
+                                ),
+                              ),
+                            ),
+                            if (!isEmpty && !_answered && !_submitting)
+                              Icon(
+                                Icons.close,
+                                color: Colors.grey.shade600,
+                                size: 20,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+
+        const SizedBox(height: 24),
+
+        // Auswahl
+        if (!_answered) ...[
+          Text(
+            'Wähle aus:',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: items.map((item) {
+              final isSelected = _sequenceOrder.contains(item);
+
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _answered || _submitting || isSelected
+                      ? null
+                      : () {
+                          setState(() {
+                            // Finde ersten leeren Slot
+                            final emptyIndex = _sequenceOrder.indexOf('');
+                            if (emptyIndex != -1) {
+                              _sequenceOrder[emptyIndex] = item;
+                            }
+                          });
+                        },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.grey.shade200
+                          : Colors.indigo.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.grey.shade400
+                            : Colors.indigo.shade300,
+                        width: 2,
+                      ),
+                    ),
+                    child: Text(
+                      item,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isSelected
+                            ? Colors.grey.shade500
+                            : Colors.indigo.shade700,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 24),
+        ],
+
+        // Submit Button
+        if (!_answered)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_submitting || !allFilled)
+                  ? null
+                  : () {
+                      // Prüfe Korrektheit
+                      bool isCorrect = true;
+                      for (int i = 0; i < correctOrder.length; i++) {
+                        if (i >= _sequenceOrder.length ||
+                            _sequenceOrder[i] != correctOrder[i]) {
+                          isCorrect = false;
+                          break;
+                        }
+                      }
+
+                      _submitSpecialQuestion(isCorrect, _sequenceOrder);
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.indigo,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: Text(
+                allFilled ? 'Prüfen' : 'Bitte alle Positionen ausfüllen',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -661,7 +1065,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                 name.isNotEmpty ? name[0].toUpperCase() : '?',
                 style: const TextStyle(
                   fontSize: 24,
-                  color: Colors.white,
+                  color: Color.fromARGB(255, 218, 148, 148),
                   fontWeight: FontWeight.bold,
                 ),
               ),
