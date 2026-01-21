@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../shared/nav_keep_alive.dart';
 import '../../screens/module/modul_liste_screen.dart';
 import '../../screens/zertifikate/zertifikate_screen.dart';
-import '../../screens/simulation/simulation_screen.dart';
+import '../../screens/simulation/async_match_demo_screen.dart';
 import '../../screens/admin/admin_panel_screen.dart';
 import '../../screens/profile/new_profile_page.dart';
 import '../../screens/exam_screens/specialization_selection_screen.dart';
@@ -19,7 +19,7 @@ class _NavRootState extends State<NavRoot> {
   late final List<Widget> _pages = [
     const NavKeepAlive(child: ModulListe()),
     const NavKeepAlive(child: SpecializationSelectionScreen()),
-    const NavKeepAlive(child: SimulationPage()),
+    const NavKeepAlive(child: AsyncMatchDemoPage()),
     const NavKeepAlive(child: ZertifikatePage()),
     const NavKeepAlive(child: NewProfilePage()),
   ];
@@ -47,10 +47,30 @@ class _NavRootState extends State<NavRoot> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(0, Icons.menu_book_outlined, Icons.menu_book, 'Lernen'),
-              _buildNavItem(1, Icons.assignment_outlined, Icons.assignment, 'Prüfung'),
-              _buildNavItem(2, Icons.sports_esports_outlined, Icons.sports_esports, 'Match'),
-              _buildNavItem(3, Icons.workspace_premium_outlined, Icons.workspace_premium, 'Zertifikate'),
+              _buildNavItem(
+                0,
+                Icons.menu_book_outlined,
+                Icons.menu_book,
+                'Lernen',
+              ),
+              _buildNavItem(
+                1,
+                Icons.assignment_outlined,
+                Icons.assignment,
+                'Prüfung',
+              ),
+              _buildNavItem(
+                2,
+                Icons.sports_esports_outlined,
+                Icons.sports_esports,
+                'Match',
+              ),
+              _buildNavItem(
+                3,
+                Icons.workspace_premium_outlined,
+                Icons.workspace_premium,
+                'Zertifikate',
+              ),
               _buildNavItem(4, Icons.person_outline, Icons.person, 'Profil'),
             ],
           ),
@@ -59,9 +79,14 @@ class _NavRootState extends State<NavRoot> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, IconData activeIcon, String label) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    IconData activeIcon,
+    String label,
+  ) {
     final isSelected = _index == index;
-    
+
     return GestureDetector(
       onTap: () => setState(() => _index = index),
       child: AnimatedContainer(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/auth_service.dart';
 import '../auth/change_password_screen.dart';
-import '../admin/admin_panel_screen.dart';
 
 class NewProfilePage extends StatefulWidget {
   const NewProfilePage({super.key});
@@ -16,6 +15,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
   Map<String, dynamic>? _profile;
   bool _loading = true;
   bool _notificationsEnabled = true;
+  bool _moduleViewAsList = false; // NEU: Modul-Ansicht
 
   @override
   void initState() {
@@ -56,11 +56,13 @@ class _NewProfilePageState extends State<NewProfilePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final notifications = prefs.getBool('notifications_enabled') ?? true;
+      final viewAsList = prefs.getBool('module_view_as_list') ?? false; // NEU
 
       if (!mounted) return;
 
       setState(() {
         _notificationsEnabled = notifications;
+        _moduleViewAsList = viewAsList; // NEU
       });
     } catch (e) {
       print('⚠️ Fehler beim Laden der Einstellungen: $e');
@@ -93,6 +95,31 @@ class _NewProfilePageState extends State<NewProfilePage> {
     }
   }
 
+  // NEU: Toggle für Modul-Ansicht
+  Future<void> _toggleModuleView(bool value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('module_view_as_list', value);
+
+      if (!mounted) return;
+
+      setState(() {
+        _moduleViewAsList = value;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            value ? '📋 Listenansicht aktiviert' : '🎨 Rasteransicht aktiviert',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('❌ Fehler beim Speichern: $e');
+    }
+  }
+
   Future<void> _handleLogout() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -113,26 +140,30 @@ class _NewProfilePageState extends State<NewProfilePage> {
       ),
     );
 
-    if (confirm != true) return;
+    if (confirm == true) {
+      try {
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    // Zeige kurz Loading-Status
-    setState(() => _loading = true);
+        await _authService.signOut();
 
-    try {
-      await _authService.signOut();
-      // AuthWrapper reagiert automatisch auf signOut
-      // Kein manuelles Navigieren nötig!
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() => _loading = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Fehler beim Abmelden: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+        if (mounted) Navigator.pop(context);
+      } catch (e) {
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Fehler beim Abmelden: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -174,7 +205,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
     if (result != null && result != _profile?['username']) {
       try {
         await _authService.updateProfileInDB(username: result);
-        await _loadProfile(); // Neu laden
+        await _loadProfile();
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -221,7 +252,6 @@ class _NewProfilePageState extends State<NewProfilePage> {
       try {
         final prefs = await SharedPreferences.getInstance();
 
-        // Nur Lernfortschritt löschen, Auth-Daten behalten
         final keysToRemove = prefs
             .getKeys()
             .where(
@@ -263,137 +293,146 @@ class _NewProfilePageState extends State<NewProfilePage> {
     return name[0].toUpperCase();
   }
 
+  String _formatDate(String? isoDate) {
+    if (isoDate == null) return 'Unbekannt';
+    try {
+      final date = DateTime.parse(isoDate);
+      return '${date.day}.${date.month}.${date.year}';
+    } catch (e) {
+      return 'Unbekannt';
+    }
+  }
+
+  Widget _buildStatChip({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: Colors.grey[600]),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = _authService.currentUser;
     final isFallback = _profile?['is_fallback'] == true;
 
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil & Einstellungen'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Profil neu laden',
-            onPressed: () {
-              setState(() => _loading = true);
-              _loadProfile();
-            },
-          ),
-        ],
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadProfile,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
+      backgroundColor: Colors.grey[100],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Header mit Profil
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.indigo.shade700, Colors.purple.shade600],
+                ),
+              ),
+              child: Column(
                 children: [
-                  // Profil-Header
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          Stack(
-                            children: [
-                              CircleAvatar(
-                                radius: 50,
-                                backgroundColor: Colors.indigo,
-                                child: Text(
-                                  _getInitials(_profile?['username']),
-                                  style: const TextStyle(
-                                    fontSize: 36,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              if (isFallback)
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.orange,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.warning,
-                                      size: 16,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                            ],
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.white,
+                        child: Text(
+                          _getInitials(_profile?['username']),
+                          style: const TextStyle(
+                            fontSize: 36,
+                            color: Colors.indigo,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _profile?['username'] ?? 'Unbekannt',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            user?.email ?? '',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
-                            ),
-                          ),
-                          if (isFallback) ...[
-                            const SizedBox(height: 12),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.shade50,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: Colors.orange.shade200,
-                                ),
-                              ),
-                              child: const Text(
-                                '⚠️ Profil nicht synchronisiert',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.orange,
-                                ),
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildStatChip(
-                                icon: Icons.access_time,
-                                label: 'Dabei seit',
-                                value: _formatDate(
-                                  _profile?['created_at'] ?? user?.createdAt,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                      if (isFallback)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.orange,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.warning,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 16),
+                  Text(
+                    _profile?['username'] ?? 'Unbekannt',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    user?.email ?? '',
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  if (isFallback) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        '⚠️ Profil nicht synchronisiert',
+                        style: TextStyle(fontSize: 12, color: Colors.orange),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildStatChip(
+                        icon: Icons.access_time,
+                        label: 'Dabei seit',
+                        value: _formatDate(_profile?['created_at']),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
 
-                  // Account-Einstellungen
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Account
                   const Text(
                     'Account',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -434,7 +473,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // App-Einstellungen
+                  // Einstellungen
                   const Text(
                     'Einstellungen',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -447,11 +486,24 @@ class _NewProfilePageState extends State<NewProfilePage> {
                         SwitchListTile(
                           secondary: const Icon(Icons.notifications_outlined),
                           title: const Text('Benachrichtigungen'),
-                          subtitle: const Text(
-                            'Push-Benachrichtigungen aktivieren',
-                          ),
+                          subtitle: const Text('Push-Benachrichtigungen'),
                           value: _notificationsEnabled,
                           onChanged: _toggleNotifications,
+                        ),
+                        const Divider(height: 1),
+                        // NEU: Modul-Ansicht Toggle
+                        SwitchListTile(
+                          secondary: Icon(
+                            _moduleViewAsList ? Icons.list : Icons.grid_view,
+                          ),
+                          title: const Text('Modul-Ansicht'),
+                          subtitle: Text(
+                            _moduleViewAsList
+                                ? 'Listenansicht'
+                                : 'Rasteransicht',
+                          ),
+                          value: _moduleViewAsList,
+                          onChanged: _toggleModuleView,
                         ),
                         const Divider(height: 1),
                         ListTile(
@@ -459,10 +511,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
                             Icons.delete_outline,
                             color: Colors.orange,
                           ),
-                          title: const Text(
-                            'Lokale Daten löschen',
-                            style: TextStyle(color: Colors.orange),
-                          ),
+                          title: const Text('Lokale Daten löschen'),
                           subtitle: const Text('Lernfortschritt zurücksetzen'),
                           onTap: _clearLocalData,
                         ),
@@ -471,139 +520,29 @@ class _NewProfilePageState extends State<NewProfilePage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Admin-Bereich
-                  const Text(
-                    'Administration',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    elevation: 1,
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.admin_panel_settings,
-                        color: Colors.indigo,
-                      ),
-                      title: const Text('Admin Panel'),
-                      subtitle: const Text('Fragen & Inhalte verwalten'),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const AdminPanel()),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Danger Zone
-                  const Text(
-                    'Gefahrenzone',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    elevation: 1,
-                    child: ListTile(
-                      leading: const Icon(Icons.logout, color: Colors.red),
-                      title: const Text(
-                        'Abmelden',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                      onTap: _handleLogout,
-                    ),
-                  ),
-
-                  // App Info
-                  const SizedBox(height: 32),
-                  Center(
-                    child: Column(
-                      children: [
-                        Text(
-                          'IHK Lern-App',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
+                  // Logout
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _handleLogout,
+                      icon: const Icon(Icons.logout),
+                      label: const Text('Abmelden'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Version 1.0.0',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
                 ],
               ),
             ),
-    );
-  }
-
-  Widget _buildStatChip({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.indigo.shade50,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Colors.indigo),
-          const SizedBox(width: 6),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
-  }
-
-  String _formatDate(dynamic date) {
-    if (date == null) return 'Unbekannt';
-
-    try {
-      final DateTime dateTime = date is String
-          ? DateTime.parse(date)
-          : date as DateTime;
-
-      final now = DateTime.now();
-      final diff = now.difference(dateTime);
-
-      if (diff.inDays < 1) return 'Heute';
-      if (diff.inDays < 7) return '${diff.inDays}d';
-      if (diff.inDays < 30) return '${(diff.inDays / 7).floor()}w';
-      if (diff.inDays < 365) return '${(diff.inDays / 30).floor()}mo';
-      return '${(diff.inDays / 365).floor()}y';
-    } catch (e) {
-      return 'Unbekannt';
-    }
   }
 }
