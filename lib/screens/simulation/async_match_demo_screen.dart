@@ -207,7 +207,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
           slivers: [
             // Modern Header
             SliverAppBar(
-              expandedHeight: 200,
+              expandedHeight: 220, // ← Von 200 auf 220 erhöhen
               floating: false,
               pinned: true,
               backgroundColor: Colors.indigo,

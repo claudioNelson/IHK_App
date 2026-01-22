@@ -428,7 +428,12 @@ class _NewProfilePageState extends State<NewProfilePage> {
             ),
 
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                100,
+              ), // ← 100px unten
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

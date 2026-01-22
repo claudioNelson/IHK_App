@@ -196,7 +196,7 @@ class _ModulListeState extends State<ModulListe> {
   // ========== GRID VIEW ==========
   Widget _buildGridView() {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.85,
@@ -211,6 +211,8 @@ class _ModulListeState extends State<ModulListe> {
         final answered = beantworteteFragen[modulId] ?? 0;
         final progress = total > 0 ? answered / total : 0.0;
         final color = _getModulColor(i);
+
+        // Rest bleibt wie vorher...
 
         return Material(
           color: Colors.white,
@@ -301,7 +303,12 @@ class _ModulListeState extends State<ModulListe> {
   // ========== LIST VIEW ==========
   Widget _buildListView() {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        100,
+      ), // ← Diese Zeile ändern
       itemCount: module.length,
       itemBuilder: (ctx, i) {
         final modul = module[i];
