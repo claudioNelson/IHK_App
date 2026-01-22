@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'zertifikat_test_screen.dart';
+import 'zertifikat_info_screen.dart';
+import '../../widgets/zertifikat_info_dialog.dart';
 
 class ZertifikatePage extends StatefulWidget {
   const ZertifikatePage({super.key});
@@ -83,124 +85,144 @@ class _ZertifikatePageState extends State<ZertifikatePage> {
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: Colors.black,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ZertifikatInfoScreen()),
+              );
+            },
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'Zertifikate Info',
+          ),
+        ],
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : zertifikate.isEmpty
-              ? const Center(
-                  child: Text(
-                    'Keine Zertifikate verfügbar',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: zertifikate.length,
-                  itemBuilder: (context, index) {
-                    final cert = zertifikate[index];
-                    final color = _getAnbieterColor(cert['anbieter']);
-                    final icon = _getAnbieterIcon(cert['anbieter']);
+          ? const Center(
+              child: Text(
+                'Keine Zertifikate verfügbar',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: zertifikate.length,
+              itemBuilder: (context, index) {
+                final cert = zertifikate[index];
+                final color = _getAnbieterColor(cert['anbieter']);
+                final icon = _getAnbieterIcon(cert['anbieter']);
 
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ZertifikatTestPage(
-                              zertifikatId: cert['id'],
-                              zertifikatName: cert['name'],
-                              anzahlFragen: cert['anzahl_fragen'],
-                              pruefungsdauer: cert['pruefungsdauer'],
-                              mindestPunktzahl: cert['mindest_punktzahl'],
-                            ),
+                return GestureDetector(
+                  onTap: () async {
+                    // Zeige Info-Dialog
+                    final shouldStart = await showZertifikatInfoDialog(
+                      context,
+                      cert,
+                    );
+
+                    // Wenn User "Prüfung starten" klickt
+                    if (shouldStart == true && context.mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ZertifikatTestPage(
+                            zertifikatId: cert['id'],
+                            zertifikatName: cert['name'],
+                            anzahlFragen: cert['anzahl_fragen'],
+                            pruefungsdauer: cert['pruefungsdauer'],
+                            mindestPunktzahl: cert['mindest_punktzahl'],
                           ),
-                        );
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.15),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      );
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.15),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: color.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(icon, color: color, size: 32),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          cert['anbieter'],
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: color,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          cert['name'],
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Icon(Icons.arrow_forward_ios, size: 20),
-                                ],
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: color.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(icon, color: color, size: 32),
                               ),
-                              const SizedBox(height: 16),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  _buildInfoChip(
-                                    Icons.quiz,
-                                    '${cert['anzahl_fragen']} Fragen',
-                                    Colors.blue,
-                                  ),
-                                  _buildInfoChip(
-                                    Icons.timer,
-                                    '${cert['pruefungsdauer']} Min',
-                                    Colors.orange,
-                                  ),
-                                  _buildInfoChip(
-                                    Icons.flag,
-                                    'Mind. ${cert['mindest_punktzahl']}%',
-                                    Colors.green,
-                                  ),
-                                ],
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      cert['anbieter'],
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: color,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      cert['name'],
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.arrow_forward_ios, size: 20),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildInfoChip(
+                                Icons.quiz,
+                                '${cert['anzahl_fragen']} Fragen',
+                                Colors.blue,
+                              ),
+                              _buildInfoChip(
+                                Icons.timer,
+                                '${cert['pruefungsdauer']} Min',
+                                Colors.orange,
+                              ),
+                              _buildInfoChip(
+                                Icons.flag,
+                                'Mind. ${cert['mindest_punktzahl']}%',
+                                Colors.green,
                               ),
                             ],
                           ),
-                        ),
+                        ],
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                );
+              },
+            ),
       backgroundColor: Colors.grey[100],
     );
   }
