@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/async_duel_service.dart';
+import '../../services/badge_service.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -15,6 +16,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Map<String, dynamic>? _myStats;
   bool _loading = true;
   int? _myRank;
+  final _badgeSvc = BadgeService();
 
   String get _userId =>
       Supabase.instance.client.auth.currentUser?.id ?? '';
@@ -312,7 +314,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   );
 }
 
-void _showPlayerProfile(Map<String, dynamic> player, int rank) {
+void _showPlayerProfile(Map<String, dynamic> player, int rank) async {
+  final oderId = player['user_id'] as String?;
   final username = player['username'] ?? 'Spieler';
   final elo = player['elo_rating'] ?? 1000;
   final highestElo = player['highest_elo'] ?? 1000;
@@ -324,6 +327,14 @@ void _showPlayerProfile(Map<String, dynamic> player, int rank) {
   final isMe = player['user_id'] == _userId;
 
   final winRate = matches > 0 ? ((wins / matches) * 100).toStringAsFixed(1) : '0.0';
+
+  // Badges laden
+  List<Map<String, dynamic>> badges = [];
+  if (oderId != null) {
+    badges = await _badgeSvc.getUserBadges(oderId);
+  }
+
+  if (!mounted) return;
 
   showModalBottomSheet(
     context: context,
@@ -377,6 +388,49 @@ void _showPlayerProfile(Map<String, dynamic> player, int rank) {
             style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 24),
+
+          // Badges
+          if (badges.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.military_tech, size: 18, color: Colors.amber),
+                const SizedBox(width: 6),
+                Text(
+                  '${badges.length} Badge${badges.length > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: badges.map((ub) {
+                final badge = ub['badges'] as Map<String, dynamic>;
+                return Tooltip(
+                  message: '${badge['name']}\n${badge['description']}',
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.amber.shade200),
+                    ),
+                    child: Text(
+                      badge['icon'] ?? '🏆',
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+          ],
 
           // Elo Box
           Container(

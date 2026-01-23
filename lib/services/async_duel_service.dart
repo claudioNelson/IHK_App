@@ -141,4 +141,75 @@ class AsyncDuelService {
 
     return result;
   }
+
+  /// Lädt alle offenen Matches (von anderen Spielern)
+  Future<List<Map<String, dynamic>>> getOpenMatches() async {
+    final userId = c.auth.currentUser?.id;
+    if (userId == null) return [];
+
+    // Matches laden (ohne Join)
+    final matches = await c
+        .from('matches')
+        .select('id, status, player1_id, total_questions, created_at')
+        .eq('status', 'open')
+        .neq('player1_id', userId)
+        .order('created_at', ascending: false)
+        .limit(20);
+
+    final result = List<Map<String, dynamic>>.from(matches);
+
+    // Ersteller-Profile separat laden
+    for (var match in result) {
+      final oderId = match['player1_id'] as String?;
+      if (oderId != null) {
+        final profile = await c
+            .from('profiles')
+            .select('id, username, avatar_url')
+            .eq('id', oderId)
+            .maybeSingle();
+        match['creator'] = profile;
+      }
+    }
+
+    return result;
+  }
+
+  /// Lädt die Scores für mehrere Matches
+  Future<Map<String, Map<String, dynamic>>> getMatchScores(
+    List<String> matchIds,
+  ) async {
+    if (matchIds.isEmpty) return {};
+
+    final result = await c
+        .from('match_scores')
+        .select(
+          'match_id, player1_id, player2_id, player1_score, player2_score',
+        )
+        .in_('match_id', matchIds);
+
+    final Map<String, Map<String, dynamic>> scores = {};
+    for (var row in result) {
+      scores[row['match_id']] = row;
+    }
+    return scores;
+  }
+
+  /// Lädt gemeinsame Matches mit einem Spieler
+  Future<List<Map<String, dynamic>>> getMatchesWithPlayer(String oderId) async {
+    final userId = c.auth.currentUser?.id;
+    if (userId == null) return [];
+
+    final result = await c
+        .from('matches')
+        .select(
+          'id, status, player1_id, player2_id, total_questions, created_at',
+        )
+        .or(
+          'and(player1_id.eq.$userId,player2_id.eq.$oderId),and(player1_id.eq.$oderId,player2_id.eq.$userId)',
+        )
+        .order('created_at', ascending: false)
+        .limit(10);
+
+    return List<Map<String, dynamic>>.from(result);
+  }
 }

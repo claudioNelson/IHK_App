@@ -4,6 +4,7 @@ import '../../../services/async_duel_service.dart';
 import '../../../async_match_progress.dart';
 import 'leaderboard_screen.dart';
 import 'async_match_play_screen.dart';
+import '../profile/player_profile_screen.dart';
 
 class AsyncMatchDemoPage extends StatefulWidget {
   const AsyncMatchDemoPage({super.key});
@@ -18,6 +19,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   List<Map<String, dynamic>> _historyMatches = [];
   Map<String, dynamic>? _myStats;
   bool _historyExpanded = false;
+  Map<String, Map<String, dynamic>> _matchScores = {};
 
   String get _userId =>
       Supabase.instance.client.auth.currentUser?.id ?? 'local';
@@ -49,11 +51,16 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
         }
       }
 
+      // Scores für History-Matches laden
+      final historyIds = history.map((m) => m['id'] as String).toList();
+      final scores = await _svc.getMatchScores(historyIds);
+
       if (!mounted) return;
       setState(() {
         _activeMatches = active;
         _historyMatches = history;
         _myStats = stats;
+        _matchScores = scores;
       });
     } catch (e) {
       print('❌ Fehler beim Laden: $e');
@@ -63,28 +70,28 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   }
 
   Future<void> _createMatch() async {
-    setState(() => _busy = true);
-    try {
-      final id = await _svc.createMatch(count: 10);
-      print('✅ Match erstellt: $id');
-      await _loadData();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('🎮 Match erstellt! Warte auf Gegner...'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
-      );
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+  setState(() => _busy = true);
+  try {
+    final id = await _svc.createMatch(count: 10);
+    print('✅ Match erstellt: $id');
+    await _loadData();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('🎮 Match erstellt! Warte auf Gegner...'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+    );
+  } finally {
+    if (mounted) setState(() => _busy = false);
   }
+}
 
   Future<void> _joinRandom() async {
     setState(() => _busy = true);
@@ -194,6 +201,274 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       }
     } catch (e) {
       return 'Unbekannt';
+    }
+  }
+
+  List<Map<String, dynamic>> _openMatches = [];
+
+  Future<void> _showOpenMatches() async {
+    setState(() => _busy = true);
+    try {
+      final matches = await _svc.getOpenMatches();
+      setState(() => _openMatches = matches);
+
+      if (!mounted) return;
+      _showOpenMatchesSheet();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _showOpenMatchesSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Icon(Icons.people, color: Colors.orange.shade600),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Offene Matches',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  // Zufällig beitreten Button
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _joinRandom();
+                    },
+                    icon: const Icon(Icons.shuffle, size: 18),
+                    label: const Text('Zufällig'),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            // Liste
+            Expanded(
+              child: _openMatches.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.inbox,
+                            size: 64,
+                            color: Colors.grey.shade300,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Keine offenen Matches',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _openMatches.length,
+                      itemBuilder: (_, i) =>
+                          _buildOpenMatchTile(_openMatches[i]),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOpenMatchTile(Map<String, dynamic> match) {
+    final matchId = match['id'] as String;
+    final questions = match['total_questions'] ?? 10;
+    final createdAt = match['created_at'] as String?;
+    final creator = match['creator'] as Map<String, dynamic>?;
+    final creatorName = creator?['username'] ?? 'Unbekannt';
+    final creatorId = creator?['id'] as String?;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        elevation: 2,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.orange.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              // Ersteller Avatar (anklickbar)
+              // Ersteller Avatar (anklickbar)
+              GestureDetector(
+                onTap: creatorId != null
+                    ? () => _showProfile(creatorId, creatorName)
+                    : null,
+                child: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Colors.orange.shade100,
+                  backgroundImage: creator?['avatar_url'] != null
+                      ? NetworkImage(creator!['avatar_url'] as String)
+                      : null,
+                  child: creator?['avatar_url'] == null
+                      ? Text(
+                          creatorName.isNotEmpty
+                              ? creatorName[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            color: Colors.orange.shade700,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 14),
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: creatorId != null
+                          ? () => _showProfile(creatorId, creatorName)
+                          : null,
+                      child: Text(
+                        creatorName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.quiz_outlined,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$questions Fragen',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.access_time,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatDate(createdAt),
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Beitreten Button
+              ElevatedButton(
+                onPressed: () => _joinMatch(matchId),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Beitreten'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showProfile(String oderId, String username) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PlayerProfileScreen(oderId: oderId, username: username),
+      ),
+    );
+  }
+
+  Future<void> _joinMatch(String matchId) async {
+    Navigator.pop(context); // BottomSheet schließen
+    setState(() => _busy = true);
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) throw Exception('Nicht eingeloggt');
+
+      // Match direkt updaten
+      await Supabase.instance.client
+          .from('matches')
+          .update({
+            'player2_id': userId,
+            'status': 'active',
+            'started_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', matchId)
+          .eq('status', 'open'); // Nur wenn noch offen
+
+      await _loadData();
+      if (!mounted) return;
+      _playMatch(matchId);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -323,7 +598,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                                 Colors.orange.shade600,
                               ],
                             ),
-                            onTap: _busy ? null : _joinRandom,
+                            onTap: _busy ? null : _showOpenMatches,
                           ),
                         ),
                       ],
@@ -690,8 +965,20 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     final color = _getStatusColor(status);
 
     // History: Ergebnis laden (vereinfacht - müsste aus DB kommen)
-    final didWin = isHistory ? (matchId.hashCode % 2 == 0) : null;
+    // History: Echte Ergebnisse laden
+    bool? didWin;
+    int? myScore;
+    int? opponentScore;
 
+    if (isHistory && _matchScores.containsKey(matchId)) {
+      final score = _matchScores[matchId]!;
+      final isPlayer1 = score['player1_id'] == _userId;
+      myScore = isPlayer1 ? score['player1_score'] : score['player2_score'];
+      opponentScore = isPlayer1
+          ? score['player2_score']
+          : score['player1_score'];
+      didWin = myScore! > opponentScore!;
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
@@ -793,32 +1080,48 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                       ),
                     ),
                     // Action/Result
-                    if (isHistory)
+                    if (isHistory && didWin != null)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: didWin!
+                          color: didWin
                               ? Colors.green.shade50
                               : Colors.red.shade50,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Row(
+                        child: Column(
                           children: [
-                            Icon(
-                              didWin ? Icons.emoji_events : Icons.close,
-                              color: didWin ? Colors.green : Colors.red,
-                              size: 18,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  didWin ? Icons.emoji_events : Icons.close,
+                                  color: didWin ? Colors.green : Colors.red,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  didWin ? 'Sieg' : 'Niederlage',
+                                  style: TextStyle(
+                                    color: didWin ? Colors.green : Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(height: 4),
                             Text(
-                              didWin ? 'Sieg' : 'Niederlage',
+                              '$myScore : $opponentScore',
                               style: TextStyle(
-                                color: didWin ? Colors.green : Colors.red,
+                                color: didWin
+                                    ? Colors.green.shade700
+                                    : Colors.red.shade700,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 12,
+                                fontSize: 14,
                               ),
                             ),
                           ],

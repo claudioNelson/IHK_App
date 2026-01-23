@@ -6,6 +6,7 @@ import '../../../widgets/fill_in_blank_widget.dart';
 import '../../../widgets/sequence_question_widget.dart';
 import 'dart:async';
 import '../../../widgets/report_dialog.dart';
+import '../../../services/sound_service.dart';
 
 class AsyncMatchPlayPage extends StatefulWidget {
   final String matchId;
@@ -17,6 +18,7 @@ class AsyncMatchPlayPage extends StatefulWidget {
 
 class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   final _svc = AsyncDuelService();
+  final _soundService = SoundService();
 
   AsyncMatchProgressStore? _store;
   AsyncMatchProgress? _progress;
@@ -143,6 +145,8 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   void _onTimeUp() {
     if (_answered || _submitting) return;
 
+    _soundService.playSound(SoundType.timeUp); // ← NEU
+
     print('⏰ Zeit abgelaufen für Frage $_idx');
 
     setState(() {
@@ -196,6 +200,13 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         _answered = true;
         _wasCorrect = correct;
       });
+
+      print('🔊 Spiele Sound: ${correct ? "correct" : "wrong"}');
+      if (correct) {
+        _soundService.playSound(SoundType.correct);
+      } else {
+        _soundService.playSound(SoundType.wrong);
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -250,6 +261,12 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         _answered = true;
         _wasCorrect = isCorrect;
       });
+
+      if (isCorrect) {
+        _soundService.playSound(SoundType.correct);
+      } else {
+        _soundService.playSound(SoundType.wrong);
+      }
 
       // NEU: Automatisch weiter nach kurzer Pause
       Future.delayed(const Duration(milliseconds: 800), () {
@@ -975,6 +992,14 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
 
     final isWinner = myScore > oppScore;
     final isDraw = myScore == oppScore;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isWinner) {
+        _soundService.playSound(SoundType.victory);
+      } else if (!isDraw) {
+        _soundService.playSound(SoundType.defeat);
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(title: const Text('Match beendet')),
