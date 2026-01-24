@@ -4,7 +4,7 @@ import '../widgets/tabellen_widget.dart';
 
 /// Demo-Screen zum Testen der Prüfungs-Widgets
 class PruefungsDemoScreen extends StatefulWidget {
-  const PruefungsDemoScreen({Key? key}) : super(key: key);
+  const PruefungsDemoScreen({super.key});
 
   @override
   State<PruefungsDemoScreen> createState() => _PruefungsDemoScreenState();

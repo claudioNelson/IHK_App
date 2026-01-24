@@ -7,11 +7,11 @@ class FillInTheBlankWidget extends StatefulWidget {
   onAnswerSubmitted;
 
   const FillInTheBlankWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.blankData,
     required this.onAnswerSubmitted,
-  }) : super(key: key);
+  });
 
   @override
   State<FillInTheBlankWidget> createState() => _FillInTheBlankWidgetState();

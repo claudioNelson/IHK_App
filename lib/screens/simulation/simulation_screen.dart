@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../async_match_progress.dart';
 import 'async_match_demo_screen.dart';
 
 class SimulationPage extends StatelessWidget {

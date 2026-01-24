@@ -22,7 +22,7 @@ class TabellenWidget extends StatefulWidget {
   final Map<String, Map<String, int>>? initialBewertungen;
 
   const TabellenWidget({
-    Key? key,
+    super.key,
     required this.frage,
     required this.punkte,
     required this.kriterien,
@@ -32,7 +32,7 @@ class TabellenWidget extends StatefulWidget {
     this.zeigeSumme = true,
     required this.onAnswerChanged,
     this.initialBewertungen,
-  }) : super(key: key);
+  });
 
   @override
   State<TabellenWidget> createState() => _TabellenWidgetState();

@@ -59,7 +59,6 @@ class _PruefungsCard extends StatelessWidget {
   final bool enabled;
 
   const _PruefungsCard({
-    super.key,
     required this.title,
     required this.subtitle,
     required this.badgeText,

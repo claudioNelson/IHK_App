@@ -60,8 +60,11 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   }
 
   Future<void> _init() async {
-    try {
-      print('🟢 _init() gestartet für Match: ${widget.matchId}');
+  try {
+    print('🟢 _init() gestartet für Match: ${widget.matchId}');
+    
+    // Sound Service initialisieren
+    await _soundService.init();
 
       _store ??= await AsyncMatchProgressStore.instance;
       _progress = await _store!.ensure(_userId, widget.matchId);
@@ -501,7 +504,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

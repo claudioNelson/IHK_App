@@ -97,7 +97,7 @@ class _MultipleChoiceWidgetState extends State<MultipleChoiceWidget> {
                 },
               );
             }
-          }).toList(),
+          }),
         ],
       ),
     );

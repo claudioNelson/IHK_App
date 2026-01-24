@@ -21,7 +21,7 @@ class RechenaufgabenWidget extends StatefulWidget {
   final String? initialRechenweg;
 
   const RechenaufgabenWidget({
-    Key? key,
+    super.key,
     required this.frage,
     required this.punkte,
     this.hinweis,
@@ -29,7 +29,7 @@ class RechenaufgabenWidget extends StatefulWidget {
     required this.onAnswerChanged,
     this.initialAntwort,
     this.initialRechenweg,
-  }) : super(key: key);
+  });
 
   @override
   State<RechenaufgabenWidget> createState() => _RechenaufgabenWidgetState();

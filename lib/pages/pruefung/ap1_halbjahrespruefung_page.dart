@@ -5,7 +5,7 @@ import 'package:ihk_app/widgets/rechenaufgaben_widget.dart';
 import 'package:ihk_app/widgets/tabellen_widget.dart';
 
 class Ap1HalbjahrespruefungPage extends StatefulWidget {
-  const Ap1HalbjahrespruefungPage({Key? key}) : super(key: key);
+  const Ap1HalbjahrespruefungPage({super.key});
 
   @override
   State<Ap1HalbjahrespruefungPage> createState() =>

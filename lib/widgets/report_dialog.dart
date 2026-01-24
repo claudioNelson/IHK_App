@@ -6,10 +6,10 @@ class ReportDialog extends StatefulWidget {
   final String screenType;
 
   const ReportDialog({
-    Key? key,
+    super.key,
     required this.frageId,
     required this.screenType,
-  }) : super(key: key);
+  });
 
   @override
   State<ReportDialog> createState() => _ReportDialogState();
@@ -191,7 +191,7 @@ class _ReportDialogState extends State<ReportDialog> {
                   ),
                 ),
               );
-            }).toList(),
+            }),
 
             const SizedBox(height: 20),
 

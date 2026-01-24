@@ -438,7 +438,7 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
                 isAvailable: exam['status'] == 'Verfügbar',
               ),
             );
-          }).toList(),
+          }),
 
           const SizedBox(height: 40),
         ],

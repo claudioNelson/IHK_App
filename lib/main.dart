@@ -4,7 +4,6 @@ import 'screens/auth/login_screen.dart';
 import 'screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'pages/pruefung/ihk_pruefung_liste_screen.dart';
 
 void main() {
   runApp(const MyApp());

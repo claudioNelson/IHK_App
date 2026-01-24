@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/async_duel_service.dart';
-import '../../../async_match_progress.dart';
 import 'leaderboard_screen.dart';
 import 'async_match_play_screen.dart';
 import '../profile/player_profile_screen.dart';

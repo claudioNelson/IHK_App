@@ -5,6 +5,7 @@ import '../../widgets/calculation_question_widget.dart';
 import '../../widgets/fill_in_blank_widget.dart';
 import '../../widgets/sequence_question_widget.dart';
 import '../../widgets/report_dialog.dart';
+import '../../services/sound_service.dart';
 
 class TestFragen extends StatefulWidget {
   final int modulId;
@@ -34,6 +35,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
   String? generatedExplanation;
   bool generatingExplanation = false;
   String? calculationAnswer; // NEU: für Rechenaufgaben
+  final _soundService = SoundService();
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -43,6 +45,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _soundService.init();
     _setupAnimations();
     _loadFragen();
   }
@@ -107,8 +110,21 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
 
       if (!mounted) return;
 
+      // Fragen mischen
+      final frageListe = List<dynamic>.from(res);
+      frageListe.shuffle();
+
+      // Antworten für jede Frage mischen
+      for (final frage in frageListe) {
+        if (frage['antworten'] != null) {
+          final antworten = List<dynamic>.from(frage['antworten']);
+          antworten.shuffle();
+          frage['antworten'] = antworten;
+        }
+      }
+
       setState(() {
-        fragen = res;
+        fragen = frageListe;
         loading = false;
       });
 
@@ -184,8 +200,11 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
     final isCorrect = selected['ist_richtig'] == true;
 
     if (isCorrect) {
+      _soundService.playSound(SoundType.correct);
       await _saveProgress(frage['id']);
       await _saveThemaScore();
+    } else {
+      _soundService.playSound(SoundType.wrong);
     }
 
     if (!isCorrect &&
@@ -195,7 +214,6 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
     }
   }
 
-  // NEU: Handler für Rechenaufgaben
   void _handleCalculationAnswer(bool isCorrect, String? userAnswer) async {
     if (hasAnswered) return;
 
@@ -203,6 +221,13 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       hasAnswered = true;
       calculationAnswer = userAnswer;
     });
+
+    // Sound abspielen
+    if (isCorrect) {
+      _soundService.playSound(SoundType.correct);
+    } else {
+      _soundService.playSound(SoundType.wrong);
+    }
 
     if (isCorrect) {
       final frage = fragen[currentIndex];

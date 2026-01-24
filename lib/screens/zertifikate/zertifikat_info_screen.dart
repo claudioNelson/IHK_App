@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'zertifikat_info_screen.dart';
 
 class ZertifikatInfoScreen extends StatelessWidget {
   const ZertifikatInfoScreen({super.key});

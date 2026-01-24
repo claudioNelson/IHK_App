@@ -3,9 +3,7 @@ import '../shared/nav_keep_alive.dart';
 import '../../screens/module/modul_liste_screen.dart';
 import '../../screens/zertifikate/zertifikate_screen.dart';
 import '../../screens/simulation/async_match_demo_screen.dart';
-import '../../screens/admin/admin_panel_screen.dart';
 import '../../screens/profile/new_profile_page.dart';
-import '../../screens/exam_screens/specialization_selection_screen.dart';
 import '../../pages/pruefung/ihk_pruefung_liste_screen.dart';
 
 class NavRoot extends StatefulWidget {

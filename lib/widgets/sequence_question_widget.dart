@@ -6,11 +6,11 @@ class SequenceQuestionWidget extends StatefulWidget {
   final Function(bool isCorrect, List<String>? userOrder) onAnswerSubmitted;
 
   const SequenceQuestionWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.sequenceData,
     required this.onAnswerSubmitted,
-  }) : super(key: key);
+  });
 
   @override
   State<SequenceQuestionWidget> createState() => _SequenceQuestionWidgetState();

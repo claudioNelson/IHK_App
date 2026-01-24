@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/sound_service.dart';
 
 class ZertifikatTestPage extends StatefulWidget {
   final int zertifikatId;
@@ -33,6 +34,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
   Map<int, int> antworten = {}; // index -> antwort_id
   bool loading = true;
   bool pruefungAbgeschlossen = false;
+  final _soundService = SoundService();
 
   // Ergebnis
   int? score;
@@ -48,6 +50,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
   @override
   void initState() {
     super.initState();
+    _soundService.init();
     WidgetsBinding.instance.addObserver(this);
     _loadFragen();
   }
@@ -97,9 +100,9 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
       _startPruefung();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Laden: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler beim Laden: $e')));
       setState(() => loading = false);
     }
   }
@@ -260,8 +263,16 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
       bestanden = passed;
       pruefungAbgeschlossen = true;
     });
+
+    // Sound abspielen
+    if (passed) {
+      _soundService.playSound(SoundType.victory);
+    } else {
+      _soundService.playSound(SoundType.defeat);
+    }
   }
-@override
+
+  @override
   Widget build(BuildContext context) {
     if (loading) {
       return Scaffold(
@@ -277,9 +288,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
     if (fragen.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: Text(widget.zertifikatName)),
-        body: const Center(
-          child: Text('Keine Fragen verfügbar'),
-        ),
+        body: const Center(child: Text('Keine Fragen verfügbar')),
       );
     }
 
@@ -355,8 +364,10 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
                     ),
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: selectedId != null
                           ? Colors.green.shade100
@@ -597,9 +608,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
                           : Icons.check,
                     ),
                     label: Text(
-                      aktuelleFrage < fragen.length - 1
-                          ? 'Weiter'
-                          : 'Abgeben',
+                      aktuelleFrage < fragen.length - 1 ? 'Weiter' : 'Abgeben',
                     ),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -617,10 +626,10 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
     );
   }
 
-Widget _buildErgebnisScreen() {
+  Widget _buildErgebnisScreen() {
     final color = bestanden! ? Colors.green : Colors.red;
     final icon = bestanden! ? Icons.emoji_events : Icons.sentiment_dissatisfied;
-    
+
     final timeTakenFormatted = _timeTakenSeconds != null
         ? _formatTime(_timeTakenSeconds!)
         : 'Unbekannt';
@@ -662,7 +671,9 @@ Widget _buildErgebnisScreen() {
 
               // Titel
               Text(
-                bestanden! ? 'Herzlichen Glückwunsch!' : 'Leider nicht bestanden',
+                bestanden!
+                    ? 'Herzlichen Glückwunsch!'
+                    : 'Leider nicht bestanden',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -766,9 +777,7 @@ Widget _buildErgebnisScreen() {
                           decoration: BoxDecoration(
                             color: Colors.red.shade50,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.red.shade200,
-                            ),
+                            border: Border.all(color: Colors.red.shade200),
                           ),
                           child: Row(
                             children: [
@@ -939,12 +948,7 @@ Widget _buildErgebnisScreen() {
           child: Icon(icon, color: color, size: 20),
         ),
         const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 15),
-          ),
-        ),
+        Expanded(child: Text(label, style: const TextStyle(fontSize: 15))),
         Text(
           value,
           style: TextStyle(

@@ -7,11 +7,11 @@ class CalculationQuestionWidget extends StatefulWidget {
   final Function(bool isCorrect, String? userAnswer) onAnswerSubmitted;
 
   const CalculationQuestionWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.calculationData,
     required this.onAnswerSubmitted,
-  }) : super(key: key);
+  });
 
   @override
   State<CalculationQuestionWidget> createState() =>
