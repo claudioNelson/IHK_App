@@ -6,6 +6,8 @@ import '../../widgets/fill_in_blank_widget.dart';
 import '../../widgets/sequence_question_widget.dart';
 import '../../widgets/report_dialog.dart';
 import '../../services/sound_service.dart';
+import '../../services/badge_service.dart';
+import '../../widgets/badge_celebration_dialog.dart';
 
 class TestFragen extends StatefulWidget {
   final int modulId;
@@ -36,6 +38,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
   bool generatingExplanation = false;
   String? calculationAnswer; // NEU: für Rechenaufgaben
   final _soundService = SoundService();
+  final _badgeService = BadgeService();
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -398,9 +401,13 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
         ),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              Navigator.pop(context);
+
+              // Badges prüfen
+              await _checkModuleBadgesAndPop();
+
+              if (mounted) Navigator.pop(context);
             },
             child: const Text('Zurück zur Übersicht'),
           ),
@@ -427,6 +434,56 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       ),
     );
   }
+
+  Future<void> _checkModuleBadgesAndPop() async {
+  try {
+    print('🎓 _checkModuleBadges() gestartet');
+    
+    final prefs = await SharedPreferences.getInstance();
+    final allKeys = prefs.getKeys();
+    
+    print('🎓 Alle Keys: $allKeys');
+    
+    final completedModules = allKeys
+        .where((key) => key.startsWith('score_mod_'))
+        .map((key) {
+          final parts = key.split('_');
+          if (parts.length >= 3) return parts[2];
+          return null;
+        })
+        .where((id) => id != null)
+        .toSet()
+        .length;
+
+    print('🎓 Abgeschlossene Module: $completedModules');
+
+    final newBadges = await _badgeService.checkModuleBadges(completedModules);
+    print('🎓 Neue Badges: $newBadges');
+    
+    if (newBadges.isNotEmpty && mounted) {
+      final allBadges = await _badgeService.getAllBadges();
+      final earnedDetails = allBadges
+          .where((b) => newBadges.contains(b['id']))
+          .toList();
+
+      if (mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => BadgeCelebrationDialog(
+            badgeIds: newBadges,
+            badgeDetails: earnedDetails,
+          ),
+        );
+      }
+    }
+  } catch (e) {
+    print('❌ Badge-Fehler: $e');
+  }
+  
+  // Nach Konfetti (oder wenn keine Badges) zurück navigieren
+  if (mounted) Navigator.pop(context);
+}
 
   @override
   Widget build(BuildContext context) {

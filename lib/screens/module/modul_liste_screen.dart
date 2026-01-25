@@ -70,9 +70,8 @@ class _ModulListeState extends State<ModulListe> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = 'fortschritt_modul_$modulId';
-      final value = prefs.get(key);
-      if (value is List<String>) return value.length;
-      return 0;
+      final value = prefs.getStringList(key);
+      return value?.length ?? 0;
     } catch (e) {
       return 0;
     }
@@ -101,18 +100,43 @@ class _ModulListeState extends State<ModulListe> {
     return colors[index % colors.length];
   }
 
-  IconData _getModulIcon(int index) {
-    final icons = [
-      Icons.school,
-      Icons.code,
-      Icons.science,
-      Icons.business,
-      Icons.design_services,
-      Icons.psychology,
-      Icons.engineering,
-      Icons.architecture,
-    ];
-    return icons[index % icons.length];
+  IconData _getModulIcon(int modulId) {
+    switch (modulId) {
+      case 1:
+        return Icons.business_center; // Betriebswirtschaft
+      case 2:
+        return Icons.gavel; // Recht
+      case 15:
+        return Icons.assignment; // Projektmanagement
+      case 16:
+        return Icons.verified; // Qualitätsmanagement
+      case 17:
+        return Icons.account_tree; // Geschäftsprozesse & Organisation
+      case 9001:
+        return Icons.calculate; // Rechnungswesen
+      case 9002:
+        return Icons.public; // WISO
+      case 9003:
+        return Icons.storage; // Datenbanken
+      case 9004:
+        return Icons.lan; // Netzwerke
+      case 9005:
+        return Icons.terminal; // Betriebssysteme & Linux
+      case 9006:
+        return Icons.memory; // IT-Grundlagen & Hardware
+      case 9007:
+        return Icons.code; // Programmierung
+      case 9008:
+        return Icons.security; // IT-Sicherheit
+      case 9009:
+        return Icons.web; // Webentwicklung
+      case 9010:
+        return Icons.cloud; // Cloud & DevOps
+      case 9011:
+        return Icons.data_array; // Datenstrukturen & Algorithmen
+      default:
+        return Icons.school;
+    }
   }
 
   void _openModul(Map<String, dynamic> modul) {
@@ -247,7 +271,7 @@ class _ModulListeState extends State<ModulListe> {
                       ],
                     ),
                     child: Icon(
-                      _getModulIcon(i),
+                      _getModulIcon(modulId),
                       color: Colors.white,
                       size: 28,
                     ),
@@ -266,16 +290,44 @@ class _ModulListeState extends State<ModulListe> {
                   ),
                   const SizedBox(height: 8),
                   // Stats
+                  // Stats
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.quiz, size: 14, color: Colors.grey.shade600),
-                      const SizedBox(width: 4),
-                      Text(
-                        '$total',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.quiz,
+                            size: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$answered/$total',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${(progress * 100).toInt()}%',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: color,
+                          ),
                         ),
                       ),
                     ],
@@ -339,7 +391,11 @@ class _ModulListeState extends State<ModulListe> {
                         color: color.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(_getModulIcon(i), color: color, size: 26),
+                      child: Icon(
+                        _getModulIcon(modulId),
+                        color: color,
+                        size: 26,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     // Info
