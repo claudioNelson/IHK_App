@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/auth_service.dart';
 import '../../services/sound_service.dart';
 import '../auth/change_password_screen.dart';
+import '../../services/badge_service.dart';
 
 class NewProfilePage extends StatefulWidget {
   const NewProfilePage({super.key});
@@ -14,7 +15,10 @@ class NewProfilePage extends StatefulWidget {
 class _NewProfilePageState extends State<NewProfilePage> {
   final _authService = AuthService();
   final _soundService = SoundService();
+  final _badgeService = BadgeService();
+
   Map<String, dynamic>? _profile;
+  List<Map<String, dynamic>> _myBadges = [];
   bool _loading = true;
   bool _notificationsEnabled = true;
   bool _soundsEnabled = true;
@@ -25,26 +29,27 @@ class _NewProfilePageState extends State<NewProfilePage> {
     super.initState();
     _loadProfile();
     _loadSettings();
+    _loadBadges();
   }
 
   Future<void> _loadProfile() async {
     try {
       print('📖 Lade Profil...');
       final profile = await _authService.getProfile();
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _profile = profile;
         _loading = false;
       });
-      
+
       print('✅ Profil geladen: ${profile?['username']}');
     } catch (e) {
       print('❌ Fehler beim Laden des Profils: $e');
-      
+
       if (!mounted) return;
-      
+
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -55,16 +60,28 @@ class _NewProfilePageState extends State<NewProfilePage> {
     }
   }
 
+  Future<void> _loadBadges() async {
+    try {
+      final badges = await _badgeService.getMyBadges();
+      if (!mounted) return;
+      setState(() {
+        _myBadges = badges;
+      });
+    } catch (e) {
+      print('❌ Fehler beim Laden der Badges: $e');
+    }
+  }
+
   Future<void> _loadSettings() async {
     await _soundService.init();
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final notifications = prefs.getBool('notifications_enabled') ?? true;
       final moduleView = prefs.getBool('module_view_as_list') ?? false;
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _notificationsEnabled = notifications;
         _soundsEnabled = _soundService.soundsEnabled;
@@ -79,19 +96,19 @@ class _NewProfilePageState extends State<NewProfilePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('notifications_enabled', value);
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _notificationsEnabled = value;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            value 
-              ? '✅ Benachrichtigungen aktiviert' 
-              : '🔕 Benachrichtigungen deaktiviert',
+            value
+                ? '✅ Benachrichtigungen aktiviert'
+                : '🔕 Benachrichtigungen deaktiviert',
           ),
           duration: const Duration(seconds: 2),
         ),
@@ -103,17 +120,17 @@ class _NewProfilePageState extends State<NewProfilePage> {
 
   Future<void> _toggleSounds(bool value) async {
     await _soundService.toggleSounds(value);
-    
+
     if (!mounted) return;
-    
+
     setState(() {
       _soundsEnabled = value;
     });
-    
+
     if (value) {
       _soundService.playSound(SoundType.correct);
     }
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(value ? '🔊 Sounds aktiviert' : '🔇 Sounds deaktiviert'),
@@ -126,19 +143,17 @@ class _NewProfilePageState extends State<NewProfilePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('module_view_as_list', value);
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _moduleViewAsList = value;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            value 
-              ? '📋 Listenansicht aktiviert' 
-              : '⊞ Rasteransicht aktiviert',
+            value ? '📋 Listenansicht aktiviert' : '⊞ Rasteransicht aktiviert',
           ),
           duration: const Duration(seconds: 2),
         ),
@@ -209,11 +224,13 @@ class _NewProfilePageState extends State<NewProfilePage> {
       },
     );
 
-    if (result != null && result.isNotEmpty && result != _profile?['username']) {
+    if (result != null &&
+        result.isNotEmpty &&
+        result != _profile?['username']) {
       try {
         await _authService.updateProfileInDB(username: result);
         await _loadProfile();
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -225,10 +242,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fehler: $e'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
           );
         }
       }
@@ -260,12 +274,16 @@ class _NewProfilePageState extends State<NewProfilePage> {
     if (confirm == true) {
       try {
         final prefs = await SharedPreferences.getInstance();
-        
-        final keysToRemove = prefs.getKeys().where(
-          (key) => key.startsWith('fortschritt_') || 
-                   key.startsWith('score_') ||
-                   key.startsWith('async_match/'),
-        ).toList();
+
+        final keysToRemove = prefs
+            .getKeys()
+            .where(
+              (key) =>
+                  key.startsWith('fortschritt_') ||
+                  key.startsWith('score_') ||
+                  key.startsWith('async_match/'),
+            )
+            .toList();
 
         for (final key in keysToRemove) {
           await prefs.remove(key);
@@ -282,10 +300,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fehler: $e'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
           );
         }
       }
@@ -303,15 +318,15 @@ class _NewProfilePageState extends State<NewProfilePage> {
 
   String _formatDate(dynamic date) {
     if (date == null) return 'Unbekannt';
-    
+
     try {
-      final DateTime dateTime = date is String 
-        ? DateTime.parse(date) 
-        : date as DateTime;
-      
+      final DateTime dateTime = date is String
+          ? DateTime.parse(date)
+          : date as DateTime;
+
       final now = DateTime.now();
       final diff = now.difference(dateTime);
-      
+
       if (diff.inDays < 1) return 'Heute';
       if (diff.inDays < 7) return '${diff.inDays}d';
       if (diff.inDays < 30) return '${(diff.inDays / 7).floor()}w';
@@ -428,6 +443,85 @@ class _NewProfilePageState extends State<NewProfilePage> {
               ),
             ),
 
+            // Badges Sektion
+            if (_myBadges.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.military_tech,
+                          color: Colors.amber,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Meine Badges',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade100,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${_myBadges.length}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.amber.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Card(
+                      elevation: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _myBadges.map((ub) {
+                            final badge = ub['badges'] as Map<String, dynamic>;
+                            return Tooltip(
+                              message:
+                                  '${badge['name']}\n${badge['description']}',
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.amber.shade200,
+                                  ),
+                                ),
+                                child: Text(
+                                  badge['icon'] ?? '🏆',
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
               child: Column(
@@ -493,7 +587,9 @@ class _NewProfilePageState extends State<NewProfilePage> {
                         ),
                         const Divider(height: 1),
                         SwitchListTile(
-                          secondary: Icon(_soundsEnabled ? Icons.volume_up : Icons.volume_off),
+                          secondary: Icon(
+                            _soundsEnabled ? Icons.volume_up : Icons.volume_off,
+                          ),
                           title: const Text('Sound-Effekte'),
                           subtitle: const Text('Feedback bei Antworten'),
                           value: _soundsEnabled,
@@ -575,10 +671,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Colors.white70,
-                ),
+                style: const TextStyle(fontSize: 10, color: Colors.white70),
               ),
               Text(
                 value,

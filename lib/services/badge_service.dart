@@ -5,10 +5,7 @@ class BadgeService {
 
   /// Lädt alle verfügbaren Badges
   Future<List<Map<String, dynamic>>> getAllBadges() async {
-    final result = await _client
-        .from('badges')
-        .select()
-        .order('sort_order');
+    final result = await _client.from('badges').select().order('sort_order');
     return List<Map<String, dynamic>>.from(result);
   }
 
@@ -50,6 +47,7 @@ class BadgeService {
   /// Prüft und vergibt Match-Badges
   Future<List<String>> checkMatchBadges() async {
     final oderId = _client.auth.currentUser?.id;
+    print('🏆 checkMatchBadges() für User: $oderId');
     if (oderId == null) return [];
 
     final awarded = <String>[];
@@ -125,7 +123,10 @@ class BadgeService {
   }
 
   /// Prüft und vergibt Prüfungs-Badges
-  Future<List<String>> checkExamBadges({required int passed, bool? scoreOver90}) async {
+  Future<List<String>> checkExamBadges({
+    required int passed,
+    bool? scoreOver90,
+  }) async {
     final oderId = _client.auth.currentUser?.id;
     if (oderId == null) return [];
 

@@ -7,6 +7,8 @@ import '../../../widgets/sequence_question_widget.dart';
 import 'dart:async';
 import '../../../widgets/report_dialog.dart';
 import '../../../services/sound_service.dart';
+import '../../services/badge_service.dart';
+import '../../widgets/badge_celebration_dialog.dart';
 
 class AsyncMatchPlayPage extends StatefulWidget {
   final String matchId;
@@ -43,6 +45,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   Timer? _timer;
   int _timeLeft = 30;
   final int _maxTime = 30;
+  final _badgeService = BadgeService();
 
   String get _userId =>
       Supabase.instance.client.auth.currentUser?.id ?? 'local';
@@ -60,11 +63,11 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   }
 
   Future<void> _init() async {
-  try {
-    print('🟢 _init() gestartet für Match: ${widget.matchId}');
-    
-    // Sound Service initialisieren
-    await _soundService.init();
+    try {
+      print('🟢 _init() gestartet für Match: ${widget.matchId}');
+
+      // Sound Service initialisieren
+      await _soundService.init();
 
       _store ??= await AsyncMatchProgressStore.instance;
       _progress = await _store!.ensure(_userId, widget.matchId);
@@ -996,11 +999,34 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     final isWinner = myScore > oppScore;
     final isDraw = myScore == oppScore;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (isWinner) {
         _soundService.playSound(SoundType.victory);
       } else if (!isDraw) {
         _soundService.playSound(SoundType.defeat);
+      }
+
+      // Badges prüfen
+      print('🏆 Prüfe Badges...');
+      final newBadges = await _badgeService.checkMatchBadges();
+      print('🏆 Neue Badges: $newBadges');
+      if (newBadges.isNotEmpty && mounted) {
+        // Badge-Details laden
+        final allBadges = await _badgeService.getAllBadges();
+        final earnedDetails = allBadges
+            .where((b) => newBadges.contains(b['id']))
+            .toList();
+
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => BadgeCelebrationDialog(
+              badgeIds: newBadges,
+              badgeDetails: earnedDetails,
+            ),
+          );
+        }
       }
     });
 
