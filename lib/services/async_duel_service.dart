@@ -142,7 +142,7 @@ class AsyncDuelService {
     return result;
   }
 
-  /// Lädt alle offenen Matches (von anderen Spielern)
+  /// Lädt alle offenen Matches (von anderen Spielern, nur wenn Ersteller fertig ist)
   Future<List<Map<String, dynamic>>> getOpenMatches() async {
     final userId = c.auth.currentUser?.id;
     if (userId == null) return [];
@@ -156,18 +156,36 @@ class AsyncDuelService {
         .order('created_at', ascending: false)
         .limit(20);
 
-    final result = List<Map<String, dynamic>>.from(matches);
+    final allMatches = List<Map<String, dynamic>>.from(matches);
+    final result = <Map<String, dynamic>>[];
 
-    // Ersteller-Profile separat laden
-    for (var match in result) {
+    // Nur Matches wo Ersteller alle Fragen beantwortet hat
+    for (var match in allMatches) {
+      final matchId = match['id'] as String;
       final oderId = match['player1_id'] as String?;
-      if (oderId != null) {
+      final totalQuestions = match['total_questions'] as int? ?? 10;
+
+      if (oderId == null) continue;
+
+      // Anzahl Antworten des Erstellers prüfen
+      final answers = await c
+          .from('match_answers')
+          .select('idx')
+          .eq('match_id', matchId)
+          .eq('user_id', oderId);
+
+      final answerCount = (answers as List).length;
+
+      // Nur wenn alle Fragen beantwortet wurden
+      if (answerCount >= totalQuestions) {
+        // Profil laden
         final profile = await c
             .from('profiles')
             .select('id, username, avatar_url')
             .eq('id', oderId)
             .maybeSingle();
         match['creator'] = profile;
+        result.add(match);
       }
     }
 
