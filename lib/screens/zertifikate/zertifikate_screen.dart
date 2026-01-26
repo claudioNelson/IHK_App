@@ -13,6 +13,7 @@ class ZertifikatePage extends StatefulWidget {
 
 class _ZertifikatePageState extends State<ZertifikatePage> {
   final supabase = Supabase.instance.client;
+  Map<int, Map<String, dynamic>> _userResults = {};
 
   List<dynamic> zertifikate = [];
   bool loading = true;
@@ -29,6 +30,19 @@ class _ZertifikatePageState extends State<ZertifikatePage> {
           .from('zertifikate')
           .select()
           .order('anbieter, name');
+
+      // User-Ergebnisse laden
+      final userId = supabase.auth.currentUser?.id;
+      if (userId != null) {
+        final results = await supabase
+            .from('user_certificates')
+            .select()
+            .eq('user_id', userId);
+
+        for (var r in results) {
+          _userResults[r['zertifikat_id']] = r;
+        }
+      }
 
       if (!mounted) return;
       setState(() {
@@ -214,6 +228,25 @@ class _ZertifikatePageState extends State<ZertifikatePage> {
                                 'Mind. ${cert['mindest_punktzahl']}%',
                                 Colors.green,
                               ),
+                              // User-Ergebnisse anzeigen
+                              if (_userResults.containsKey(cert['id'])) ...[
+                                _buildInfoChip(
+                                  Icons.refresh,
+                                  '${_userResults[cert['id']]!['attempts']}x',
+                                  Colors.purple,
+                                ),
+                                _buildInfoChip(
+                                  Icons.trending_up,
+                                  'Beste: ${_userResults[cert['id']]!['best_score']}%',
+                                  Colors.teal,
+                                ),
+                                if (_userResults[cert['id']]!['passed'] == true)
+                                  _buildInfoChip(
+                                    Icons.verified,
+                                    'Bestanden ✓',
+                                    Colors.green,
+                                  ),
+                              ],
                             ],
                           ),
                         ],

@@ -8,6 +8,7 @@ import '../../widgets/report_dialog.dart';
 import '../../services/sound_service.dart';
 import '../../services/badge_service.dart';
 import '../../widgets/badge_celebration_dialog.dart';
+import '../../services/progress_service.dart';
 
 class TestFragen extends StatefulWidget {
   final int modulId;
@@ -39,6 +40,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
   String? calculationAnswer; // NEU: für Rechenaufgaben
   final _soundService = SoundService();
   final _badgeService = BadgeService();
+  final _progressService = ProgressService();
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -145,28 +147,36 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
 
   Future<void> _loadProgress() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final key = 'fortschritt_modul_${widget.modulId}';
-      final saved = prefs.getStringList(key) ?? [];
+      // Aus Supabase laden
+      final answered = await _progressService.getCorrectFragen(widget.modulId);
       setState(() {
-        beantworteteFragen = saved.map((s) => int.parse(s)).toSet();
+        beantworteteFragen = answered;
       });
+      print('✅ Fortschritt geladen: ${beantworteteFragen.length} Fragen');
     } catch (e) {
-      print('Fehler beim Laden des Fortschritts: $e');
+      print('❌ Fehler beim Laden des Fortschritts: $e');
     }
   }
 
-  Future<void> _saveProgress(int frageId) async {
+  Future<void> _saveProgress(int frageId, bool isCorrect) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final key = 'fortschritt_modul_${widget.modulId}';
-      beantworteteFragen.add(frageId);
-      await prefs.setStringList(
-        key,
-        beantworteteFragen.map((id) => id.toString()).toList(),
+      // In Supabase speichern
+      await _progressService.saveAnswer(
+        modulId: widget.modulId,
+        themaId: widget.themaId,
+        frageId: frageId,
+        isCorrect: isCorrect,
+      );
+
+      if (isCorrect) {
+        beantworteteFragen.add(frageId);
+      }
+
+      print(
+        '✅ Fortschritt gespeichert: Frage $frageId (${isCorrect ? "richtig" : "falsch"})',
       );
     } catch (e) {
-      print('Fehler beim Speichern: $e');
+      print('❌ Fehler beim Speichern: $e');
     }
   }
 
@@ -204,11 +214,12 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
 
     if (isCorrect) {
       _soundService.playSound(SoundType.correct);
-      await _saveProgress(frage['id']);
-      await _saveThemaScore();
     } else {
       _soundService.playSound(SoundType.wrong);
     }
+
+    // Immer speichern (richtig oder falsch)
+    await _saveProgress(frage['id'], isCorrect);
 
     if (!isCorrect &&
         (selected['erklaerung'] == null ||
@@ -232,11 +243,9 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       _soundService.playSound(SoundType.wrong);
     }
 
-    if (isCorrect) {
-      final frage = fragen[currentIndex];
-      await _saveProgress(frage['id']);
-      await _saveThemaScore();
-    }
+    // Fortschritt speichern (immer, egal ob richtig oder falsch)
+    final frage = fragen[currentIndex];
+    await _saveProgress(frage['id'], isCorrect);
   }
 
   Future<void> _generateExplanation(
@@ -436,54 +445,42 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
   }
 
   Future<void> _checkModuleBadgesAndPop() async {
-  try {
-    print('🎓 _checkModuleBadges() gestartet');
-    
-    final prefs = await SharedPreferences.getInstance();
-    final allKeys = prefs.getKeys();
-    
-    print('🎓 Alle Keys: $allKeys');
-    
-    final completedModules = allKeys
-        .where((key) => key.startsWith('score_mod_'))
-        .map((key) {
-          final parts = key.split('_');
-          if (parts.length >= 3) return parts[2];
-          return null;
-        })
-        .where((id) => id != null)
-        .toSet()
-        .length;
+    try {
+      print('🎓 _checkModuleBadges() gestartet');
 
-    print('🎓 Abgeschlossene Module: $completedModules');
+      // Aus Supabase laden statt SharedPreferences
+      final completedModules = await _progressService
+          .getCompletedModulesCount();
 
-    final newBadges = await _badgeService.checkModuleBadges(completedModules);
-    print('🎓 Neue Badges: $newBadges');
-    
-    if (newBadges.isNotEmpty && mounted) {
-      final allBadges = await _badgeService.getAllBadges();
-      final earnedDetails = allBadges
-          .where((b) => newBadges.contains(b['id']))
-          .toList();
+      print('🎓 Abgeschlossene Module: $completedModules');
 
-      if (mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => BadgeCelebrationDialog(
-            badgeIds: newBadges,
-            badgeDetails: earnedDetails,
-          ),
-        );
+      final newBadges = await _badgeService.checkModuleBadges(completedModules);
+      print('🎓 Neue Badges: $newBadges');
+
+      if (newBadges.isNotEmpty && mounted) {
+        final allBadges = await _badgeService.getAllBadges();
+        final earnedDetails = allBadges
+            .where((b) => newBadges.contains(b['id']))
+            .toList();
+
+        if (mounted) {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => BadgeCelebrationDialog(
+              badgeIds: newBadges,
+              badgeDetails: earnedDetails,
+            ),
+          );
+        }
       }
+    } catch (e) {
+      print('❌ Badge-Fehler: $e');
     }
-  } catch (e) {
-    print('❌ Badge-Fehler: $e');
+
+    // Nach Konfetti (oder wenn keine Badges) zurück navigieren
+    if (mounted) Navigator.pop(context);
   }
-  
-  // Nach Konfetti (oder wenn keine Badges) zurück navigieren
-  if (mounted) Navigator.pop(context);
-}
 
   @override
   Widget build(BuildContext context) {

@@ -139,6 +139,57 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
     });
   }
 
+  Future<void> _saveResult(int score, bool passed) async {
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      // Prüfe ob schon ein Eintrag existiert
+      final existing = await supabase
+          .from('user_certificates')
+          .select()
+          .eq('user_id', userId)
+          .eq('zertifikat_id', widget.zertifikatId)
+          .maybeSingle();
+
+      if (existing == null) {
+        // Neuer Eintrag
+        await supabase.from('user_certificates').insert({
+          'user_id': userId,
+          'zertifikat_id': widget.zertifikatId,
+          'best_score': score,
+          'passed': passed,
+          'passed_at': passed ? DateTime.now().toIso8601String() : null,
+          'attempts': 1,
+        });
+      } else {
+        // Update: Beste Score und Versuche erhöhen
+        final newBestScore = score > (existing['best_score'] ?? 0)
+            ? score
+            : existing['best_score'];
+        final newPassed = passed || (existing['passed'] ?? false);
+
+        await supabase
+            .from('user_certificates')
+            .update({
+              'best_score': newBestScore,
+              'passed': newPassed,
+              'passed_at': (newPassed && existing['passed_at'] == null)
+                  ? DateTime.now().toIso8601String()
+                  : existing['passed_at'],
+              'attempts': (existing['attempts'] ?? 0) + 1,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('user_id', userId)
+            .eq('zertifikat_id', widget.zertifikatId);
+      }
+
+      print('✅ Zertifikat-Ergebnis gespeichert');
+    } catch (e) {
+      print('❌ Fehler beim Speichern: $e');
+    }
+  }
+
   void _showTimeWarning() {
     showDialog(
       context: context,
@@ -263,6 +314,11 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
       bestanden = passed;
       pruefungAbgeschlossen = true;
     });
+
+    // Ergebnis in Datenbank speichern
+    await _saveResult(prozent, passed);
+
+    // Sound abspielen
 
     // Sound abspielen
     if (passed) {
