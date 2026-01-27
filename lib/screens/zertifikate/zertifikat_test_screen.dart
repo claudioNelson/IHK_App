@@ -228,7 +228,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
 
   void _selectAntwort(int antwortId) {
     if (pruefungAbgeschlossen) return;
-
+    _soundService.playSound(SoundType.click);
     setState(() {
       antworten[aktuelleFrage] = antwortId;
     });

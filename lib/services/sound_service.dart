@@ -48,8 +48,8 @@ class SoundService {
           url = 'https://cdn.freesound.org/previews/249/249300_4404552-lq.mp3';
           break;
         case SoundType.click:
-          // Soft click
-          url = 'https://cdn.freesound.org/previews/221/221683_3925278-lq.mp3';
+          // Kurzer Pop/Click - ähnliches Format wie die anderen
+          url = 'https://cdn.freesound.org/previews/512/512216_10393057-lq.mp3';
           break;
       }
 
