@@ -5,6 +5,7 @@ import 'dart:async';
 import '../../models/ihk_exam_model.dart';
 import '../../widgets/photo_upload_widget.dart';
 import '../../widgets/code_editor_widget.dart';
+import '../../services/gemini_service.dart';
 
 class IHKPruefungExamScreen extends StatefulWidget {
   final IHKExam exam;
@@ -37,6 +38,12 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
     timer?.cancel();
     super.dispose();
   }
+
+  // KI Korrektur
+  final _geminiService = GeminiService();
+  String? _kiKorrektur;
+  bool _isLoadingKi = false;
+  bool _showKiKorrektur = false;
 
   Future<void> _loadProgress() async {
     final prefs = await SharedPreferences.getInstance();
@@ -475,11 +482,10 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
         elevation: 0,
         foregroundColor: Colors.black,
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.celebration, size: 80, color: Colors.green),
               const SizedBox(height: 24),
@@ -506,7 +512,96 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
+
+              // KI-Korrektur Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isLoadingKi ? null : _requestKiKorrektur,
+                  icon: _isLoadingKi
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.psychology, size: 28),
+                  label: Text(
+                    _isLoadingKi ? 'KI analysiert...' : '🤖 KI-Tutor Korrektur',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple[700],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+
+              // KI-Korrektur Ergebnis
+              if (_showKiKorrektur && _kiKorrektur != null) ...[
+                const SizedBox(height: 24),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.purple.shade50, Colors.blue.shade50],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.purple.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.purple.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.psychology,
+                              color: Colors.purple.shade700,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'KI-Tutor Feedback',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      SelectableText(
+                        _kiKorrektur!,
+                        style: const TextStyle(fontSize: 15, height: 1.6),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -530,12 +625,89 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 32),
             ],
           ),
         ),
       ),
     );
   }
+
+  Future<void> _requestKiKorrektur() async {
+  setState(() => _isLoadingKi = true);
+
+  try {
+    final buffer = StringBuffer();
+    buffer.writeln('Du bist ein strenger aber fairer IHK-Prüfer für Fachinformatiker.');
+    buffer.writeln('Bewerte diese Prüfung und vergib Punkte für jede Antwort.');
+    buffer.writeln('');
+    buffer.writeln('=== PRÜFUNGSDATEN ===');
+    buffer.writeln('Prüfung: ${widget.exam.title}');
+    buffer.writeln('Gesamtpunkte: ${widget.exam.totalPoints}');
+    buffer.writeln('');
+    buffer.writeln('Szenario: ${widget.exam.scenario}');
+    buffer.writeln('');
+    buffer.writeln('=== ANTWORTEN DES PRÜFLINGS ===');
+    
+    for (var section in widget.exam.sections) {
+      buffer.writeln('');
+      buffer.writeln('--- ${section.title} (${section.totalPoints} Punkte) ---');
+      for (var q in section.questions) {
+        if (q.type == QuestionType.info) continue;
+        buffer.writeln('');
+        buffer.writeln('Aufgabe (${q.points} Punkte): ${q.title}');
+        buffer.writeln('Aufgabenstellung: ${q.description}');
+        buffer.writeln('Antwort des Prüflings: ${answers[q.id] ?? "NICHT BEANTWORTET"}');
+      }
+    }
+    
+    buffer.writeln('');
+    buffer.writeln('=== DEINE AUFGABE ===');
+    buffer.writeln('');
+    buffer.writeln('1. 📝 EINZELBEWERTUNG');
+    buffer.writeln('   Bewerte JEDE Aufgabe einzeln:');
+    buffer.writeln('   - Erreichte Punkte / Mögliche Punkte');
+    buffer.writeln('   - Kurze Begründung');
+    buffer.writeln('');
+    buffer.writeln('2. 📊 GESAMTERGEBNIS');
+    buffer.writeln('   - Erreichte Gesamtpunkte: X / ${widget.exam.totalPoints}');
+    buffer.writeln('   - Prozent: X%');
+    buffer.writeln('   - Note nach IHK-Schlüssel:');
+    buffer.writeln('     * 100-92% = 1 (sehr gut)');
+    buffer.writeln('     * 91-81% = 2 (gut)');
+    buffer.writeln('     * 80-67% = 3 (befriedigend)');
+    buffer.writeln('     * 66-50% = 4 (ausreichend) - Bestanden');
+    buffer.writeln('     * 49-30% = 5 (mangelhaft) - Nicht bestanden');
+    buffer.writeln('     * 29-0% = 6 (ungenügend) - Nicht bestanden');
+    buffer.writeln('');
+    buffer.writeln('3. ✅ oder ❌ BESTANDEN / NICHT BESTANDEN');
+    buffer.writeln('   (Mindestens 50% = bestanden)');
+    buffer.writeln('');
+    buffer.writeln('4. 💡 VERBESSERUNGSTIPPS');
+    buffer.writeln('   - Was war gut?');
+    buffer.writeln('   - Was muss verbessert werden?');
+    buffer.writeln('   - Konkrete Lernempfehlungen');
+    buffer.writeln('');
+    buffer.writeln('Sei streng aber fair. Nicht beantwortete Fragen = 0 Punkte.');
+    buffer.writeln('Antworte auf Deutsch, strukturiert mit Emojis.');
+
+    final response = await _geminiService.generateContent(buffer.toString());
+    
+    setState(() {
+      _kiKorrektur = response;
+      _showKiKorrektur = true;
+      _isLoadingKi = false;
+    });
+  } catch (e) {
+    setState(() => _isLoadingKi = false);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+}
+
 
   String _formatTime(int seconds) {
     final mins = seconds ~/ 60;
