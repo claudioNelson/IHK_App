@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/sound_service.dart';
+import '../../services/badge_service.dart';
+import '../../widgets/badge_celebration_dialog.dart';
 
 class ZertifikatTestPage extends StatefulWidget {
   final int zertifikatId;
@@ -35,6 +37,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
   bool loading = true;
   bool pruefungAbgeschlossen = false;
   final _soundService = SoundService();
+  final _badgeService = BadgeService();
 
   // Ergebnis
   int? score;
@@ -139,56 +142,6 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
     });
   }
 
-  Future<void> _saveResult(int score, bool passed) async {
-    try {
-      final userId = supabase.auth.currentUser?.id;
-      if (userId == null) return;
-
-      // Prüfe ob schon ein Eintrag existiert
-      final existing = await supabase
-          .from('user_certificates')
-          .select()
-          .eq('user_id', userId)
-          .eq('zertifikat_id', widget.zertifikatId)
-          .maybeSingle();
-
-      if (existing == null) {
-        // Neuer Eintrag
-        await supabase.from('user_certificates').insert({
-          'user_id': userId,
-          'zertifikat_id': widget.zertifikatId,
-          'best_score': score,
-          'passed': passed,
-          'passed_at': passed ? DateTime.now().toIso8601String() : null,
-          'attempts': 1,
-        });
-      } else {
-        // Update: Beste Score und Versuche erhöhen
-        final newBestScore = score > (existing['best_score'] ?? 0)
-            ? score
-            : existing['best_score'];
-        final newPassed = passed || (existing['passed'] ?? false);
-
-        await supabase
-            .from('user_certificates')
-            .update({
-              'best_score': newBestScore,
-              'passed': newPassed,
-              'passed_at': (newPassed && existing['passed_at'] == null)
-                  ? DateTime.now().toIso8601String()
-                  : existing['passed_at'],
-              'attempts': (existing['attempts'] ?? 0) + 1,
-              'updated_at': DateTime.now().toIso8601String(),
-            })
-            .eq('user_id', userId)
-            .eq('zertifikat_id', widget.zertifikatId);
-      }
-
-      print('✅ Zertifikat-Ergebnis gespeichert');
-    } catch (e) {
-      print('❌ Fehler beim Speichern: $e');
-    }
-  }
 
   void _showTimeWarning() {
     showDialog(
@@ -323,10 +276,65 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
     // Sound abspielen
     if (passed) {
       _soundService.playSound(SoundType.victory);
+      // Badges prüfen - mit kleiner Verzögerung damit UI fertig ist
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _checkCertificateBadges();
+      });
     } else {
       _soundService.playSound(SoundType.defeat);
     }
   }
+
+  Future<void> _saveResult(int score, bool passed) async {
+  try {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    // Prüfe ob schon ein Eintrag existiert
+    final existing = await supabase
+        .from('user_certificates')
+        .select()
+        .eq('user_id', userId)
+        .eq('zertifikat_id', widget.zertifikatId)
+        .maybeSingle();
+
+    if (existing == null) {
+      // Neuer Eintrag
+      await supabase.from('user_certificates').insert({
+        'user_id': userId,
+        'zertifikat_id': widget.zertifikatId,
+        'best_score': score,
+        'passed': passed,
+        'passed_at': passed ? DateTime.now().toIso8601String() : null,
+        'attempts': 1,
+      });
+    } else {
+      // Update: Beste Score und Versuche erhöhen
+      final newBestScore = score > (existing['best_score'] ?? 0) 
+          ? score 
+          : existing['best_score'];
+      final newPassed = passed || (existing['passed'] ?? false);
+      
+      await supabase
+          .from('user_certificates')
+          .update({
+            'best_score': newBestScore,
+            'passed': newPassed,
+            'passed_at': (newPassed && existing['passed_at'] == null) 
+                ? DateTime.now().toIso8601String() 
+                : existing['passed_at'],
+            'attempts': (existing['attempts'] ?? 0) + 1,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('user_id', userId)
+          .eq('zertifikat_id', widget.zertifikatId);
+    }
+    
+    print('✅ Zertifikat-Ergebnis gespeichert');
+  } catch (e) {
+    print('❌ Fehler beim Speichern: $e');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -680,6 +688,59 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
         ),
       ),
     );
+  }
+
+  Future<void> _checkCertificateBadges() async {
+    if (bestanden != true) return; // Nur wenn bestanden
+
+    try {
+      print('🎓 _checkCertificateBadges() gestartet');
+
+      // Mapping: Zertifikat-ID zu Badge-Key
+      String? certKey;
+      switch (widget.zertifikatId) {
+        case 1:
+          certKey = 'aws';
+          break; // AWS
+        case 2:
+          certKey = 'sap';
+          break; // SAP (kein Badge dafür)
+        case 3:
+          certKey = 'azure';
+          break; // Azure
+        case 4:
+          certKey = 'gcp';
+          break; // Google Cloud
+      }
+
+      final earnedCerts = <String>[];
+      if (certKey != null) earnedCerts.add(certKey);
+
+      print('🎓 Bestandenes Zertifikat: $certKey');
+
+      final newBadges = await _badgeService.checkCertificateBadges(earnedCerts);
+      print('🎓 Neue Badges: $newBadges');
+
+      if (newBadges.isNotEmpty && mounted) {
+        final allBadges = await _badgeService.getAllBadges();
+        final earnedDetails = allBadges
+            .where((b) => newBadges.contains(b['id']))
+            .toList();
+
+        if (mounted) {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => BadgeCelebrationDialog(
+              badgeIds: newBadges,
+              badgeDetails: earnedDetails,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('❌ Badge-Fehler: $e');
+    }
   }
 
   Widget _buildErgebnisScreen() {
