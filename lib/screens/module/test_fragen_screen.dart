@@ -9,6 +9,7 @@ import '../../services/sound_service.dart';
 import '../../services/badge_service.dart';
 import '../../widgets/badge_celebration_dialog.dart';
 import '../../services/progress_service.dart';
+import '../../services/spaced_repetition_service.dart';
 
 class TestFragen extends StatefulWidget {
   final int modulId;
@@ -41,6 +42,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
   final _soundService = SoundService();
   final _badgeService = BadgeService();
   final _progressService = ProgressService();
+  final _spacedRepService = SpacedRepetitionService();
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -160,6 +162,10 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
 
   Future<void> _saveProgress(int frageId, bool isCorrect) async {
     try {
+      print(
+        '🔵 _saveProgress aufgerufen: Frage $frageId, isCorrect: $isCorrect',
+      ); // ⭐ NEU
+
       // In Supabase speichern
       await _progressService.saveAnswer(
         modulId: widget.modulId,
@@ -218,8 +224,14 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       _soundService.playSound(SoundType.wrong);
     }
 
-    // Immer speichern (richtig oder falsch)
+    // Fortschritt speichern
     await _saveProgress(frage['id'], isCorrect);
+
+    // ⭐ NEU: Spaced Repetition
+    await _spacedRepService.recordAnswer(
+      frageId: frage['id'],
+      isCorrect: isCorrect,
+    );
 
     if (!isCorrect &&
         (selected['erklaerung'] == null ||
@@ -243,9 +255,15 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       _soundService.playSound(SoundType.wrong);
     }
 
-    // Fortschritt speichern (immer, egal ob richtig oder falsch)
+    // Fortschritt speichern
     final frage = fragen[currentIndex];
     await _saveProgress(frage['id'], isCorrect);
+
+    // ⭐ NEU: Spaced Repetition
+    await _spacedRepService.recordAnswer(
+      frageId: frage['id'],
+      isCorrect: isCorrect,
+    );
   }
 
   Future<void> _generateExplanation(
