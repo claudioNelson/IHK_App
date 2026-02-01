@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../module/themen_liste_screen.dart';
+import '../../services/app_cache_service.dart';
 
 class ModulListe extends StatefulWidget {
   const ModulListe({super.key});
@@ -26,7 +27,18 @@ class _ModulListeState extends State<ModulListe> {
   void initState() {
     super.initState();
     _loadViewPreference();
-    ladeModule();
+
+    // Cache laden
+    final cacheService = AppCacheService();
+    if (cacheService.modulesLoaded && cacheService.cachedModule.isNotEmpty) {
+      module = cacheService.cachedModule;
+      anzahlFragen = Map.from(cacheService.cachedAnzahlFragen);
+      beantworteteFragen = Map.from(cacheService.cachedBeantworteteFragen);
+      letzteThemaId = Map.from(cacheService.cachedLetzteThemaId);
+      loading = false;
+    } else {
+      ladeModule();
+    }
   }
 
   Future<void> _loadViewPreference() async {

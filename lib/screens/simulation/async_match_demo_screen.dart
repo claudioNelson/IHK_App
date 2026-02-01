@@ -4,6 +4,7 @@ import '../../../services/async_duel_service.dart';
 import 'leaderboard_screen.dart';
 import 'async_match_play_screen.dart';
 import '../profile/player_profile_screen.dart';
+import '../../../services/app_cache_service.dart';
 
 class AsyncMatchDemoPage extends StatefulWidget {
   const AsyncMatchDemoPage({super.key});
@@ -26,7 +27,17 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+
+    final cacheService = AppCacheService();
+    if (cacheService.matchesLoaded) {
+      _activeMatches = List.from(cacheService.cachedActiveMatches);
+      _historyMatches = List.from(cacheService.cachedHistoryMatches);
+      _myStats = cacheService.cachedMyStats;
+      _matchScores = Map.from(cacheService.cachedMatchScores);
+      _busy = false;
+    } else {
+      _loadData();
+    }
   }
 
   Future<void> _loadData() async {
@@ -69,28 +80,28 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   }
 
   Future<void> _createMatch() async {
-  setState(() => _busy = true);
-  try {
-    final id = await _svc.createMatch(count: 10);
-    print('✅ Match erstellt: $id');
-    await _loadData();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('🎮 Match erstellt! Warte auf Gegner...'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
-    );
-  } finally {
-    if (mounted) setState(() => _busy = false);
+    setState(() => _busy = true);
+    try {
+      final id = await _svc.createMatch(count: 10);
+      print('✅ Match erstellt: $id');
+      await _loadData();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('🎮 Match erstellt! Warte auf Gegner...'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
-}
 
   Future<void> _joinRandom() async {
     setState(() => _busy = true);

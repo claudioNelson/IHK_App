@@ -4,6 +4,7 @@ import '../../services/auth_service.dart';
 import '../../services/sound_service.dart';
 import '../auth/change_password_screen.dart';
 import '../../services/badge_service.dart';
+import '../../services/app_cache_service.dart';
 
 class NewProfilePage extends StatefulWidget {
   const NewProfilePage({super.key});
@@ -27,9 +28,19 @@ class _NewProfilePageState extends State<NewProfilePage> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+
+    final cacheService = AppCacheService();
+
+    if (cacheService.profileLoaded && cacheService.cachedMyProfile != null) {
+      _profile = cacheService.cachedMyProfile;
+      _myBadges = List.from(cacheService.cachedMyBadges);
+      _loading = false;
+    } else {
+      _loadProfile();
+      _loadBadges();
+    }
+
     _loadSettings();
-    _loadBadges();
   }
 
   Future<void> _loadProfile() async {

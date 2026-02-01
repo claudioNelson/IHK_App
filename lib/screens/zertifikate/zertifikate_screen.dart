@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'zertifikat_test_screen.dart';
 import 'zertifikat_info_screen.dart';
 import '../../widgets/zertifikat_info_dialog.dart';
+import '../../services/app_cache_service.dart';
 
 class ZertifikatePage extends StatefulWidget {
   const ZertifikatePage({super.key});
@@ -21,7 +22,16 @@ class _ZertifikatePageState extends State<ZertifikatePage> {
   @override
   void initState() {
     super.initState();
-    _loadZertifikate();
+
+    final cacheService = AppCacheService();
+    if (cacheService.certificatesLoaded &&
+        cacheService.cachedZertifikate.isNotEmpty) {
+      zertifikate = cacheService.cachedZertifikate;
+      _userResults = Map.from(cacheService.cachedUserResults);
+      loading = false;
+    } else {
+      _loadZertifikate();
+    }
   }
 
   Future<void> _loadZertifikate() async {

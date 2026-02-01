@@ -4,7 +4,7 @@ import 'screens/auth/login_screen.dart';
 import 'screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'services/app_cache_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
@@ -66,7 +66,12 @@ class _AppInitializerState extends State<AppInitializer> {
       );
 
       // Kurze Verzögerung damit Splash sichtbar ist
-      await Future.delayed(const Duration(milliseconds: 2500));
+      // ⭐ Daten vorladen
+      if (session != null) {
+        await AppCacheService().preloadAllData();
+      }
+
+      await Future.delayed(const Duration(milliseconds: 500));
 
       if (mounted) {
         setState(() => _initialized = true);
