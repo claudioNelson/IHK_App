@@ -33,7 +33,11 @@ class SpacedRepetitionService {
   }
 
   /// Erstellt eine neue Karteikarte
-  Future<void> _createNewCard(String userId, int frageId, bool isCorrect) async {
+  Future<void> _createNewCard(
+    String userId,
+    int frageId,
+    bool isCorrect,
+  ) async {
     final now = DateTime.now();
     final nextReview = isCorrect
         ? now.add(const Duration(days: 1)) // Richtig → 1 Tag
@@ -67,8 +71,9 @@ class SpacedRepetitionService {
       }
 
       repetitions++;
-      easinessFactor = easinessFactor + (0.1 - (5 - 5) * (0.08 + (5 - 5) * 0.02));
-      
+      easinessFactor =
+          easinessFactor + (0.1 - (5 - 5) * (0.08 + (5 - 5) * 0.02));
+
       // EF sollte zwischen 1.3 und 2.5 bleiben
       if (easinessFactor < 1.3) easinessFactor = 1.3;
       if (easinessFactor > 2.5) easinessFactor = 2.5;
@@ -80,13 +85,16 @@ class SpacedRepetitionService {
 
     final nextReview = DateTime.now().add(Duration(days: interval));
 
-    await _supabase.from('spaced_repetition').update({
-      'easiness_factor': easinessFactor,
-      'interval': interval,
-      'repetitions': repetitions,
-      'last_reviewed_at': DateTime.now().toIso8601String(),
-      'next_review_at': nextReview.toIso8601String(),
-    }).eq('id', card['id']);
+    await _supabase
+        .from('spaced_repetition')
+        .update({
+          'easiness_factor': easinessFactor,
+          'interval': interval,
+          'repetitions': repetitions,
+          'last_reviewed_at': DateTime.now().toIso8601String(),
+          'next_review_at': nextReview.toIso8601String(),
+        })
+        .eq('id', card['id']);
   }
 
   /// Holt alle Fragen die heute wiederholt werden sollten
@@ -100,18 +108,19 @@ class SpacedRepetitionService {
       final results = await _supabase
           .from('spaced_repetition')
           .select('''
-            *,
-            fragen (
-              id,
-              frage,
-              modul_id,
-              thema_id
-            )
-          ''')
+      *,
+      fragen (
+        id,
+        frage,
+        modul_id,
+        thema_id,
+        module!inner(id, name)
+      )
+    ''')
           .eq('user_id', userId)
           .lte('next_review_at', now.toIso8601String())
           .order('next_review_at', ascending: true)
-          .limit(50); // Max 50 Fragen pro Session
+          .limit(50);
 
       return List<Map<String, dynamic>>.from(results);
     } catch (e) {

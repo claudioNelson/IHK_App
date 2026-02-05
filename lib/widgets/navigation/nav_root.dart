@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../shared/nav_keep_alive.dart';
-import '../../screens/module/modul_liste_screen.dart';
-import '../../screens/zertifikate/zertifikate_screen.dart';
+import '../../screens/learning/learning_hub_screen.dart';import '../../screens/zertifikate/zertifikate_screen.dart';
 import '../../screens/simulation/async_match_demo_screen.dart';
 import '../../screens/profile/new_profile_page.dart';
 import '../../pages/pruefung/ihk_pruefung_liste_screen.dart';
@@ -16,7 +15,7 @@ class _NavRootState extends State<NavRoot> {
   int _index = 0;
 
   late final List<Widget> _pages = [
-    const NavKeepAlive(child: ModulListe()),
+    const NavKeepAlive(child: LearningHubScreen()),
     const NavKeepAlive(child: IHKPruefungListeScreen()),
     const NavKeepAlive(child: AsyncMatchDemoPage()),
     const NavKeepAlive(child: ZertifikatePage()),
