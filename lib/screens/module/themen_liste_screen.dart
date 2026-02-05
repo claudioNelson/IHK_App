@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'test_fragen_screen.dart';
+import '../../services/app_cache_service.dart';
 
 class ThemenListe extends StatefulWidget {
   final int modulId;
@@ -35,7 +36,25 @@ class _ThemenListeState extends State<ThemenListe>
   void initState() {
     super.initState();
     _setupAnimations();
-    _load();
+
+    // ⭐ NEU: Cache prüfen
+    final cacheService = AppCacheService();
+    if (cacheService.themenLoaded[widget.modulId] == true) {
+      _loadFromCache();
+    } else {
+      _load();
+    }
+  }
+
+  // ⭐ NEU: Aus Cache laden
+  void _loadFromCache() {
+    final cacheService = AppCacheService();
+    setState(() {
+      themen = cacheService.cachedThemen[widget.modulId] ?? [];
+      fragenCount = cacheService.cachedFragenCount[widget.modulId] ?? {};
+      loading = false;
+    });
+    _loadScores();
   }
 
   @override
@@ -52,9 +71,18 @@ class _ThemenListeState extends State<ThemenListe>
   }
 
   Future<void> _load() async {
-    await _loadThemen();
-    await _loadScores();
+    setState(() => loading = true);
+
+    await Future.wait([_loadThemen(), _loadScores()]);
+
     await _loadFragenCount();
+
+    // ⭐ NEU: In Cache speichern
+    final cacheService = AppCacheService();
+    cacheService.cachedThemen[widget.modulId] = themen;
+    cacheService.cachedFragenCount[widget.modulId] = fragenCount;
+    cacheService.themenLoaded[widget.modulId] = true;
+
     if (!mounted) return;
     setState(() => loading = false);
   }
@@ -99,13 +127,21 @@ class _ThemenListeState extends State<ThemenListe>
 
   Future<void> _loadFragenCount() async {
     try {
-      for (final t in themen) {
-        final id = t['id'] as int;
-        final response = await supabase
-            .from('fragen')
-            .select('id')
-            .eq('thema_id', id);
-        fragenCount[id] = (response as List).length;
+      // ⭐ ALTE Version (langsam):
+      // for (final t in themen) {
+      //   final response = await supabase.from('fragen').select('id').eq('thema_id', id);
+      // }
+
+      // ⭐ NEUE Version (schnell): ALLE Fragen auf einmal holen
+      final alleFragen = await supabase
+          .from('fragen')
+          .select('id, thema_id')
+          .eq('modul_id', widget.modulId);
+
+      // Im Speicher zählen
+      for (final frage in alleFragen) {
+        final themaId = frage['thema_id'] as int;
+        fragenCount[themaId] = (fragenCount[themaId] ?? 0) + 1;
       }
     } catch (e) {
       print('Fehler beim Laden der Fragen-Counts: $e');
@@ -186,10 +222,7 @@ class _ThemenListeState extends State<ThemenListe>
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Colors.indigo.shade50,
-                      Colors.white,
-                    ],
+                    colors: [Colors.indigo.shade50, Colors.white],
                   ),
                 ),
                 child: Align(
@@ -227,22 +260,19 @@ class _ThemenListeState extends State<ThemenListe>
             SliverPadding(
               padding: const EdgeInsets.all(16),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    return TweenAnimationBuilder<double>(
-                      duration: Duration(milliseconds: 200 + (i * 100)),
-                      tween: Tween(begin: 0.0, end: 1.0),
-                      builder: (context, value, child) {
-                        return Transform.translate(
-                          offset: Offset(0, 30 * (1 - value)),
-                          child: Opacity(opacity: value, child: child),
-                        );
-                      },
-                      child: _buildThemaCard(themen[i] as Map<String, dynamic>),
-                    );
-                  },
-                  childCount: themen.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, i) {
+                  return TweenAnimationBuilder<double>(
+                    duration: Duration(milliseconds: 200 + (i * 100)),
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    builder: (context, value, child) {
+                      return Transform.translate(
+                        offset: Offset(0, 30 * (1 - value)),
+                        child: Opacity(opacity: value, child: child),
+                      );
+                    },
+                    child: _buildThemaCard(themen[i] as Map<String, dynamic>),
+                  );
+                }, childCount: themen.length),
               ),
             ),
         ],
@@ -315,10 +345,9 @@ class _ThemenListeState extends State<ThemenListe>
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (unlocked
-                                            ? Colors.green
-                                            : Colors.grey)
-                                        .withOpacity(0.3),
+                                    color:
+                                        (unlocked ? Colors.green : Colors.grey)
+                                            .withOpacity(0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -355,11 +384,7 @@ class _ThemenListeState extends State<ThemenListe>
                                   ),
                                 ),
                                 if (isPerfect && unlocked)
-                                  _buildBadge(
-                                    Icons.star,
-                                    '100%',
-                                    Colors.amber,
-                                  )
+                                  _buildBadge(Icons.star, '100%', Colors.amber)
                                 else if (isPassed && unlocked)
                                   _buildBadge(
                                     Icons.check_circle,
@@ -542,9 +567,7 @@ class _ThemenListeState extends State<ThemenListe>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color, color.withOpacity(0.8)],
-        ),
+        gradient: LinearGradient(colors: [color, color.withOpacity(0.8)]),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -607,9 +630,7 @@ class _ThemenListeState extends State<ThemenListe>
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
             Container(

@@ -171,6 +171,12 @@ class _ModulListeState extends State<ModulListe> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.white,
+      ),
+      extendBodyBehindAppBar: true,
       body: Column(
         children: [
           // Header

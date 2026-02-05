@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'async_duel_service.dart';
 import 'badge_service.dart';
+import '../services/app_cache_service.dart';
 
 class AppCacheService {
   static final AppCacheService _instance = AppCacheService._internal();
@@ -18,6 +19,12 @@ class AppCacheService {
   Map<int, int> cachedBeantworteteFragen = {};
   Map<int, int> cachedLetzteThemaId = {};
   bool modulesLoaded = false;
+
+  // ========== THEMEN CACHE ==========
+  Map<int, List<dynamic>> cachedThemen = {}; // Key = modulId
+  Map<int, Map<int, double>> cachedThemenScores = {}; // Key = modulId
+  Map<int, Map<int, int>> cachedFragenCount = {}; // Key = modulId
+  Map<int, bool> themenLoaded = {}; // Key = modulId
 
   // ZERTIFIKATE CACHE
   List<dynamic> cachedZertifikate = [];
@@ -82,6 +89,43 @@ class AppCacheService {
       modulesLoaded = true;
     } catch (e) {
       print('❌ Fehler Module: $e');
+    }
+  }
+
+  /// Lädt Themen für ein bestimmtes Modul
+  Future<void> preloadThemen(int modulId) async {
+    if (themenLoaded[modulId] == true) return; // Schon geladen
+
+    try {
+      print('📖 Lade Themen für Modul $modulId...');
+
+      final themen = await supabase
+          .from('themen')
+          .select(
+            'id, name, beschreibung, sort_index, required_score, unlocked_by, schwierigkeitsgrad',
+          )
+          .eq('module_id', modulId)
+          .order('sort_index, id');
+
+      // Fragen-Count
+      final alleFragen = await supabase
+          .from('fragen')
+          .select('id, thema_id')
+          .eq('modul_id', modulId);
+
+      final Map<int, int> fragenCount = {};
+      for (final frage in alleFragen) {
+        final themaId = frage['thema_id'] as int;
+        fragenCount[themaId] = (fragenCount[themaId] ?? 0) + 1;
+      }
+
+      cachedThemen[modulId] = themen;
+      cachedFragenCount[modulId] = fragenCount;
+      themenLoaded[modulId] = true;
+
+      print('✅ Themen geladen: ${themen.length}');
+    } catch (e) {
+      print('❌ Fehler Themen: $e');
     }
   }
 
