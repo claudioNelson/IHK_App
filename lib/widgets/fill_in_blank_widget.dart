@@ -23,9 +23,13 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
   bool? _isCorrect;
 
   List<Map<String, dynamic>> get _blanks {
-    final blanks = widget.blankData['blanks'] as List?;
-    if (blanks == null) return [];
-    return blanks.map((b) => b as Map<String, dynamic>).toList();
+    if (widget.blankData.isEmpty) return [];
+    final blanks = widget.blankData['blanks'];
+    if (blanks == null || blanks is! List) return [];
+    return blanks
+        .where((b) => b != null && b is Map)
+        .map((b) => Map<String, dynamic>.from(b as Map))
+        .toList();
   }
 
   String get _explanation => widget.blankData['explanation'] ?? '';
