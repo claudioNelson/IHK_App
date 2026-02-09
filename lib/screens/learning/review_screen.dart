@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/spaced_repetition_service.dart';
 import '../module/test_fragen_screen.dart';
-import 'review_questions_screen.dart'; 
+import 'review_questions_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ReviewScreen extends StatefulWidget {
@@ -51,6 +51,18 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
     // Nach Review neu laden
     _loadDueQuestions();
+  }
+
+  String _getModuleName(Map<String, dynamic> question, int modulId) {
+    try {
+      final fragen = question['fragen'];
+      if (fragen == null) return 'Modul $modulId';
+      final module = fragen['module'];
+      if (module == null) return 'Modul $modulId';
+      return module['name'] ?? 'Modul $modulId';
+    } catch (e) {
+      return 'Modul $modulId';
+    }
   }
 
   void _showInfoDialog() {
@@ -304,8 +316,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
     // Gruppiere nach Modul
     final Map<int, List<Map<String, dynamic>>> byModule = {};
     for (final q in _dueQuestions) {
-      final frage = q['fragen'] as Map<String, dynamic>;
-      final modulId = frage['modul_id'] as int;
+      final frage = q['fragen'] as Map<String, dynamic>?;
+      if (frage == null) continue;
+      final modulId = frage['modul_id'] as int? ?? 0;
       byModule.putIfAbsent(modulId, () => []).add(q);
     }
 
@@ -397,8 +410,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        questions.first['fragen']['module']['name'] ??
-                            'Modul $modulId',
+                        'Modul $modulId',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
