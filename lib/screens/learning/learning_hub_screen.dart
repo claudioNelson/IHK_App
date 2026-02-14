@@ -4,6 +4,8 @@ import '../../services/spaced_repetition_service.dart';
 import 'review_screen.dart';
 import 'certificate_practice_selection_screen.dart';
 import 'core_topics_screen.dart';
+import '../zertifikate/certificate_overview_screen.dart';
+
 
 class LearningHubScreen extends StatefulWidget {
   const LearningHubScreen({super.key});
@@ -101,14 +103,14 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                 // Wiederholungen Card
                 _buildRepetitionCard(),
                 const SizedBox(height: 16),
-
                 // Module Card
                 _buildModulesCard(),
                 const SizedBox(height: 16),
-                _buildCertificatesCard(),
-
-                const SizedBox(height: 16),
+                // Kernthemen Card
                 _buildCoreTopicsCard(),
+                const SizedBox(height: 16),
+                // Zertifikate Card
+                _buildCertificatesCard(),
               ]),
             ),
           ),
@@ -125,11 +127,13 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       shadowColor: Colors.orange.withOpacity(0.3),
       child: InkWell(
         onTap: _dueCount > 0
-            ? () {
-                Navigator.push(
+            ? () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const ReviewScreen()),
                 );
+                // Nach Review neu laden
+                _loadDueCount();
               }
             : null,
         borderRadius: BorderRadius.circular(20),
@@ -329,19 +333,18 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       ),
     );
   }
-
-  Widget _buildCertificatesCard() {
+Widget _buildCertificatesCard() {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
       elevation: 3,
-      shadowColor: Colors.purple.withOpacity(0.3),
+      shadowColor: Colors.deepOrange.withOpacity(0.3),
       child: InkWell(
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const CertificatePracticeSelectionScreen(),
+              builder: (_) => const CertificateOverviewScreen(),
             ),
           );
         },
@@ -353,7 +356,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Colors.purple.shade50, Colors.white],
+              colors: [Colors.deepOrange.shade50, Colors.white],
             ),
           ),
           child: Row(
@@ -364,12 +367,12 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                 height: 64,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.purple, Colors.purple.shade700],
+                    colors: [Colors.deepOrange, Colors.deepOrange.shade700],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.purple.withOpacity(0.3),
+                      color: Colors.deepOrange.withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -384,25 +387,36 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               const SizedBox(width: 20),
 
               // Text
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Zertifikate üben',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Mit Erklärungen lernen',
+                      'Cloud-Zertifizierungen mit Erklärungen',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
+                        color: Colors.grey.shade600,
                         fontWeight: FontWeight.w500,
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        _buildCertBadge('AWS'),
+                        _buildCertBadge('Azure'),
+                        _buildCertBadge('GCP'),
+                        _buildCertBadge('SAP'),
+                      ],
                     ),
                   ],
                 ),
@@ -505,6 +519,24 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCertBadge(String name) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.deepOrange.shade100,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        name,
+        style: TextStyle(
+          fontSize: 11,
+          color: Colors.deepOrange.shade700,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
