@@ -2,7 +2,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'async_duel_service.dart';
 import 'badge_service.dart';
-import '../services/app_cache_service.dart';
 
 class AppCacheService {
   static final AppCacheService _instance = AppCacheService._internal();
@@ -42,6 +41,10 @@ class AppCacheService {
   Map<String, dynamic>? cachedMyProfile;
   List<Map<String, dynamic>> cachedMyBadges = [];
   bool profileLoaded = false;
+
+  // ADA CHAT CACHE
+  Map<String, List<ChatMessageCache>> cachedAdaChats = {};
+  DateTime? lastAdaChatClear;
 
   Future<void> preloadAllData() async {
     try {
@@ -210,4 +213,59 @@ class AppCacheService {
       print('❌ Fehler Profil: $e');
     }
   }
+
+  // ========== ADA CHAT CACHE ==========
+
+  /// Chat-Verlauf für eine Frage speichern
+  void saveAdaChat(String key, List<dynamic> messages) {
+    cachedAdaChats[key] = messages.map((m) => ChatMessageCache(
+      text: m.text as String,
+      isUser: m.isUser as bool,
+      timestamp: m.timestamp as DateTime,
+    )).toList();
+  }
+
+  /// Chat-Verlauf für eine Frage laden
+  List<ChatMessageCache>? getAdaChat(String key) {
+    return cachedAdaChats[key];
+  }
+
+  /// Alte Chats löschen (älter als 1 Stunde)
+  void clearOldAdaChats() {
+    final now = DateTime.now();
+    
+    // Nur alle 30 Minuten aufräumen
+    if (lastAdaChatClear != null && 
+        now.difference(lastAdaChatClear!).inMinutes < 30) {
+      return;
+    }
+    
+    cachedAdaChats.removeWhere((key, messages) {
+      if (messages.isEmpty) return true;
+      final lastMessage = messages.last.timestamp;
+      return now.difference(lastMessage).inHours > 1;
+    });
+    
+    lastAdaChatClear = now;
+    print('🧹 Ada Chat Cache aufgeräumt');
+  }
+
+  /// Alle Ada Chats löschen
+  void clearAllAdaChats() {
+    cachedAdaChats.clear();
+    print('🗑️ Alle Ada Chats gelöscht');
+  }
+}
+
+// ChatMessageCache Klasse AUSSERHALB von AppCacheService
+class ChatMessageCache {
+  final String text;
+  final bool isUser;
+  final DateTime timestamp;
+  
+  ChatMessageCache({
+    required this.text,
+    required this.isUser,
+    required this.timestamp,
+  });
 }

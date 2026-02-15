@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/sound_service.dart';
+import '../../services/gemini_service.dart';
+import '../../screens/learning/ai_tutor_chat_screen.dart';
 
 class NetworkCalculationWidget extends StatefulWidget {
   final String questionText;
@@ -48,6 +50,9 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   bool isChecked = false;
   Map<String, bool> fieldResults = {};
   final _soundService = SoundService();
+  final _aiService = GeminiService();
+  bool _loadingAiHelp = false;
+  String? _aiResponse;
 
   @override
   void initState() {
@@ -58,7 +63,7 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   @override
   void didUpdateWidget(NetworkCalculationWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Reset wenn neue Frage geladen wird
     if (oldWidget.questionText != widget.questionText) {
       scratchPadController.clear();
@@ -66,7 +71,7 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
       for (var controller in broadcastControllers) controller.clear();
       for (var controller in subnetControllers) controller.clear();
       hostsController.clear();
-      
+
       setState(() {
         isChecked = false;
         fieldResults = {};
@@ -255,28 +260,80 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   }
 
   Widget _buildActionButtons() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _checkAnswers,
-            icon: const Icon(Icons.check),
-            label: const Text('Prüfen'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+        // KI-Tutor Buttons in einer Reihe
+        Row(
+          children: [
+            // Quick-Hint Button
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _loadingAiHelp ? null : _getAiHint,
+                icon: _loadingAiHelp
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.tips_and_updates, size: 20),
+                label: Text(
+                  _loadingAiHelp ? 'Lädt...' : 'Tipp',
+                  style: const TextStyle(fontSize: 13),
+                ),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  side: BorderSide(color: Colors.blue.shade300),
+                  foregroundColor: Colors.blue.shade700,
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            // Chat Button
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _openAiChat,
+                icon: const Icon(Icons.chat, size: 20),
+                label: const Text(
+                  'Ada Chat', // ← GEÄNDERT
+                  style: TextStyle(fontSize: 13),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: _showSolution,
-            icon: const Icon(Icons.lightbulb_outline),
-            label: const Text('Lösung'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+
+        const SizedBox(height: 8),
+
+        // Prüfen & Lösung Buttons
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _checkAnswers,
+                icon: const Icon(Icons.check),
+                label: const Text('Prüfen'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _showSolution,
+                icon: const Icon(Icons.lightbulb_outline),
+                label: const Text('Lösung'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -284,14 +341,22 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
 
   void _checkAnswers() {
     // IP-Adressen zusammenbauen
-    String enteredNetwork = networkControllers.map((c) => c.text.trim()).join('.');
-    String enteredBroadcast = broadcastControllers.map((c) => c.text.trim()).join('.');
-    String enteredSubnet = subnetControllers.map((c) => c.text.trim()).join('.');
+    String enteredNetwork = networkControllers
+        .map((c) => c.text.trim())
+        .join('.');
+    String enteredBroadcast = broadcastControllers
+        .map((c) => c.text.trim())
+        .join('.');
+    String enteredSubnet = subnetControllers
+        .map((c) => c.text.trim())
+        .join('.');
     String enteredHosts = hostsController.text.trim();
 
     // Vergleichen
-    bool networkCorrect = enteredNetwork == widget.correctAnswers['network_address'];
-    bool broadcastCorrect = enteredBroadcast == widget.correctAnswers['broadcast_address'];
+    bool networkCorrect =
+        enteredNetwork == widget.correctAnswers['network_address'];
+    bool broadcastCorrect =
+        enteredBroadcast == widget.correctAnswers['broadcast_address'];
     bool subnetCorrect = enteredSubnet == widget.correctAnswers['subnet_mask'];
     bool hostsCorrect = enteredHosts == widget.correctAnswers['usable_hosts'];
 
@@ -306,7 +371,8 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
     });
 
     // Feedback + Sounds
-    bool allCorrect = networkCorrect && broadcastCorrect && subnetCorrect && hostsCorrect;
+    bool allCorrect =
+        networkCorrect && broadcastCorrect && subnetCorrect && hostsCorrect;
 
     if (allCorrect) {
       _soundService.playSound(SoundType.correct);
@@ -373,7 +439,8 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   void _showSolution() {
     // Felder mit richtigen Antworten füllen
     final network = widget.correctAnswers['network_address']?.split('.') ?? [];
-    final broadcast = widget.correctAnswers['broadcast_address']?.split('.') ?? [];
+    final broadcast =
+        widget.correctAnswers['broadcast_address']?.split('.') ?? [];
     final subnet = widget.correctAnswers['subnet_mask']?.split('.') ?? [];
 
     setState(() {
@@ -413,10 +480,22 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSolutionRow('Netzadresse', widget.correctAnswers['network_address']),
-                _buildSolutionRow('Broadcast', widget.correctAnswers['broadcast_address']),
-                _buildSolutionRow('Nutzbare Hosts', widget.correctAnswers['usable_hosts']),
-                _buildSolutionRow('Subnetzmaske', widget.correctAnswers['subnet_mask']),
+                _buildSolutionRow(
+                  'Netzadresse',
+                  widget.correctAnswers['network_address'],
+                ),
+                _buildSolutionRow(
+                  'Broadcast',
+                  widget.correctAnswers['broadcast_address'],
+                ),
+                _buildSolutionRow(
+                  'Nutzbare Hosts',
+                  widget.correctAnswers['usable_hosts'],
+                ),
+                _buildSolutionRow(
+                  'Subnetzmaske',
+                  widget.correctAnswers['subnet_mask'],
+                ),
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 8),
@@ -446,6 +525,76 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
         ),
       );
     }
+  }
+
+  void _openAiChat() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AiTutorChatScreen(
+          currentQuestion: widget.questionText,
+          topic: 'IP-Subnetting',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _getAiHint() async {
+    setState(() {
+      _loadingAiHelp = true;
+      _aiResponse = null;
+    });
+
+    try {
+      final currentAttempt =
+          '''
+Netzadresse: ${networkControllers.map((c) => c.text.trim()).join('.')}
+Broadcast: ${broadcastControllers.map((c) => c.text.trim()).join('.')}
+Subnetzmaske: ${subnetControllers.map((c) => c.text.trim()).join('.')}
+Nutzbare Hosts: ${hostsController.text.trim()}
+''';
+
+      final hint = await _aiService.getHint(
+        question: widget.questionText,
+        topic: 'IP-Subnetting',
+        currentAttempt: currentAttempt,
+      );
+
+      setState(() {
+        _aiResponse = hint;
+        _loadingAiHelp = false;
+      });
+
+      _showAiDialog();
+    } catch (e) {
+      setState(() {
+        _aiResponse = 'Fehler: $e';
+        _loadingAiHelp = false;
+      });
+      _showAiDialog();
+    }
+  }
+
+  void _showAiDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.psychology, color: Colors.blue.shade700),
+            const SizedBox(width: 8),
+            const Text('KI-Tutor'),
+          ],
+        ),
+        content: SingleChildScrollView(child: Text(_aiResponse ?? 'Lädt...')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Verstanden'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSolutionRow(String label, String? value) {

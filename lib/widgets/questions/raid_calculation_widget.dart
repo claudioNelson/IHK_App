@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/sound_service.dart';
-
+import '../../screens/learning/ai_tutor_chat_screen.dart';
+import '../../services/gemini_service.dart';
 
 class RaidCalculationWidget extends StatefulWidget {
   final String questionText;
@@ -30,6 +31,9 @@ class _RaidCalculationWidgetState extends State<RaidCalculationWidget> {
   bool isChecked = false;
   Map<String, bool> fieldResults = {};
   final _soundService = SoundService();
+  final _aiService = GeminiService(); // ← NEU
+  bool _loadingAiHelp = false; // ← NEU
+  String? _aiResponse; // ← NEU
 
   @override
   void initState() {
@@ -247,29 +251,78 @@ class _RaidCalculationWidgetState extends State<RaidCalculationWidget> {
   }
 
   Widget _buildActionButtons() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _checkAnswers,
-            icon: const Icon(Icons.check),
-            label: const Text('Prüfen'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              backgroundColor: Colors.blue,
+        // Ada Buttons
+        Row(
+          children: [
+            // Quick-Hint Button
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _loadingAiHelp ? null : _getAiHint,
+                icon: _loadingAiHelp
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.tips_and_updates, size: 20),
+                label: Text(
+                  _loadingAiHelp ? 'Lädt...' : 'Tipp',
+                  style: const TextStyle(fontSize: 13),
+                ),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  side: BorderSide(color: Colors.blue.shade300),
+                  foregroundColor: Colors.blue.shade700,
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            // Ada Chat Button
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _openAiChat,
+                icon: const Icon(Icons.chat, size: 20),
+                label: const Text('Ada Chat', style: TextStyle(fontSize: 13)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: _showSolution,
-            icon: const Icon(Icons.lightbulb_outline),
-            label: const Text('Lösung'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
+
+        const SizedBox(height: 8),
+
+        // Prüfen & Lösung Buttons
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _checkAnswers,
+                icon: const Icon(Icons.check),
+                label: const Text('Prüfen'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: Colors.blue,
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _showSolution,
+                icon: const Icon(Icons.lightbulb_outline),
+                label: const Text('Lösung'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -352,6 +405,79 @@ class _RaidCalculationWidgetState extends State<RaidCalculationWidget> {
         ),
       );
     }
+  }
+
+  Future<void> _getAiHint() async {
+    setState(() {
+      _loadingAiHelp = true;
+      _aiResponse = null;
+    });
+
+    try {
+      final raidLevel = widget.correctAnswers['raid_level'] ?? 'RAID';
+      final currentAttempt =
+          '''
+${widget.correctAnswers['drives']} × ${widget.correctAnswers['drive_size']} ${widget.correctAnswers['unit'] ?? 'TB'} in $raidLevel
+
+Meine Antworten:
+- Nutzbare Kapazität: ${capacityController.text.trim()}
+- Ausfalltoleranz: ${faultToleranceController.text.trim()} Platten
+- Mindestanzahl: ${minDrivesController.text.trim()} Platten
+''';
+
+      final hint = await _aiService.getHint(
+        question: widget.questionText,
+        topic: 'RAID & Storage',
+        currentAttempt: currentAttempt,
+      );
+
+      setState(() {
+        _aiResponse = hint;
+        _loadingAiHelp = false;
+      });
+
+      _showAiDialog();
+    } catch (e) {
+      setState(() {
+        _aiResponse = 'Fehler: $e';
+        _loadingAiHelp = false;
+      });
+      _showAiDialog();
+    }
+  }
+
+  void _showAiDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.psychology, color: Colors.blue.shade700),
+            const SizedBox(width: 8),
+            const Text('Ada - Tipp'),
+          ],
+        ),
+        content: SingleChildScrollView(child: Text(_aiResponse ?? 'Lädt...')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Verstanden'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openAiChat() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AiTutorChatScreen(
+          currentQuestion: widget.questionText,
+          topic: 'RAID & Storage',
+        ),
+      ),
+    );
   }
 
   void _showFeedbackDialog({
