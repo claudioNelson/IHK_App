@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'network_practice_screen.dart';
 import 'raid_practice_screen.dart';
+import 'dns_port_practice_screen.dart';
 
 class CoreTopicsScreen extends StatefulWidget {
   const CoreTopicsScreen({super.key});
@@ -37,9 +38,9 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
     }
   }
 
@@ -134,7 +135,10 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
                     const SizedBox(height: 16),
                     Text(
                       'Noch keine Kernthemen verfügbar',
-                      style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),
@@ -144,16 +148,13 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
             SliverPadding(
               padding: const EdgeInsets.all(20),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final topic = _coreTopics[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _buildTopicCard(topic),
-                    );
-                  },
-                  childCount: _coreTopics.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final topic = _coreTopics[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _buildTopicCard(topic),
+                  );
+                }, childCount: _coreTopics.length),
               ),
             ),
         ],
@@ -165,7 +166,7 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
     // Icon basierend auf ID
     IconData icon;
     Color color;
-    
+
     switch (topic['id']) {
       case 18: // Netzwerk
         icon = Icons.wifi;
@@ -174,6 +175,10 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
       case 20: // RAID
         icon = Icons.storage;
         color = Colors.blue;
+        break;
+      case 21: // DNS & Ports
+        icon = Icons.dns;
+        color = Colors.purple;
         break;
       default:
         icon = Icons.lightbulb;
@@ -188,7 +193,7 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
         onTap: () {
           // Route basierend auf Modul-ID
           Widget screen;
-          
+
           switch (topic['id']) {
             case 18: // Netzwerk
               screen = NetworkPracticeScreen(
@@ -202,17 +207,21 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
                 moduleName: topic['name'],
               );
               break;
+            case 21: // DNS & Ports
+              screen = DnsPortPracticeScreen(
+                moduleId: topic['id'],
+                moduleName: topic['name'],
+              );
             default:
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${topic['name']} öffnen - Coming Soon!')),
+                SnackBar(
+                  content: Text('${topic['name']} öffnen - Coming Soon!'),
+                ),
               );
               return;
           }
-          
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => screen),
-          );
+
+          Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
         },
         borderRadius: BorderRadius.circular(16),
         child: Padding(
@@ -260,7 +269,11 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
               ),
 
               // Arrow
-              Icon(Icons.arrow_forward_ios, color: Colors.grey.shade400, size: 18),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.grey.shade400,
+                size: 18,
+              ),
             ],
           ),
         ),
