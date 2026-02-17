@@ -6,6 +6,11 @@ import 'dns_port_practice_screen.dart';
 import '../../services/progress_service.dart';
 import '../../services/app_cache_service.dart';
 import 'security_practice_screen.dart';
+import 'osi_practice_screen.dart';
+import 'backup_practice_screen.dart';
+import 'binary_practice_screen.dart';
+import 'kernthemen_info_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CoreTopicsScreen extends StatefulWidget {
   const CoreTopicsScreen({super.key});
@@ -25,6 +30,7 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
   void initState() {
     super.initState();
     _loadCoreTopics();
+    _checkInfoScreen();
   }
 
   Future<void> _loadCoreTopics() async {
@@ -66,16 +72,28 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
 
   Future<void> _refreshProgress() async {
     final cache = AppCacheService();
-
-    // Cache invalidieren & neu laden
-    cache.kernthemenLoaded = false;
-    await cache.preloadKernthemen();
+    await cache.refreshKernthemenProgress();
 
     if (!mounted) return;
     setState(() {
-      _coreTopics = List<Map<String, dynamic>>.from(cache.cachedKernthemen);
       _progress = cache.cachedKernthemenProgress;
     });
+  }
+
+  Future<void> _checkInfoScreen() async {
+    final prefs = await SharedPreferences.getInstance();
+    final shown = prefs.getBool('kernthemen_info_shown') ?? false;
+
+    if (!shown && mounted) {
+      // Kurz warten damit Screen geladen ist
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const KernthemenInfoScreen()),
+      );
+    }
   }
 
   @override
@@ -214,9 +232,21 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
         icon = Icons.dns;
         color = Colors.purple;
         break;
-      case 22: // IT-Sicherheit  ← NEU
+      case 22: // IT-Sicherheit
         icon = Icons.security;
         color = Colors.deepOrange;
+        break;
+      case 23: // OSI-Modell
+        icon = Icons.layers;
+        color = Colors.indigo;
+        break;
+      case 24: // Backup
+        icon = Icons.backup;
+        color = Colors.teal;
+        break;
+      case 25: // Binär & Hex
+        icon = Icons.calculate;
+        color = Colors.orange;
         break;
       default:
         icon = Icons.lightbulb;
@@ -228,7 +258,7 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
       borderRadius: BorderRadius.circular(16),
       elevation: 2,
       child: InkWell(
-        onTap: () {
+        onTap: () async {
           // Route basierend auf Modul-ID
           Widget screen;
 
@@ -250,8 +280,26 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
                 moduleId: topic['id'],
                 moduleName: topic['name'],
               );
-            case 22: // IT-Sicherheit  ← NEU
+            case 22: // IT-Sicherheit
               screen = SecurityPracticeScreen(
+                moduleId: topic['id'],
+                moduleName: topic['name'],
+              );
+              break;
+            case 23: // OSI-Modell
+              screen = OsiPracticeScreen(
+                moduleId: topic['id'],
+                moduleName: topic['name'],
+              );
+              break;
+            case 24: // Backup
+              screen = BackupPracticeScreen(
+                moduleId: topic['id'],
+                moduleName: topic['name'],
+              );
+              break;
+            case 25: // Binär & Hex
+              screen = BinaryPracticeScreen(
                 moduleId: topic['id'],
                 moduleName: topic['name'],
               );
@@ -265,7 +313,11 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
               return;
           }
 
-          Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => screen),
+          );
+          _refreshProgress();
         },
         borderRadius: BorderRadius.circular(16),
         child: Padding(

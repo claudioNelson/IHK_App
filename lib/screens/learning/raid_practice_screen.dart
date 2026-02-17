@@ -43,6 +43,7 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
       if (!mounted) return;
       setState(() {
         _questions = List<Map<String, dynamic>>.from(data);
+        _questions.shuffle();
         _loading = false;
       });
     } catch (e) {

@@ -40,6 +40,7 @@ class _DnsPortPracticeScreenState extends State<DnsPortPracticeScreen> {
       if (!mounted) return;
       setState(() {
         _questions = List<Map<String, dynamic>>.from(data);
+        _questions.shuffle();
         _loading = false;
       });
     } catch (e) {

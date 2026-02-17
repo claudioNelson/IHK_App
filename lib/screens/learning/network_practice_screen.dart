@@ -40,6 +40,7 @@ class _NetworkPracticeScreenState extends State<NetworkPracticeScreen> {
       if (!mounted) return;
       setState(() {
         _questions = List<Map<String, dynamic>>.from(data);
+        _questions.shuffle();
         _loading = false;
       });
       if (_questions.isNotEmpty) {

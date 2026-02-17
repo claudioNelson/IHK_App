@@ -462,7 +462,35 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen>
             final answerId = antwort['id'] as int;
             final isSelected = selectedAnswer == answerId;
             final isCorrect = antwort['ist_richtig'] == true;
-            final showResult = hasAnswered && isSelected;
+            final showCorrect = hasAnswered && isCorrect;
+            final showWrong = hasAnswered && isSelected && !isCorrect;
+
+            Color bgColor;
+            Color borderColor;
+            Color circleColor;
+            double borderWidth;
+
+            if (showCorrect) {
+              bgColor = Colors.green.shade50;
+              borderColor = Colors.green;
+              circleColor = Colors.green;
+              borderWidth = 2;
+            } else if (showWrong) {
+              bgColor = Colors.red.shade50;
+              borderColor = Colors.red;
+              circleColor = Colors.red;
+              borderWidth = 2;
+            } else if (isSelected && !hasAnswered) {
+              bgColor = Colors.purple.shade50;
+              borderColor = Colors.purple;
+              circleColor = Colors.purple;
+              borderWidth = 1.5;
+            } else {
+              bgColor = Colors.white;
+              borderColor = Colors.grey.shade300;
+              circleColor = Colors.grey.shade300;
+              borderWidth = 1.5;
+            }
 
             return TweenAnimationBuilder<double>(
               duration: Duration(milliseconds: 200 + (index * 50)),
@@ -484,26 +512,13 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen>
                       duration: const Duration(milliseconds: 300),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: showResult
-                            ? (isCorrect
-                                  ? Colors.green.shade50
-                                  : Colors.red.shade50)
-                            : (isSelected
-                                  ? Colors.purple.shade50
-                                  : Colors.white),
+                        color: bgColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: showResult
-                              ? (isCorrect ? Colors.green : Colors.red)
-                              : (isSelected
-                                    ? Colors.purple
-                                    : Colors.grey.shade300),
-                          width: showResult ? 2 : 1.5,
-                        ),
+                        border: Border.all(color: borderColor, width: borderWidth),
                         boxShadow: [
                           if (isSelected && !hasAnswered)
                             BoxShadow(
-                              color: Colors.purple.withOpacity(0.2),
+                              color: Colors.purple.withValues(alpha: 0.2),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
@@ -515,17 +530,13 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen>
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: showResult
-                                  ? (isCorrect ? Colors.green : Colors.red)
-                                  : (isSelected
-                                        ? Colors.purple
-                                        : Colors.grey.shade300),
+                              color: circleColor,
                               shape: BoxShape.circle,
                             ),
                             child: Center(
-                              child: showResult
+                              child: (showCorrect || showWrong)
                                   ? Icon(
-                                      isCorrect ? Icons.check : Icons.close,
+                                      showCorrect ? Icons.check : Icons.close,
                                       color: Colors.white,
                                       size: 20,
                                     )
@@ -547,14 +558,14 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen>
                               antwort['text'] ?? '',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: isSelected
+                                fontWeight: (showCorrect || isSelected)
                                     ? FontWeight.w600
                                     : FontWeight.normal,
-                                color: showResult
-                                    ? (isCorrect
-                                          ? Colors.green.shade900
-                                          : Colors.red.shade900)
-                                    : Colors.black87,
+                                color: showCorrect
+                                    ? Colors.green.shade900
+                                    : showWrong
+                                        ? Colors.red.shade900
+                                        : Colors.black87,
                               ),
                             ),
                           ),

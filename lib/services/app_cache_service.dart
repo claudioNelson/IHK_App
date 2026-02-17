@@ -268,6 +268,33 @@ class AppCacheService {
     print('🗑️ Alle Ada Chats gelöscht');
   }
 
+  // Nur Progress neu laden (Module aus Cache), alle Module parallel
+  Future<void> refreshKernthemenProgress() async {
+    if (!kernthemenLoaded || cachedKernthemen.isEmpty) {
+      await preloadKernthemen();
+      return;
+    }
+
+    try {
+      final progressSvc = ProgressService();
+      final results = await Future.wait(
+        cachedKernthemen.map((module) async {
+          final moduleId = module['id'] as int;
+          final progress = await progressSvc.getKernthemaProgress(moduleId);
+          return MapEntry(moduleId, progress);
+        }),
+      );
+
+      final progressMap = <int, Map<String, dynamic>>{};
+      for (final entry in results) {
+        progressMap[entry.key] = entry.value;
+      }
+      cachedKernthemenProgress = progressMap;
+    } catch (e) {
+      print('❌ Fehler Progress Refresh: $e');
+    }
+  }
+
   // Lädt Kernthemen mit Progress
   Future<void> preloadKernthemen() async {
     try {
