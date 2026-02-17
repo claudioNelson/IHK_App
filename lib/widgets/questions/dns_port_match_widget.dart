@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import '../../services/sound_service.dart';
 import '../../services/gemini_service.dart';
 import '../../screens/learning/ai_tutor_chat_screen.dart';
+import '../../services/progress_service.dart';
 
 class DnsPortMatchWidget extends StatefulWidget {
   final String questionText;
   final Map<String, dynamic> correctAnswers;
   final String? explanation;
   final VoidCallback? onAnswered;
+  final int? questionId; // ← NEU
+  final int? moduleId;
 
   const DnsPortMatchWidget({
     Key? key,
@@ -15,6 +18,8 @@ class DnsPortMatchWidget extends StatefulWidget {
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
+    this.questionId, // ← NEU
+    this.moduleId, // ← NEU
   }) : super(key: key);
 
   @override
@@ -24,6 +29,7 @@ class DnsPortMatchWidget extends StatefulWidget {
 class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
   final _soundService = SoundService();
   final _aiService = GeminiService();
+  final _progressService = ProgressService();
 
   String? selectedAnswer;
   bool hasAnswered = false;
@@ -258,7 +264,8 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
     }).toList();
   }
 
-  void _selectAnswer(String answer) {
+  void _selectAnswer(String answer) async {
+    // ← async hinzufügen!
     setState(() {
       selectedAnswer = answer;
       hasAnswered = true;
@@ -271,6 +278,15 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
       _soundService.playSound(SoundType.correct);
     } else {
       _soundService.playSound(SoundType.wrong);
+    }
+
+    // Progress speichern  ← NEU
+    if (widget.questionId != null && widget.moduleId != null) {
+      await _progressService.saveKernthemaAnswer(
+        modulId: widget.moduleId!,
+        frageId: widget.questionId!,
+        isCorrect: isCorrect,
+      );
     }
   }
 

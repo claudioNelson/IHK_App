@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import '../../services/sound_service.dart';
 import '../../services/gemini_service.dart';
 import '../../screens/learning/ai_tutor_chat_screen.dart';
+import '../../services/progress_service.dart';
 
 class NetworkCalculationWidget extends StatefulWidget {
   final String questionText;
   final Map<String, String> correctAnswers;
   final String? explanation;
   final VoidCallback? onAnswered;
+  final int? questionId;
+  final int? moduleId;
 
   const NetworkCalculationWidget({
     Key? key,
@@ -15,6 +18,8 @@ class NetworkCalculationWidget extends StatefulWidget {
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
+    this.questionId,
+    this.moduleId,
   }) : super(key: key);
 
   @override
@@ -51,6 +56,7 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   Map<String, bool> fieldResults = {};
   final _soundService = SoundService();
   final _aiService = GeminiService();
+  final _progressService = ProgressService();
   bool _loadingAiHelp = false;
   String? _aiResponse;
 
@@ -339,7 +345,12 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
     );
   }
 
-  void _checkAnswers() {
+  Future<void> _checkAnswers() async {
+    debugPrint('═══════════════════════════════'); // ← NEU - Auffällig!
+    debugPrint('🔵 _checkAnswers GESTARTET!'); // ← NEU
+    debugPrint('🔵 questionId: ${widget.questionId}'); // ← NEU
+    debugPrint('🔵 moduleId: ${widget.moduleId}'); // ← NEU
+    debugPrint('═══════════════════════════════'); // ← NEU
     // IP-Adressen zusammenbauen
     String enteredNetwork = networkControllers
         .map((c) => c.text.trim())
@@ -376,6 +387,16 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
 
     if (allCorrect) {
       _soundService.playSound(SoundType.correct);
+
+      // Progress speichern
+      if (widget.questionId != null && widget.moduleId != null) {
+        await _progressService.saveKernthemaAnswer(
+          modulId: widget.moduleId!,
+          frageId: widget.questionId!,
+          isCorrect: true,
+        );
+      }
+
       _showFeedbackDialog(
         title: 'Richtig! 🎉',
         message: 'Alle Antworten sind korrekt!',
@@ -383,6 +404,16 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
       );
     } else {
       _soundService.playSound(SoundType.wrong);
+
+      // Progress speichern
+      if (widget.questionId != null && widget.moduleId != null) {
+        await _progressService.saveKernthemaAnswer(
+          modulId: widget.moduleId!,
+          frageId: widget.questionId!,
+          isCorrect: false,
+        );
+      }
+
       _showFeedbackDialog(
         title: 'Nicht ganz richtig',
         message: 'Prüfe die rot markierten Felder nochmal.',
@@ -419,18 +450,18 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
           ],
         ),
         actions: [
-          if (isCorrect && widget.onAnswered != null)
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(isCorrect ? 'OK' : 'Verstanden'),
+          ),
+          if (widget.onAnswered != null)
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 widget.onAnswered!();
               },
-              child: const Text('Weiter'),
+              child: Text(isCorrect ? 'Weiter' : 'Nächste Frage'),
             ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(isCorrect ? 'OK' : 'Nochmal versuchen'),
-          ),
         ],
       ),
     );

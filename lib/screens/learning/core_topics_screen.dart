@@ -3,6 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'network_practice_screen.dart';
 import 'raid_practice_screen.dart';
 import 'dns_port_practice_screen.dart';
+import '../../services/progress_service.dart';
+import '../../services/app_cache_service.dart';
 
 class CoreTopicsScreen extends StatefulWidget {
   const CoreTopicsScreen({super.key});
@@ -15,6 +17,8 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
   final _supabase = Supabase.instance.client;
   List<Map<String, dynamic>> _coreTopics = [];
   bool _loading = true;
+  Map<int, Map<String, dynamic>> _progress = {};
+  final _progressService = ProgressService();
 
   @override
   void initState() {
@@ -24,15 +28,30 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
 
   Future<void> _loadCoreTopics() async {
     try {
-      final data = await _supabase
-          .from('module')
-          .select('id, name, beschreibung')
-          .eq('kategorie', 'kernthema')
-          .order('id');
+      final cache = AppCacheService();
+
+      // Cache vorhanden? Nutzen!
+      if (cache.kernthemenLoaded) {
+        print('✅ Kernthemen aus Cache geladen');
+        setState(() {
+          _coreTopics = List<Map<String, dynamic>>.from(
+            cache.cachedKernthemen,
+          ); // ← Cast hinzufügen!
+          _progress = cache.cachedKernthemenProgress;
+          _loading = false;
+        });
+        return;
+      }
+
+      // Sonst: Frisch laden & cachen
+      await cache.preloadKernthemen();
 
       if (!mounted) return;
       setState(() {
-        _coreTopics = List<Map<String, dynamic>>.from(data);
+        _coreTopics = List<Map<String, dynamic>>.from(
+          cache.cachedKernthemen,
+        ); // ← Cast hinzufügen!
+        _progress = cache.cachedKernthemenProgress;
         _loading = false;
       });
     } catch (e) {
@@ -252,6 +271,8 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    const SizedBox(height: 8), // ← NEU
+                    _buildProgressBar(topic['id']),
                     if (topic['beschreibung'] != null) ...[
                       const SizedBox(height: 4),
                       Text(
@@ -278,6 +299,57 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildProgressBar(int moduleId) {
+    final progress = _progress[moduleId];
+
+    if (progress == null) {
+      return const SizedBox.shrink();
+    }
+
+    final percent = progress['percent'] as double;
+    final correct = progress['correct'] as int;
+    final total = progress['total'] as int;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '$correct/$total richtig',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              '${percent.toInt()}%',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.teal.shade700,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: percent / 100,
+            minHeight: 6,
+            backgroundColor: Colors.grey.shade200,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              percent >= 80 ? Colors.green : Colors.teal,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

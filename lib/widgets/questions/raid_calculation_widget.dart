@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import '../../services/sound_service.dart';
 import '../../screens/learning/ai_tutor_chat_screen.dart';
 import '../../services/gemini_service.dart';
+import '../../services/progress_service.dart';
 
 class RaidCalculationWidget extends StatefulWidget {
   final String questionText;
   final Map<String, dynamic> correctAnswers;
   final String? explanation;
   final VoidCallback? onAnswered;
+  final int? questionId;
+  final int? moduleId;
 
   const RaidCalculationWidget({
     Key? key,
@@ -15,6 +18,8 @@ class RaidCalculationWidget extends StatefulWidget {
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
+    this.questionId,
+    this.moduleId,
   }) : super(key: key);
 
   @override
@@ -31,9 +36,10 @@ class _RaidCalculationWidgetState extends State<RaidCalculationWidget> {
   bool isChecked = false;
   Map<String, bool> fieldResults = {};
   final _soundService = SoundService();
-  final _aiService = GeminiService(); // ← NEU
-  bool _loadingAiHelp = false; // ← NEU
-  String? _aiResponse; // ← NEU
+  final _aiService = GeminiService();
+  final _progressService = ProgressService();
+  bool _loadingAiHelp = false;
+  String? _aiResponse;
 
   @override
   void initState() {
@@ -328,7 +334,7 @@ class _RaidCalculationWidgetState extends State<RaidCalculationWidget> {
     );
   }
 
-  void _checkAnswers() {
+  Future<void> _checkAnswers() async {
     final capacity = capacityController.text.trim();
     final faultTolerance = faultToleranceController.text.trim();
     final minDrives = minDrivesController.text.trim();
@@ -347,17 +353,40 @@ class _RaidCalculationWidgetState extends State<RaidCalculationWidget> {
       };
     });
 
-    bool allCorrect = fieldResults.values.every((result) => result == true);
+    bool allCorrect =
+        capacity == correctCapacity &&
+        faultTolerance == correctFaultTolerance &&
+        minDrives == correctMinDrives;
 
     if (allCorrect) {
-      SoundService().playSound(SoundType.correct);
+      _soundService.playSound(SoundType.correct);
+
+      // Progress speichern
+      if (widget.questionId != null && widget.moduleId != null) {
+        await _progressService.saveKernthemaAnswer(
+          modulId: widget.moduleId!,
+          frageId: widget.questionId!,
+          isCorrect: true,
+        );
+      }
+
       _showFeedbackDialog(
         title: 'Richtig! 🎉',
-        message: 'Alle Berechnungen sind korrekt!',
+        message: 'Alle Antworten sind korrekt!',
         isCorrect: true,
       );
     } else {
-      SoundService().playSound(SoundType.wrong);
+      _soundService.playSound(SoundType.wrong);
+
+      // Progress speichern
+      if (widget.questionId != null && widget.moduleId != null) {
+        await _progressService.saveKernthemaAnswer(
+          modulId: widget.moduleId!,
+          frageId: widget.questionId!,
+          isCorrect: false,
+        );
+      }
+
       _showFeedbackDialog(
         title: 'Nicht ganz richtig',
         message: 'Prüfe die rot markierten Felder nochmal.',

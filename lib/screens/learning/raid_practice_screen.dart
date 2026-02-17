@@ -153,6 +153,8 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
                         : {},
                     explanation: _questions[_currentIndex]['erklaerung'],
                     onAnswered: _nextQuestion,
+                    questionId: _questions[_currentIndex]['id'],
+                    moduleId: widget.moduleId,
                   ),
                 ),
               ],

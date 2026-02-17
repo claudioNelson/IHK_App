@@ -125,4 +125,137 @@ class ProgressService {
       return 0.0;
     }
   }
+
+  // ========== KERNTHEMEN PROGRESS ==========
+
+  /// Speichert Antwort für Kernthemen-Frage
+  Future<void> saveKernthemaAnswer({
+    required int modulId,
+    required int frageId,
+    required bool isCorrect,
+  }) async {
+    print(
+      '🔍 saveKernthemaAnswer gestartet: modul=$modulId, frage=$frageId, correct=$isCorrect',
+    ); // ← NEU
+    print('🔍 UserId: $_userId'); // ← NEU
+
+    if (_userId == null) {
+      print('❌ UserId ist null!'); // ← NEU
+      return;
+    }
+
+    try {
+      print('🔍 Versuche DB-Insert...'); // ← NEU
+
+      await _client.from('user_progress').upsert(
+        {
+          'user_id': _userId,
+          'modul_id': modulId,
+          'thema_id': null,
+          'frage_id': frageId,
+          'is_correct': isCorrect,
+          'answered_at': DateTime.now().toIso8601String(),
+        },
+        onConflict: 'user_id,frage_id', // ← NEU! Welche Spalten für Conflict
+      );
+
+      print(
+        '✅ Kernthema-Antwort gespeichert: Modul $modulId, Frage $frageId, ${isCorrect ? "richtig" : "falsch"}',
+      );
+    } catch (e) {
+      print('❌ Fehler beim Speichern Kernthema-Antwort: $e');
+    }
+  }
+
+  /// Lädt Progress für ein Kernthemen-Modul
+  Future<Map<String, dynamic>> getKernthemaProgress(int modulId) async {
+    if (_userId == null)
+      return {'total': 0, 'correct': 0, 'answered': 0, 'percent': 0.0};
+
+    try {
+      print('🔍 Lade Progress für Modul $modulId');
+      // Alle Fragen des Moduls
+      final allQuestions = await _client
+          .from('fragen')
+          .select('id')
+          .eq('modul_id', modulId);
+
+      print('🔍 Total Fragen: ${allQuestions.length}');
+
+      final totalQuestions = allQuestions.length;
+
+      // User Antworten
+      final answers = await _client
+          .from('user_progress') // ← user_progress statt user_answers
+          .select('frage_id, is_correct')
+          .eq('user_id', _userId!)
+          .eq('modul_id', modulId);
+
+      print('🔍 Antworten gefunden: ${answers.length}'); // ← NEU
+      print('🔍 Antworten: $answers');
+
+      final answeredCount = answers.length;
+      final correctCount = answers.where((a) => a['is_correct'] == true).length;
+      final percent = totalQuestions > 0
+          ? (correctCount / totalQuestions * 100)
+          : 0.0;
+
+      return {
+        'total': totalQuestions,
+        'correct': correctCount,
+        'answered': answeredCount,
+        'percent': percent,
+      };
+    } catch (e) {
+      print('❌ Fehler beim Laden Kernthema-Progress: $e');
+      return {'total': 0, 'correct': 0, 'answered': 0, 'percent': 0.0};
+    }
+  }
+
+  /// Lädt Gesamt-Progress für alle Kernthemen
+  Future<Map<String, dynamic>> getAllKernthemenProgress() async {
+    if (_userId == null)
+      return {'total': 0, 'correct': 0, 'answered': 0, 'percent': 0.0};
+
+    try {
+      // Alle Kernthemen-Module
+      final modules = await _client
+          .from('module')
+          .select('id')
+          .eq('kategorie', 'kernthema');
+
+      final moduleIds = modules.map((m) => m['id'] as int).toList();
+
+      // Alle Kernthemen-Fragen
+      final allQuestions = await _client
+          .from('fragen')
+          .select('id')
+          .in_('modul_id', moduleIds);
+
+      final totalQuestions = allQuestions.length;
+
+      // User Antworten für Kernthemen
+      final answers = await _client
+          .from('user_progress') // ← user_progress statt user_answers
+          .select('frage_id, is_correct')
+          .eq('user_id', _userId!)
+          .in_('modul_id', moduleIds);
+
+      final answeredCount = answers.length;
+      final correctCount = answers.where((a) => a['is_correct'] == true).length;
+      final percent = totalQuestions > 0
+          ? (correctCount / totalQuestions * 100)
+          : 0.0;
+
+      return {
+        'total': totalQuestions,
+        'correct': correctCount,
+        'answered': answeredCount,
+        'percent': percent,
+      };
+    } catch (e) {
+      print('❌ Fehler beim Laden Gesamt-Kernthemen-Progress: $e');
+      return {'total': 0, 'correct': 0, 'answered': 0, 'percent': 0.0};
+    }
+  }
 }

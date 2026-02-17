@@ -2,11 +2,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'async_duel_service.dart';
 import 'badge_service.dart';
+import 'progress_service.dart';
 
 class AppCacheService {
   static final AppCacheService _instance = AppCacheService._internal();
   factory AppCacheService() => _instance;
   AppCacheService._internal();
+  final _client = Supabase.instance.client;
 
   final supabase = Supabase.instance.client;
   final _duelSvc = AsyncDuelService();
@@ -42,6 +44,11 @@ class AppCacheService {
   List<Map<String, dynamic>> cachedMyBadges = [];
   bool profileLoaded = false;
 
+  // KERNTHEMEN CACHE
+  List<dynamic> cachedKernthemen = [];
+  Map<int, Map<String, dynamic>> cachedKernthemenProgress = {};
+  bool kernthemenLoaded = false;
+
   // ADA CHAT CACHE
   Map<String, List<ChatMessageCache>> cachedAdaChats = {};
   DateTime? lastAdaChatClear;
@@ -56,6 +63,7 @@ class AppCacheService {
         _preloadZertifikate(userId),
         _preloadMatches(userId),
         _preloadProfile(userId),
+        preloadKernthemen(),
       ]);
     } catch (e) {
       print('❌ Fehler beim Vorladen: $e');
@@ -218,11 +226,15 @@ class AppCacheService {
 
   /// Chat-Verlauf für eine Frage speichern
   void saveAdaChat(String key, List<dynamic> messages) {
-    cachedAdaChats[key] = messages.map((m) => ChatMessageCache(
-      text: m.text as String,
-      isUser: m.isUser as bool,
-      timestamp: m.timestamp as DateTime,
-    )).toList();
+    cachedAdaChats[key] = messages
+        .map(
+          (m) => ChatMessageCache(
+            text: m.text as String,
+            isUser: m.isUser as bool,
+            timestamp: m.timestamp as DateTime,
+          ),
+        )
+        .toList();
   }
 
   /// Chat-Verlauf für eine Frage laden
@@ -233,19 +245,19 @@ class AppCacheService {
   /// Alte Chats löschen (älter als 1 Stunde)
   void clearOldAdaChats() {
     final now = DateTime.now();
-    
+
     // Nur alle 30 Minuten aufräumen
-    if (lastAdaChatClear != null && 
+    if (lastAdaChatClear != null &&
         now.difference(lastAdaChatClear!).inMinutes < 30) {
       return;
     }
-    
+
     cachedAdaChats.removeWhere((key, messages) {
       if (messages.isEmpty) return true;
       final lastMessage = messages.last.timestamp;
       return now.difference(lastMessage).inHours > 1;
     });
-    
+
     lastAdaChatClear = now;
     print('🧹 Ada Chat Cache aufgeräumt');
   }
@@ -255,6 +267,41 @@ class AppCacheService {
     cachedAdaChats.clear();
     print('🗑️ Alle Ada Chats gelöscht');
   }
+
+  // Lädt Kernthemen mit Progress
+  Future<void> preloadKernthemen() async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      print('📖 Lade Kernthemen...');
+
+      // Module laden
+      final modules = await _client
+          .from('module')
+          .select('id, name, beschreibung')
+          .eq('kategorie', 'kernthema')
+          .order('id');
+
+      // Progress für alle Module laden
+      final progressMap = <int, Map<String, dynamic>>{};
+      final progressSvc = ProgressService();
+
+      for (var module in modules) {
+        final moduleId = module['id'] as int;
+        final progress = await progressSvc.getKernthemaProgress(moduleId);
+        progressMap[moduleId] = progress;
+      }
+
+      cachedKernthemen = modules;
+      cachedKernthemenProgress = progressMap;
+      kernthemenLoaded = true;
+
+      print('✅ Kernthemen geladen: ${modules.length}');
+    } catch (e) {
+      print('❌ Fehler Kernthemen: $e');
+    }
+  }
 }
 
 // ChatMessageCache Klasse AUSSERHALB von AppCacheService
@@ -262,7 +309,7 @@ class ChatMessageCache {
   final String text;
   final bool isUser;
   final DateTime timestamp;
-  
+
   ChatMessageCache({
     required this.text,
     required this.isUser,
