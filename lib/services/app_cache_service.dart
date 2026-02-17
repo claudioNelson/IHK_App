@@ -298,6 +298,7 @@ class AppCacheService {
       kernthemenLoaded = true;
 
       print('✅ Kernthemen geladen: ${modules.length}');
+      print('📊 Progress geladen für IDs: ${progressMap.keys.toList()}');
     } catch (e) {
       print('❌ Fehler Kernthemen: $e');
     }

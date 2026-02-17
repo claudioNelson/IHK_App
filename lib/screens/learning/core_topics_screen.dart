@@ -5,6 +5,7 @@ import 'raid_practice_screen.dart';
 import 'dns_port_practice_screen.dart';
 import '../../services/progress_service.dart';
 import '../../services/app_cache_service.dart';
+import 'security_practice_screen.dart';
 
 class CoreTopicsScreen extends StatefulWidget {
   const CoreTopicsScreen({super.key});
@@ -61,6 +62,20 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
     }
+  }
+
+  Future<void> _refreshProgress() async {
+    final cache = AppCacheService();
+
+    // Cache invalidieren & neu laden
+    cache.kernthemenLoaded = false;
+    await cache.preloadKernthemen();
+
+    if (!mounted) return;
+    setState(() {
+      _coreTopics = List<Map<String, dynamic>>.from(cache.cachedKernthemen);
+      _progress = cache.cachedKernthemenProgress;
+    });
   }
 
   @override
@@ -199,6 +214,10 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
         icon = Icons.dns;
         color = Colors.purple;
         break;
+      case 22: // IT-Sicherheit  ← NEU
+        icon = Icons.security;
+        color = Colors.deepOrange;
+        break;
       default:
         icon = Icons.lightbulb;
         color = Colors.amber;
@@ -231,6 +250,12 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
                 moduleId: topic['id'],
                 moduleName: topic['name'],
               );
+            case 22: // IT-Sicherheit  ← NEU
+              screen = SecurityPracticeScreen(
+                moduleId: topic['id'],
+                moduleName: topic['name'],
+              );
+              break;
             default:
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
