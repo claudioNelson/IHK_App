@@ -65,6 +65,7 @@ class _DiagramWidgetState extends State<DiagramWidget> {
         widget.onAnswerChanged('IMAGE:${image.path}');
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Fehler beim Laden des Bildes: $e'),

@@ -204,7 +204,7 @@ class _ModulListeState extends State<ModulListe> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -260,7 +260,7 @@ class _ModulListeState extends State<ModulListe> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           elevation: 3,
-          shadowColor: color.withOpacity(0.3),
+          shadowColor: color.withValues(alpha: 0.3),
           child: InkWell(
             onTap: () => _openModul(modul),
             borderRadius: BorderRadius.circular(20),
@@ -275,14 +275,14 @@ class _ModulListeState extends State<ModulListe> {
                     height: 56,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [color, color.withOpacity(0.7)],
+                        colors: [color, color.withValues(alpha: 0.7)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: color.withOpacity(0.3),
+                          color: color.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -336,7 +336,7 @@ class _ModulListeState extends State<ModulListe> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
+                          color: color.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -406,7 +406,7 @@ class _ModulListeState extends State<ModulListe> {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
+                        color: color.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(

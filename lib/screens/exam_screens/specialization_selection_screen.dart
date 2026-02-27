@@ -41,7 +41,7 @@ class SpecializationSelectionScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.blue.withOpacity(0.3),
+                          color: Colors.blue.withValues(alpha: 0.3),
                           spreadRadius: 5,
                           blurRadius: 15,
                         ),
@@ -165,15 +165,15 @@ class SpecializationSelectionScreen extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+            colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.3), width: 2),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               spreadRadius: 2,
               blurRadius: 10,
             ),
@@ -185,7 +185,7 @@ class SpecializationSelectionScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 48),
@@ -210,7 +210,7 @@ class SpecializationSelectionScreen extends StatelessWidget {
               subtitle,
               style: TextStyle(
                 fontSize: 16,
-                color: color.withOpacity(0.8),
+                color: color.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,

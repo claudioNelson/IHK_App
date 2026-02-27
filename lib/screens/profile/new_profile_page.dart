@@ -370,7 +370,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Colors.indigo.shade700, Colors.purple.shade600],
+                  colors: [Colors.indigo.shade600, Colors.indigo.shade900],
                 ),
               ),
               child: Column(
@@ -669,7 +669,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

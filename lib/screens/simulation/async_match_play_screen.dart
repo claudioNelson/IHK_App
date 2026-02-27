@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/async_duel_service.dart';
 import '../../../async_match_progress.dart';
-import '../../../widgets/fill_in_blank_widget.dart';
-import '../../../widgets/sequence_question_widget.dart';
 import 'dart:async';
 import '../../../widgets/report_dialog.dart';
 import '../../../services/sound_service.dart';
@@ -118,8 +116,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('Fehler beim Laden: $e')));
     } finally {
-      if (!mounted) return;
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import '../../screens/module/modul_liste_screen.dart';
 import '../../services/spaced_repetition_service.dart';
 import 'review_screen.dart';
-import 'certificate_practice_selection_screen.dart';
 import 'core_topics_screen.dart';
 import '../zertifikate/certificate_overview_screen.dart';
-
 
 class LearningHubScreen extends StatefulWidget {
   const LearningHubScreen({super.key});
@@ -52,7 +50,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Colors.indigo.shade700, Colors.purple.shade600],
+                    colors: [Colors.indigo.shade600, Colors.indigo.shade900],
                   ),
                 ),
                 child: SafeArea(
@@ -67,7 +65,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
@@ -124,7 +122,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
       elevation: 3,
-      shadowColor: Colors.orange.withOpacity(0.3),
+      shadowColor: Colors.orange.withValues(alpha: 0.3),
       child: InkWell(
         onTap: _dueCount > 0
             ? () async {
@@ -160,7 +158,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.orange.withOpacity(0.3),
+                      color: Colors.orange.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -250,7 +248,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
       elevation: 3,
-      shadowColor: Colors.indigo.withOpacity(0.3),
+      shadowColor: Colors.indigo.withValues(alpha: 0.3),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -282,7 +280,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.indigo.withOpacity(0.3),
+                      color: Colors.indigo.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -333,12 +331,13 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       ),
     );
   }
-Widget _buildCertificatesCard() {
+
+  Widget _buildCertificatesCard() {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
       elevation: 3,
-      shadowColor: Colors.deepOrange.withOpacity(0.3),
+      shadowColor: Colors.deepOrange.withValues(alpha: 0.3),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -372,7 +371,7 @@ Widget _buildCertificatesCard() {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.deepOrange.withOpacity(0.3),
+                      color: Colors.deepOrange.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -440,7 +439,7 @@ Widget _buildCertificatesCard() {
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
       elevation: 3,
-      shadowColor: Colors.teal.withOpacity(0.3),
+      shadowColor: Colors.teal.withValues(alpha: 0.3),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -472,7 +471,7 @@ Widget _buildCertificatesCard() {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.teal.withOpacity(0.3),
+                      color: Colors.teal.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),

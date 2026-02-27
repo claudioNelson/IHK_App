@@ -13,14 +13,14 @@ class DnsPortMatchWidget extends StatefulWidget {
   final int? moduleId;
 
   const DnsPortMatchWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
     this.questionId, // ← NEU
     this.moduleId, // ← NEU
-  }) : super(key: key);
+  });
 
   @override
   State<DnsPortMatchWidget> createState() => _DnsPortMatchWidgetState();

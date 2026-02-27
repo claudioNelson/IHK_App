@@ -361,8 +361,12 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
     final selectedId = antworten[aktuelleFrage];
     final isLowTime = _remainingSeconds <= 600; // 10 Minuten
 
-    return WillPopScope(
-      onWillPop: _showExitDialog,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _showExitDialog();
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.zertifikatName),
@@ -485,7 +489,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: Colors.grey.withValues(alpha: 0.1),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -533,7 +537,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
                                 boxShadow: [
                                   if (isSelected)
                                     BoxShadow(
-                                      color: Colors.indigo.withOpacity(0.2),
+                                      color: Colors.indigo.withValues(alpha: 0.2),
                                       blurRadius: 8,
                                       offset: const Offset(0, 4),
                                     ),
@@ -607,7 +611,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -770,12 +774,12 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
                 padding: const EdgeInsets.all(30),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [color, color.withOpacity(0.7)],
+                    colors: [color, color.withValues(alpha: 0.7)],
                   ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(0.3),
+                      color: color.withValues(alpha: 0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -809,12 +813,12 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
                 ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [color, color.withOpacity(0.8)],
+                    colors: [color, color.withValues(alpha: 0.8)],
                   ),
                   borderRadius: BorderRadius.circular(50),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(0.3),
+                      color: color.withValues(alpha: 0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 8),
                     ),
@@ -1059,7 +1063,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: color, size: 20),

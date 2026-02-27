@@ -221,9 +221,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.5)),
+            border: Border.all(color: color.withValues(alpha: 0.5)),
           ),
           child: Text(
             value,
@@ -252,7 +252,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   final matches = player['matches_played'] ?? 0;
 
   return Container(
-    color: isMe ? Colors.indigo.withOpacity(0.1) : null,
+    color: isMe ? Colors.indigo.withValues(alpha: 0.1) : null,
     child: ListTile(
       leading: CircleAvatar(
         backgroundColor: _getRankColor(rank),
@@ -494,9 +494,9 @@ Widget _buildStatCard(String value, String label, Color color) {
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 12),
     decoration: BoxDecoration(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: color.withOpacity(0.3)),
+      border: Border.all(color: color.withValues(alpha: 0.3)),
     ),
     child: Column(
       children: [

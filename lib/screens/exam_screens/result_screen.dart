@@ -191,7 +191,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           spreadRadius: 2,
                           blurRadius: 10,
                         ),
@@ -218,7 +218,7 @@ class _ResultScreenState extends State<ResultScreen> {
                     'Lass die KI deine Antworten korrigieren',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -495,7 +495,7 @@ class _ResultScreenState extends State<ResultScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
-            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+            colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -505,7 +505,7 @@ class _ResultScreenState extends State<ResultScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 32),

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'network_practice_screen.dart';
 import 'raid_practice_screen.dart';
 import 'dns_port_practice_screen.dart';
-import '../../services/progress_service.dart';
 import '../../services/app_cache_service.dart';
 import 'security_practice_screen.dart';
 import 'osi_practice_screen.dart';
@@ -11,6 +9,7 @@ import 'backup_practice_screen.dart';
 import 'binary_practice_screen.dart';
 import 'kernthemen_info_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'database_practice_screen.dart';
 
 class CoreTopicsScreen extends StatefulWidget {
   const CoreTopicsScreen({super.key});
@@ -20,11 +19,9 @@ class CoreTopicsScreen extends StatefulWidget {
 }
 
 class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
-  final _supabase = Supabase.instance.client;
   List<Map<String, dynamic>> _coreTopics = [];
   bool _loading = true;
   Map<int, Map<String, dynamic>> _progress = {};
-  final _progressService = ProgressService();
 
   @override
   void initState() {
@@ -129,7 +126,7 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
@@ -248,6 +245,10 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
         icon = Icons.calculate;
         color = Colors.orange;
         break;
+      case 26: // Datenbanken & SQL
+        icon = Icons.storage;
+        color = Colors.deepPurple;
+        break;
       default:
         icon = Icons.lightbulb;
         color = Colors.amber;
@@ -304,6 +305,12 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
                 moduleName: topic['name'],
               );
               break;
+            case 26: // Datenbanken & SQL
+              screen = DatabasePracticeScreen(
+                moduleId: topic['id'],
+                moduleName: topic['name'],
+              );
+              break;
             default:
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -329,7 +336,7 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 28),

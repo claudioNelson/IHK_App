@@ -11,12 +11,12 @@ class NetworkCalculationWidget extends StatefulWidget {
   final String? explanation;
 
   const NetworkCalculationWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
-  }) : super(key: key);
+  });
 
   @override
   State<NetworkCalculationWidget> createState() =>
@@ -61,9 +61,9 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   @override
   void dispose() {
     scratchPadController.dispose();
-    for (var controller in networkControllers) controller.dispose();
-    for (var controller in broadcastControllers) controller.dispose();
-    for (var controller in subnetControllers) controller.dispose();
+    for (var controller in networkControllers) { controller.dispose(); }
+    for (var controller in broadcastControllers) { controller.dispose(); }
+    for (var controller in subnetControllers) { controller.dispose(); }
     hostsController.dispose();
     super.dispose();
   }

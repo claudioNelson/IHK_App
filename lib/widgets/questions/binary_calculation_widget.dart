@@ -13,14 +13,14 @@ class BinaryCalculationWidget extends StatefulWidget {
   final int? moduleId;
 
   const BinaryCalculationWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
     this.questionId,
     this.moduleId,
-  }) : super(key: key);
+  });
 
   @override
   State<BinaryCalculationWidget> createState() =>
@@ -440,6 +440,7 @@ class _BinaryCalculationWidgetState extends State<BinaryCalculationWidget> {
 
       setState(() => _loadingAiHelp = false);
 
+      if (!mounted) return;
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -461,6 +462,7 @@ class _BinaryCalculationWidgetState extends State<BinaryCalculationWidget> {
       );
     } catch (e) {
       setState(() => _loadingAiHelp = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Fehler: $e')));

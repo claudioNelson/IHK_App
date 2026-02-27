@@ -159,7 +159,7 @@ class _ExamScreenState extends State<ExamScreen> {
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     spreadRadius: 2,
                     blurRadius: 5,
                   ),
@@ -342,7 +342,7 @@ class _ExamScreenState extends State<ExamScreen> {
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: _getTimerColor().withOpacity(0.2),
+              color: _getTimerColor().withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: _getTimerColor(), width: 2),
             ),
@@ -372,7 +372,7 @@ class _ExamScreenState extends State<ExamScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                   spreadRadius: 1,
                   blurRadius: 3,
                 ),
@@ -429,7 +429,7 @@ class _ExamScreenState extends State<ExamScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                   spreadRadius: 1,
                   blurRadius: 3,
                   offset: const Offset(0, -2),

@@ -14,14 +14,14 @@ class FreitextAdaWidget extends StatefulWidget {
   final int? moduleId;
 
   const FreitextAdaWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
     this.questionId,
     this.moduleId,
-  }) : super(key: key);
+  });
 
   @override
   State<FreitextAdaWidget> createState() => _FreitextAdaWidgetState();
@@ -362,6 +362,7 @@ class _FreitextAdaWidgetState extends State<FreitextAdaWidget> {
       setState(() {
         _isEvaluating = false;
       });
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Fehler: $e')),
       );
@@ -369,7 +370,6 @@ class _FreitextAdaWidgetState extends State<FreitextAdaWidget> {
   }
 
   Future<Map<String, dynamic>> _evaluateWithAda(String userAnswer) async {
-    final keywords = List<String>.from(widget.correctAnswers['keywords'] ?? []);
     final criteria = List<String>.from(widget.correctAnswers['bewertungskriterien'] ?? []);
     
     final prompt = '''Du bist Ada, eine geduldige KI-Tutorin für IHK-Prüfungsvorbereitung.

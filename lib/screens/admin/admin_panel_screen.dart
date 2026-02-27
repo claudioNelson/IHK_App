@@ -38,8 +38,7 @@ class _AdminPanelState extends State<AdminPanel> {
     } catch (e) {
       _snack('Fehler beim Laden der Module: $e');
     } finally {
-      if (!mounted) return;
-      setState(() => loading = false);
+      if (mounted) setState(() => loading = false);
     }
   }
 
@@ -80,8 +79,7 @@ class _AdminPanelState extends State<AdminPanel> {
     } catch (e) {
       _snack('Fehler beim Laden der Fragen: $e');
     } finally {
-      if (!mounted) return;
-      setState(() => loading = false);
+      if (mounted) setState(() => loading = false);
     }
   }
 
@@ -168,10 +166,7 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
       });
       _snack('❌ Fehler: $e');
     } finally {
-      if (!mounted) return;
-      setState(() {
-        generatingAI[antwortId] = false;
-      });
+      if (mounted) setState(() { generatingAI[antwortId] = false; });
     }
   }
 
@@ -258,7 +253,7 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<int>(
-                    value: selectedThemaId,
+                    initialValue: selectedThemaId,
                     decoration: const InputDecoration(
                       labelText: 'Thema',
                       border: OutlineInputBorder(),
@@ -297,6 +292,7 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
                     'thema_id': selectedThemaId,
                     'erklaerung': erkCtrl.text.trim(),
                   }).eq('id', frage['id']);
+                  if (!ctx.mounted) return;
                   Navigator.pop(ctx);
                   _snack('Frage aktualisiert');
                   if (selectedModuleId != null) {
@@ -399,6 +395,7 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
                         'erklaerung': erkCtrl.text.trim(),
                       })
                       .eq('id', antwort['id']);
+                  if (!ctx.mounted) return;
                   Navigator.pop(ctx);
                   _snack('Antwort aktualisiert');
                   if (selectedModuleId != null) {

@@ -306,14 +306,14 @@ class _ThemenListeState extends State<ThemenListe>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: unlocked
-                    ? [Colors.white, Colors.indigo.shade50.withOpacity(0.3)]
+                    ? [Colors.white, Colors.indigo.shade50.withValues(alpha: 0.3)]
                     : [Colors.grey.shade100, Colors.grey.shade200],
               ),
               boxShadow: [
                 BoxShadow(
                   color: unlocked
-                      ? Colors.indigo.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.2),
+                      ? Colors.indigo.withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.2),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 ),
@@ -347,7 +347,7 @@ class _ThemenListeState extends State<ThemenListe>
                                   BoxShadow(
                                     color:
                                         (unlocked ? Colors.green : Colors.grey)
-                                            .withOpacity(0.3),
+                                            .withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -541,9 +541,9 @@ class _ThemenListeState extends State<ThemenListe>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -567,11 +567,11 @@ class _ThemenListeState extends State<ThemenListe>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [color, color.withOpacity(0.8)]),
+        gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.8)]),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),

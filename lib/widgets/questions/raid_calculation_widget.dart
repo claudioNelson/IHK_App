@@ -13,14 +13,14 @@ class RaidCalculationWidget extends StatefulWidget {
   final int? moduleId;
 
   const RaidCalculationWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
     this.questionId,
     this.moduleId,
-  }) : super(key: key);
+  });
 
   @override
   State<RaidCalculationWidget> createState() => _RaidCalculationWidgetState();

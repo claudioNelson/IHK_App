@@ -6,12 +6,13 @@ class CertificatePracticeScreen extends StatefulWidget {
   final String certName;
 
   const CertificatePracticeScreen({
-    Key? key,
+    super.key,
     required this.zertifikatId,
     required this.certName,
-  }) : super(key: key);
+  });
 
   @override
+  // ignore: library_private_types_in_public_api
   _CertificatePracticeScreenState createState() =>
       _CertificatePracticeScreenState();
 }
@@ -384,8 +385,4 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen> {
       ),
     );
   }
-}
-
-extension on PostgrestFilterBuilder {
-  inFilter(String s, examIds) {}
 }

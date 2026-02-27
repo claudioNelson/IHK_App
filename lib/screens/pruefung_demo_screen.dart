@@ -14,7 +14,6 @@ class _PruefungsDemoScreenState extends State<PruefungsDemoScreen> {
   // Speichere Antworten
   Map<String, Map<String, int>>? _tabellenAntwort;
   double? _rechenAntwort;
-  String? _rechenweg;
   
   @override
   Widget build(BuildContext context) {
@@ -136,7 +135,6 @@ class _PruefungsDemoScreenState extends State<PruefungsDemoScreen> {
             onAnswerChanged: (antwort, rechenweg) {
               setState(() {
                 _rechenAntwort = antwort;
-                _rechenweg = rechenweg;
               });
               print('✅ Rechenaufgabe gespeichert: $antwort EUR');
               if (rechenweg != null) {

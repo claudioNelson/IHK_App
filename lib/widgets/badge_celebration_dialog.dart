@@ -66,7 +66,7 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog> {
                   border: Border.all(color: Colors.amber, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.amber.withOpacity(0.3),
+                      color: Colors.amber.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),

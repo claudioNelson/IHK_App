@@ -87,7 +87,7 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
                   'Wähle deine Fachrichtung',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ],
@@ -178,7 +178,7 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
           border: Border.all(color: Colors.grey[300]!),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               spreadRadius: 2,
               blurRadius: 8,
             ),
@@ -189,7 +189,7 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 32),
@@ -212,7 +212,7 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 14,
-                      color: color.withOpacity(0.7),
+                      color: color.withValues(alpha: 0.7),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -381,7 +381,7 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
                             subtitle,
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                           ),
                         ],
@@ -473,11 +473,11 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isAvailable ? color.withOpacity(0.3) : Colors.grey[300]!,
+            color: isAvailable ? color.withValues(alpha: 0.3) : Colors.grey[300]!,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               spreadRadius: 2,
               blurRadius: 8,
             ),
@@ -490,7 +490,7 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: isAvailable ? color.withOpacity(0.1) : Colors.grey[200],
+                color: isAvailable ? color.withValues(alpha: 0.1) : Colors.grey[200],
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -525,7 +525,7 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isAvailable ? color.withOpacity(0.7) : Colors.grey[500],
+                      color: isAvailable ? color.withValues(alpha: 0.7) : Colors.grey[500],
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -569,9 +569,9 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

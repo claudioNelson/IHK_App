@@ -44,40 +44,6 @@ class _CertificatePracticeSelectionScreenState
     }
   }
 
-  Color _getDifficultyColor(String? difficulty) {
-    if (difficulty == null) return Colors.blue;
-    switch (difficulty.toLowerCase()) {
-      case 'anfänger':
-      case 'leicht':
-        return Colors.green;
-      case 'mittel':
-      case 'fortgeschritten':
-        return Colors.orange;
-      case 'schwer':
-      case 'experte':
-        return Colors.red;
-      default:
-        return Colors.blue;
-    }
-  }
-
-  IconData _getDifficultyIcon(String? difficulty) {
-    if (difficulty == null) return Icons.help_outline;
-    switch (difficulty.toLowerCase()) {
-      case 'anfänger':
-      case 'leicht':
-        return Icons.sentiment_satisfied;
-      case 'mittel':
-      case 'fortgeschritten':
-        return Icons.sentiment_neutral;
-      case 'schwer':
-      case 'experte':
-        return Icons.sentiment_very_dissatisfied;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,7 +79,7 @@ class _CertificatePracticeSelectionScreenState
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         elevation: 3,
-        shadowColor: color.withOpacity(0.3),
+        shadowColor: color.withValues(alpha: 0.3),
 child: InkWell(
   onTap: () {
     Navigator.push(
@@ -135,7 +101,7 @@ child: InkWell(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.1), Colors.white],
+                colors: [color.withValues(alpha: 0.1), Colors.white],
               ),
             ),
             child: Column(
@@ -148,12 +114,12 @@ child: InkWell(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [color, color.withOpacity(0.7)],
+                          colors: [color, color.withValues(alpha: 0.7)],
                         ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: color.withOpacity(0.3),
+                            color: color.withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -233,9 +199,9 @@ child: InkWell(
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

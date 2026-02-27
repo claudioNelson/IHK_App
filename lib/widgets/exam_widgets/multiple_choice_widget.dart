@@ -57,7 +57,6 @@ class _MultipleChoiceWidgetState extends State<MultipleChoiceWidget> {
           const SizedBox(height: 16),
           
           ...widget.question.options!.asMap().entries.map((entry) {
-            final index = entry.key;
             final option = entry.value;
             
             if (isMultipleSelect) {

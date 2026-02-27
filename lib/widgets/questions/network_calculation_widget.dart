@@ -13,14 +13,14 @@ class NetworkCalculationWidget extends StatefulWidget {
   final int? moduleId;
 
   const NetworkCalculationWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
     this.questionId,
     this.moduleId,
-  }) : super(key: key);
+  });
 
   @override
   State<NetworkCalculationWidget> createState() =>
@@ -73,9 +73,9 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
     // Reset wenn neue Frage geladen wird
     if (oldWidget.questionText != widget.questionText) {
       scratchPadController.clear();
-      for (var controller in networkControllers) controller.clear();
-      for (var controller in broadcastControllers) controller.clear();
-      for (var controller in subnetControllers) controller.clear();
+      for (var controller in networkControllers) { controller.clear(); }
+      for (var controller in broadcastControllers) { controller.clear(); }
+      for (var controller in subnetControllers) { controller.clear(); }
       hostsController.clear();
 
       setState(() {
@@ -88,9 +88,9 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   @override
   void dispose() {
     scratchPadController.dispose();
-    for (var controller in networkControllers) controller.dispose();
-    for (var controller in broadcastControllers) controller.dispose();
-    for (var controller in subnetControllers) controller.dispose();
+    for (var controller in networkControllers) { controller.dispose(); }
+    for (var controller in broadcastControllers) { controller.dispose(); }
+    for (var controller in subnetControllers) { controller.dispose(); }
     hostsController.dispose();
     super.dispose();
   }

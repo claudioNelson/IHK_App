@@ -169,8 +169,9 @@ class ProgressService {
 
   /// Lädt Progress für ein Kernthemen-Modul
   Future<Map<String, dynamic>> getKernthemaProgress(int modulId) async {
-    if (_userId == null)
+    if (_userId == null) {
       return {'total': 0, 'correct': 0, 'answered': 0, 'percent': 0.0};
+    }
 
     try {
       print('🔍 Lade Progress für Modul $modulId');
@@ -214,8 +215,9 @@ class ProgressService {
 
   /// Lädt Gesamt-Progress für alle Kernthemen
   Future<Map<String, dynamic>> getAllKernthemenProgress() async {
-    if (_userId == null)
+    if (_userId == null) {
       return {'total': 0, 'correct': 0, 'answered': 0, 'percent': 0.0};
+    }
 
     try {
       // Alle Kernthemen-Module

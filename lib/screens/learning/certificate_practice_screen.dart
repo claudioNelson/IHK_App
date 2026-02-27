@@ -261,7 +261,7 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 32),
@@ -404,7 +404,7 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen>
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.purple.withOpacity(0.1),
+                  color: Colors.purple.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -632,9 +632,7 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: (isCorrect ? Colors.green : Colors.orange).withOpacity(
-                0.2,
-              ),
+              color: (isCorrect ? Colors.green : Colors.orange).withValues(alpha: 0.2),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -823,7 +821,7 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen>
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),

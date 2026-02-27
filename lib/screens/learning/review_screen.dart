@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../services/spaced_repetition_service.dart';
-import '../module/test_fragen_screen.dart';
 import 'review_questions_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,18 +50,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
     // Nach Review neu laden
     _loadDueQuestions();
-  }
-
-  String _getModuleName(Map<String, dynamic> question, int modulId) {
-    try {
-      final fragen = question['fragen'];
-      if (fragen == null) return 'Modul $modulId';
-      final module = fragen['module'];
-      if (module == null) return 'Modul $modulId';
-      return module['name'] ?? 'Modul $modulId';
-    } catch (e) {
-      return 'Modul $modulId';
-    }
   }
 
   void _showInfoDialog() {
@@ -208,7 +195,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 20),

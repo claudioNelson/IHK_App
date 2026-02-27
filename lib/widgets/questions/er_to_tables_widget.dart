@@ -7,12 +7,12 @@ class ErToTablesWidget extends StatefulWidget {
   final VoidCallback? onAnswered;
 
   const ErToTablesWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
-  }) : super(key: key);
+  });
 
   @override
   State<ErToTablesWidget> createState() => _ErToTablesWidgetState();
@@ -20,7 +20,7 @@ class ErToTablesWidget extends StatefulWidget {
 
 class _ErToTablesWidgetState extends State<ErToTablesWidget> {
   // Speichert Eingaben: tableName -> columnIndex -> value
-  Map<String, List<TextEditingController>> _tableControllers = {};
+  final Map<String, List<TextEditingController>> _tableControllers = {};
 
   bool isChecked = false;
   Map<String, List<bool>> fieldResults = {};
@@ -154,7 +154,7 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
         border: Border.all(color: Colors.indigo[300]!, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.indigo.withOpacity(0.1),
+            color: Colors.indigo.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

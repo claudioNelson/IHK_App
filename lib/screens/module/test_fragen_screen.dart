@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../widgets/calculation_question_widget.dart';
 import '../../widgets/fill_in_blank_widget.dart';
 import '../../widgets/sequence_question_widget.dart';
@@ -183,24 +182,6 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       );
     } catch (e) {
       print('❌ Fehler beim Speichern: $e');
-    }
-  }
-
-  Future<void> _saveThemaScore() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      final allFragenIds = fragen.map((f) => f['id'] as int).toSet();
-      final beantwortet = allFragenIds.intersection(beantworteteFragen);
-      final percent = allFragenIds.isEmpty
-          ? 0.0
-          : (beantwortet.length / allFragenIds.length * 100);
-
-      final key = 'score_mod_${widget.modulId}_thema_${widget.themaId}';
-      await prefs.setDouble(key, percent);
-      print('Score gespeichert: $key = $percent%');
-    } catch (e) {
-      print('Fehler beim Speichern des Scores: $e');
     }
   }
 
@@ -389,7 +370,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 32),
@@ -645,7 +626,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.indigo.withOpacity(0.1),
+                  color: Colors.indigo.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -743,7 +724,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                         boxShadow: [
                           if (isSelected && !hasAnswered)
                             BoxShadow(
-                              color: Colors.indigo.withOpacity(0.2),
+                              color: Colors.indigo.withValues(alpha: 0.2),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
@@ -861,9 +842,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
           ),
           boxShadow: [
             BoxShadow(
-              color: (isCorrect ? Colors.green : Colors.orange).withOpacity(
-                0.2,
-              ),
+              color: (isCorrect ? Colors.green : Colors.orange).withValues(alpha: 0.2),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -1050,7 +1029,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),

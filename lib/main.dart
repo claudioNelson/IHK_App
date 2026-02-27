@@ -1,14 +1,19 @@
 import 'widgets/auth_wrapper.dart';
 import 'widgets/navigation/nav_root.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/splash_screen.dart';
+import 'screens/splash/splash_screen.dart';
+import 'screens/onboarding/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/app_cache_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+
   await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
@@ -19,19 +24,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Lernarena', // ← Neuer Name!
+      title: 'Lernarena',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
         primarySwatch: Colors.indigo,
         scaffoldBackgroundColor: Colors.grey[100],
       ),
-      home: const AppInitializer(), // ← NEU: Zeigt Splash während Init
+      home: const AppInitializer(),
     );
   }
 }
 
-// NEU: Initialisiert App und zeigt Splash Screen
+// Initialisiert App und zeigt Splash Screen
 class AppInitializer extends StatefulWidget {
   const AppInitializer({super.key});
 
@@ -65,8 +70,6 @@ class _AppInitializerState extends State<AppInitializer> {
         '🔐 Aktuelle Session: ${session != null ? "Eingeloggt" : "Nicht eingeloggt"}',
       );
 
-      // Kurze Verzögerung damit Splash sichtbar ist
-      // ⭐ Daten vorladen
       if (session != null) {
         await AppCacheService().preloadAllData();
       }
@@ -87,13 +90,27 @@ class _AppInitializerState extends State<AppInitializer> {
   @override
   Widget build(BuildContext context) {
     if (!_initialized) {
-      return const SplashScreen(); // Zeigt Splash während Init
+      return const SplashScreen();
     }
 
-    // Nach Init: Normale App
-    return const AuthWrapper(
-      authenticatedChild: NavRoot(),
-      unauthenticatedChild: LoginScreen(),
+    final session = Supabase.instance.client.auth.currentSession;
+
+    if (session != null) {
+      return const AuthWrapper(
+        authenticatedChild: NavRoot(),
+        unauthenticatedChild: LoginScreen(),
+      );
+    }
+
+    return FutureBuilder<bool>(
+      future: SharedPreferences.getInstance().then(
+        (p) => p.getBool('hasSeenOnboarding') ?? false,
+      ),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SplashScreen();
+        if (snapshot.data == true) return const LoginScreen();
+        return const OnboardingScreen();
+      },
     );
   }
 }

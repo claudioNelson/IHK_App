@@ -248,7 +248,7 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -265,7 +265,7 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: _getTimerColor().withOpacity(0.1),
+                        color: _getTimerColor().withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: _getTimerColor()),
                       ),

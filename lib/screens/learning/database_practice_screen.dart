@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../widgets/questions/dns_port_match_widget.dart';
 import '../../widgets/questions/freitext_ada_widget.dart';
-import '../../widgets/questions/binary_calculation_widget.dart';
+import 'database_practice_screen.dart';
 
-class BinaryPracticeScreen extends StatefulWidget {
+class DatabasePracticeScreen extends StatefulWidget {
   final int moduleId;
   final String moduleName;
 
-  const BinaryPracticeScreen({
+  const DatabasePracticeScreen({
     super.key,
     required this.moduleId,
     required this.moduleName,
   });
 
   @override
-  State<BinaryPracticeScreen> createState() => _BinaryPracticeScreenState();
+  State<DatabasePracticeScreen> createState() => _DatabasePracticeScreenState();
 }
 
-class _BinaryPracticeScreenState extends State<BinaryPracticeScreen> {
+class _DatabasePracticeScreenState extends State<DatabasePracticeScreen> {
   final _supabase = Supabase.instance.client;
   List<Map<String, dynamic>> _questions = [];
   bool _loading = true;
@@ -81,7 +82,7 @@ class _BinaryPracticeScreenState extends State<BinaryPracticeScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(widget.moduleName),
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.deepPurple,
         elevation: 0,
       ),
       body: _loading
@@ -120,7 +121,7 @@ class _BinaryPracticeScreenState extends State<BinaryPracticeScreen> {
                           Text(
                             '${((_currentIndex + 1) / _questions.length * 100).toInt()}%',
                             style: TextStyle(
-                              color: Colors.orange.shade700,
+                              color: Colors.deepPurple.shade700,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -131,7 +132,7 @@ class _BinaryPracticeScreenState extends State<BinaryPracticeScreen> {
                         value: (_currentIndex + 1) / _questions.length,
                         backgroundColor: Colors.grey.shade200,
                         valueColor: const AlwaysStoppedAnimation<Color>(
-                          Colors.orange,
+                          Colors.deepPurple,
                         ),
                       ),
                     ],
@@ -147,10 +148,8 @@ class _BinaryPracticeScreenState extends State<BinaryPracticeScreen> {
     final question = _questions[_currentIndex];
     final questionType = question['question_type'] as String;
 
-    // Binär/Hex Berechnung mit Scratch Pad
     if (questionType == 'dns_port_match') {
-      return BinaryCalculationWidget(
-        // ← NEU! Statt DnsPortMatchWidget
+      return DnsPortMatchWidget(
         questionText: question['frage'],
         correctAnswers: Map<String, dynamic>.from(
           question['calculation_data'] ?? {},
