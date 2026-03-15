@@ -329,8 +329,8 @@ export default function LandingPage() {
         }
         .plan-card.featured {
           background: ${isDark
-            ? "linear-gradient(145deg, rgba(79,70,229,0.2) 0%, rgba(99,102,241,0.1) 100%)"
-            : "linear-gradient(145deg, #EEF2FF 0%, #E0E7FF 100%)"};
+          ? "linear-gradient(145deg, rgba(79,70,229,0.2) 0%, rgba(99,102,241,0.1) 100%)"
+          : "linear-gradient(145deg, #EEF2FF 0%, #E0E7FF 100%)"};
           border-color: rgba(79,70,229,0.4);
           box-shadow: ${isDark ? "none" : "0 8px 32px rgba(79,70,229,0.18)"};
         }
@@ -513,10 +513,22 @@ export default function LandingPage() {
           <a href="#features">Features</a>
           <a href="#preise">Preise</a>
           <Link href="/pruefungen">Prüfungen</Link>
-          <button onClick={() => setIsDark(!isDark)} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",color:"#fff",padding:"8px 14px",borderRadius:"8px",cursor:"pointer",fontSize:"16px",marginRight:"4px"}}>{isDark ? "☀️" : "🌙"}</button>
+          <button onClick={() => setIsDark(!isDark)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontSize: "16px", marginRight: "4px" }}>{isDark ? "☀️" : "🌙"}</button>
           <Link href="/register" className="nav-cta">Kostenlos starten</Link>
         </div>
       </nav>
+
+      {/* Coming Soon Banner */}
+      <div style={{
+        background: "#4F46E5",
+        color: "#fff",
+        textAlign: "center",
+        padding: "10px 20px",
+        fontSize: "14px",
+        fontWeight: 600,
+      }}>
+        🚧 Diese Seite befindet sich im Aufbau — bald sind wir für dich da!
+      </div>
 
       {/* HERO */}
       <section className="hero">
@@ -607,7 +619,7 @@ export default function LandingPage() {
             <p className="section-sub" style={{ color: isDark ? undefined : "rgba(255,255,255,0.8)" }}>Authentische Simulationen für IHK-Abschlüsse und Cloud-Zertifizierungen.</p>
             <div className="certs-scroll">
               {["Fachinformatiker AE", "Fachinformatiker SI", "AWS Cloud Practitioner", "Microsoft Azure Fundamentals", "Google Cloud Digital Leader", "SAP Application Associate", "AP1 Halbjahresprüfung", "AP2 Abschlussprüfung"].map((c, i) => (
-                <span key={i} className="cert-pill" style={{ 
+                <span key={i} className="cert-pill" style={{
                   background: isDark ? undefined : "rgba(255,255,255,0.15)",
                   color: isDark ? undefined : "#fff",
                   borderColor: isDark ? undefined : "rgba(255,255,255,0.3)"
@@ -653,7 +665,7 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/register" className="plan-btn secondary" style={{border:"1px solid rgba(79,70,229,0.4)",color:"var(--indigo-light)"}}>Kostenlos starten</Link>
+              <Link href="/register" className="plan-btn secondary" style={{ border: "1px solid rgba(79,70,229,0.4)", color: "var(--indigo-light)" }}>Kostenlos starten</Link>
             </div>
 
             {/* PREMIUM */}
