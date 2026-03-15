@@ -4,6 +4,12 @@ import '../../services/async_duel_service.dart';
 import '../simulation/async_match_play_screen.dart';
 import '../../services/badge_service.dart';
 
+const _indigo = Color(0xFF4F46E5);
+const _indigoDark = Color(0xFF3730A3);
+const _indigoLight = Color(0xFF6366F1);
+const _purple = Color(0xFF7C3AED);
+const _purpleLight = Color(0xFF8B5CF6);
+
 class PlayerProfileScreen extends StatefulWidget {
   final String oderId;
   final String username;
@@ -20,16 +26,18 @@ class PlayerProfileScreen extends StatefulWidget {
 
 class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
   final _svc = AsyncDuelService();
+  final _badgeSvc = BadgeService();
+
   Map<String, dynamic>? _profile;
   Map<String, dynamic>? _stats;
   List<Map<String, dynamic>> _matchHistory = [];
   Map<String, Map<String, dynamic>> _matchScores = {};
-  bool _loading = true;
-
-  final _badgeSvc = BadgeService();
   List<Map<String, dynamic>> _userBadges = [];
+  bool _loading = true;
+  bool _challenging = false;
 
-  String get _myId => Supabase.instance.client.auth.currentUser?.id ?? '';
+  String get _myId =>
+      Supabase.instance.client.auth.currentUser?.id ?? '';
 
   @override
   void initState() {
@@ -40,28 +48,19 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
   Future<void> _loadData() async {
     try {
       final client = Supabase.instance.client;
-
-      // Profil laden
       final profile = await client
           .from('profiles')
           .select('id, username, avatar_url, created_at')
           .eq('id', widget.oderId)
           .maybeSingle();
-
-      // Stats laden
       final stats = await client
           .from('player_stats')
-          .select('elo_rating, wins, losses')
+          .select('elo_rating, wins, losses, draws, matches_played, highest_elo')
           .eq('user_id', widget.oderId)
           .maybeSingle();
-
-      // Gemeinsame Matches laden
       final matches = await _svc.getMatchesWithPlayer(widget.oderId);
-
-      // Scores laden
       final matchIds = matches.map((m) => m['id'] as String).toList();
       final scores = await _svc.getMatchScores(matchIds);
-      // Badges laden
       final badges = await _badgeSvc.getUserBadges(widget.oderId);
 
       if (!mounted) return;
@@ -70,11 +69,10 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
         _stats = stats;
         _matchHistory = matches;
         _matchScores = scores;
-        _loading = false;
         _userBadges = badges;
+        _loading = false;
       });
     } catch (e) {
-      print('❌ Fehler: $e');
       if (!mounted) return;
       setState(() => _loading = false);
     }
@@ -85,25 +83,25 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     try {
       final date = DateTime.parse(timestamp);
       return '${date.day}.${date.month}.${date.year}';
-    } catch (e) {
+    } catch (_) {
       return 'Unbekannt';
     }
   }
 
+  String _getEloTier(int elo) {
+    if (elo >= 1500) return '🔥 Meister';
+    if (elo >= 1300) return '💎 Diamant';
+    if (elo >= 1150) return '🥇 Gold';
+    if (elo >= 1000) return '🥈 Silber';
+    if (elo >= 850) return '🥉 Bronze';
+    return '🌱 Starter';
+  }
+
   Future<void> _challengePlayer() async {
-    print('🎯🎯🎯 CHALLENGE BUTTON GEKLICKT 🎯🎯🎯');
-    setState(() => _loading = true);
+    setState(() => _challenging = true);
     try {
-      final client = Supabase.instance.client;
-      final oderId = client.auth.currentUser?.id;
-      if (oderId == null) throw Exception('Nicht eingeloggt');
-
       final matchId = await _svc.createMatch(count: 10);
-      print('🎯 Match erstellt: $matchId');
-
       if (!mounted) return;
-
-      // Direkt ins Match navigieren
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => AsyncMatchPlayPage(matchId: matchId)),
@@ -111,10 +109,17 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Fehler: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
+        ),
       );
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() => _challenging = false);
     }
   }
 
@@ -125,140 +130,124 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     final elo = _stats?['elo_rating'] ?? 1000;
     final wins = _stats?['wins'] ?? 0;
     final losses = _stats?['losses'] ?? 0;
-    final total = wins + losses;
-    final winRate = total > 0 ? ((wins / total) * 100).toInt() : 0;
+    final draws = _stats?['draws'] ?? 0;
+    final highestElo = _stats?['highest_elo'] ?? 1000;
+    final matches = _stats?['matches_played'] ?? 0;
+    final winRate =
+        matches > 0 ? ((wins / matches) * 100).toStringAsFixed(1) : '0.0';
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text('Spieler-Profil'),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
-      ),
+      backgroundColor: const Color(0xFFF5F5FF),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: _indigo))
           : SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               child: Column(
                 children: [
-                  // Header
+                  // ── HEADER ──────────────────────────────────────
                   Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [
-                          Colors.indigo.shade700,
-                          Colors.purple.shade600,
-                        ],
+                        colors: [_indigoDark, _indigo, _purple],
+                      ),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(32),
+                        bottomRight: Radius.circular(32),
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.white,
-                          backgroundImage: avatarUrl != null
-                              ? NetworkImage(avatarUrl)
-                              : null,
-                          child: avatarUrl == null
-                              ? Text(
-                                  username.isNotEmpty
-                                      ? username[0].toUpperCase()
-                                      : '?',
-                                  style: const TextStyle(
-                                    fontSize: 36,
-                                    color: Colors.indigo,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              : null,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          username,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Dabei seit ${_formatDate(_profile?['created_at'])}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Stats
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                    child: SafeArea(
+                      bottom: false,
                       child: Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Statistiken',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            // Back Button
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                      Icons.arrow_back_ios_rounded,
+                                      color: Colors.white,
+                                      size: 18),
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 20),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildStatCard(
-                                    icon: Icons.star,
-                                    label: 'ELO',
-                                    value: '$elo',
-                                    color: Colors.amber,
+                            const SizedBox(height: 16),
+
+                            // Avatar
+                            Container(
+                              width: 84,
+                              height: 84,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                image: avatarUrl != null
+                                    ? DecorationImage(
+                                        image: NetworkImage(avatarUrl),
+                                        fit: BoxFit.cover)
+                                    : null,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildStatCard(
-                                    icon: Icons.emoji_events,
-                                    label: 'Siege',
-                                    value: '$wins',
-                                    color: Colors.green,
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              child: avatarUrl == null
+                                  ? Center(
+                                      child: Text(
+                                        username.isNotEmpty
+                                            ? username[0].toUpperCase()
+                                            : '?',
+                                        style: const TextStyle(
+                                          fontSize: 32,
+                                          color: _indigo,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(height: 14),
+                            Text(
+                              username,
+                              style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Dabei seit ${_formatDate(_profile?['created_at'])}',
+                              style: const TextStyle(
+                                  color: Colors.white70, fontSize: 13),
                             ),
                             const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildStatCard(
-                                    icon: Icons.close,
-                                    label: 'Niederlagen',
-                                    value: '$losses',
-                                    color: Colors.red,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildStatCard(
-                                    icon: Icons.percent,
-                                    label: 'Winrate',
-                                    value: '$winRate%',
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ],
+                            // Tier chip
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.18),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                _getEloTier(elo),
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600),
+                              ),
                             ),
                           ],
                         ),
@@ -266,183 +255,235 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                     ),
                   ),
 
-                  // Match History mit diesem Spieler
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.history, size: 20),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Gemeinsame Matches',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.purple.shade100,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    '${_matchHistory.length}',
-                                    style: TextStyle(
-                                      color: Colors.purple.shade700,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── ELO BOX ───────────────────────────────
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                                colors: [_indigoDark, _indigo]),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _indigo.withOpacity(0.3),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _eloStat('$elo', 'Aktuell'),
+                              Container(
+                                  width: 1,
+                                  height: 40,
+                                  color: Colors.white24),
+                              _eloStat('$highestElo', 'Höchstes'),
+                              Container(
+                                  width: 1,
+                                  height: 40,
+                                  color: Colors.white24),
+                              _eloStat('$matches', 'Spiele'),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // ── STATS GRID ─────────────────────────────
+                        Row(children: [
+                          Expanded(
+                              child: _statCard('$wins', 'Siege', Colors.green)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                              child: _statCard(
+                                  '$draws', 'Remis', Colors.orange)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                              child: _statCard(
+                                  '$losses', 'Niederl.', Colors.red)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                              child: _statCard(
+                                  '$winRate%', 'Winrate', _purple)),
+                        ]),
+
+                        const SizedBox(height: 20),
+
+                        // ── BADGES ────────────────────────────────
+                        if (_userBadges.isNotEmpty) ...[
+                          _sectionTitle('Badges',
+                              Icons.military_tech_rounded, Colors.amber),
+                          const SizedBox(height: 10),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                  color: Colors.amber.withOpacity(0.2),
+                                  width: 1.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.amber.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
-                            if (_matchHistory.isEmpty)
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
+                            child: Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: _userBadges.map((ub) {
+                                final badge =
+                                    ub['badges'] as Map<String, dynamic>;
+                                return Tooltip(
+                                  message:
+                                      '${badge['name']}\n${badge['description']}',
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.shade50,
+                                      borderRadius:
+                                          BorderRadius.circular(12),
+                                      border: Border.all(
+                                          color: Colors.amber.shade200),
+                                    ),
+                                    child: Text(badge['icon'] ?? '🏆',
+                                        style: const TextStyle(
+                                            fontSize: 24)),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+
+                        // ── MATCH HISTORY ─────────────────────────
+                        _sectionTitle(
+                          'Gemeinsame Matches (${_matchHistory.length})',
+                          Icons.history_rounded,
+                          _purple,
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: _purple.withOpacity(0.1),
+                                width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _purple.withOpacity(0.04),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: _matchHistory.isEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.all(32),
+                                  child: Center(
+                                    child: Column(
+                                      children: [
+                                        Icon(Icons.sports_esports_outlined,
+                                            size: 44,
+                                            color: Colors.grey.shade300),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'Noch keine Matches zusammen',
+                                          style: TextStyle(
+                                              color: Colors.grey.shade500),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : Column(
+                                  children: _matchHistory
+                                      .asMap()
+                                      .entries
+                                      .map((e) => Column(
+                                            children: [
+                                              _buildMatchTile(e.value),
+                                              if (e.key <
+                                                  _matchHistory.length - 1)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 70),
+                                                  child: Divider(
+                                                      height: 1,
+                                                      color: Colors
+                                                          .grey.shade100),
+                                                ),
+                                            ],
+                                          ))
+                                      .toList(),
+                                ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // ── CHALLENGE BUTTON ──────────────────────
+                        GestureDetector(
+                          onTap: _challenging ? null : _challengePlayer,
+                          child: Container(
+                            width: double.infinity,
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 16),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                  colors: [_purple, _purpleLight]),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _purple.withOpacity(0.35),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: _challenging
+                                ? const Center(
+                                    child: SizedBox(
+                                      height: 22,
+                                      width: 22,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: Colors.white),
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
                                     children: [
-                                      Icon(
-                                        Icons.sports_esports_outlined,
-                                        size: 48,
-                                        color: Colors.grey.shade400,
-                                      ),
-                                      const SizedBox(height: 12),
+                                      const Icon(
+                                          Icons.sports_kabaddi_rounded,
+                                          color: Colors.white,
+                                          size: 22),
+                                      const SizedBox(width: 10),
                                       Text(
-                                        'Noch keine Matches zusammen',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
+                                        '$username herausfordern',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              )
-                            else
-                              ...(_matchHistory.map((m) => _buildMatchTile(m))),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Badges
-                  if (_userBadges.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                      child: Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.military_tech,
-                                    size: 20,
-                                    color: Colors.amber,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'Badges',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.amber.shade100,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      '${_userBadges.length}',
-                                      style: TextStyle(
-                                        color: Colors.amber.shade700,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Wrap(
-                                spacing: 12,
-                                runSpacing: 12,
-                                children: _userBadges.map((ub) {
-                                  final badge =
-                                      ub['badges'] as Map<String, dynamic>;
-                                  return Tooltip(
-                                    message:
-                                        '${badge['name']}\n${badge['description']}',
-                                    child: Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.amber.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Colors.amber.shade200,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        badge['icon'] ?? '🏆',
-                                        style: const TextStyle(fontSize: 28),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
                           ),
                         ),
-                      ),
-                    ),
-
-                  // Challenge Button
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _challengePlayer,
-                        icon: const Icon(Icons.sports_kabaddi),
-                        label: Text('$username herausfordern'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
+                      ],
                     ),
                   ),
                 ],
@@ -451,36 +492,71 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     );
   }
 
-  Widget _buildStatCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
+  Widget _eloStat(String value, String label) {
+    return Column(
+      children: [
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold)),
+        const SizedBox(height: 2),
+        Text(label,
+            style:
+                const TextStyle(color: Colors.white60, fontSize: 11)),
+      ],
+    );
+  }
+
+  Widget _statCard(String value, String label, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            label,
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border:
+            Border.all(color: color.withOpacity(0.2), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
+      child: Column(
+        children: [
+          Text(value,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: color)),
+          const SizedBox(height: 3),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10, color: Colors.grey.shade500),
+              textAlign: TextAlign.center),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title, IconData icon, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 3,
+          height: 16,
+          decoration: BoxDecoration(
+              color: color, borderRadius: BorderRadius.circular(2)),
+        ),
+        const SizedBox(width: 10),
+        Icon(icon, color: color, size: 17),
+        const SizedBox(width: 6),
+        Text(title,
+            style: const TextStyle(
+                fontSize: 14, fontWeight: FontWeight.bold)),
+      ],
     );
   }
 
@@ -488,8 +564,9 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     final matchId = match['id'] as String;
     final status = match['status'] as String;
     final createdAt = match['created_at'] as String?;
-    final isFinished =
-        status == 'completed' || status == 'finalized' || status == 'finished';
+    final isFinished = status == 'completed' ||
+        status == 'finalized' ||
+        status == 'finished';
 
     bool? didWin;
     int? myScore;
@@ -497,46 +574,38 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
 
     if (isFinished && _matchScores.containsKey(matchId)) {
       final score = _matchScores[matchId]!;
-      final isPlayer1 = score['player1_id'] == _myId;
-      myScore = isPlayer1 ? score['player1_score'] : score['player2_score'];
-      opponentScore = isPlayer1
-          ? score['player2_score']
-          : score['player1_score'];
+      final isP1 = score['player1_id'] == _myId;
+      myScore = isP1 ? score['player1_score'] : score['player2_score'];
+      opponentScore =
+          isP1 ? score['player2_score'] : score['player1_score'];
       didWin = myScore! > opponentScore!;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+    final resultColor = didWin == null
+        ? Colors.grey
+        : didWin
+            ? Colors.green
+            : Colors.red;
+    final resultIcon = didWin == null
+        ? Icons.pending_rounded
+        : didWin
+            ? Icons.emoji_events_rounded
+            : Icons.close_rounded;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          // Icon
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: didWin == null
-                  ? Colors.grey.shade200
-                  : (didWin ? Colors.green.shade100 : Colors.red.shade100),
-              borderRadius: BorderRadius.circular(10),
+              color: resultColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              didWin == null
-                  ? Icons.pending
-                  : (didWin ? Icons.emoji_events : Icons.close),
-              color: didWin == null
-                  ? Colors.grey
-                  : (didWin ? Colors.green : Colors.red),
-              size: 20,
-            ),
+            child: Icon(resultIcon, color: resultColor, size: 20),
           ),
           const SizedBox(width: 12),
-          // Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,31 +613,47 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                 Text(
                   '#${matchId.substring(0, 6).toUpperCase()}',
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                      fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 Text(
                   _formatDate(createdAt),
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  style: TextStyle(
+                      color: Colors.grey.shade500, fontSize: 11),
                 ),
               ],
             ),
           ),
-          // Score
           if (didWin != null)
-            Text(
-              '$myScore : $opponentScore',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: didWin ? Colors.green : Colors.red,
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: resultColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: resultColor.withOpacity(0.25)),
+              ),
+              child: Text(
+                '$myScore : $opponentScore',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: resultColor,
+                    fontSize: 13),
               ),
             )
           else
-            Text(
-              status == 'active' ? 'Aktiv' : 'Offen',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                status == 'active' ? 'Aktiv' : 'Offen',
+                style: TextStyle(
+                    color: Colors.grey.shade600, fontSize: 11),
+              ),
             ),
         ],
       ),

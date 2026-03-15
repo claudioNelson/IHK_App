@@ -63,11 +63,10 @@ class AsyncDuelService {
     final q = await c
         .from('match_questions')
         .select(
-          'idx, frage_id, fragen:frage_id(id, frage, question_type, calculation_data, antworten(id, text, ist_richtig))',
+          'idx, frage_id, fragen:frage_id(id, frage, question_type, calculation_data, erklaerung, antworten(id, text, ist_richtig))',
         )
         .eq('match_id', matchId)
         .order('idx');
-
     final myId = c.auth.currentUser?.id;
     final myAnswers = (myId == null)
         ? <dynamic>[]
@@ -76,7 +75,6 @@ class AsyncDuelService {
               .select('idx, antwort_id, is_correct')
               .eq('match_id', matchId)
               .eq('user_id', myId);
-
     return {'questions': q, 'myAnswers': myAnswers};
   }
 

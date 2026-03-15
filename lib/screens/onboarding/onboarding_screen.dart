@@ -1,8 +1,11 @@
 // lib/screens/onboarding/onboarding_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_screen.dart';
+
+const _indigo = Color(0xFF4F46E5);
+const _indigoDark = Color(0xFF3730A3);
+const _indigoLight = Color(0xFF6366F1);
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -18,40 +21,42 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<_OnboardingData> _pages = [
     _OnboardingData(
       icon: Icons.quiz_rounded,
-      iconColor: Colors.indigo,
+      gradient: [Color(0xFF4F46E5), Color(0xFF6366F1)],
       title: 'Echte Prüfungsfragen',
       description:
           'Über 600 Fragen aus allen IHK-Themenbereichen — so wie sie in der echten Abschlussprüfung vorkommen.',
+      badge: '600+ Fragen',
     ),
     _OnboardingData(
       icon: Icons.assignment_rounded,
-      iconColor: Colors.blue,
+      gradient: [Color(0xFF2563EB), Color(0xFF3B82F6)],
       title: 'IHK Prüfungssimulation',
       description:
           'Simuliere die echte Abschlussprüfung mit Timer, Fragenübersicht und realistischen Bedingungen — für FIAE und FISI.',
+      badge: 'FIAE & FISI',
     ),
     _OnboardingData(
       icon: Icons.psychology_rounded,
-      iconColor: Colors.purple,
+      gradient: [Color(0xFF7C3AED), Color(0xFF8B5CF6)],
       title: 'KI-Tutor Ada',
       description:
           'Deine persönliche KI-Assistentin erklärt Lösungen, gibt Feedback und hilft dir gezielt bei Schwächen.',
+      badge: 'Powered by KI',
     ),
     _OnboardingData(
       icon: Icons.emoji_events_rounded,
-      iconColor: Colors.orange,
+      gradient: [Color(0xFFEA580C), Color(0xFFF97316)],
       title: 'Gegen andere antreten',
       description:
           'Fordere andere Azubis im AsyncMatch-Modus heraus und klettere in der Rangliste nach oben.',
+      badge: 'AsyncMatch',
     ),
   ];
 
   Future<void> _finishOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasSeenOnboarding', true);
-
     if (!mounted) return;
-
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const LoginScreen(),
@@ -64,24 +69,59 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final page = _pages[_currentPage];
+    final isLast = _currentPage == _pages.length - 1;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F5FF),
       body: SafeArea(
         child: Column(
           children: [
-            // Skip Button
-            Align(
-              alignment: Alignment.topRight,
-              child: TextButton(
-                onPressed: _finishOnboarding,
-                child: Text(
-                  'Überspringen',
-                  style: TextStyle(color: Colors.grey[500]),
-                ),
+            // ── Top Bar ─────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Logo
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                              colors: [_indigoDark, _indigo]),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.school_rounded,
+                            color: Colors.white, size: 16),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'IHK App',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: _indigoDark),
+                      ),
+                    ],
+                  ),
+                  // Skip
+                  TextButton(
+                    onPressed: _finishOnboarding,
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey.shade500,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                    ),
+                    child: const Text('Überspringen',
+                        style: TextStyle(fontSize: 13)),
+                  ),
+                ],
               ),
             ),
 
-            // Slides
+            // ── Slide ───────────────────────────────────────────
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -91,7 +131,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // Dots
+            // ── Dots ────────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
@@ -99,55 +139,123 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 (i) => AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _currentPage == i ? 24 : 8,
+                  width: _currentPage == i ? 28 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: _currentPage == i
-                        ? Colors.indigo
-                        : Colors.grey.shade300,
+                    gradient: _currentPage == i
+                        ? const LinearGradient(
+                            colors: [_indigoDark, _indigoLight])
+                        : null,
+                    color:
+                        _currentPage == i ? null : Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
-            // Button
+            // ── Button ──────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_currentPage < _pages.length - 1) {
-                      _pageController.nextPage(
-                        duration: const Duration(milliseconds: 350),
+              child: Row(
+                children: [
+                  // Zurück-Button (ab Seite 2)
+                  if (_currentPage > 0) ...[
+                    GestureDetector(
+                      onTap: () => _pageController.previousPage(
+                        duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
-                      );
-                    } else {
-                      _finishOnboarding();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                              color: Colors.grey.shade200, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2)),
+                          ],
+                        ),
+                        child: const Icon(Icons.arrow_back_rounded,
+                            color: _indigo, size: 22),
+                      ),
                     ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    _currentPage < _pages.length - 1
-                        ? 'Weiter'
-                        : 'Jetzt starten',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(width: 12),
+                  ],
+
+                  // Weiter / Starten Button
+                  Expanded(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      height: 52,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isLast
+                              ? [Colors.green.shade600, Colors.green.shade400]
+                              : page.gradient,
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isLast ? Colors.green : page.gradient[0])
+                                .withOpacity(0.35),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          onTap: () {
+                            if (!isLast) {
+                              _pageController.nextPage(
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeInOut,
+                              );
+                            } else {
+                              _finishOnboarding();
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(14),
+                          child: Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  isLast ? 'Jetzt starten' : 'Weiter',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  isLast
+                                      ? Icons.rocket_launch_rounded
+                                      : Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
 
@@ -159,19 +267,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
+// ── Data Model ────────────────────────────────────────────────────────────────
+
 class _OnboardingData {
   final IconData icon;
-  final Color iconColor;
+  final List<Color> gradient;
   final String title;
   final String description;
+  final String badge;
 
   const _OnboardingData({
     required this.icon,
-    required this.iconColor,
+    required this.gradient,
     required this.title,
     required this.description,
+    required this.badge,
   });
 }
+
+// ── Slide Widget ──────────────────────────────────────────────────────────────
 
 class _OnboardingSlide extends StatelessWidget {
   final _OnboardingData data;
@@ -180,20 +294,58 @@ class _OnboardingSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Icon Container mit Gradient + Glow
           Container(
-            width: 130,
-            height: 130,
+            width: 140,
+            height: 140,
             decoration: BoxDecoration(
-              color: data.iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(36),
+              gradient: LinearGradient(
+                colors: data.gradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(40),
+              boxShadow: [
+                BoxShadow(
+                  color: data.gradient[0].withOpacity(0.35),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-            child: Icon(data.icon, size: 70, color: data.iconColor),
+            child: Icon(data.icon, size: 72, color: Colors.white),
           ),
-          const SizedBox(height: 44),
+
+          const SizedBox(height: 32),
+
+          // Badge
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: data.gradient[0].withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+              border:
+                  Border.all(color: data.gradient[0].withOpacity(0.3)),
+            ),
+            child: Text(
+              data.badge,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: data.gradient[0],
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Titel
           Text(
             data.title,
             textAlign: TextAlign.center,
@@ -201,15 +353,19 @@ class _OnboardingSlide extends StatelessWidget {
               fontSize: 26,
               fontWeight: FontWeight.bold,
               color: Color(0xFF1A1A2E),
+              height: 1.2,
             ),
           ),
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 14),
+
+          // Beschreibung
           Text(
             data.description,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
+              fontSize: 15,
+              color: Colors.grey.shade600,
               height: 1.6,
             ),
           ),

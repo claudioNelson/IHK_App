@@ -3,255 +3,277 @@
 import 'package:flutter/material.dart';
 import 'exam_selection_screen.dart';
 
+const _indigo = Color(0xFF4F46E5);
+const _indigoDark = Color(0xFF3730A3);
+const _indigoLight = Color(0xFF6366F1);
+
 class SpecializationSelectionScreen extends StatelessWidget {
   const SpecializationSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue[700],
-        title: const Text(
-          'Prüfungssimulation',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blue[50]!, Colors.white],
+      backgroundColor: const Color(0xFFF5F5FF),
+      body: Column(
+        children: [
+          // ── HEADER ──────────────────────────────────────
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [_indigoDark, _indigo, _indigoLight],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.school_rounded,
+                          size: 38, color: Colors.white),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'IHK Abschlussprüfung',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Wähle deine Fachrichtung',
+                      style: TextStyle(
+                          color: Colors.white70, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Center(
+
+          // ── CONTENT ─────────────────────────────────────
+          Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 40),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo/Icon
+                  // Info
                   Container(
-                    width: 120,
-                    height: 120,
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blue.withValues(alpha: 0.3),
-                          spreadRadius: 5,
-                          blurRadius: 15,
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.school,
-                      size: 60,
-                      color: Colors.blue[700],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 32),
-                  
-                  // Titel
-                  const Text(
-                    'IHK Abschlussprüfung',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  Text(
-                    'Wähle deine Fachrichtung',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  
-                  const SizedBox(height: 48),
-                  
-                  // Anwendungsentwicklung Card
-                  _buildSpecializationCard(
-                    context: context,
-                    title: 'Anwendungsentwicklung',
-                    subtitle: 'Fachinformatiker AE',
-                    icon: Icons.code,
-                    color: Colors.blue,
-                    description: 'Softwareentwicklung, Programmierung, Datenbanken',
-                    specialization: 'AE',
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // Systemintegration Card
-                  _buildSpecializationCard(
-                    context: context,
-                    title: 'Systemintegration',
-                    subtitle: 'Fachinformatiker SI',
-                    icon: Icons.storage,
-                    color: Colors.green,
-                    description: 'Netzwerke, Server, IT-Infrastruktur',
-                    specialization: 'SI',
-                  ),
-                  
-                  const SizedBox(height: 32),
-                  
-                  // Info-Box
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue[200]!),
+                      color: _indigo.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: _indigo.withOpacity(0.15), width: 1.5),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.blue[700], size: 24),
-                        const SizedBox(width: 12),
-                        Expanded(
+                        const Icon(Icons.info_outline_rounded,
+                            color: _indigo, size: 18),
+                        const SizedBox(width: 10),
+                        const Expanded(
                           child: Text(
-                            'Wähle die Fachrichtung aus, für die du üben möchtest',
+                            'Wähle die Fachrichtung aus, für die du üben möchtest.',
                             style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.blue[900],
-                            ),
+                                fontSize: 13,
+                                color: _indigo,
+                                fontWeight: FontWeight.w500),
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 20),
+
+                  // AE Card
+                  _buildCard(
+                    context: context,
+                    title: 'Anwendungsentwicklung',
+                    subtitle: 'Fachinformatiker AE',
+                    icon: Icons.code_rounded,
+                    accentColor: const Color(0xFF1D4ED8),
+                    description:
+                        'Softwareentwicklung, Programmierung, Datenbanken',
+                    tags: ['Algorithmen', 'OOP', 'Datenbanken'],
+                    specialization: 'AE',
+                    examCount: 5,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // SI Card
+                  _buildCard(
+                    context: context,
+                    title: 'Systemintegration',
+                    subtitle: 'Fachinformatiker SI',
+                    icon: Icons.dns_rounded,
+                    accentColor: const Color(0xFF0F766E),
+                    description:
+                        'Netzwerke, Server, IT-Infrastruktur',
+                    tags: ['Netzwerke', 'Server', 'Security'],
+                    specialization: 'SI',
+                    examCount: 3,
+                  ),
                 ],
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildSpecializationCard({
+  Widget _buildCard({
     required BuildContext context,
     required String title,
     required String subtitle,
     required IconData icon,
-    required Color color,
+    required Color accentColor,
     required String description,
+    required List<String> tags,
     required String specialization,
+    required int examCount,
   }) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ExamSelectionScreen(
-              specialization: specialization,
-            ),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(20),
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ExamSelectionScreen(specialization: specialization),
+        ),
+      ),
       child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border:
+              Border.all(color: accentColor.withOpacity(0.2), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: color.withValues(alpha: 0.1),
-              spreadRadius: 2,
-              blurRadius: 10,
+              color: accentColor.withOpacity(0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
         child: Column(
           children: [
-            // Icon
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 48),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Titel
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            
-            const SizedBox(height: 4),
-            
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 16,
-                color: color.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            
-            const SizedBox(height: 12),
-            
-            // Beschreibung
-            Text(
-              description,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[700],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Button
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Auswählen',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+            Row(
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        colors: [accentColor, accentColor.withOpacity(0.7)]),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: accentColor.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, color: Colors.white, size: 20),
-                ],
-              ),
+                  child: Icon(icon, color: Colors.white, size: 30),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: accentColor)),
+                      Text(subtitle,
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: accentColor.withOpacity(0.7),
+                              fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 4),
+                      Text(description,
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                ...tags.map((tag) => Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: accentColor.withOpacity(0.07),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: accentColor.withOpacity(0.2)),
+                      ),
+                      child: Text(tag,
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: accentColor,
+                              fontWeight: FontWeight.w600)),
+                    )),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: accentColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: accentColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('$examCount Prüfungen',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_forward_rounded,
+                          color: Colors.white, size: 14),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -1,8 +1,11 @@
 // screens/exam_screens/exam_selection_screen.dart
-// AKTUALISIERTE VERSION - 6 Prüfungen pro Fachrichtung
 
 import 'package:flutter/material.dart';
 import 'exam_screen.dart';
+
+const _indigo = Color(0xFF4F46E5);
+const _indigoDark = Color(0xFF3730A3);
+const _indigoLight = Color(0xFF6366F1);
 
 class ExamSelectionScreen extends StatefulWidget {
   const ExamSelectionScreen({super.key, required this.specialization});
@@ -12,242 +15,303 @@ class ExamSelectionScreen extends StatefulWidget {
   State<ExamSelectionScreen> createState() => _ExamSelectionScreenState();
 }
 
-
 class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
-  String? selectedSpecialization; // null = keine Auswahl, 'ae' oder 'si'
+  String? selectedSpecialization;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue[700],
-        title: const Text(
-          'IHK Abschlussprüfungen',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        leading: selectedSpecialization != null
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  setState(() {
-                    selectedSpecialization = null;
-                  });
-                },
-              )
-            : null,
-      ),
-      body: selectedSpecialization == null
-          ? _buildSpecializationSelection()
-          : _buildExamList(),
-    );
-  }
-
-  // ========================================
-  // SCHRITT 1: Fachrichtung wählen
-  // ========================================
-  Widget _buildSpecializationSelection() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: const Color(0xFFF5F5FF),
+      body: Column(
         children: [
-          // Header
+          // ── HEADER ──────────────────────────────────────
           Container(
-            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue[700]!, Colors.blue[500]!],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
+                colors: selectedSpecialization == null
+                    ? const [_indigoDark, _indigo, _indigoLight]
+                    : selectedSpecialization == 'ae'
+                        ? [
+                            const Color(0xFF1E3A8A),
+                            const Color(0xFF1D4ED8),
+                            const Color(0xFF3B82F6)
+                          ]
+                        : [
+                            const Color(0xFF134E4A),
+                            const Color(0xFF0F766E),
+                            const Color(0xFF14B8A6)
+                          ],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+                child: Row(
                   children: [
-                    Icon(Icons.school, color: Colors.white, size: 32),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text(
-                        'Fachinformatiker',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                    if (selectedSpecialization != null)
+                      GestureDetector(
+                        onTap: () =>
+                            setState(() => selectedSpecialization = null),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          margin: const EdgeInsets.only(right: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.arrow_back_ios_rounded,
+                              color: Colors.white, size: 18),
                         ),
+                      )
+                    else
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          margin: const EdgeInsets.only(right: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.arrow_back_ios_rounded,
+                              color: Colors.white, size: 18),
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        selectedSpecialization == 'ae'
+                            ? Icons.code_rounded
+                            : selectedSpecialization == 'si'
+                                ? Icons.dns_rounded
+                                : Icons.school_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'IHK Abschlussprüfungen',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            selectedSpecialization == null
+                                ? 'Wähle deine Fachrichtung'
+                                : selectedSpecialization == 'ae'
+                                    ? 'Anwendungsentwicklung · FIAE'
+                                    : 'Systemintegration · FISI',
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 12),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Wähle deine Fachrichtung',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
 
-          const SizedBox(height: 32),
-
-          // Info-Box
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue[200]!),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.blue[700], size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Wähle deine Fachrichtung und starte die Prüfungssimulation',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.blue[900],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          // ── CONTENT ─────────────────────────────────────
+          Expanded(
+            child: selectedSpecialization == null
+                ? _buildSpecializationSelection()
+                : _buildExamList(),
           ),
-
-          const SizedBox(height: 32),
-
-          // Anwendungsentwicklung
-          _buildSpecializationCard(
-            title: 'Anwendungsentwicklung',
-            subtitle: 'FIAE',
-            description: 'Software entwickeln, Datenbanken modellieren, Algorithmen implementieren',
-            color: Colors.blue,
-            icon: Icons.code,
-            onTap: () {
-              setState(() {
-                selectedSpecialization = 'ae';
-              });
-            },
-          ),
-
-          const SizedBox(height: 20),
-
-          // Systemintegration
-          _buildSpecializationCard(
-            title: 'Systemintegration',
-            subtitle: 'FISI',
-            description: 'Netzwerke planen, Server administrieren, IT-Systeme betreuen',
-            color: Colors.teal,
-            icon: Icons.dns,
-            onTap: () {
-              setState(() {
-                selectedSpecialization = 'si';
-              });
-            },
-          ),
-
-          const SizedBox(height: 40),
         ],
       ),
     );
   }
 
-  Widget _buildSpecializationCard({
+  Widget _buildSpecializationSelection() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Info Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _indigo.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                  color: _indigo.withOpacity(0.15), width: 1.5),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _indigo.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child:
+                      const Icon(Icons.info_outline_rounded, color: _indigo, size: 20),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Wähle deine Fachrichtung um die passenden Abschlussprüfungen zu sehen.',
+                    style: TextStyle(fontSize: 13, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          _buildSpecCard(
+            title: 'Anwendungsentwicklung',
+            subtitle: 'FIAE',
+            description:
+                'Software entwickeln, Datenbanken modellieren, Algorithmen implementieren',
+            accentColor: const Color(0xFF1D4ED8),
+            lightColor: const Color(0xFFEFF6FF),
+            icon: Icons.code_rounded,
+            examCount: 5,
+            onTap: () =>
+                setState(() => selectedSpecialization = 'ae'),
+          ),
+
+          const SizedBox(height: 16),
+
+          _buildSpecCard(
+            title: 'Systemintegration',
+            subtitle: 'FISI',
+            description:
+                'Netzwerke planen, Server administrieren, IT-Systeme betreuen',
+            accentColor: const Color(0xFF0F766E),
+            lightColor: const Color(0xFFF0FDFA),
+            icon: Icons.dns_rounded,
+            examCount: 3,
+            onTap: () =>
+                setState(() => selectedSpecialization = 'si'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpecCard({
     required String title,
     required String subtitle,
     required String description,
-    required Color color,
+    required Color accentColor,
+    required Color lightColor,
     required IconData icon,
+    required int examCount,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: accentColor.withOpacity(0.2), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
-              spreadRadius: 2,
-              blurRadius: 8,
+              color: accentColor.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(
+                    colors: [accentColor, accentColor.withOpacity(0.7)]),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: accentColor.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: Icon(icon, color: color, size: 32),
+              child: Icon(icon, color: Colors.white, size: 28),
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: color,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: color.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text(title,
+                      style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: accentColor)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: accentColor.withOpacity(0.7),
+                          fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Text(description,
+                      style: TextStyle(
+                          fontSize: 12, color: Colors.grey.shade600),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: accentColor.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$examCount Prüfungen verfügbar',
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: accentColor,
+                          fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: color,
-              size: 24,
-            ),
+            Icon(Icons.chevron_right_rounded,
+                color: accentColor, size: 26),
           ],
         ),
       ),
     );
   }
 
-  // ========================================
-  // SCHRITT 2: Prüfungen anzeigen (6 Stück!)
-  // ========================================
   Widget _buildExamList() {
     final isAE = selectedSpecialization == 'ae';
-    final color = isAE ? Colors.blue : Colors.teal;
-    final title = isAE ? 'Anwendungsentwicklung' : 'Systemintegration';
-    final subtitle = isAE ? 'FIAE' : 'FISI';
+    final accentColor =
+        isAE ? const Color(0xFF1D4ED8) : const Color(0xFF0F766E);
 
-    // 6 Prüfungen pro Fachrichtung!
     final exams = isAE
         ? [
             {
@@ -255,194 +319,139 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
               'title': 'Winter 2016/17',
               'subtitle': 'CargoTech GmbH',
               'description': 'LKW-Logistik & Lieferverwaltung',
-              'status': 'Verfügbar',
+              'available': true,
             },
             {
               'id': 'ae_exam_2',
               'title': 'Sommer 2017',
               'subtitle': 'VisionSec GmbH',
               'description': 'Gesichtserkennung & Biometrie',
-              'status': 'Verfügbar',
+              'available': true,
             },
             {
               'id': 'ae_exam_3',
-              'title': '2020-2021',
+              'title': '2020–2021',
               'subtitle': 'OOP-Konzepte',
               'description': 'Objektorientierte Programmierung',
-              'status': 'Verfügbar',
+              'available': true,
             },
             {
               'id': 'ae_exam_4',
-              'title': '2022-2023',
+              'title': '2022–2023',
               'subtitle': 'Algorithmen',
               'description': 'Sortieralgorithmen & Komplexität',
-              'status': 'Verfügbar',
+              'available': true,
             },
             {
               'id': 'ae_exam_5',
-              'title': '2024-2025',
+              'title': '2024–2025',
               'subtitle': 'Vollständige Prüfung',
               'description': 'Fahrradverleih-System (komplett)',
-              'status': 'Verfügbar',
+              'available': true,
             },
             {
               'id': 'ae_exam_6',
               'title': 'Prüfung 6',
-              'subtitle': 'Noch nicht verfügbar',
+              'subtitle': 'Demnächst',
               'description': 'Wird bald hinzugefügt',
-              'status': 'Placeholder',
+              'available': false,
             },
           ]
         : [
             {
               'id': 'si_exam_1',
-              'title': '2020-2021',
+              'title': '2020–2021',
               'subtitle': 'Netzwerktechnik',
               'description': 'OSI-Modell & TCP/IP',
-              'status': 'Verfügbar',
+              'available': true,
             },
             {
               'id': 'si_exam_2',
-              'title': '2022-2023',
+              'title': '2022–2023',
               'subtitle': 'Netzwerkplanung',
               'description': 'Subnetting & VLANs',
-              'status': 'Verfügbar',
+              'available': true,
             },
             {
               'id': 'si_exam_3',
-              'title': '2024-2025',
+              'title': '2024–2025',
               'subtitle': 'IT-Sicherheit',
               'description': 'Firewalls & VPN',
-              'status': 'Verfügbar',
+              'available': true,
             },
             {
               'id': 'si_exam_4',
               'title': 'Prüfung 4',
-              'subtitle': 'Noch nicht verfügbar',
+              'subtitle': 'Demnächst',
               'description': 'Wird bald hinzugefügt',
-              'status': 'Placeholder',
+              'available': false,
             },
             {
               'id': 'si_exam_5',
               'title': 'Prüfung 5',
-              'subtitle': 'Noch nicht verfügbar',
+              'subtitle': 'Demnächst',
               'description': 'Wird bald hinzugefügt',
-              'status': 'Placeholder',
+              'available': false,
             },
             {
               'id': 'si_exam_6',
               'title': 'Prüfung 6',
-              'subtitle': 'Noch nicht verfügbar',
+              'subtitle': 'Demnächst',
               'description': 'Wird bald hinzugefügt',
-              'status': 'Placeholder',
+              'available': false,
             },
           ];
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(20),
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+      itemCount: exams.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          // Info Banner
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color.shade700, color.shade500],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      isAE ? Icons.code : Icons.dns,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            subtitle,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white.withValues(alpha: 0.9),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Info-Box
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: color.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.shade200),
+              color: accentColor.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                  color: accentColor.withOpacity(0.15), width: 1.5),
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: color.shade700, size: 24),
-                const SizedBox(width: 12),
+                Icon(Icons.info_outline_rounded,
+                    color: accentColor, size: 18),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Wähle eine Abschlussprüfung und starte die Simulation',
+                    'Wähle eine Prüfung und starte die Simulation (90 Min)',
                     style: TextStyle(
-                      fontSize: 14,
-                      color: color.shade900,
-                    ),
+                        fontSize: 12,
+                        color: accentColor,
+                        fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
             ),
-          ),
+          );
+        }
 
-          const SizedBox(height: 24),
+        final exam = exams[index - 1];
+        final number = index;
+        final isAvailable = exam['available'] as bool;
+        final examId = exam['id'] as String;
 
-          // Prüfungen
-          ...exams.asMap().entries.map((entry) {
-            final index = entry.key;
-            final exam = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _buildExamCard(
-                number: index + 1,
-                title: exam['title']!,
-                subtitle: exam['subtitle']!,
-                description: exam['description']!,
-                color: color,
-                examId: exam['id']!,
-                isAvailable: exam['status'] == 'Verfügbar',
-              ),
-            );
-          }),
-
-          const SizedBox(height: 40),
-        ],
-      ),
+        return _buildExamCard(
+          number: number,
+          title: exam['title'] as String,
+          subtitle: exam['subtitle'] as String,
+          description: exam['description'] as String,
+          accentColor: accentColor,
+          examId: examId,
+          isAvailable: isAvailable,
+        );
+      },
     );
   }
 
@@ -451,63 +460,78 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
     required String title,
     required String subtitle,
     required String description,
-    required Color color,
+    required Color accentColor,
     required String examId,
     required bool isAvailable,
   }) {
-    return InkWell(
+    return GestureDetector(
       onTap: isAvailable
-          ? () {
-              Navigator.push(
+          ? () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ExamScreen(examId: examId),
-                ),
-              );
-            }
+                    builder: (context) =>
+                        ExamScreen(examId: examId)),
+              )
           : null,
-      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isAvailable ? color.withValues(alpha: 0.3) : Colors.grey[300]!,
+            color: isAvailable
+                ? accentColor.withOpacity(0.2)
+                : Colors.grey.shade200,
+            width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
-              spreadRadius: 2,
-              blurRadius: 8,
+              color: isAvailable
+                  ? accentColor.withOpacity(0.06)
+                  : Colors.transparent,
+              blurRadius: 12,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Row(
           children: [
-            // Nummer
+            // Number badge
             Container(
-              width: 50,
-              height: 50,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
-                color: isAvailable ? color.withValues(alpha: 0.1) : Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
+                gradient: isAvailable
+                    ? LinearGradient(
+                        colors: [accentColor, accentColor.withOpacity(0.7)])
+                    : null,
+                color: isAvailable ? null : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: isAvailable
+                    ? [
+                        BoxShadow(
+                          color: accentColor.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        )
+                      ]
+                    : null,
               ),
               child: Center(
-                child: Text(
-                  '$number',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: isAvailable ? color : Colors.grey[400],
-                  ),
-                ),
+                child: isAvailable
+                    ? Text(
+                        '$number',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20),
+                      )
+                    : Icon(Icons.lock_rounded,
+                        color: Colors.grey.shade400, size: 20),
               ),
             ),
-
-            const SizedBox(width: 16),
-
-            // Content
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,49 +539,46 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isAvailable ? color : Colors.grey[600],
-                    ),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isAvailable
+                            ? accentColor
+                            : Colors.grey.shade500),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 14,
-                      color: isAvailable ? color.withValues(alpha: 0.7) : Colors.grey[500],
-                      fontWeight: FontWeight.w600,
-                    ),
+                        fontSize: 12,
+                        color: isAvailable
+                            ? accentColor.withOpacity(0.7)
+                            : Colors.grey.shade400,
+                        fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     description,
                     style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
+                        fontSize: 12, color: Colors.grey.shade600),
                   ),
                   if (isAvailable) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
-                        _buildInfoBadge(Icons.timer, '90 Min', color),
-                        const SizedBox(width: 8),
-                        _buildInfoBadge(Icons.stars, '125 P', color),
+                        _badge(Icons.timer_rounded, '90 Min', accentColor),
+                        const SizedBox(width: 6),
+                        _badge(Icons.stars_rounded, '125 P', accentColor),
                       ],
                     ),
                   ],
                 ],
               ),
             ),
-
-            const SizedBox(width: 12),
-
-            // Arrow / Lock
             Icon(
-              isAvailable ? Icons.arrow_forward_ios : Icons.lock,
-              color: isAvailable ? color : Colors.grey[400],
-              size: 24,
+              isAvailable
+                  ? Icons.arrow_forward_ios_rounded
+                  : Icons.lock_rounded,
+              color: isAvailable ? accentColor : Colors.grey.shade300,
+              size: 18,
             ),
           ],
         ),
@@ -565,27 +586,24 @@ class _ExamSelectionScreenState extends State<ExamSelectionScreen> {
     );
   }
 
-  Widget _buildInfoBadge(IconData icon, String text, Color color) {
+  Widget _badge(IconData icon, String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 11,
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 3),
+          Text(text,
+              style: TextStyle(
+                  fontSize: 10,
+                  color: color,
+                  fontWeight: FontWeight.w600)),
         ],
       ),
     );

@@ -1,8 +1,11 @@
+// lib/pages/pruefung/ap1_halbjahrespruefung_page.dart
 import 'package:flutter/material.dart';
-
-// Passe diese Imports an deinen Pfad an:
 import 'package:ihk_app/widgets/rechenaufgaben_widget.dart';
 import 'package:ihk_app/widgets/tabellen_widget.dart';
+
+const _indigo = Color(0xFF4F46E5);
+const _indigoDark = Color(0xFF3730A3);
+const _indigoLight = Color(0xFF6366F1);
 
 class Ap1HalbjahrespruefungPage extends StatefulWidget {
   const Ap1HalbjahrespruefungPage({super.key});
@@ -12,28 +15,42 @@ class Ap1HalbjahrespruefungPage extends StatefulWidget {
       _Ap1HalbjahrespruefungPageState();
 }
 
-class _Ap1HalbjahrespruefungPageState extends State<Ap1HalbjahrespruefungPage> {
+class _Ap1HalbjahrespruefungPageState
+    extends State<Ap1HalbjahrespruefungPage> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
 
-  // Hier sammeln wir alle Antworten – kannst du später in Supabase/Datenbank speichern.
   final Map<String, dynamic> _antworten = {};
+
+  static const List<_AufgabeInfo> _aufgaben = [
+    _AufgabeInfo('💼', 'OfficeMedia GmbH', 'Multifunktionsgerät'),
+    _AufgabeInfo('☁️', 'CodeCraft Solutions', 'Software-Abos'),
+    _AufgabeInfo('🖧', 'NetConnect IT', 'Server & Hosting'),
+  ];
 
   void _goToPage(int index) {
     setState(() => _currentIndex = index);
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
   }
 
   void _speichern() {
-    // Hier könntest du Supabase-Insert/Update machen
-    debugPrint('Antworten Prüfungsdurchlauf: $_antworten');
+    debugPrint('Antworten: $_antworten');
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Antworten lokal gespeichert (Demo).'),
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Text('Antworten gespeichert!'),
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -41,297 +58,352 @@ class _Ap1HalbjahrespruefungPageState extends State<Ap1HalbjahrespruefungPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('AP1 – Halbjahresprüfung Simulation'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _speichern,
-            tooltip: 'Antworten speichern',
-          ),
-        ],
-      ),
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() => _currentIndex = index);
-        },
+      backgroundColor: const Color(0xFFF5F5FF),
+      body: Column(
         children: [
-          _buildAufgabe1(),
-          _buildAufgabe2(),
-          _buildAufgabe3(),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _goToPage,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.filter_1),
-            label: 'Aufgabe 1',
+          // ── Header ──────────────────────────────────────────────────────
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [_indigoDark, _indigo, _indigoLight],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 16, 16),
+                child: Column(
+                  children: [
+                    // Title Row
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_rounded,
+                              color: Colors.white, size: 20),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const Expanded(
+                          child: Text(
+                            'AP1 – Halbjahresprüfung',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.save_rounded,
+                              color: Colors.white),
+                          tooltip: 'Antworten speichern',
+                          onPressed: _speichern,
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Aufgaben-Tabs (als Chips)
+                    Row(
+                      children: List.generate(_aufgaben.length, (i) {
+                        final isActive = i == _currentIndex;
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () => _goToPage(i),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: EdgeInsets.only(
+                                  left: i == 0 ? 8 : 4,
+                                  right: i == _aufgaben.length - 1 ? 8 : 4),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 6),
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _aufgaben[i].emoji,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Aufgabe ${i + 1}',
+                                    style: TextStyle(
+                                      color: isActive
+                                          ? _indigo
+                                          : Colors.white70,
+                                      fontSize: 11,
+                                      fontWeight: isActive
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.filter_2),
-            label: 'Aufgabe 2',
+
+          // ── Aufgaben-Titel ───────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Row(
+                key: ValueKey(_currentIndex),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(9),
+                    decoration: BoxDecoration(
+                      color: _indigo.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(_aufgaben[_currentIndex].emoji,
+                        style: const TextStyle(fontSize: 18)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Aufgabe ${_currentIndex + 1} – ${_aufgaben[_currentIndex].firma}',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          _aufgaben[_currentIndex].thema,
+                          style: TextStyle(
+                              color: Colors.grey.shade600, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Pfeile
+                  if (_currentIndex > 0)
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left_rounded,
+                          color: _indigo),
+                      onPressed: () => _goToPage(_currentIndex - 1),
+                    ),
+                  if (_currentIndex < _aufgaben.length - 1)
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right_rounded,
+                          color: _indigo),
+                      onPressed: () => _goToPage(_currentIndex + 1),
+                    ),
+                ],
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.filter_3),
-            label: 'Aufgabe 3',
+
+          // ── PageView ─────────────────────────────────────────────────────
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              onPageChanged: (index) => setState(() => _currentIndex = index),
+              children: [
+                _buildAufgabe1(),
+                _buildAufgabe2(),
+                _buildAufgabe3(),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ------------------ AUFGABE 1 ------------------
+  // ─── AUFGABE 1 ──────────────────────────────────────────────────────────────
 
   Widget _buildAufgabe1() {
-    return ListView(
-      children: [
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            'Aufgabe 1 – OfficeMedia GmbH (Multifunktionsgerät)',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
-
-        // 1a) Entscheidungsmatrix – TabellenWidget
-        TabellenWidget(
-          frage:
-              'Die OfficeMedia GmbH möchte ein neues Multifunktionsgerät für das Büro '
-              'anschaffen. Drei Modelle stehen zur Auswahl.\n\n'
-              'Bewerten Sie die drei Geräte anhand der vorgegebenen Kriterien. '
-              'Vergeben Sie je Kriterium pro Zeile die Werte von 1 bis 3, wobei '
-              '3 den besten und 1 den schlechtesten Wert darstellt. Jedes Gerät '
-              'darf je Kriterium nur einmal vorkommen.',
-          punkte: 6,
-          kriterien: const [
-            'Anschaffungskosten',
-            'Druckkosten je Seite (S/W)',
-            'Druckkosten je Seite (Farbe)',
-            'Druckgeschwindigkeit',
-            'Scan-Geschwindigkeit',
-            'Wartungsaufwand',
-          ],
-          optionen: const [
-            'Gerät A',
-            'Gerät B',
-            'Gerät C',
-          ],
-          bewertungsSkala: const [1, 2, 3],
-          hinweis:
-              'Nutzen Sie zur Bewertung die technischen Daten aus der Aufgabenstellung '
-              'bzw. Anlage. Pro Zeile: 3 = bestes Gerät, 1 = schlechtestes Gerät.',
-          zeigeSumme: true,
-          onAnswerChanged: (bewertungen) {
-            _antworten['aufgabe1_matrix'] = bewertungen;
-          },
-        ),
-
-        // 1b) Rechenaufgabe – Druckkosten
-        RechenaufgabenWidget(
-          frage: 'Im letzten Monat wurden mit dem bisherigen Gerät insgesamt '
-              '18.400 Seiten gedruckt. Davon waren 13.600 Seiten in Schwarz-Weiß '
-              'und 4.800 Seiten in Farbe.\n\n'
-              'Die Kosten betragen:\n'
-              '• 0,04 EUR je S/W-Seite\n'
-              '• 0,09 EUR je Farbseite\n\n'
-              'Berechnen Sie die gesamten Druckkosten des letzten Monats und geben Sie '
-              'Ihren Rechenweg an.',
-          punkte: 3,
-          hinweis: 'S/W-Seiten: 13.600 × 0,04 EUR\n'
-              'Farbseiten: 4.800 × 0,09 EUR\n'
-              'Gesamtkosten = Kosten S/W + Kosten Farbe',
-          zeigeRechenweg: true,
-          onAnswerChanged: (antwort, rechenweg) {
-            _antworten['aufgabe1_druckkosten'] = {
-              'antwort': antwort,
-              'rechenweg': rechenweg,
-            };
-          },
-        ),
-      ],
-    );
+    return _AufgabeScroll(children: [
+      TabellenWidget(
+        frage:
+            'Die OfficeMedia GmbH möchte ein neues Multifunktionsgerät für das Büro '
+            'anschaffen. Drei Modelle stehen zur Auswahl.\n\n'
+            'Bewerten Sie die drei Geräte anhand der vorgegebenen Kriterien. '
+            'Vergeben Sie je Kriterium pro Zeile die Werte von 1 bis 3, wobei '
+            '3 den besten und 1 den schlechtesten Wert darstellt.',
+        punkte: 6,
+        kriterien: const [
+          'Anschaffungskosten',
+          'Druckkosten je Seite (S/W)',
+          'Druckkosten je Seite (Farbe)',
+          'Druckgeschwindigkeit',
+          'Scan-Geschwindigkeit',
+          'Wartungsaufwand',
+        ],
+        optionen: const ['Gerät A', 'Gerät B', 'Gerät C'],
+        bewertungsSkala: const [1, 2, 3],
+        hinweis:
+            'Pro Zeile: 3 = bestes Gerät, 1 = schlechtestes Gerät.',
+        zeigeSumme: true,
+        onAnswerChanged: (b) => _antworten['aufgabe1_matrix'] = b,
+      ),
+      RechenaufgabenWidget(
+        frage:
+            'Im letzten Monat wurden 18.400 Seiten gedruckt. Davon 13.600 Seiten '
+            'S/W (0,04 EUR/Seite) und 4.800 Seiten Farbe (0,09 EUR/Seite).\n\n'
+            'Berechnen Sie die gesamten Druckkosten und geben Sie den Rechenweg an.',
+        punkte: 3,
+        hinweis:
+            'S/W: 13.600 × 0,04 EUR | Farbe: 4.800 × 0,09 EUR | Summe beider',
+        zeigeRechenweg: true,
+        onAnswerChanged: (a, r) =>
+            _antworten['aufgabe1_druckkosten'] = {'antwort': a, 'rechenweg': r},
+      ),
+    ]);
   }
 
-  // ------------------ AUFGABE 2 ------------------
+  // ─── AUFGABE 2 ──────────────────────────────────────────────────────────────
 
   Widget _buildAufgabe2() {
-    return ListView(
-      children: [
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            'Aufgabe 2 – CodeCraft Solutions (Software-Abos)',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
-
-        // 2a) Staffelpreis-Lizenzen
-        RechenaufgabenWidget(
-          frage: 'Die CodeCraft Solutions GmbH bietet ein Projektmanagement-Tool im '
-              'Abo-Modell an.\n\n'
-              'Preisstruktur pro Benutzer und Monat:\n'
-              '• Benutzer 1–15: 22,00 EUR je Benutzer\n'
-              '• Benutzer ab dem 16.: 15,00 EUR je Benutzer\n\n'
-              'Ein Kunde möchte 28 Benutzerlizenzen buchen.\n'
-              'Berechnen Sie die monatlichen Gesamtkosten für diesen Kunden und geben '
-              'Sie Ihren Rechenweg an.',
-          punkte: 4,
-          hinweis: 'Gesamtkosten = (15 × 22,00 EUR) + (13 × 15,00 EUR)',
-          zeigeRechenweg: true,
-          onAnswerChanged: (antwort, rechenweg) {
-            _antworten['aufgabe2_staffel'] = {
-              'antwort': antwort,
-              'rechenweg': rechenweg,
-            };
-          },
-        ),
-
-        // 2b) Jahreskosten mit Skonto
-        RechenaufgabenWidget(
-          frage: 'Für einen anderen Kunden berechnet CodeCraft Solutions monatlich '
-              '18 Lizenzen zu je 24,00 EUR.\n'
-              'Wenn der Kunde die Gebühr für ein ganzes Jahr im Voraus bezahlt, '
-              'erhält er 6 % Skonto auf die Jahressumme.\n\n'
-              'Berechnen Sie die zu zahlende Jahressumme nach Abzug des Skontos und '
-              'geben Sie den Rechenweg an.',
-          punkte: 3,
-          hinweis: 'Monatskosten = 18 × 24,00 EUR\n'
-              'Jahreskosten = Monatskosten × 12\n'
-              'Skonto: 6 % auf Jahreskosten',
-          zeigeRechenweg: true,
-          onAnswerChanged: (antwort, rechenweg) {
-            _antworten['aufgabe2_skonto'] = {
-              'antwort': antwort,
-              'rechenweg': rechenweg,
-            };
-          },
-        ),
-
-        // 2c) Tabelle – Tarife vergleichen
-        TabellenWidget(
-          frage: 'Ein Systemhaus sucht einen geeigneten Cloud-Backup-Anbieter für seine '
-              'Kunden. Drei Tarife eines Anbieters kommen in die engere Auswahl.\n\n'
-              'Bewerten Sie die Tarife anhand der genannten Kriterien. Vergeben Sie je '
-              'Kriterium pro Zeile einmal die Werte 1, 2 und 3, wobei 3 den günstigsten '
-              'bzw. vorteilhaftesten Tarif und 1 den ungünstigsten Tarif beschreibt.',
-          punkte: 5,
-          kriterien: const [
-            'Monatliche Kosten',
-            'Verfügbare Speichergröße',
-            'Garantierte Verfügbarkeit (SLA)',
-            'Supportzeiten',
-            'Skalierbarkeit/Erweiterbarkeit',
-          ],
-          optionen: const [
-            'Tarif Standard',
-            'Tarif Business',
-            'Tarif Premium',
-          ],
-          bewertungsSkala: const [1, 2, 3],
-          hinweis:
-              'Bei „Monatliche Kosten“ erhält der günstigste Tarif die 3, der teuerste die 1. '
-              'Bei „Verfügbarkeit“ erhält die höchste Verfügbarkeit die 3 usw.',
-          zeigeSumme: true,
-          onAnswerChanged: (bewertungen) {
-            _antworten['aufgabe2_matrix'] = bewertungen;
-          },
-        ),
-      ],
-    );
+    return _AufgabeScroll(children: [
+      RechenaufgabenWidget(
+        frage:
+            'CodeCraft Solutions bietet ein Projektmanagement-Tool im Abo-Modell:\n'
+            '• Benutzer 1–15: 22,00 EUR/Benutzer/Monat\n'
+            '• Ab dem 16. Benutzer: 15,00 EUR/Benutzer/Monat\n\n'
+            'Ein Kunde bucht 28 Benutzerlizenzen. Berechnen Sie die monatlichen '
+            'Gesamtkosten mit Rechenweg.',
+        punkte: 4,
+        hinweis: '(15 × 22,00 EUR) + (13 × 15,00 EUR)',
+        zeigeRechenweg: true,
+        onAnswerChanged: (a, r) =>
+            _antworten['aufgabe2_staffel'] = {'antwort': a, 'rechenweg': r},
+      ),
+      RechenaufgabenWidget(
+        frage:
+            'Ein Kunde hat 18 Lizenzen à 24,00 EUR/Monat. Bei Jahreszahlung erhält '
+            'er 6 % Skonto auf die Jahressumme.\n\n'
+            'Berechnen Sie die zu zahlende Jahressumme nach Skonto.',
+        punkte: 3,
+        hinweis:
+            'Monatskosten = 18 × 24,00 EUR | Jahreskosten × 12 | – 6 % Skonto',
+        zeigeRechenweg: true,
+        onAnswerChanged: (a, r) =>
+            _antworten['aufgabe2_skonto'] = {'antwort': a, 'rechenweg': r},
+      ),
+      TabellenWidget(
+        frage:
+            'Ein Systemhaus sucht einen Cloud-Backup-Anbieter. Drei Tarife kommen in '
+            'die Auswahl.\n\n'
+            'Bewerten Sie die Tarife (3 = vorteilhaftester, 1 = ungünstigster).',
+        punkte: 5,
+        kriterien: const [
+          'Monatliche Kosten',
+          'Verfügbare Speichergröße',
+          'Garantierte Verfügbarkeit (SLA)',
+          'Supportzeiten',
+          'Skalierbarkeit/Erweiterbarkeit',
+        ],
+        optionen: const ['Tarif Standard', 'Tarif Business', 'Tarif Premium'],
+        bewertungsSkala: const [1, 2, 3],
+        hinweis:
+            'Monatliche Kosten: günstigster = 3. Verfügbarkeit: höchste = 3.',
+        zeigeSumme: true,
+        onAnswerChanged: (b) => _antworten['aufgabe2_matrix'] = b,
+      ),
+    ]);
   }
 
-  // ------------------ AUFGABE 3 ------------------
+  // ─── AUFGABE 3 ──────────────────────────────────────────────────────────────
 
   Widget _buildAufgabe3() {
+    return _AufgabeScroll(children: [
+      RechenaufgabenWidget(
+        frage:
+            'Die NetConnect IT GmbH betreibt einen Server im RZ:\n'
+            '• Strom: 145,00 EUR/Monat\n'
+            '• Rackmiete: 210,00 EUR/Monat\n'
+            '• Monitoring: 55,00 EUR/Monat\n'
+            '• Einmalige Einrichtung: 480,00 EUR (über 3 Jahre)\n\n'
+            'Berechnen Sie die durchschnittlichen monatlichen Gesamtkosten über 3 Jahre.',
+        punkte: 3,
+        hinweis:
+            '36 Monate | Fixkosten: 145 + 210 + 55 | Einrichtung: 480 / 36',
+        zeigeRechenweg: true,
+        onAnswerChanged: (a, r) =>
+            _antworten['aufgabe3_server'] = {'antwort': a, 'rechenweg': r},
+      ),
+      RechenaufgabenWidget(
+        frage:
+            'Pro Monat laufen 12 Kundenprojekte über den Server. Die monatlichen '
+            'Gesamtkosten betragen 1.020,00 EUR.\n\n'
+            'Berechnen Sie die Serverkosten pro Projekt und Monat (2 Nachkommastellen).',
+        punkte: 4,
+        hinweis: '1.020,00 EUR / 12',
+        zeigeRechenweg: true,
+        onAnswerChanged: (a, r) =>
+            _antworten['aufgabe3_projekt'] = {'antwort': a, 'rechenweg': r},
+      ),
+      TabellenWidget(
+        frage:
+            'Ein Start-up wählt ein Hosting-Modell (Webhosting, vServer, PaaS).\n\n'
+            'Bewerten Sie die Varianten (3 = vorteilhafteste, 1 = ungünstigste).',
+        punkte: 5,
+        kriterien: const [
+          'Einrichtung/Aufwand',
+          'Laufende Kosten',
+          'Skalierbarkeit',
+          'Administrationsaufwand',
+          'Flexibilität der Konfiguration',
+        ],
+        optionen: const ['Webhosting', 'vServer', 'PaaS'],
+        bewertungsSkala: const [1, 2, 3],
+        hinweis:
+            'Perspektive des Start-ups: wenig Personal, begrenztes Budget, Wachstum möglich.',
+        zeigeSumme: true,
+        onAnswerChanged: (b) => _antworten['aufgabe3_hosting_matrix'] = b,
+      ),
+    ]);
+  }
+}
+
+// ─── Helper Widgets ────────────────────────────────────────────────────────────
+
+class _AufgabeScroll extends StatelessWidget {
+  final List<Widget> children;
+
+  const _AufgabeScroll({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
     return ListView(
-      children: [
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            'Aufgabe 3 – NetConnect IT (Server & Hosting)',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
-
-        // 3a) Serverkosten über Laufzeit
-        RechenaufgabenWidget(
-          frage: 'Die NetConnect IT GmbH betreibt einen Anwendungsserver im Rechenzentrum.\n\n'
-              'Kostenstruktur:\n'
-              '• Stromkosten: 145,00 EUR pro Monat\n'
-              '• Miete Rackplatz: 210,00 EUR pro Monat\n'
-              '• Monitoring-Service: 55,00 EUR pro Monat\n'
-              '• Einmalige Einrichtungsgebühr: 480,00 EUR (Berechnung über 3 Jahre)\n\n'
-              'Berechnen Sie die durchschnittlichen monatlichen Gesamtkosten des '
-              'Servers über den Zeitraum von drei Jahren und geben Sie Ihren '
-              'Rechenweg an.',
-          punkte: 3,
-          hinweis: 'Zeitraum: 36 Monate\n'
-              'Monatliche Fixkosten: 145 + 210 + 55\n'
-              'Einrichtungskosten: 480 / 36 Monate',
-          zeigeRechenweg: true,
-          onAnswerChanged: (antwort, rechenweg) {
-            _antworten['aufgabe3_server'] = {
-              'antwort': antwort,
-              'rechenweg': rechenweg,
-            };
-          },
-        ),
-
-        // 3b) Kosten je Projekt
-        RechenaufgabenWidget(
-          frage: 'Im Durchschnitt laufen pro Monat 12 Kundenprojekte über den Server '
-              'der NetConnect IT GmbH.\n'
-              'Die durchschnittlichen monatlichen Gesamtkosten des Servers wurden mit '
-              '1.020,00 EUR ermittelt.\n\n'
-              'Berechnen Sie die durchschnittlichen Serverkosten pro Projekt und Monat '
-              'und geben Sie den Rechenweg an. Runden Sie auf zwei Nachkommastellen.',
-          punkte: 4,
-          hinweis: 'Kosten je Projekt = 1.020,00 EUR / 12',
-          zeigeRechenweg: true,
-          onAnswerChanged: (antwort, rechenweg) {
-            _antworten['aufgabe3_projekt'] = {
-              'antwort': antwort,
-              'rechenweg': rechenweg,
-            };
-          },
-        ),
-
-        // 3c) Hosting-Entscheidungsmatrix
-        TabellenWidget(
-          frage: 'Ein Start-up möchte seine neue Webanwendung bereitstellen und überlegt, '
-              'welches Hosting-Modell verwendet werden soll.\n\n'
-              'Es stehen drei Varianten zur Auswahl: klassisches Webhosting, '
-              'virtueller Server (vServer) und Plattform-as-a-Service (PaaS).\n\n'
-              'Bewerten Sie die Varianten für jedes Kriterium mit den Werten 1 bis 3, '
-              'wobei 3 jeweils die günstigste bzw. vorteilhafteste Variante darstellt.',
-          punkte: 5,
-          kriterien: const [
-            'Einrichtung/Aufwand',
-            'Laufende Kosten',
-            'Skalierbarkeit',
-            'Administrationsaufwand',
-            'Flexibilität der Konfiguration',
-          ],
-          optionen: const [
-            'Webhosting',
-            'vServer',
-            'PaaS',
-          ],
-          bewertungsSkala: const [1, 2, 3],
-          hinweis:
-              'Perspektive des Start-ups: wenig Personal, begrenztes Budget, aber Wachstum möglich.',
-          zeigeSumme: true,
-          onAnswerChanged: (bewertungen) {
-            _antworten['aufgabe3_hosting_matrix'] = bewertungen;
-          },
-        ),
-      ],
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+      children: children
+          .map((c) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: c,
+              ))
+          .toList(),
     );
   }
+}
+
+class _AufgabeInfo {
+  final String emoji;
+  final String firma;
+  final String thema;
+
+  const _AufgabeInfo(this.emoji, this.firma, this.thema);
 }

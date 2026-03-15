@@ -4,6 +4,11 @@ import '../../services/spaced_repetition_service.dart';
 import 'review_screen.dart';
 import 'core_topics_screen.dart';
 import '../zertifikate/certificate_overview_screen.dart';
+import 'certificate_practice_selection_screen.dart';
+
+const _indigo = Color(0xFF4F46E5);
+const _indigoDark = Color(0xFF3730A3);
+const _indigoLight = Color(0xFF6366F1);
 
 class LearningHubScreen extends StatefulWidget {
   const LearningHubScreen({super.key});
@@ -35,27 +40,34 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: const Color(0xFFF5F5FF),
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
-          // Header
+          // ── HEADER ─────────────────────────────────────
           SliverAppBar(
-            expandedHeight: 120,
+            expandedHeight: 160,
             floating: false,
             pinned: true,
-            backgroundColor: Colors.indigo,
+            elevation: 0,
+            backgroundColor: _indigoDark,
             flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.parallax,
               background: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Colors.indigo.shade600, Colors.indigo.shade900],
+                    colors: [_indigoDark, _indigo, _indigoLight],
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(28),
+                    bottomRight: Radius.circular(28),
                   ),
                 ),
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -65,23 +77,36 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                               child: const Icon(
-                                Icons.school,
+                                Icons.school_rounded,
                                 color: Colors.white,
-                                size: 28,
+                                size: 26,
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            const Text(
-                              'Lernen',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            const SizedBox(width: 14),
+                            const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Lern Hub',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                Text(
+                                  'Alles auf einen Blick',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -90,24 +115,51 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   ),
                 ),
               ),
+              title: const Text(
+                'Lern Hub',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
             ),
           ),
 
-          // Content
+          // ── CONTENT ────────────────────────────────────
           SliverPadding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Wiederholungen Card
+                // Wiederholungen — prominente Karte oben
                 _buildRepetitionCard(),
-                const SizedBox(height: 16),
-                // Module Card
-                _buildModulesCard(),
-                const SizedBox(height: 16),
-                // Kernthemen Card
-                _buildCoreTopicsCard(),
-                const SizedBox(height: 16),
-                // Zertifikate Card
+                const SizedBox(height: 14),
+
+                // 2-er Grid: Module + Kernthemen
+                Row(
+                  children: [
+                    Expanded(child: _buildSmallCard(
+                      label: 'Module',
+                      sub: 'Themen durcharbeiten',
+                      icon: Icons.auto_stories_rounded,
+                      color: _indigo,
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const ModulListe())),
+                    )),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildSmallCard(
+                      label: 'Kernthemen',
+                      sub: 'Prüfungsrelevante Basics',
+                      icon: Icons.star_rounded,
+                      color: const Color(0xFF0D9488),
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const CoreTopicsScreen())),
+                    )),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // Zertifikate — breite Karte
                 _buildCertificatesCard(),
               ]),
             ),
@@ -117,425 +169,359 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     );
   }
 
+  // ── WIEDERHOLUNGEN ──────────────────────────────────
   Widget _buildRepetitionCard() {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      elevation: 3,
-      shadowColor: Colors.orange.withValues(alpha: 0.3),
-      child: InkWell(
-        onTap: _dueCount > 0
-            ? () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ReviewScreen()),
-                );
-                // Nach Review neu laden
-                _loadDueCount();
-              }
-            : null,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.orange.shade50, Colors.white],
-            ),
+    final hasItems = _dueCount > 0;
+
+    return GestureDetector(
+      onTap: hasItems
+          ? () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ReviewScreen()));
+              _loadDueCount();
+            }
+          : null,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: hasItems
+                ? [const Color(0xFFFFF7ED), Colors.white]
+                : [Colors.grey.shade50, Colors.white],
           ),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.orange, Colors.orange.shade600],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: hasItems
+                ? Colors.orange.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.15),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: hasItems
+                  ? Colors.orange.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: hasItems
+                      ? [Colors.orange, Colors.orange.shade700]
+                      : [Colors.grey.shade400, Colors.grey.shade600],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: (hasItems ? Colors.orange : Colors.grey)
+                        .withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.orange.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.replay_circle_filled,
-                  color: Colors.white,
-                  size: 36,
-                ),
+                ],
               ),
-              const SizedBox(width: 20),
-
-              // Text
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Heute wiederholen',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    if (_loading)
-                      const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    else
-                      Text(
-                        _dueCount > 0
-                            ? '$_dueCount Fragen warten'
-                            : 'Keine Fragen fällig',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: _dueCount > 0
-                              ? Colors.orange.shade700
-                              : Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                  ],
-                ),
+              child: const Icon(
+                Icons.replay_circle_filled_rounded,
+                color: Colors.white,
+                size: 30,
               ),
-
-              // Badge
-              if (_dueCount > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '$_dueCount',
-                    style: const TextStyle(
-                      color: Colors.white,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Heute wiederholen',
+                    style: TextStyle(
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      color: Color(0xFF1A1A2E),
                     ),
                   ),
-                ),
-
-              // Arrow
-              const SizedBox(width: 8),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.grey.shade400,
-                size: 20,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildModulesCard() {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      elevation: 3,
-      shadowColor: Colors.indigo.withValues(alpha: 0.3),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ModulListe()),
-          );
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.indigo.shade50, Colors.white],
-            ),
-          ),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.indigo, Colors.indigo.shade700],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.indigo.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.auto_stories,
-                  color: Colors.white,
-                  size: 36,
-                ),
-              ),
-              const SizedBox(width: 20),
-
-              // Text
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Module',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                  const SizedBox(height: 3),
+                  if (_loading)
+                    SizedBox(
+                      height: 14,
+                      width: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.orange.shade400,
                       ),
-                    ),
-                    SizedBox(height: 4),
+                    )
+                  else
                     Text(
-                      'Themen durcharbeiten',
+                      hasItems ? '$_dueCount Fragen warten auf dich' : 'Alles erledigt für heute 🎉',
                       style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
+                        fontSize: 13,
+                        color: hasItems
+                            ? Colors.orange.shade700
+                            : Colors.grey.shade500,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                ],
+              ),
+            ),
+            if (hasItems) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
                   ],
                 ),
+                child: Text(
+                  '$_dueCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
               ),
-
-              // Arrow
-              Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.grey.shade400,
-                size: 20,
-              ),
+              const SizedBox(width: 10),
             ],
-          ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.grey.shade400,
+              size: 16,
+            ),
+          ],
         ),
       ),
     );
   }
 
+  // ── KLEINE KARTE (Module / Kernthemen) ──────────────
+  Widget _buildSmallCard({
+    required String label,
+    required String sub,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: color.withOpacity(0.15),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [color, color.withOpacity(0.75)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A2E),
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              sub,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade500,
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_rounded,
+                    color: color,
+                    size: 16,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── ZERTIFIKATE ─────────────────────────────────────
   Widget _buildCertificatesCard() {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      elevation: 3,
-      shadowColor: Colors.deepOrange.withValues(alpha: 0.3),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const CertificateOverviewScreen(),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.deepOrange.shade50, Colors.white],
-            ),
+    const certColor = Color(0xFF7C3AED);
+
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const CertificatePracticeSelectionScreen(),
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFF5F3FF), Colors.white],
           ),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.deepOrange, Colors.deepOrange.shade700],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: certColor.withOpacity(0.2),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: certColor.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF7C3AED), Color(0xFF5B21B6)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: certColor.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.deepOrange.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.workspace_premium,
-                  color: Colors.white,
-                  size: 36,
-                ),
+                ],
               ),
-              const SizedBox(width: 20),
-
-              // Text
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Zertifikate üben',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Cloud-Zertifizierungen mit Erklärungen',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [
-                        _buildCertBadge('AWS'),
-                        _buildCertBadge('Azure'),
-                        _buildCertBadge('GCP'),
-                        _buildCertBadge('SAP'),
-                      ],
-                    ),
-                  ],
-                ),
+              child: const Icon(
+                Icons.workspace_premium_rounded,
+                color: Colors.white,
+                size: 28,
               ),
-
-              // Arrow
-              Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.grey.shade400,
-                size: 20,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Zertifikate üben',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Cloud-Zertifizierungen mit Erklärungen',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      _buildCertChip('AWS', const Color(0xFFFF9900)),
+                      const SizedBox(width: 6),
+                      _buildCertChip('Azure', const Color(0xFF0078D4)),
+                      const SizedBox(width: 6),
+                      _buildCertChip('GCP', const Color(0xFF4285F4)),
+                      const SizedBox(width: 6),
+                      _buildCertChip('SAP', const Color(0xFF0070F2)),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.grey.shade400,
+              size: 16,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildCoreTopicsCard() {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      elevation: 3,
-      shadowColor: Colors.teal.withValues(alpha: 0.3),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const CoreTopicsScreen()),
-          );
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.teal.shade50, Colors.white],
-            ),
-          ),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.teal, Colors.teal.shade700],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.teal.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.star_rounded,
-                  color: Colors.white,
-                  size: 36,
-                ),
-              ),
-              const SizedBox(width: 20),
-
-              // Text
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Kernthemen',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Prüfungsrelevante Basics',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Arrow
-              Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.grey.shade400,
-                size: 20,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCertBadge(String name) {
+  Widget _buildCertChip(String name, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.deepOrange.shade100,
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(
         name,
         style: TextStyle(
           fontSize: 11,
-          color: Colors.deepOrange.shade700,
-          fontWeight: FontWeight.w600,
+          color: color,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

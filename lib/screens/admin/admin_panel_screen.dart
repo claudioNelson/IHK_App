@@ -166,7 +166,10 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
       });
       _snack('❌ Fehler: $e');
     } finally {
-      if (mounted) setState(() { generatingAI[antwortId] = false; });
+      if (mounted)
+        setState(() {
+          generatingAI[antwortId] = false;
+        });
     }
   }
 
@@ -253,7 +256,8 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<int>(
-                    initialValue: selectedThemaId,
+                    value:
+                        selectedThemaId, // statt initialValue: selectedThemaId,
                     decoration: const InputDecoration(
                       labelText: 'Thema',
                       border: OutlineInputBorder(),
@@ -287,11 +291,14 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await supabase.from('fragen').update({
-                    'frage': frageCtrl.text.trim(),
-                    'thema_id': selectedThemaId,
-                    'erklaerung': erkCtrl.text.trim(),
-                  }).eq('id', frage['id']);
+                  await supabase
+                      .from('fragen')
+                      .update({
+                        'frage': frageCtrl.text.trim(),
+                        'thema_id': selectedThemaId,
+                        'erklaerung': erkCtrl.text.trim(),
+                      })
+                      .eq('id', frage['id']);
                   if (!ctx.mounted) return;
                   Navigator.pop(ctx);
                   _snack('Frage aktualisiert');
@@ -461,8 +468,8 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : selectedModuleId == null
-              ? _buildModuleSelection()
-              : _buildFragenListe(),
+          ? _buildModuleSelection()
+          : _buildFragenListe(),
       backgroundColor: Colors.grey[50],
     );
   }
@@ -474,7 +481,11 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.admin_panel_settings, size: 80, color: Colors.indigo),
+            const Icon(
+              Icons.admin_panel_settings,
+              size: 80,
+              color: Colors.indigo,
+            ),
             const SizedBox(height: 24),
             const Text(
               'Modul auswählen',
@@ -583,9 +594,8 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
                           ),
                           IconButton(
                             icon: const Icon(Icons.edit, size: 20),
-                            onPressed: () => _editFrageDialog(
-                              f as Map<String, dynamic>,
-                            ),
+                            onPressed: () =>
+                                _editFrageDialog(f as Map<String, dynamic>),
                           ),
                         ],
                       ),
@@ -594,9 +604,7 @@ Antworte NUR mit der Erklärung, ohne Einleitung oder Markdown.''',
                       // Antworten
                       const Text(
                         'Antworten:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 6),
                       ...antw.map((a) {

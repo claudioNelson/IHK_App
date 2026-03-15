@@ -6,6 +6,10 @@ import '../auth/change_password_screen.dart';
 import '../../services/badge_service.dart';
 import '../../services/app_cache_service.dart';
 
+const _indigo = Color(0xFF4F46E5);
+const _indigoDark = Color(0xFF3730A3);
+const _indigoLight = Color(0xFF6366F1);
+
 class NewProfilePage extends StatefulWidget {
   const NewProfilePage({super.key});
 
@@ -28,9 +32,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
   @override
   void initState() {
     super.initState();
-
     final cacheService = AppCacheService();
-
     if (cacheService.profileLoaded && cacheService.cachedMyProfile != null) {
       _profile = cacheService.cachedMyProfile;
       _myBadges = List.from(cacheService.cachedMyBadges);
@@ -39,34 +41,22 @@ class _NewProfilePageState extends State<NewProfilePage> {
       _loadProfile();
       _loadBadges();
     }
-
     _loadSettings();
   }
 
   Future<void> _loadProfile() async {
     try {
-      print('📖 Lade Profil...');
       final profile = await _authService.getProfile();
-
       if (!mounted) return;
-
       setState(() {
         _profile = profile;
         _loading = false;
       });
-
-      print('✅ Profil geladen: ${profile?['username']}');
     } catch (e) {
-      print('❌ Fehler beim Laden des Profils: $e');
-
       if (!mounted) return;
-
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Fehler beim Laden: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Fehler beim Laden: $e')),
       );
     }
   }
@@ -75,136 +65,90 @@ class _NewProfilePageState extends State<NewProfilePage> {
     try {
       final badges = await _badgeService.getMyBadges();
       if (!mounted) return;
-      setState(() {
-        _myBadges = badges;
-      });
-    } catch (e) {
-      print('❌ Fehler beim Laden der Badges: $e');
-    }
+      setState(() => _myBadges = badges);
+    } catch (_) {}
   }
 
   Future<void> _loadSettings() async {
     await _soundService.init();
-
     try {
       final prefs = await SharedPreferences.getInstance();
-      final notifications = prefs.getBool('notifications_enabled') ?? true;
-      final moduleView = prefs.getBool('module_view_as_list') ?? false;
-
       if (!mounted) return;
-
       setState(() {
-        _notificationsEnabled = notifications;
+        _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
         _soundsEnabled = _soundService.soundsEnabled;
-        _moduleViewAsList = moduleView;
+        _moduleViewAsList = prefs.getBool('module_view_as_list') ?? false;
       });
-    } catch (e) {
-      print('⚠️ Fehler beim Laden der Einstellungen: $e');
-    }
+    } catch (_) {}
   }
 
   Future<void> _toggleNotifications(bool value) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('notifications_enabled', value);
-
-      if (!mounted) return;
-
-      setState(() {
-        _notificationsEnabled = value;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            value
-                ? '✅ Benachrichtigungen aktiviert'
-                : '🔕 Benachrichtigungen deaktiviert',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      print('❌ Fehler beim Speichern: $e');
-    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications_enabled', value);
+    if (!mounted) return;
+    setState(() => _notificationsEnabled = value);
   }
 
   Future<void> _toggleSounds(bool value) async {
     await _soundService.toggleSounds(value);
-
     if (!mounted) return;
-
-    setState(() {
-      _soundsEnabled = value;
-    });
-
-    if (value) {
-      _soundService.playSound(SoundType.correct);
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(value ? '🔊 Sounds aktiviert' : '🔇 Sounds deaktiviert'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    setState(() => _soundsEnabled = value);
+    if (value) _soundService.playSound(SoundType.correct);
   }
 
   Future<void> _toggleModuleView(bool value) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('module_view_as_list', value);
-
-      if (!mounted) return;
-
-      setState(() {
-        _moduleViewAsList = value;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            value ? '📋 Listenansicht aktiviert' : '⊞ Rasteransicht aktiviert',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      print('❌ Fehler beim Speichern: $e');
-    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('module_view_as_list', value);
+    if (!mounted) return;
+    setState(() => _moduleViewAsList = value);
   }
 
   Future<void> _handleLogout() async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Abmelden?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.logout_rounded, color: Colors.red, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Text('Abmelden?'),
+          ],
+        ),
         content: const Text('Möchtest du dich wirklich abmelden?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(foregroundColor: _indigo),
             child: const Text('Abbrechen'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
             child: const Text('Abmelden'),
           ),
         ],
       ),
     );
-
     if (confirm == true) {
       try {
         await _authService.signOut();
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fehler beim Abmelden: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Fehler: $e')));
         }
       }
     }
@@ -216,45 +160,53 @@ class _NewProfilePageState extends State<NewProfilePage> {
       builder: (context) {
         final controller = TextEditingController(text: _profile?['username']);
         return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Benutzername ändern'),
           content: TextField(
             controller: controller,
-            decoration: const InputDecoration(labelText: 'Neuer Benutzername'),
+            decoration: InputDecoration(
+              labelText: 'Neuer Benutzername',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: _indigo, width: 2),
+              ),
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(foregroundColor: _indigo),
               child: const Text('Abbrechen'),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, controller.text),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _indigo,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
               child: const Text('Speichern'),
             ),
           ],
         );
       },
     );
-
-    if (result != null &&
-        result.isNotEmpty &&
-        result != _profile?['username']) {
+    if (result != null && result.isNotEmpty && result != _profile?['username']) {
       try {
         await _authService.updateProfileInDB(username: result);
         await _loadProfile();
-
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Benutzername aktualisiert'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('✅ Benutzername aktualisiert'),
+            backgroundColor: Colors.green,
+          ));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Fehler: $e')));
         }
       }
     }
@@ -264,55 +216,47 @@ class _NewProfilePageState extends State<NewProfilePage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Lokale Daten löschen?'),
         content: const Text(
-          'Dies löscht deinen lokalen Lernfortschritt. Dein Account bleibt erhalten.',
-        ),
+            'Dies löscht deinen lokalen Lernfortschritt. Dein Account bleibt erhalten.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(foregroundColor: _indigo),
             child: const Text('Abbrechen'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
             child: const Text('Löschen'),
           ),
         ],
       ),
     );
-
     if (confirm == true) {
       try {
         final prefs = await SharedPreferences.getInstance();
-
-        final keysToRemove = prefs
-            .getKeys()
-            .where(
-              (key) =>
-                  key.startsWith('fortschritt_') ||
-                  key.startsWith('score_') ||
-                  key.startsWith('async_match/'),
-            )
-            .toList();
-
-        for (final key in keysToRemove) {
-          await prefs.remove(key);
-        }
-
+        final keysToRemove = prefs.getKeys().where((key) =>
+            key.startsWith('fortschritt_') ||
+            key.startsWith('score_') ||
+            key.startsWith('async_match/')).toList();
+        for (final key in keysToRemove) await prefs.remove(key);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('✅ ${keysToRemove.length} Einträge gelöscht'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('✅ ${keysToRemove.length} Einträge gelöscht'),
+            backgroundColor: Colors.green,
+          ));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Fehler: $e')));
         }
       }
     }
@@ -321,29 +265,21 @@ class _NewProfilePageState extends State<NewProfilePage> {
   String _getInitials(String? name) {
     if (name == null || name.isEmpty) return 'U';
     final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
+    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     return name[0].toUpperCase();
   }
 
   String _formatDate(dynamic date) {
     if (date == null) return 'Unbekannt';
-
     try {
-      final DateTime dateTime = date is String
-          ? DateTime.parse(date)
-          : date as DateTime;
-
-      final now = DateTime.now();
-      final diff = now.difference(dateTime);
-
+      final dt = date is String ? DateTime.parse(date) : date as DateTime;
+      final diff = DateTime.now().difference(dt);
       if (diff.inDays < 1) return 'Heute';
-      if (diff.inDays < 7) return '${diff.inDays}d';
-      if (diff.inDays < 30) return '${(diff.inDays / 7).floor()}w';
-      if (diff.inDays < 365) return '${(diff.inDays / 30).floor()}mo';
-      return '${(diff.inDays / 365).floor()}y';
-    } catch (e) {
+      if (diff.inDays < 7) return 'vor ${diff.inDays} Tagen';
+      if (diff.inDays < 30) return 'vor ${(diff.inDays / 7).floor()} Wochen';
+      if (diff.inDays < 365) return 'vor ${(diff.inDays / 30).floor()} Monaten';
+      return 'vor ${(diff.inDays / 365).floor()} Jahren';
+    } catch (_) {
       return 'Unbekannt';
     }
   }
@@ -354,301 +290,331 @@ class _NewProfilePageState extends State<NewProfilePage> {
     final isFallback = _profile?['is_fallback'] == true;
 
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        backgroundColor: Color(0xFFF5F5FF),
+        body: Center(child: CircularProgressIndicator(color: _indigo)),
+      );
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFFF5F5FF),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            // Header mit Profil
+            // ── HEADER ──────────────────────────────────────
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Colors.indigo.shade600, Colors.indigo.shade900],
+                  colors: [_indigoDark, _indigo, _indigoLight],
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
                 ),
               ),
-              child: Column(
-                children: [
-                  Stack(
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+                  child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.white,
-                        child: Text(
-                          _getInitials(_profile?['username']),
-                          style: const TextStyle(
-                            fontSize: 36,
-                            color: Colors.indigo,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      if (isFallback)
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.orange,
+                      // Avatar
+                      Stack(
+                        children: [
+                          Container(
+                            width: 88,
+                            height: 88,
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.warning,
-                              size: 16,
                               color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                _getInitials(_profile?['username']),
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  color: _indigo,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
+                          if (isFallback)
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.orange,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.warning_rounded,
+                                    size: 14, color: Colors.white),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        _profile?['username'] ?? 'Unbekannt',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user?.email ?? '',
+                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                      if (isFallback) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text('⚠️ Profil nicht synchronisiert',
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.white)),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      // Dabei-seit Chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.calendar_today_rounded,
+                                size: 14, color: Colors.white70),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Dabei seit ${_formatDate(_profile?['created_at'])}',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Edit-Button
+                      const SizedBox(height: 14),
+                      GestureDetector(
+                        onTap: _editProfile,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: Colors.white.withOpacity(0.3)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.edit_rounded,
+                                  size: 14, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text('Profil bearbeiten',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _profile?['username'] ?? 'Unbekannt',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    user?.email ?? '',
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                  if (isFallback) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        '⚠️ Profil nicht synchronisiert',
-                        style: TextStyle(fontSize: 12, color: Colors.orange),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildStatChip(
-                        icon: Icons.access_time,
-                        label: 'Dabei seit',
-                        value: _formatDate(_profile?['created_at']),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
 
-            // Badges Sektion
-            if (_myBadges.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.military_tech,
-                          color: Colors.amber,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        const Text(
-                          'Meine Badges',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.shade100,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '${_myBadges.length}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.amber.shade700,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Card(
-                      elevation: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: _myBadges.map((ub) {
-                            final badge = ub['badges'] as Map<String, dynamic>;
-                            return Tooltip(
-                              message:
-                                  '${badge['name']}\n${badge['description']}',
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.amber.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.amber.shade200,
-                                  ),
-                                ),
-                                child: Text(
-                                  badge['icon'] ?? '🏆',
-                                  style: const TextStyle(fontSize: 20),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Account
-                  const Text(
-                    'Account',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    elevation: 1,
+                  // ── BADGES ────────────────────────────────
+                  if (_myBadges.isNotEmpty) ...[
+                    _sectionTitle('Meine Badges',
+                        Icons.military_tech_rounded, Colors.amber),
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: _cardDeco(Colors.amber),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _myBadges.map((ub) {
+                          final badge = ub['badges'] as Map<String, dynamic>;
+                          return Tooltip(
+                            message:
+                                '${badge['name']}\n${badge['description']}',
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border:
+                                    Border.all(color: Colors.amber.shade200),
+                              ),
+                              child: Text(badge['icon'] ?? '🏆',
+                                  style: const TextStyle(fontSize: 22)),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // ── ACCOUNT ───────────────────────────────
+                  _sectionTitle('Account', Icons.manage_accounts_rounded, _indigo),
+                  const SizedBox(height: 10),
+                  Container(
+                    decoration: _cardDeco(_indigo),
                     child: Column(
                       children: [
-                        ListTile(
-                          leading: const Icon(Icons.person_outline),
-                          title: const Text('Benutzername ändern'),
-                          trailing: const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16,
-                          ),
+                        _actionTile(
+                          icon: Icons.person_outline_rounded,
+                          iconColor: _indigo,
+                          title: 'Benutzername ändern',
                           onTap: _editProfile,
                         ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.lock_outline),
-                          title: const Text('Passwort ändern'),
-                          trailing: const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16,
+                        _divider(),
+                        _actionTile(
+                          icon: Icons.lock_outline_rounded,
+                          iconColor: const Color(0xFF7C3AED),
+                          title: 'Passwort ändern',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ChangePasswordScreen()),
                           ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const ChangePasswordScreen(),
-                              ),
-                            );
-                          },
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
 
-                  // Einstellungen
-                  const Text(
-                    'Einstellungen',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    elevation: 1,
+                  const SizedBox(height: 20),
+
+                  // ── EINSTELLUNGEN ─────────────────────────
+                  _sectionTitle(
+                      'Einstellungen', Icons.settings_rounded, Colors.teal),
+                  const SizedBox(height: 10),
+                  Container(
+                    decoration: _cardDeco(Colors.teal),
                     child: Column(
                       children: [
-                        SwitchListTile(
-                          secondary: const Icon(Icons.notifications_outlined),
-                          title: const Text('Benachrichtigungen'),
-                          subtitle: const Text('Push-Benachrichtigungen'),
+                        _switchTile(
+                          icon: Icons.notifications_outlined,
+                          iconColor: Colors.orange,
+                          title: 'Benachrichtigungen',
+                          subtitle: 'Push-Benachrichtigungen',
                           value: _notificationsEnabled,
                           onChanged: _toggleNotifications,
                         ),
-                        const Divider(height: 1),
-                        SwitchListTile(
-                          secondary: Icon(
-                            _soundsEnabled ? Icons.volume_up : Icons.volume_off,
-                          ),
-                          title: const Text('Sound-Effekte'),
-                          subtitle: const Text('Feedback bei Antworten'),
+                        _divider(),
+                        _switchTile(
+                          icon: _soundsEnabled
+                              ? Icons.volume_up_rounded
+                              : Icons.volume_off_rounded,
+                          iconColor: Colors.green,
+                          title: 'Sound-Effekte',
+                          subtitle: 'Feedback bei Antworten',
                           value: _soundsEnabled,
                           onChanged: _toggleSounds,
                         ),
-                        const Divider(height: 1),
-                        SwitchListTile(
-                          secondary: Icon(
-                            _moduleViewAsList ? Icons.list : Icons.grid_view,
-                          ),
-                          title: const Text('Modul-Ansicht'),
-                          subtitle: Text(
-                            _moduleViewAsList
-                                ? 'Listenansicht'
-                                : 'Rasteransicht',
-                          ),
+                        _divider(),
+                        _switchTile(
+                          icon: _moduleViewAsList
+                              ? Icons.view_list_rounded
+                              : Icons.grid_view_rounded,
+                          iconColor: Colors.blue,
+                          title: 'Modul-Ansicht',
+                          subtitle: _moduleViewAsList
+                              ? 'Listenansicht aktiv'
+                              : 'Rasteransicht aktiv',
                           value: _moduleViewAsList,
                           onChanged: _toggleModuleView,
                         ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.orange,
-                          ),
-                          title: const Text('Lokale Daten löschen'),
-                          subtitle: const Text('Lernfortschritt zurücksetzen'),
+                        _divider(),
+                        _actionTile(
+                          icon: Icons.delete_outline_rounded,
+                          iconColor: Colors.red,
+                          title: 'Lokale Daten löschen',
+                          subtitle: 'Lernfortschritt zurücksetzen',
                           onTap: _clearLocalData,
+                          trailingColor: Colors.red,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
 
-                  // Logout
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _handleLogout,
-                      icon: const Icon(Icons.logout),
-                      label: const Text('Abmelden'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                  const SizedBox(height: 24),
+
+                  // ── LOGOUT ────────────────────────────────
+                  GestureDetector(
+                    onTap: _handleLogout,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: Colors.red.withOpacity(0.3), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.red.withOpacity(0.06),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.logout_rounded,
+                                color: Colors.red, size: 18),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text('Abmelden',
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15)),
+                        ],
                       ),
                     ),
                   ),
@@ -661,41 +627,129 @@ class _NewProfilePageState extends State<NewProfilePage> {
     );
   }
 
-  Widget _buildStatChip({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
+  BoxDecoration _cardDeco(Color accent) => BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Colors.white),
-          const SizedBox(width: 6),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(fontSize: 10, color: Colors.white70),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ],
+        border: Border.all(color: accent.withOpacity(0.1), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
           ),
+        ],
+      );
+
+  Widget _sectionTitle(String title, IconData icon, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 3,
+          height: 18,
+          decoration: BoxDecoration(
+              color: color, borderRadius: BorderRadius.circular(2)),
+        ),
+        const SizedBox(width: 10),
+        Icon(icon, color: color, size: 17),
+        const SizedBox(width: 6),
+        Text(title,
+            style:
+                const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget _actionTile({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+    Color? trailingColor,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: iconColor, size: 19),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 14)),
+                  if (subtitle != null)
+                    Text(subtitle,
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey.shade500)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded,
+                color: trailingColor ?? _indigo, size: 22),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _switchTile({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 19),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 14)),
+                if (subtitle != null)
+                  Text(subtitle,
+                      style: TextStyle(
+                          fontSize: 12, color: Colors.grey.shade500)),
+              ],
+            ),
+          ),
+          Switch(value: value, onChanged: onChanged, activeColor: _indigo),
         ],
       ),
     );
   }
+
+  Widget _divider() => Padding(
+        padding: const EdgeInsets.only(left: 68),
+        child: Divider(height: 1, color: Colors.grey.shade100),
+      );
 }
