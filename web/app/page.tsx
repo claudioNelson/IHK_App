@@ -511,8 +511,10 @@ export default function LandingPage() {
         <div className="nav-logo">Lernarena</div>
         <div className="nav-links">
           <a href="#features">Features</a>
-          <a href="#preise">Preise</a>
-          <Link href="/pruefungen">Prüfungen</Link>
+          <a href="#preise">Preise</a> 
+          
+          {/* <Link href="/pruefungen">Prüfungen</Link>  */}
+
           <button onClick={() => setIsDark(!isDark)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontSize: "16px", marginRight: "4px" }}>{isDark ? "☀️" : "🌙"}</button>
           <Link href="/register" className="nav-cta">Kostenlos starten</Link>
         </div>
