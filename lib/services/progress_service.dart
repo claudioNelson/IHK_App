@@ -22,7 +22,7 @@ class ProgressService {
         'frage_id': frageId,
         'is_correct': isCorrect,
         'answered_at': DateTime.now().toIso8601String(),
-      });
+      }, onConflict: 'user_id,frage_id');
     } catch (e) {
       print('❌ Fehler beim Speichern: $e');
     }
@@ -85,17 +85,43 @@ class ProgressService {
     }
   }
 
-  /// Zählt abgeschlossene Module (mindestens 1 Thema mit Fortschritt)
+  /// Zählt abgeschlossene Module (≥80% richtig beantwortet)
   Future<int> getCompletedModulesCount() async {
     if (_userId == null) return 0;
 
     try {
-      final result = await _client
-          .from('user_progress')
-          .select('modul_id')
-          .eq('user_id', _userId!);
+      // Alle Module laden
+      final modules = await _client.from('module').select('id');
 
-      return result.map((r) => r['modul_id']).toSet().length;
+      int completedCount = 0;
+
+      for (final modul in modules) {
+        final modulId = modul['id'] as int;
+
+        // Gesamtanzahl Fragen im Modul
+        final allFragen = await _client
+            .from('fragen')
+            .select('id')
+            .eq('modul_id', modulId);
+
+        final totalFragen = allFragen.length;
+        if (totalFragen == 0) continue;
+
+        // Richtig beantwortete Fragen
+        final correct = await _client
+            .from('user_progress')
+            .select('frage_id')
+            .eq('user_id', _userId!)
+            .eq('modul_id', modulId)
+            .eq('is_correct', true);
+
+        final correctCount = correct.length;
+        final percent = correctCount / totalFragen;
+
+        if (percent >= 0.8) completedCount++;
+      }
+
+      return completedCount;
     } catch (e) {
       print('❌ Fehler beim Laden: $e');
       return 0;

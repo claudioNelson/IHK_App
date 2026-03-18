@@ -10,6 +10,7 @@ import '../../services/badge_service.dart';
 import '../../widgets/badge_celebration_dialog.dart';
 import '../../services/progress_service.dart';
 import '../../services/spaced_repetition_service.dart';
+import '../../services/flashcard_service.dart';
 
 const _indigo = Color(0xFF4F46E5);
 const _indigoDark = Color(0xFF3730A3);
@@ -43,10 +44,13 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
   String? generatedExplanation;
   bool generatingExplanation = false;
   String? calculationAnswer;
+  bool _flashcardSaved = false;
+
   final _soundService = SoundService();
   final _badgeService = BadgeService();
   final _progressService = ProgressService();
   final _spacedRepService = SpacedRepetitionService();
+  final _flashcardService = FlashcardService();
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -73,17 +77,19 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _fadeAnimation =
-        CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut);
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    );
 
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation = Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
 
     _fadeController.forward();
     _slideController.forward();
@@ -137,8 +143,9 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       _slideController.forward(from: 0);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Fehler beim Laden: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler beim Laden: $e')));
       setState(() => loading = false);
     }
   }
@@ -166,6 +173,34 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
     }
   }
 
+  // ── Flashcard bei falscher Antwort erstellen ─────────────────────────────
+  Future<void> _saveFlashcardIfWrong({
+    required int frageId,
+    required String frageText,
+    required List antworten,
+  }) async {
+    final richtigeAntwort = antworten.firstWhere(
+      (a) => a['ist_richtig'] == true,
+      orElse: () => null,
+    );
+    if (richtigeAntwort == null) return;
+
+    // Modul/Thema Namen aus widget.modulName extrahieren
+    final parts = widget.modulName.split(' • ');
+    final modulName = parts.isNotEmpty ? parts[0] : widget.modulName;
+    final themaName = parts.length > 1 ? parts[1] : null;
+
+    await _flashcardService.createFromWrongAnswer(
+      frageId: frageId,
+      frageText: frageText,
+      richtigeAntwort: richtigeAntwort['text'] as String,
+      modulName: modulName,
+      themaName: themaName,
+    );
+
+    if (mounted) setState(() => _flashcardSaved = true);
+  }
+
   void _checkAnswer(int answerId) async {
     if (hasAnswered) return;
 
@@ -173,6 +208,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       selectedAnswer = answerId;
       hasAnswered = true;
       generatedExplanation = null;
+      _flashcardSaved = false;
     });
 
     final frage = fragen[currentIndex];
@@ -184,11 +220,20 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       _soundService.playSound(SoundType.correct);
     } else {
       _soundService.playSound(SoundType.wrong);
+
+      // ── Flashcard automatisch erstellen ──
+      await _saveFlashcardIfWrong(
+        frageId: frage['id'],
+        frageText: frage['frage'] as String,
+        antworten: antworten,
+      );
     }
 
     await _saveProgress(frage['id'], isCorrect);
     await _spacedRepService.recordAnswer(
-        frageId: frage['id'], isCorrect: isCorrect);
+      frageId: frage['id'],
+      isCorrect: isCorrect,
+    );
 
     if (!isCorrect &&
         (selected['erklaerung'] == null ||
@@ -202,6 +247,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
     setState(() {
       hasAnswered = true;
       calculationAnswer = userAnswer;
+      _flashcardSaved = false;
     });
     if (isCorrect) {
       _soundService.playSound(SoundType.correct);
@@ -211,11 +257,15 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
     final frage = fragen[currentIndex];
     await _saveProgress(frage['id'], isCorrect);
     await _spacedRepService.recordAnswer(
-        frageId: frage['id'], isCorrect: isCorrect);
+      frageId: frage['id'],
+      isCorrect: isCorrect,
+    );
   }
 
   Future<void> _generateExplanation(
-      Map<String, dynamic> frage, List antworten) async {
+    Map<String, dynamic> frage,
+    List antworten,
+  ) async {
     setState(() {
       generatingExplanation = true;
       generatedExplanation = null;
@@ -252,6 +302,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
         hasAnswered = false;
         generatedExplanation = null;
         calculationAnswer = null;
+        _flashcardSaved = false;
       });
       await _fadeController.forward();
       await _slideController.forward();
@@ -270,6 +321,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
         hasAnswered = false;
         generatedExplanation = null;
         calculationAnswer = null;
+        _flashcardSaved = false;
       });
       await _fadeController.forward();
       await _slideController.forward();
@@ -278,7 +330,9 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
 
   void _showCompletionDialog() {
     final allFragenIds = fragen.map((f) => f['id'] as int).toSet();
-    final richtigInSession = allFragenIds.intersection(beantworteteFragen).length;
+    final richtigInSession = allFragenIds
+        .intersection(beantworteteFragen)
+        .length;
     final gesamt = fragen.length;
     final prozent = ((richtigInSession / gesamt) * 100).toInt();
 
@@ -321,8 +375,11 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
             ),
             const SizedBox(width: 12),
             Expanded(
-                child: Text(bewertung,
-                    style: TextStyle(color: color, fontSize: 18))),
+              child: Text(
+                bewertung,
+                style: TextStyle(color: color, fontSize: 18),
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -331,11 +388,16 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
             Text(
               '$prozent%',
               style: TextStyle(
-                  fontSize: 52, fontWeight: FontWeight.bold, color: color),
+                fontSize: 52,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
             const SizedBox(height: 6),
-            Text('$richtigInSession von $gesamt Fragen richtig',
-                style: const TextStyle(fontSize: 15)),
+            Text(
+              '$richtigInSession von $gesamt Fragen richtig',
+              style: const TextStyle(fontSize: 15),
+            ),
             const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
@@ -351,9 +413,9 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
         actions: [
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(context); // Dialog schließen
               await _checkModuleBadgesAndPop();
-              if (mounted) Navigator.pop(context);
+              // ← kein zweites pop hier!
             },
             style: TextButton.styleFrom(foregroundColor: Colors.grey.shade600),
             child: const Text('Zurück zur Übersicht'),
@@ -367,6 +429,7 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                 hasAnswered = false;
                 generatedExplanation = null;
                 calculationAnswer = null;
+                _flashcardSaved = false;
               });
               _fadeController.forward(from: 0);
               _slideController.forward(from: 0);
@@ -375,7 +438,8 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
               backgroundColor: color,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('Nochmal versuchen'),
           ),
@@ -386,14 +450,15 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
 
   Future<void> _checkModuleBadgesAndPop() async {
     try {
-      final completedModules =
-          await _progressService.getCompletedModulesCount();
+      final completedModules = await _progressService
+          .getCompletedModulesCount();
       final newBadges = await _badgeService.checkModuleBadges(completedModules);
 
       if (newBadges.isNotEmpty && mounted) {
         final allBadges = await _badgeService.getAllBadges();
-        final earnedDetails =
-            allBadges.where((b) => newBadges.contains(b['id'])).toList();
+        final earnedDetails = allBadges
+            .where((b) => newBadges.contains(b['id']))
+            .toList();
 
         if (mounted) {
           await showDialog(
@@ -435,16 +500,19 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
             child: loading
                 ? const Center(child: CircularProgressIndicator(color: _indigo))
                 : fragen.isEmpty
-                    ? const Center(
-                        child: Text('Keine Fragen verfügbar',
-                            style: TextStyle(fontSize: 16, color: Colors.grey)))
-                    : FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: _buildQuestionContent(),
-                        ),
-                      ),
+                ? const Center(
+                    child: Text(
+                      'Keine Fragen verfügbar',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  )
+                : FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: _buildQuestionContent(),
+                    ),
+                  ),
           ),
           if (!loading && fragen.isNotEmpty) _buildNavigationBar(),
         ],
@@ -481,8 +549,11 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.quiz_rounded,
-                    color: Colors.white, size: 20),
+                child: const Icon(
+                  Icons.quiz_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -502,16 +573,20 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                       Text(
                         'Frage ${currentIndex + 1} von ${fragen.length}',
                         style: const TextStyle(
-                            color: Colors.white70, fontSize: 12),
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
                       ),
                   ],
                 ),
               ),
-              // Report-Button
               if (!loading && fragen.isNotEmpty)
                 IconButton(
-                  icon: const Icon(Icons.flag_outlined,
-                      color: Colors.white70, size: 22),
+                  icon: const Icon(
+                    Icons.flag_outlined,
+                    color: Colors.white70,
+                    size: 22,
+                  ),
                   tooltip: 'Problem melden',
                   onPressed: () {
                     if (currentIndex >= fragen.length) return;
@@ -519,15 +594,18 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                     showDialog(
                       context: context,
                       builder: (context) => ReportDialog(
-                          frageId: frageId, screenType: 'test_fragen'),
+                        frageId: frageId,
+                        screenType: 'test_fragen',
+                      ),
                     );
                   },
                 ),
-              // Fortschritt Pill
               if (!loading && fragen.isNotEmpty)
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -594,7 +672,6 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
       );
     }
 
-    // Multiple Choice
     final antworten = frage['antworten'] as List;
 
     return SingleChildScrollView(
@@ -631,19 +708,24 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                       padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                            colors: [_indigoDark, _indigo]),
+                          colors: [_indigoDark, _indigo],
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.help_outline,
-                          color: Colors.white, size: 20),
+                      child: const Icon(
+                        Icons.help_outline,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     const Text(
                       'Frage',
                       style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: _indigo),
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: _indigo,
+                      ),
                     ),
                   ],
                 ),
@@ -651,7 +733,10 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                 Text(
                   frage['frage'] ?? '',
                   style: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w500, height: 1.5),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w500,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
@@ -688,11 +773,11 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         color: showResult
                             ? (isCorrect
-                                ? Colors.green.shade50
-                                : Colors.red.shade50)
+                                  ? Colors.green.shade50
+                                  : Colors.red.shade50)
                             : (isSelected
-                                ? Colors.indigo.shade50
-                                : Colors.white),
+                                  ? Colors.indigo.shade50
+                                  : Colors.white),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: showResult
@@ -718,8 +803,8 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                               color: showResult
                                   ? (isCorrect ? Colors.green : Colors.red)
                                   : (isSelected
-                                      ? _indigo
-                                      : Colors.grey.shade200),
+                                        ? _indigo
+                                        : Colors.grey.shade200),
                               shape: BoxShape.circle,
                             ),
                             child: Center(
@@ -752,8 +837,8 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                                     : FontWeight.normal,
                                 color: showResult
                                     ? (isCorrect
-                                        ? Colors.green.shade900
-                                        : Colors.red.shade900)
+                                          ? Colors.green.shade900
+                                          : Colors.red.shade900)
                                     : Colors.black87,
                               ),
                             ),
@@ -767,8 +852,37 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
             );
           }),
 
+          // Flashcard-Hinweis wenn falsch beantwortet
+          if (hasAnswered && _flashcardSaved) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.purple.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.purple.shade200),
+              ),
+              child: Row(
+                children: [
+                  const Text('🃏', style: TextStyle(fontSize: 16)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Flashcard gespeichert — übe sie später unter "Meine Flashcards"',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.purple.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           if (hasAnswered && !_isCalculationQuestion) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             _buildExplanationCard(antworten),
           ],
         ],
@@ -777,8 +891,10 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
   }
 
   Widget _buildExplanationCard(List antworten) {
-    final selectedAnt =
-        antworten.firstWhere((a) => a['id'] == selectedAnswer, orElse: () => null);
+    final selectedAnt = antworten.firstWhere(
+      (a) => a['id'] == selectedAnswer,
+      orElse: () => null,
+    );
     if (selectedAnt == null) return const SizedBox.shrink();
 
     final isCorrect = selectedAnt['ist_richtig'] == true;
@@ -815,7 +931,9 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
           ),
           boxShadow: [
             BoxShadow(
-              color: (isCorrect ? Colors.green : Colors.orange).withOpacity(0.15),
+              color: (isCorrect ? Colors.green : Colors.orange).withOpacity(
+                0.15,
+              ),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -824,70 +942,90 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              Container(
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isCorrect
-                        ? [Colors.green, Colors.green.shade700]
-                        : [Colors.orange, Colors.orange.shade700],
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isCorrect
+                          ? [Colors.green, Colors.green.shade700]
+                          : [Colors.orange, Colors.orange.shade700],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  child: Icon(
+                    isCorrect ? Icons.check_circle : Icons.lightbulb,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
-                child: Icon(isCorrect ? Icons.check_circle : Icons.lightbulb,
-                    color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                isCorrect ? 'Richtig!' : 'Erklärung',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: isCorrect
-                      ? Colors.green.shade700
-                      : Colors.orange.shade700,
+                const SizedBox(width: 10),
+                Text(
+                  isCorrect ? 'Richtig!' : 'Erklärung',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: isCorrect
+                        ? Colors.green.shade700
+                        : Colors.orange.shade700,
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const SizedBox(height: 14),
             if (isCorrect && hasExplanation)
-              Text(explanation,
-                  style: TextStyle(
-                      fontSize: 14,
-                      height: 1.6,
-                      color: Colors.grey.shade800))
+              Text(
+                explanation,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.6,
+                  color: Colors.grey.shade800,
+                ),
+              )
             else if (!isCorrect) ...[
               if (hasExplanation)
-                Text(explanation,
-                    style: TextStyle(
-                        fontSize: 14,
-                        height: 1.6,
-                        color: Colors.grey.shade800))
-              else if (generatingExplanation)
-                Row(children: [
-                  SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor:
-                          AlwaysStoppedAnimation(Colors.orange.shade700),
-                    ),
+                Text(
+                  explanation,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.6,
+                    color: Colors.grey.shade800,
                   ),
-                  const SizedBox(width: 10),
-                  Text('Generiere Erklärung...',
+                )
+              else if (generatingExplanation)
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(
+                          Colors.orange.shade700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Generiere Erklärung...',
                       style: TextStyle(
-                          fontSize: 14,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey.shade600)),
-                ])
-              else if (generatedExplanation != null)
-                Text(generatedExplanation!,
-                    style: TextStyle(
                         fontSize: 14,
-                        height: 1.6,
-                        color: Colors.grey.shade800)),
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                )
+              else if (generatedExplanation != null)
+                Text(
+                  generatedExplanation!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.6,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
               if (!isCorrect && correctAnswer != null) ...[
                 const SizedBox(height: 14),
                 Container(
@@ -900,23 +1038,32 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.check_circle,
-                          color: Colors.green.shade700, size: 20),
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green.shade700,
+                        size: 20,
+                      ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Richtige Antwort:',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green.shade700)),
+                            Text(
+                              'Richtige Antwort:',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
                             const SizedBox(height: 3),
-                            Text(correctAnswer['text'] ?? '',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade800)),
+                            Text(
+                              correctAnswer['text'] ?? '',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -948,47 +1095,51 @@ class _TestFragenState extends State<TestFragen> with TickerProviderStateMixin {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: Row(
-          children: [
-            if (currentIndex > 0)
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _previousQuestion,
-                  icon: const Icon(Icons.arrow_back, size: 18),
-                  label: const Text('Zurück'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: _indigo),
-                    foregroundColor: _indigo,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+            children: [
+              if (currentIndex > 0)
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _previousQuestion,
+                    icon: const Icon(Icons.arrow_back, size: 18),
+                    label: const Text('Zurück'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: _indigo),
+                      foregroundColor: _indigo,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            if (currentIndex > 0) const SizedBox(width: 12),
-            Expanded(
-              flex: 2,
-              child: ElevatedButton.icon(
-                onPressed: hasAnswered ? _nextQuestion : null,
-                icon: Icon(
+              if (currentIndex > 0) const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  onPressed: hasAnswered ? _nextQuestion : null,
+                  icon: Icon(
                     currentIndex < fragen.length - 1
                         ? Icons.arrow_forward
                         : Icons.check,
-                    size: 18),
-                label: Text(
-                    currentIndex < fragen.length - 1 ? 'Weiter' : 'Abschließen'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor: _indigo,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey.shade200,
-                  disabledForegroundColor: Colors.grey.shade500,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: hasAnswered ? 2 : 0,
+                    size: 18,
+                  ),
+                  label: Text(
+                    currentIndex < fragen.length - 1 ? 'Weiter' : 'Abschließen',
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: _indigo,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade200,
+                    disabledForegroundColor: Colors.grey.shade500,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: hasAnswered ? 2 : 0,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
           ),
         ),
       ),

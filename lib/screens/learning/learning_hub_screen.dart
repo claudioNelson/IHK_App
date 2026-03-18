@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../screens/module/modul_liste_screen.dart';
 import '../../services/spaced_repetition_service.dart';
+import '../../services/flashcard_service.dart';
 import 'review_screen.dart';
 import 'core_topics_screen.dart';
+import 'flashcard_screen.dart';
 import '../zertifikate/certificate_overview_screen.dart';
-import 'certificate_practice_selection_screen.dart';
 
 const _indigo = Color(0xFF4F46E5);
 const _indigoDark = Color(0xFF3730A3);
@@ -19,20 +20,30 @@ class LearningHubScreen extends StatefulWidget {
 
 class _LearningHubScreenState extends State<LearningHubScreen> {
   final _srsService = SpacedRepetitionService();
+  final _flashcardService = FlashcardService();
   int _dueCount = 0;
+  int _flashcardCount = 0;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadDueCount();
+    _loadCounts();
   }
 
-  Future<void> _loadDueCount() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadCounts();
+  }
+
+  Future<void> _loadCounts() async {
     final count = await _srsService.getDueCount();
+    final fcCount = await _flashcardService.getCount();
     if (!mounted) return;
     setState(() {
       _dueCount = count;
+      _flashcardCount = fcCount;
       _loading = false;
     });
   }
@@ -44,7 +55,6 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── HEADER ─────────────────────────────────────
           SliverAppBar(
             expandedHeight: 160,
             floating: false,
@@ -115,51 +125,62 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   ),
                 ),
               ),
-              title: const Text(
-                'Lern Hub',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+              titlePadding: const EdgeInsets.only(left: 24, bottom: 16),
             ),
           ),
 
-          // ── CONTENT ────────────────────────────────────
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Wiederholungen — prominente Karte oben
+                // Wiederholungen
                 _buildRepetitionCard(),
+                const SizedBox(height: 14),
+
+                // Flashcards
+                _buildFlashcardCard(),
                 const SizedBox(height: 14),
 
                 // 2-er Grid: Module + Kernthemen
                 Row(
                   children: [
-                    Expanded(child: _buildSmallCard(
-                      label: 'Module',
-                      sub: 'Themen durcharbeiten',
-                      icon: Icons.auto_stories_rounded,
-                      color: _indigo,
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const ModulListe())),
-                    )),
+                    Expanded(
+                      child: _buildSmallCard(
+                        label: 'Module',
+                        sub: 'Themen durcharbeiten',
+                        icon: Icons.auto_stories_rounded,
+                        color: _indigo,
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+              builder: (_) => const ModulListe(),
+                            ),
+                          );
+                          _loadCounts();
+                        },
+                      ),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildSmallCard(
-                      label: 'Kernthemen',
-                      sub: 'Prüfungsrelevante Basics',
-                      icon: Icons.star_rounded,
-                      color: const Color(0xFF0D9488),
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const CoreTopicsScreen())),
-                    )),
+                    Expanded(
+                      child: _buildSmallCard(
+                        label: 'Kernthemen',
+                        sub: 'Prüfungsrelevante Basics',
+                        icon: Icons.star_rounded,
+                        color: const Color(0xFF0D9488),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CoreTopicsScreen(),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 14),
 
-                // Zertifikate — breite Karte
+                // Zertifikate
                 _buildCertificatesCard(),
               ]),
             ),
@@ -169,16 +190,17 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     );
   }
 
-  // ── WIEDERHOLUNGEN ──────────────────────────────────
+  // ── WIEDERHOLUNGEN ───────────────────────────────────
   Widget _buildRepetitionCard() {
     final hasItems = _dueCount > 0;
-
     return GestureDetector(
       onTap: hasItems
           ? () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ReviewScreen()));
-              _loadDueCount();
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ReviewScreen()),
+              );
+              _loadCounts();
             }
           : null,
       child: Container(
@@ -224,8 +246,9 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: (hasItems ? Colors.orange : Colors.grey)
-                        .withOpacity(0.3),
+                    color: (hasItems ? Colors.orange : Colors.grey).withOpacity(
+                      0.3,
+                    ),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -262,7 +285,9 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     )
                   else
                     Text(
-                      hasItems ? '$_dueCount Fragen warten auf dich' : 'Alles erledigt für heute 🎉',
+                      hasItems
+                          ? '$_dueCount Fragen warten auf dich'
+                          : 'Alles erledigt für heute 🎉',
                       style: TextStyle(
                         fontSize: 13,
                         color: hasItems
@@ -276,7 +301,10 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             ),
             if (hasItems) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.orange,
                   borderRadius: BorderRadius.circular(20),
@@ -310,7 +338,153 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     );
   }
 
-  // ── KLEINE KARTE (Module / Kernthemen) ──────────────
+  // ── FLASHCARDS ───────────────────────────────────────
+  Widget _buildFlashcardCard() {
+    final hasCards = _flashcardCount > 0;
+    const cardColor = Color(0xFF7C3AED);
+
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const FlashcardScreen()),
+        );
+        _loadCounts();
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: hasCards
+                ? [const Color(0xFFF5F3FF), Colors.white]
+                : [Colors.grey.shade50, Colors.white],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: hasCards
+                ? cardColor.withOpacity(0.25)
+                : Colors.grey.withOpacity(0.15),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: hasCards
+                  ? cardColor.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: hasCards
+                      ? [cardColor, const Color(0xFF5B21B6)]
+                      : [Colors.grey.shade400, Colors.grey.shade600],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: (hasCards ? cardColor : Colors.grey).withOpacity(
+                      0.3,
+                    ),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: Text('🃏', style: TextStyle(fontSize: 26)),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Meine Flashcards',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  if (_loading)
+                    SizedBox(
+                      height: 14,
+                      width: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: cardColor,
+                      ),
+                    )
+                  else
+                    Text(
+                      hasCards
+                          ? '$_flashcardCount falsch beantwortete Fragen'
+                          : 'Noch keine Flashcards — fang an zu lernen!',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: hasCards
+                            ? cardColor.withOpacity(0.8)
+                            : Colors.grey.shade500,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (hasCards) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: cardColor.withOpacity(0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  '$_flashcardCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+            ],
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.grey.shade400,
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── KLEINE KARTE ─────────────────────────────────────
   Widget _buildSmallCard({
     required String label,
     required String sub,
@@ -325,10 +499,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: color.withOpacity(0.15),
-            width: 1.5,
-          ),
+          border: Border.all(color: color.withOpacity(0.15), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: color.withOpacity(0.08),
@@ -402,16 +573,13 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     );
   }
 
-  // ── ZERTIFIKATE ─────────────────────────────────────
+  // ── ZERTIFIKATE ──────────────────────────────────────
   Widget _buildCertificatesCard() {
     const certColor = Color(0xFF7C3AED);
-
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => const CertificatePracticeSelectionScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const CertificateOverviewScreen()),
       ),
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -422,10 +590,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             colors: [Color(0xFFF5F3FF), Colors.white],
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: certColor.withOpacity(0.2),
-            width: 1.5,
-          ),
+          border: Border.all(color: certColor.withOpacity(0.2), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: certColor.withOpacity(0.08),
@@ -476,10 +641,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Cloud-Zertifizierungen mit Erklärungen',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                   ),
                   const SizedBox(height: 10),
                   Row(

@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'test_fragen_screen.dart';
 import '../../services/app_cache_service.dart';
+import '../../data/themen_summaries.dart';
 
 const _indigo = Color(0xFF4F46E5);
 const _indigoDark = Color(0xFF3730A3);
@@ -130,7 +131,7 @@ class _ThemenListeState extends State<ThemenListe>
         fragenCount[themaId] = (fragenCount[themaId] ?? 0) + 1;
       }
     } catch (e) {
-      print('Fehler beim Laden der Fragen-Counts: $e');
+      debugPrint('Fehler beim Laden der Fragen-Counts: $e');
     }
   }
 
@@ -168,7 +169,6 @@ class _ThemenListeState extends State<ThemenListe>
     return (fragenAnzahl * 1.5).ceil();
   }
 
-  // Fortschritt über alle Themen
   double get _overallProgress {
     if (themen.isEmpty) return 0;
     final scores = themen.map((t) => cachedScores[t['id'] as int] ?? 0.0);
@@ -183,6 +183,147 @@ class _ThemenListeState extends State<ThemenListe>
     }).length;
   }
 
+  void _showSummary(Map<String, dynamic> thema) {
+    final id = thema['id'] as int;
+    final summary = themenSummaries[id];
+
+    if (summary == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Zusammenfassung folgt bald!')));
+      return;
+    }
+
+    final sections = summary['sections'] as List;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        maxChildSize: 0.95,
+        minChildSize: 0.4,
+        builder: (_, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 16, 0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48, height: 48,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [_indigoDark, _indigo]),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Center(
+                        child: Text(
+                          summary['emoji'] as String? ?? '📖',
+                          style: const TextStyle(fontSize: 24),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(summary['title'] as String,
+                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                          Text('Zusammenfassung',
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close, color: Colors.grey.shade400),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 20),
+              // Content
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  itemCount: sections.length,
+                  itemBuilder: (_, i) {
+                    final section = sections[i] as Map<String, dynamic>;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _indigo.withOpacity(0.04),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _indigo.withOpacity(0.12)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(width: 6, height: 6,
+                                decoration: const BoxDecoration(color: _indigo, shape: BoxShape.circle)),
+                              const SizedBox(width: 8),
+                              Text(section['heading'] as String,
+                                  style: const TextStyle(fontSize: 14,
+                                      fontWeight: FontWeight.bold, color: _indigo)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(section['text'] as String,
+                              style: const TextStyle(fontSize: 14, height: 1.6,
+                                  color: Color(0xFF374151))),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // Start Button
+              Padding(
+                padding: EdgeInsets.fromLTRB(24, 8, 24,
+                    MediaQuery.of(context).padding.bottom + 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () { Navigator.pop(context); _openThema(thema); },
+                    icon: const Icon(Icons.play_arrow_rounded, size: 22),
+                    label: const Text('Jetzt üben',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _indigo,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -190,7 +331,6 @@ class _ThemenListeState extends State<ThemenListe>
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── HEADER ─────────────────────────────────────
           SliverAppBar(
             expandedHeight: 200,
             floating: false,
@@ -267,7 +407,6 @@ class _ThemenListeState extends State<ThemenListe>
                         ),
                         if (!loading && themen.isNotEmpty) ...[
                           const SizedBox(height: 16),
-                          // Fortschrittsbalken
                           Row(
                             children: [
                               Expanded(
@@ -314,38 +453,29 @@ class _ThemenListeState extends State<ThemenListe>
 
           if (loading)
             const SliverFillRemaining(
-              child: Center(
-                child: CircularProgressIndicator(color: _indigo),
-              ),
+              child: Center(child: CircularProgressIndicator(color: _indigo)),
             )
           else if (themen.isEmpty)
             const SliverFillRemaining(
               child: Center(
-                child: Text(
-                  'Keine Themen vorhanden',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
+                child: Text('Keine Themen vorhanden',
+                    style: TextStyle(fontSize: 16, color: Colors.grey)),
               ),
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    return TweenAnimationBuilder<double>(
-                      duration: Duration(milliseconds: 200 + (i * 80)),
-                      tween: Tween(begin: 0.0, end: 1.0),
-                      builder: (context, value, child) {
-                        return Transform.translate(
-                          offset: Offset(0, 24 * (1 - value)),
-                          child: Opacity(opacity: value, child: child),
-                        );
-                      },
-                      child:
-                          _buildThemaCard(themen[i] as Map<String, dynamic>),
-                    );
-                  },
+                  (context, i) => TweenAnimationBuilder<double>(
+                    duration: Duration(milliseconds: 200 + (i * 80)),
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    builder: (context, value, child) => Transform.translate(
+                      offset: Offset(0, 24 * (1 - value)),
+                      child: Opacity(opacity: value, child: child),
+                    ),
+                    child: _buildThemaCard(themen[i] as Map<String, dynamic>),
+                  ),
                   childCount: themen.length,
                 ),
               ),
@@ -365,6 +495,8 @@ class _ThemenListeState extends State<ThemenListe>
     final requiredScore = thema['required_score'] ?? 80;
     final isPerfect = score >= 100;
     final isPassed = score >= requiredScore;
+    final beschreibung = thema['beschreibung'] as String? ?? '';
+    final hasBeschreibung = themenSummaries.containsKey(id);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -393,8 +525,7 @@ class _ThemenListeState extends State<ThemenListe>
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
-          onTap: () =>
-              unlocked ? _openThema(thema) : _showLockedDialog(thema),
+          onTap: () => unlocked ? _openThema(thema) : _showLockedDialog(thema),
           borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.all(18),
@@ -403,51 +534,49 @@ class _ThemenListeState extends State<ThemenListe>
               children: [
                 Row(
                   children: [
-                    // Icon Container
+                    // Icon
                     AnimatedBuilder(
                       animation: _lockAnimController,
-                      builder: (context, child) {
-                        return Transform.rotate(
-                          angle: unlocked
-                              ? 0
-                              : _lockAnimController.value * 0.08 - 0.04,
-                          child: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: unlocked
-                                    ? (isPassed
-                                        ? [Colors.green.shade400, Colors.green.shade700]
-                                        : [_indigoLight, _indigoDark])
-                                    : [Colors.grey.shade400, Colors.grey.shade600],
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (unlocked
-                                          ? (isPassed ? Colors.green : _indigo)
-                                          : Colors.grey)
-                                      .withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              unlocked
+                      builder: (context, child) => Transform.rotate(
+                        angle: unlocked
+                            ? 0
+                            : _lockAnimController.value * 0.08 - 0.04,
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: unlocked
                                   ? (isPassed
-                                      ? Icons.check_rounded
-                                      : Icons.menu_book_rounded)
-                                  : Icons.lock_rounded,
-                              color: Colors.white,
-                              size: 22,
+                                      ? [Colors.green.shade400, Colors.green.shade700]
+                                      : [_indigoLight, _indigoDark])
+                                  : [Colors.grey.shade400, Colors.grey.shade600],
                             ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (unlocked
+                                        ? (isPassed ? Colors.green : _indigo)
+                                        : Colors.grey)
+                                    .withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
-                        );
-                      },
+                          child: Icon(
+                            unlocked
+                                ? (isPassed
+                                    ? Icons.check_rounded
+                                    : Icons.menu_book_rounded)
+                                : Icons.lock_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
                     ),
 
                     const SizedBox(width: 14),
@@ -472,18 +601,15 @@ class _ThemenListeState extends State<ThemenListe>
                                 ),
                               ),
                               if (isPerfect && unlocked)
-                                _buildBadge(
-                                    Icons.star_rounded, '100%', Colors.amber)
+                                _buildBadge(Icons.star_rounded, '100%', Colors.amber)
                               else if (isPassed && unlocked)
-                                _buildBadge(Icons.check_circle_rounded,
-                                    'Bestanden', Colors.green),
+                                _buildBadge(Icons.check_circle_rounded, 'Bestanden', Colors.green),
                             ],
                           ),
-                          if (thema['beschreibung'] != null &&
-                              thema['beschreibung'].toString().isNotEmpty) ...[
+                          if (hasBeschreibung) ...[
                             const SizedBox(height: 3),
                             Text(
-                              thema['beschreibung'],
+                              beschreibung,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade500,
@@ -497,9 +623,28 @@ class _ThemenListeState extends State<ThemenListe>
                       ),
                     ),
 
+                    // Info Button
+                    if (unlocked && hasBeschreibung) ...[
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => _showSummary(thema),
+                        child: Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: _indigo.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: _indigo.withOpacity(0.2)),
+                          ),
+                          child: const Icon(Icons.info_outline_rounded,
+                              color: _indigo, size: 18),
+                        ),
+                      ),
+                    ],
+
                     // Score Ring
                     if (unlocked) ...[
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       SizedBox(
                         width: 56,
                         height: 56,
@@ -524,17 +669,15 @@ class _ThemenListeState extends State<ThemenListe>
                                 duration: const Duration(milliseconds: 900),
                                 tween: Tween(begin: 0.0, end: score / 100),
                                 curve: Curves.easeOutCubic,
-                                builder: (context, value, _) {
-                                  return CircularProgressIndicator(
-                                    value: value,
-                                    strokeWidth: 5,
-                                    backgroundColor: Colors.transparent,
-                                    valueColor: AlwaysStoppedAnimation(
-                                      isPassed ? Colors.green : _indigo,
-                                    ),
-                                    strokeCap: StrokeCap.round,
-                                  );
-                                },
+                                builder: (context, value, _) =>
+                                    CircularProgressIndicator(
+                                  value: value,
+                                  strokeWidth: 5,
+                                  backgroundColor: Colors.transparent,
+                                  valueColor: AlwaysStoppedAnimation(
+                                      isPassed ? Colors.green : _indigo),
+                                  strokeCap: StrokeCap.round,
+                                ),
                               ),
                             ),
                             Text(
@@ -560,27 +703,13 @@ class _ThemenListeState extends State<ThemenListe>
                   runSpacing: 6,
                   children: [
                     if (difficulty != null && difficulty.isNotEmpty)
-                      _buildInfoChip(
-                        _getDifficultyIcon(difficulty),
-                        difficulty,
-                        _getDifficultyColor(difficulty),
-                      ),
-                    _buildInfoChip(
-                      Icons.quiz_outlined,
-                      '$fragenAnzahl Fragen',
-                      _indigo,
-                    ),
-                    _buildInfoChip(
-                      Icons.timer_outlined,
-                      '~$estimatedMin Min',
-                      Colors.orange,
-                    ),
+                      _buildInfoChip(_getDifficultyIcon(difficulty), difficulty,
+                          _getDifficultyColor(difficulty)),
+                    _buildInfoChip(Icons.quiz_outlined, '$fragenAnzahl Fragen', _indigo),
+                    _buildInfoChip(Icons.timer_outlined, '~$estimatedMin Min', Colors.orange),
                     if (!unlocked)
-                      _buildInfoChip(
-                        Icons.military_tech_rounded,
-                        'Mind. $requiredScore%',
-                        Colors.purple,
-                      ),
+                      _buildInfoChip(Icons.military_tech_rounded,
+                          'Mind. $requiredScore%', Colors.purple),
                   ],
                 ),
 
@@ -635,14 +764,9 @@ class _ThemenListeState extends State<ThemenListe>
         children: [
           Icon(icon, size: 13, color: color),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600, color: color)),
         ],
       ),
     );
@@ -652,15 +776,13 @@ class _ThemenListeState extends State<ThemenListe>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        gradient:
-            LinearGradient(colors: [color, color.withOpacity(0.8)]),
+        gradient: LinearGradient(colors: [color, color.withOpacity(0.8)]),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
+              color: color.withOpacity(0.3),
+              blurRadius: 6,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Row(
@@ -668,14 +790,9 @@ class _ThemenListeState extends State<ThemenListe>
         children: [
           Icon(icon, size: 13, color: Colors.white),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
         ],
       ),
     );
@@ -712,33 +829,22 @@ class _ThemenListeState extends State<ThemenListe>
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    colors: [_indigoLight, _indigoDark]),
+                gradient: const LinearGradient(colors: [_indigoLight, _indigoDark]),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.lock_rounded,
-                  color: Colors.white, size: 20),
+              child: const Icon(Icons.lock_rounded, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 12),
-            const Expanded(
-              child: Text(
-                'Thema gesperrt',
-                style: TextStyle(fontSize: 17),
-              ),
-            ),
+            const Expanded(child: Text('Thema gesperrt', style: TextStyle(fontSize: 17))),
           ],
         ),
-        content: Text(
-          _getUnlockMessage(thema),
-          style: const TextStyle(height: 1.5),
-        ),
+        content: Text(_getUnlockMessage(thema), style: const TextStyle(height: 1.5)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

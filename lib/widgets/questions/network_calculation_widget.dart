@@ -3,14 +3,16 @@ import '../../services/sound_service.dart';
 import '../../services/gemini_service.dart';
 import '../../screens/learning/ai_tutor_chat_screen.dart';
 import '../../services/progress_service.dart';
+import '../../services/flashcard_service.dart';
 
 class NetworkCalculationWidget extends StatefulWidget {
   final String questionText;
   final Map<String, String> correctAnswers;
   final String? explanation;
-  final VoidCallback? onAnswered;
+  final void Function(bool isCorrect)? onAnswered;
   final int? questionId;
   final int? moduleId;
+  final String? moduleName;
 
   const NetworkCalculationWidget({
     super.key,
@@ -20,6 +22,7 @@ class NetworkCalculationWidget extends StatefulWidget {
     this.onAnswered,
     this.questionId,
     this.moduleId,
+    this.moduleName,
   });
 
   @override
@@ -57,6 +60,7 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   final _soundService = SoundService();
   final _aiService = GeminiService();
   final _progressService = ProgressService();
+  final _flashcardService = FlashcardService();
   bool _loadingAiHelp = false;
   String? _aiResponse;
 
@@ -73,9 +77,15 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
     // Reset wenn neue Frage geladen wird
     if (oldWidget.questionText != widget.questionText) {
       scratchPadController.clear();
-      for (var controller in networkControllers) { controller.clear(); }
-      for (var controller in broadcastControllers) { controller.clear(); }
-      for (var controller in subnetControllers) { controller.clear(); }
+      for (var controller in networkControllers) {
+        controller.clear();
+      }
+      for (var controller in broadcastControllers) {
+        controller.clear();
+      }
+      for (var controller in subnetControllers) {
+        controller.clear();
+      }
       hostsController.clear();
 
       setState(() {
@@ -88,9 +98,15 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   @override
   void dispose() {
     scratchPadController.dispose();
-    for (var controller in networkControllers) { controller.dispose(); }
-    for (var controller in broadcastControllers) { controller.dispose(); }
-    for (var controller in subnetControllers) { controller.dispose(); }
+    for (var controller in networkControllers) {
+      controller.dispose();
+    }
+    for (var controller in broadcastControllers) {
+      controller.dispose();
+    }
+    for (var controller in subnetControllers) {
+      controller.dispose();
+    }
     hostsController.dispose();
     super.dispose();
   }
@@ -412,6 +428,18 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
           frageId: widget.questionId!,
           isCorrect: false,
         );
+
+        // Flashcard erstellen
+        final richtigeAntwort = widget.correctAnswers.entries
+            .map((e) => '${e.key}: ${e.value}')
+            .join('\n');
+        await _flashcardService.createFromWrongAnswer(
+          frageId: widget.questionId!,
+          frageText: widget.questionText,
+          richtigeAntwort: richtigeAntwort,
+          modulName: widget.moduleName ?? 'Kernthemen',
+          themaName: null,
+        );
       }
 
       _showFeedbackDialog(
@@ -458,7 +486,7 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                widget.onAnswered!();
+                widget.onAnswered!(isCorrect); // ← isCorrect übergeben
               },
               child: Text(isCorrect ? 'Weiter' : 'Nächste Frage'),
             ),
@@ -544,7 +572,7 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  widget.onAnswered!();
+                  widget.onAnswered!(true); // ← true, da Lösung gezeigt
                 },
                 child: const Text('Nächste Frage'),
               ),

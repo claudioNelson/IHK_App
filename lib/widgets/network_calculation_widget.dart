@@ -1,14 +1,16 @@
 // lib/widgets/questions/network_calculation_widget.dart
-
 import 'package:flutter/material.dart';
 import '../../services/sound_service.dart';
+import '../../services/flashcard_service.dart';
 
 class NetworkCalculationWidget extends StatefulWidget {
   final String questionText;
   final Map<String, String> correctAnswers;
-  final VoidCallback? onAnswered;
-
+  final void Function(bool isCorrect)? onAnswered;  // ← geändert
   final String? explanation;
+  final int? questionId;    // ← neu
+  final int? moduleId;      // ← neu
+  final String? moduleName; // ← neu
 
   const NetworkCalculationWidget({
     super.key,
@@ -16,6 +18,9 @@ class NetworkCalculationWidget extends StatefulWidget {
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
+    this.questionId,
+    this.moduleId,
+    this.moduleName,
   });
 
   @override
@@ -25,6 +30,7 @@ class NetworkCalculationWidget extends StatefulWidget {
 
 class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   // Scratch Pad Controller
+  final _flashcardService = FlashcardService();
   final TextEditingController scratchPadController = TextEditingController();
   final _soundService = SoundService();
 
@@ -316,49 +322,62 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   }
 
   void _showFeedbackDialog({
-    required String title,
-    required String message,
-    required bool isCorrect,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(message),
-            if (widget.explanation != null && isCorrect) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              const Text(
-                'Erklärung:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(widget.explanation!),
-            ],
+  required String title,
+  required String message,
+  required bool isCorrect,
+}) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(message),
+          if (widget.explanation != null && isCorrect) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            const Text('Erklärung:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(widget.explanation!),
           ],
-        ),
-        actions: [
-          if (isCorrect && widget.onAnswered != null)
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                widget.onAnswered!();
-              },
-              child: const Text('Weiter'),
-            ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(isCorrect ? 'OK' : 'Nochmal versuchen'),
-          ),
         ],
       ),
-    );
-  }
+      actions: [
+        if (isCorrect && widget.onAnswered != null)
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              widget.onAnswered!(true); // ← isCorrect übergeben
+            },
+            child: const Text('Weiter'),
+          ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(context).pop();
+            // Flashcard bei falscher Antwort
+            if (!isCorrect && widget.questionId != null) {
+              final richtigeAntwort =
+                  widget.correctAnswers.entries.map((e) => '${e.key}: ${e.value}').join('\n');
+              await _flashcardService.createFromWrongAnswer(
+                frageId: widget.questionId!,
+                frageText: widget.questionText,
+                richtigeAntwort: richtigeAntwort,
+                modulName: widget.moduleName ?? 'Kernthemen',
+                themaName: null,
+              );
+              widget.onAnswered!(false); // ← isCorrect übergeben
+            }
+          },
+          child: Text(isCorrect ? 'OK' : 'Nochmal versuchen'),
+        ),
+      ],
+    ),
+  );
+}
 
   void _showSolution() {
     // TODO: Implementierung in Schritt 3.3
