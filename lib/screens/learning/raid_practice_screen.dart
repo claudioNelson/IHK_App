@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/questions/raid_calculation_widget.dart';
 import '../../services/sound_service.dart';
+import '../../services/flashcard_service.dart';
 
 const _indigo = Color(0xFF4F46E5);
 const _indigoDark = Color(0xFF3730A3);
@@ -28,6 +29,7 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
   bool _loading = true;
   int _currentIndex = 0;
   final _soundService = SoundService();
+  final _flashcardService = FlashcardService();
 
   @override
   void initState() {
@@ -54,9 +56,14 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Fehler beim Laden: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler beim Laden: $e')));
     }
+  }
+
+  void _onAnswered(bool isCorrect) {
+    _nextQuestion();
   }
 
   void _nextQuestion() {
@@ -66,11 +73,15 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Row(children: [
-            Text('🎉 ', style: TextStyle(fontSize: 24)),
-            Text('Fertig!', style: TextStyle(fontWeight: FontWeight.bold)),
-          ]),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Text('🎉 ', style: TextStyle(fontSize: 24)),
+              Text('Fertig!', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
           content: const Text('Du hast alle Fragen durchgearbeitet!'),
           actions: [
             TextButton(
@@ -79,7 +90,10 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
                 Navigator.of(context).pop();
               },
               style: TextButton.styleFrom(foregroundColor: _indigo),
-              child: const Text('Zurück', style: TextStyle(fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Zurück',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),
@@ -94,25 +108,28 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: _indigo))
           : _questions.isEmpty
-              ? _buildEmpty()
-              : Column(
-                  children: [
-                    _buildHeader(),
-                    _buildProgressBar(),
-                    Expanded(
-                      child: RaidCalculationWidget(
-                        questionText: _questions[_currentIndex]['frage'],
-                        correctAnswers: _questions[_currentIndex]['calculation_data'] != null
-                            ? Map<String, dynamic>.from(_questions[_currentIndex]['calculation_data'])
-                            : {},
-                        explanation: _questions[_currentIndex]['erklaerung'],
-                        onAnswered: _nextQuestion,
-                        questionId: _questions[_currentIndex]['id'],
-                        moduleId: widget.moduleId,
-                      ),
-                    ),
-                  ],
+          ? _buildEmpty()
+          : Column(
+              children: [
+                _buildHeader(),
+                _buildProgressBar(),
+                Expanded(
+                  child: RaidCalculationWidget(
+                    questionText: _questions[_currentIndex]['frage'],
+                    correctAnswers:
+                        _questions[_currentIndex]['calculation_data'] != null
+                        ? Map<String, dynamic>.from(
+                            _questions[_currentIndex]['calculation_data'],
+                          )
+                        : {},
+                    explanation: _questions[_currentIndex]['erklaerung'],
+                    onAnswered: _onAnswered,
+                    questionId: _questions[_currentIndex]['id'],
+                    moduleId: widget.moduleId,
+                  ),
                 ),
+              ],
+            ),
     );
   }
 
@@ -145,7 +162,11 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.developer_board_rounded, color: Colors.white, size: 22),
+                child: const Icon(
+                  Icons.developer_board_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -155,10 +176,15 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
                     Text(
                       widget.moduleName,
                       style: const TextStyle(
-                          color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const Text('RAID Berechnungen',
-                        style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    const Text(
+                      'RAID Berechnungen',
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
                   ],
                 ),
               ),
@@ -170,7 +196,9 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
   }
 
   Widget _buildProgressBar() {
-    final progress = _questions.isEmpty ? 0.0 : (_currentIndex + 1) / _questions.length;
+    final progress = _questions.isEmpty
+        ? 0.0
+        : (_currentIndex + 1) / _questions.length;
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -178,7 +206,11 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: _indigo.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: _indigo.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -186,15 +218,30 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Frage ${_currentIndex + 1} von ${_questions.length}',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+              Text(
+                'Frage ${_currentIndex + 1} von ${_questions.length}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                    color: _indigo.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-                child: Text('${(progress * 100).toInt()}%',
-                    style: const TextStyle(
-                        color: _indigo, fontWeight: FontWeight.bold, fontSize: 13)),
+                  color: _indigo.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${(progress * 100).toInt()}%',
+                  style: const TextStyle(
+                    color: _indigo,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
               ),
             ],
           ),
@@ -220,15 +267,22 @@ class _RaidPracticeScreenState extends State<RaidPracticeScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(color: _indigo.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: _indigo.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
             child: const Icon(Icons.inbox_outlined, size: 56, color: _indigo),
           ),
           const SizedBox(height: 16),
-          const Text('Noch keine Fragen verfügbar',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          const Text(
+            'Noch keine Fragen verfügbar',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 8),
-          Text('Schau später nochmal vorbei',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
+          Text(
+            'Schau später nochmal vorbei',
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+          ),
         ],
       ),
     );

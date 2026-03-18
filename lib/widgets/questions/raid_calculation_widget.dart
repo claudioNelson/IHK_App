@@ -8,7 +8,7 @@ class RaidCalculationWidget extends StatefulWidget {
   final String questionText;
   final Map<String, dynamic> correctAnswers;
   final String? explanation;
-  final VoidCallback? onAnswered;
+  final void Function(bool)? onAnswered;
   final int? questionId;
   final int? moduleId;
 
@@ -422,7 +422,7 @@ class _RaidCalculationWidgetState extends State<RaidCalculationWidget> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  widget.onAnswered!();
+                  widget.onAnswered!(false);
                 },
                 child: const Text('Nächste Frage'),
               ),
@@ -536,11 +536,11 @@ Meine Antworten:
           ],
         ),
         actions: [
-          if (isCorrect && widget.onAnswered != null)
+          if (widget.onAnswered != null)
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                widget.onAnswered!();
+                widget.onAnswered!(isCorrect);
               },
               child: const Text('Weiter'),
             ),
