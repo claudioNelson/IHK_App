@@ -229,7 +229,7 @@ class _SecurityPracticeScreenState extends State<SecurityPracticeScreen> {
         questionText: question['frage'],
         correctAnswers: Map<String, dynamic>.from(question['calculation_data'] ?? {}),
         explanation: question['erklaerung'],
-        onAnswered: _nextQuestion,
+        onAnswered: (_) => _nextQuestion(),
         questionId: question['id'],
         moduleId: widget.moduleId,
       );
@@ -238,7 +238,7 @@ class _SecurityPracticeScreenState extends State<SecurityPracticeScreen> {
         questionText: question['frage'],
         correctAnswers: Map<String, dynamic>.from(question['calculation_data'] ?? {}),
         explanation: question['erklaerung'],
-        onAnswered: _nextQuestion,
+        onAnswered: (_) => _nextQuestion(),
         questionId: question['id'],
         moduleId: widget.moduleId,
       );

@@ -250,7 +250,7 @@ class _BackupPracticeScreenState extends State<BackupPracticeScreen> {
         correctAnswers:
             Map<String, dynamic>.from(question['calculation_data'] ?? {}),
         explanation: question['erklaerung'],
-        onAnswered: _nextQuestion,
+        onAnswered: (_) => _nextQuestion(),
         questionId: question['id'],
         moduleId: widget.moduleId,
       );
@@ -260,7 +260,7 @@ class _BackupPracticeScreenState extends State<BackupPracticeScreen> {
         correctAnswers:
             Map<String, dynamic>.from(question['calculation_data'] ?? {}),
         explanation: question['erklaerung'],
-        onAnswered: _nextQuestion,
+        onAnswered: (_) => _nextQuestion(),
         questionId: question['id'],
         moduleId: widget.moduleId,
       );

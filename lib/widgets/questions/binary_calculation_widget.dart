@@ -8,7 +8,7 @@ class BinaryCalculationWidget extends StatefulWidget {
   final String questionText;
   final Map<String, dynamic> correctAnswers;
   final String? explanation;
-  final VoidCallback? onAnswered;
+  final void Function(bool)? onAnswered;
   final int? questionId;
   final int? moduleId;
 
@@ -369,7 +369,7 @@ class _BinaryCalculationWidgetState extends State<BinaryCalculationWidget> {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: widget.onAnswered != null
-                  ? () => widget.onAnswered!()
+                  ? () => widget.onAnswered!(false)
                   : null,
               icon: const Icon(Icons.arrow_forward),
               label: Text(isCorrect ? 'Weiter' : 'Nächste Frage'),

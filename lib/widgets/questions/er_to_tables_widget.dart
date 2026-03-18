@@ -4,7 +4,7 @@ class ErToTablesWidget extends StatefulWidget {
   final String questionText;
   final Map<String, dynamic> correctAnswers;
   final String? explanation;
-  final VoidCallback? onAnswered;
+  final void Function(bool)? onAnswered;
 
   const ErToTablesWidget({
     super.key,
@@ -376,7 +376,7 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  widget.onAnswered!();
+                  widget.onAnswered!(false);
                 },
                 child: const Text('Nächste Frage'),
               ),
@@ -422,7 +422,7 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                widget.onAnswered!();
+                widget.onAnswered!(false);
               },
               child: const Text('Weiter'),
             ),

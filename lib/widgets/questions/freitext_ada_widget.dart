@@ -9,7 +9,7 @@ class FreitextAdaWidget extends StatefulWidget {
   final String questionText;
   final Map<String, dynamic> correctAnswers;
   final String? explanation;
-  final VoidCallback? onAnswered;
+  final void Function(bool)? onAnswered;
   final int? questionId;
   final int? moduleId;
 
@@ -303,7 +303,7 @@ class _FreitextAdaWidgetState extends State<FreitextAdaWidget> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => widget.onAnswered!(),
+              onPressed: () => widget.onAnswered!(false),
               icon: const Icon(Icons.arrow_forward),
               label: const Text('Weiter'),
               style: ElevatedButton.styleFrom(

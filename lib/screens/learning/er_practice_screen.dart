@@ -102,7 +102,7 @@ class _ErPracticeScreenState extends State<ErPracticeScreen> {
                             ? Map<String, dynamic>.from(_questions[_currentIndex]['calculation_data'])
                             : {'tables': {}},
                         explanation: _questions[_currentIndex]['erklaerung'],
-                        onAnswered: _nextQuestion,
+                        onAnswered: (_) => _nextQuestion(),
                       ),
                     ),
                   ],

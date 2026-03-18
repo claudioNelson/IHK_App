@@ -161,7 +161,7 @@ class _ProjectManagementPracticeScreenState
           question['calculation_data'] ?? {},
         ),
         explanation: question['erklaerung'],
-        onAnswered: _nextQuestion,
+        onAnswered: (_) => _nextQuestion(),
         questionId: question['id'],
         moduleId: widget.moduleId,
       );
@@ -172,7 +172,7 @@ class _ProjectManagementPracticeScreenState
           question['calculation_data'] ?? {},
         ),
         explanation: question['erklaerung'],
-        onAnswered: _nextQuestion,
+        onAnswered: (_) => _nextQuestion(),
         questionId: question['id'],
         moduleId: widget.moduleId,
       );
