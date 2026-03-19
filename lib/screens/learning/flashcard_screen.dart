@@ -136,7 +136,8 @@ class _FlashcardScreenState extends State<FlashcardScreen>
               backgroundColor: _indigo,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('Nochmal'),
           ),
@@ -154,11 +155,10 @@ class _FlashcardScreenState extends State<FlashcardScreen>
           _buildHeader(),
           Expanded(
             child: _loading
-                ? const Center(
-                    child: CircularProgressIndicator(color: _indigo))
+                ? const Center(child: CircularProgressIndicator(color: _indigo))
                 : _cards.isEmpty
-                    ? _buildEmpty()
-                    : _buildContent(),
+                ? _buildEmpty()
+                : _buildContent(),
           ),
         ],
       ),
@@ -185,8 +185,10 @@ class _FlashcardScreenState extends State<FlashcardScreen>
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios_rounded,
-                    color: Colors.white),
+                icon: const Icon(
+                  Icons.arrow_back_ios_rounded,
+                  color: Colors.white,
+                ),
                 onPressed: () => Navigator.pop(context),
               ),
               Container(
@@ -202,16 +204,21 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Meine Flashcards',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Meine Flashcards',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     if (_cards.isNotEmpty)
                       Text(
                         '${_currentIndex + 1} von ${_cards.length} Karten',
                         style: const TextStyle(
-                            color: Colors.white70, fontSize: 13),
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
                       ),
                   ],
                 ),
@@ -242,16 +249,20 @@ class _FlashcardScreenState extends State<FlashcardScreen>
             const Text(
               'Keine Flashcards',
               style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1A2E)),
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A2E),
+              ),
             ),
             const SizedBox(height: 10),
             Text(
               'Falsch beantwortete Fragen werden\nautomatisch als Flashcards gespeichert.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 15, color: Colors.grey.shade500, height: 1.5),
+                fontSize: 15,
+                color: Colors.grey.shade500,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
@@ -261,10 +272,13 @@ class _FlashcardScreenState extends State<FlashcardScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: _indigo,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 14,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             ),
           ],
@@ -322,8 +336,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                     alignment: Alignment.center,
                     transform: Matrix4.identity()
                       ..setEntry(3, 2, 0.001)
-                      ..rotateY(
-                          3.14159 * _flipAnimation.value),
+                      ..rotateY(3.14159 * _flipAnimation.value),
                     child: isBack
                         ? Transform(
                             alignment: Alignment.center,
@@ -344,9 +357,10 @@ class _FlashcardScreenState extends State<FlashcardScreen>
           child: Text(
             _showAnswer ? 'Wusstest du es?' : 'Tippe um die Antwort zu sehen',
             style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade500,
-                fontStyle: FontStyle.italic),
+              fontSize: 13,
+              color: Colors.grey.shade500,
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ),
 
@@ -354,7 +368,11 @@ class _FlashcardScreenState extends State<FlashcardScreen>
         if (_showAnswer)
           Padding(
             padding: EdgeInsets.fromLTRB(
-                20, 0, 20, MediaQuery.of(context).padding.bottom + 16),
+              20,
+              0,
+              20,
+              MediaQuery.of(context).padding.bottom + 16,
+            ),
             child: Row(
               children: [
                 // Nochmal
@@ -362,14 +380,17 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                   child: OutlinedButton.icon(
                     onPressed: _markRepeat,
                     icon: const Icon(Icons.replay_rounded, size: 20),
-                    label: const Text('Nochmal',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'Später nochmal',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       foregroundColor: Colors.orange,
                       side: const BorderSide(color: Colors.orange, width: 1.5),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                   ),
                 ),
@@ -379,14 +400,17 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                   child: ElevatedButton.icon(
                     onPressed: _markKnown,
                     icon: const Icon(Icons.check_rounded, size: 20),
-                    label: const Text('Gewusst ✓',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'Gewusst ✓',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       elevation: 2,
                     ),
                   ),
@@ -397,21 +421,27 @@ class _FlashcardScreenState extends State<FlashcardScreen>
         else
           Padding(
             padding: EdgeInsets.fromLTRB(
-                20, 0, 20, MediaQuery.of(context).padding.bottom + 16),
+              20,
+              0,
+              20,
+              MediaQuery.of(context).padding.bottom + 16,
+            ),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _flipCard,
                 icon: const Icon(Icons.flip_rounded, size: 20),
-                label: const Text('Antwort zeigen',
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
+                label: const Text(
+                  'Antwort zeigen',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: _indigo,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
             ),
@@ -446,12 +476,15 @@ class _FlashcardScreenState extends State<FlashcardScreen>
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: _indigo.withOpacity(0.2)),
             ),
-            child: const Text('FRAGE',
-                style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: _indigo,
-                    letterSpacing: 1.5)),
+            child: const Text(
+              'FRAGE',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: _indigo,
+                letterSpacing: 1.5,
+              ),
+            ),
           ),
           const SizedBox(height: 24),
           Text(
@@ -497,12 +530,15 @@ class _FlashcardScreenState extends State<FlashcardScreen>
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text('ANTWORT',
-                style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.5)),
+            child: const Text(
+              'ANTWORT',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.5,
+              ),
+            ),
           ),
           const SizedBox(height: 24),
           Text(
@@ -531,7 +567,10 @@ class _FlashcardScreenState extends State<FlashcardScreen>
       child: Text(
         label,
         style: TextStyle(
-            fontSize: 12, fontWeight: FontWeight.w600, color: color),
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
       ),
     );
   }

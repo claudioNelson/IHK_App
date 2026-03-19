@@ -9,7 +9,7 @@ class DnsPortMatchWidget extends StatefulWidget {
   final Map<String, dynamic> correctAnswers;
   final String? explanation;
   final void Function(bool)? onAnswered;
-  final int? questionId; // ← NEU
+  final int? questionId;
   final int? moduleId;
 
   const DnsPortMatchWidget({
@@ -18,8 +18,8 @@ class DnsPortMatchWidget extends StatefulWidget {
     required this.correctAnswers,
     this.explanation,
     this.onAnswered,
-    this.questionId, // ← NEU
-    this.moduleId, // ← NEU
+    this.questionId,
+    this.moduleId,
   });
 
   @override
@@ -53,106 +53,86 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
   @override
   void didUpdateWidget(DnsPortMatchWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (oldWidget.questionText != widget.questionText) {
       setState(() {
         selectedAnswer = null;
         hasAnswered = false;
         _aiResponse = null;
       });
-      _shuffleOptions(); // ← NEU
+      _shuffleOptions();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final type = widget.correctAnswers['type'] as String?;
-    final displayInfo = _getDisplayInfo(type);
-
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Info-Card
+            // Frage Card
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [displayInfo['color'].shade50, Colors.white],
+                  colors: [Colors.indigo.shade50, Colors.white],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: displayInfo['color'].shade200,
-                  width: 2,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: displayInfo['color'],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      displayInfo['icon'],
-                      color: Colors.white,
-                      size: 32,
-                    ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.indigo.withOpacity(0.12)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.indigo.withOpacity(0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          displayInfo['label'],
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: displayInfo['color'].shade900,
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF3730A3), Color(0xFF4F46E5)],
                           ),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          displayInfo['subtitle'],
+                        child: const Icon(Icons.help_outline, color: Colors.white, size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text('Frage',
                           style: TextStyle(
-                            fontSize: 14,
-                            color: displayInfo['color'].shade700,
-                          ),
-                        ),
-                      ],
-                    ),
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF4F46E5))),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    widget.questionText,
+                    style: const TextStyle(
+                        fontSize: 17, fontWeight: FontWeight.w500, height: 1.5),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Frage
-            Text(
-              widget.questionText,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Antwort-Optionen
             ...(_buildOptions()),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-            // Feedback (wenn beantwortet)
             if (hasAnswered) _buildFeedback(),
 
             const SizedBox(height: 16),
 
-            // Ada Buttons
             _buildAdaButtons(),
           ],
         ),
@@ -160,27 +140,8 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
     );
   }
 
-  Map<String, dynamic> _getDisplayInfo(String? type) {
-    if (type == 'port_to_service') {
-      return {
-        'icon': Icons.router,
-        'label': 'Port ${widget.correctAnswers['port']}',
-        'subtitle': 'Welcher Dienst?',
-        'color': Colors.blue,
-      };
-    } else {
-      return {
-        'icon': Icons.dns,
-        'label': widget.correctAnswers['record_type'] ?? 'DNS-Record',
-        'subtitle': 'Wofür wird er verwendet?',
-        'color': Colors.green,
-      };
-    }
-  }
-
   List<Widget> _buildOptions() {
-    final options = _shuffledOptions;
-    return options.asMap().entries.map((entry) {
+    return _shuffledOptions.asMap().entries.map((entry) {
       final index = entry.key;
       final option = entry.value;
       final isSelected = selectedAnswer == option;
@@ -191,27 +152,27 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
       if (hasAnswered && isSelected) {
         cardColor = isCorrect ? Colors.green.shade50 : Colors.red.shade50;
       } else if (isSelected) {
-        cardColor = Colors.blue.shade50;
+        cardColor = Colors.indigo.shade50;
       }
 
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Material(
           color: cardColor ?? Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           elevation: isSelected ? 4 : 1,
           child: InkWell(
             onTap: hasAnswered ? null : () => _selectAnswer(option),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: hasAnswered && isSelected
                       ? (isCorrect ? Colors.green : Colors.red)
-                      : (isSelected ? Colors.blue : Colors.grey.shade300),
-                  width: 2,
+                      : (isSelected ? const Color(0xFF4F46E5) : Colors.grey.shade200),
+                  width: hasAnswered && isSelected ? 2 : 1.5,
                 ),
               ),
               child: Row(
@@ -223,35 +184,37 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
                       shape: BoxShape.circle,
                       color: hasAnswered && isSelected
                           ? (isCorrect ? Colors.green : Colors.red)
-                          : (isSelected ? Colors.blue : Colors.grey.shade300),
+                          : (isSelected
+                              ? const Color(0xFF4F46E5)
+                              : Colors.grey.shade200),
                     ),
                     child: Center(
                       child: hasAnswered && isSelected
                           ? Icon(
                               isCorrect ? Icons.check : Icons.close,
                               color: Colors.white,
-                              size: 20,
+                              size: 18,
                             )
                           : Text(
                               String.fromCharCode(65 + index),
                               style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.grey.shade700,
+                                color: isSelected ? Colors.white : Colors.grey.shade600,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 15,
                               ),
                             ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Text(
                       option,
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.normal,
+                        fontSize: 15,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color: hasAnswered && isSelected
+                            ? (isCorrect ? Colors.green.shade900 : Colors.red.shade900)
+                            : Colors.black87,
                       ),
                     ),
                   ),
@@ -265,7 +228,6 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
   }
 
   void _selectAnswer(String answer) async {
-    // ← async hinzufügen!
     setState(() {
       selectedAnswer = answer;
       hasAnswered = true;
@@ -280,7 +242,6 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
       _soundService.playSound(SoundType.wrong);
     }
 
-    // Progress speichern  ← NEU
     if (widget.questionId != null && widget.moduleId != null) {
       await _progressService.saveKernthemaAnswer(
         modulId: widget.moduleId!,
@@ -311,9 +272,7 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
             children: [
               Icon(
                 isCorrect ? Icons.check_circle : Icons.info,
-                color: isCorrect
-                    ? Colors.green.shade700
-                    : Colors.orange.shade700,
+                color: isCorrect ? Colors.green.shade700 : Colors.orange.shade700,
               ),
               const SizedBox(width: 8),
               Text(
@@ -321,9 +280,7 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: isCorrect
-                      ? Colors.green.shade900
-                      : Colors.orange.shade900,
+                  color: isCorrect ? Colors.green.shade900 : Colors.orange.shade900,
                 ),
               ),
             ],
@@ -332,20 +289,15 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
             const SizedBox(height: 12),
             Text(
               widget.explanation!,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey.shade800,
-                height: 1.5,
-              ),
+              style: TextStyle(fontSize: 15, color: Colors.grey.shade800, height: 1.5),
             ),
           ],
-
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: widget.onAnswered != null
-                  ? () => widget.onAnswered!(false)
+                  ? () => widget.onAnswered!(isCorrect)
                   : null,
               icon: const Icon(Icons.arrow_forward),
               label: Text(isCorrect ? 'Weiter' : 'Nächste Frage'),
@@ -362,45 +314,41 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
   }
 
   Widget _buildAdaButtons() {
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _loadingAiHelp ? null : _getAiHint,
-                icon: _loadingAiHelp
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.tips_and_updates, size: 20),
-                label: Text(
-                  _loadingAiHelp ? 'Lädt...' : 'Tipp',
-                  style: const TextStyle(fontSize: 13),
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  side: BorderSide(color: Colors.blue.shade300),
-                  foregroundColor: Colors.blue.shade700,
-                ),
-              ),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: _loadingAiHelp ? null : _getAiHint,
+            icon: _loadingAiHelp
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.tips_and_updates, size: 20),
+            label: Text(
+              _loadingAiHelp ? 'Lädt...' : 'Tipp',
+              style: const TextStyle(fontSize: 13),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _openAiChat,
-                icon: const Icon(Icons.chat, size: 20),
-                label: const Text('Ada Chat', style: TextStyle(fontSize: 13)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-              ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              side: BorderSide(color: Colors.blue.shade300),
+              foregroundColor: Colors.blue.shade700,
             ),
-          ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: _openAiChat,
+            icon: const Icon(Icons.chat, size: 20),
+            label: const Text('Ada Chat', style: TextStyle(fontSize: 13)),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          ),
         ),
       ],
     );
@@ -413,14 +361,14 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
     });
 
     try {
-      final type = widget.correctAnswers['type'] as String;
+      final type = widget.correctAnswers['type'] as String? ?? '';
       final contextInfo = type == 'port_to_service'
           ? 'Port ${widget.correctAnswers['port']}'
-          : widget.correctAnswers['record_type'];
+          : widget.correctAnswers['record_type'] ?? widget.questionText;
 
       final hint = await _aiService.getHint(
         question: widget.questionText,
-        topic: 'DNS & Ports',
+        topic: 'Kernthemen',
         currentAttempt: selectedAnswer != null
             ? 'Meine Antwort: $selectedAnswer'
             : 'Ich bin mir unsicher bei: $contextInfo',
@@ -469,7 +417,7 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
       MaterialPageRoute(
         builder: (_) => AiTutorChatScreen(
           currentQuestion: widget.questionText,
-          topic: 'DNS & Ports',
+          topic: 'Kernthemen',
         ),
       ),
     );
