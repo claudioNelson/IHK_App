@@ -216,39 +216,41 @@ class _CertificateOverviewScreenState
   }
 
   Widget _buildCertCard(Map<String, dynamic> cert) {
-    final gradient = _getVendorGradient(cert['anbieter'] ?? '');
-    final icon = _getVendorIcon(cert['anbieter'] ?? '');
-    final short = _getVendorShort(cert['anbieter'] ?? '');
-    final color = gradient[0];
+  final gradient = _getVendorGradient(cert['anbieter'] ?? '');
+  final icon = _getVendorIcon(cert['anbieter'] ?? '');
+  final short = _getVendorShort(cert['anbieter'] ?? '');
+  final color = gradient[0];
 
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CertificatePracticeScreen(
-            zertifikatId: cert['id'],
-            certName: cert['name'],
-          ),
+  return GestureDetector(
+    onTap: () => Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CertificatePracticeScreen(
+          zertifikatId: cert['id'],
+          certName: cert['name'],
         ),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.15), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.12),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // ── Farbiger oberer Bereich ──
-            Container(
-              height: 90,
+    ),
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.15), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // ── Farbiger oberer Bereich ──
+          Expanded(
+            flex: 3,
+            child: Container(
+              width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: gradient,
@@ -262,15 +264,26 @@ class _CertificateOverviewScreenState
               ),
               child: Stack(
                 children: [
-                  // Hintergrund-Kreis Dekoration
                   Positioned(
-                    top: -10,
-                    right: -10,
+                    top: -15,
+                    right: -15,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -20,
+                    left: -20,
                     child: Container(
                       width: 70,
                       height: 70,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
+                        color: Colors.white.withOpacity(0.06),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -279,11 +292,18 @@ class _CertificateOverviewScreenState
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(icon, size: 32, color: Colors.white),
-                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(icon, size: 30, color: Colors.white),
+                        ),
+                        const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                              horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.25),
                             borderRadius: BorderRadius.circular(10),
@@ -292,7 +312,7 @@ class _CertificateOverviewScreenState
                             short,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
                             ),
@@ -304,64 +324,65 @@ class _CertificateOverviewScreenState
                 ],
               ),
             ),
+          ),
 
-            // ── Unterer Bereich ──
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      cert['name'] ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        height: 1.3,
+          // ── Unterer Bereich ──
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    cert['name'] ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      height: 1.3,
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: color.withOpacity(0.2)),
+                        ),
+                        child: Text(
+                          '${cert['anzahl_fragen']} Fragen',
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border:
-                                Border.all(color: color.withOpacity(0.2)),
-                          ),
-                          child: Text(
-                            '${cert['anzahl_fragen']} Fragen',
-                            style: TextStyle(
-                              color: color,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                      Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(Icons.arrow_forward_rounded,
-                              size: 13, color: color),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                        child: Icon(Icons.arrow_forward_rounded,
+                            size: 13, color: color),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
