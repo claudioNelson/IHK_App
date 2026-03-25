@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
+import '../../widgets/navigation/nav_root.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -64,6 +65,11 @@ class _LoginScreenState extends State<LoginScreen>
       await _authService.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const NavRoot()),
+        (route) => false,
       );
     } on AuthException catch (e) {
       if (!mounted) return;

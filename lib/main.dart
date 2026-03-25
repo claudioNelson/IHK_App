@@ -4,6 +4,7 @@ import 'screens/auth/login_screen.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/app_cache_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -12,8 +13,16 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
 
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+    ),
+  );
+
+  await Hive.initFlutter();
   await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
@@ -36,7 +45,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Initialisiert App und zeigt Splash Screen
 class AppInitializer extends StatefulWidget {
   const AppInitializer({super.key});
 

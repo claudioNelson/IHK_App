@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../shared/nav_keep_alive.dart';
-import '../../screens/learning/learning_hub_screen.dart';import '../../screens/zertifikate/zertifikate_screen.dart';
+import '../../screens/learning/learning_hub_screen.dart';
+import '../../screens/zertifikate/zertifikate_screen.dart';
 import '../../screens/simulation/async_match_demo_screen.dart';
 import '../../screens/profile/new_profile_page.dart';
 import '../../pages/pruefung/ihk_pruefung_liste_screen.dart';
@@ -26,51 +27,53 @@ class _NavRootState extends State<NavRoot> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_index],
-      extendBody: true,
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 20,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                0,
-                Icons.menu_book_outlined,
-                Icons.menu_book,
-                'Lernen',
+      extendBody: false,
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 5),
               ),
-              _buildNavItem(
-                1,
-                Icons.assignment_outlined,
-                Icons.assignment,
-                'Prüfung',
-              ),
-              _buildNavItem(
-                2,
-                Icons.sports_esports_outlined,
-                Icons.sports_esports,
-                'Match',
-              ),
-              _buildNavItem(
-                3,
-                Icons.workspace_premium_outlined,
-                Icons.workspace_premium,
-                'Zertifikate',
-              ),
-              _buildNavItem(4, Icons.person_outline, Icons.person, 'Profil'),
             ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  0,
+                  Icons.menu_book_outlined,
+                  Icons.menu_book,
+                  'Lernen',
+                ),
+                _buildNavItem(
+                  1,
+                  Icons.assignment_outlined,
+                  Icons.assignment,
+                  'Prüfung',
+                ),
+                _buildNavItem(
+                  2,
+                  Icons.sports_esports_outlined,
+                  Icons.sports_esports,
+                  'Match',
+                ),
+                _buildNavItem(
+                  3,
+                  Icons.workspace_premium_outlined,
+                  Icons.workspace_premium,
+                  'Zertifikate',
+                ),
+                _buildNavItem(4, Icons.person_outline, Icons.person, 'Profil'),
+              ],
+            ),
           ),
         ),
       ),

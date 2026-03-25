@@ -40,6 +40,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   Future<void> _loadCounts() async {
     final count = await _srsService.getDueCount();
     final fcCount = await _flashcardService.getCount();
+    print('🔢 getDueCount: $count');
     if (!mounted) return;
     setState(() {
       _dueCount = count;
@@ -56,11 +57,13 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
-            expandedHeight: 160,
+            expandedHeight: 120,
             floating: false,
             pinned: true,
             elevation: 0,
+            forceElevated: true,
             backgroundColor: _indigoDark,
+            clipBehavior: Clip.hardEdge,
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.parallax,
               background: Container(
@@ -130,7 +133,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           ),
 
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Wiederholungen
@@ -154,7 +157,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
-              builder: (_) => const ModulListe(),
+                              builder: (_) => const ModulListe(),
                             ),
                           );
                           _loadCounts();
@@ -198,7 +201,9 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           ? () async {
               await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ReviewScreen()),
+                MaterialPageRoute(
+                  builder: (_) => ReviewScreen(totalCount: _dueCount),
+                ),
               );
               _loadCounts();
             }

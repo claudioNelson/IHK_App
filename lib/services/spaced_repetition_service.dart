@@ -109,18 +109,18 @@ class SpacedRepetitionService {
           .from('spaced_repetition')
           .select('''
       *,
-      fragen (
+      fragen!inner (
         id,
         frage,
         modul_id,
         thema_id,
-        module!inner(id, name)
+        module(id, name)
       )
     ''')
           .eq('user_id', userId)
           .lte('next_review_at', now.toIso8601String())
           .order('next_review_at', ascending: true)
-          .limit(50);
+          .limit(100);
 
       return List<Map<String, dynamic>>.from(results);
     } catch (e) {
@@ -131,24 +131,25 @@ class SpacedRepetitionService {
 
   /// Zählt wie viele Fragen heute fällig sind
   Future<int> getDueCount() async {
-    try {
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) return 0;
+  try {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return 0;
 
-      final now = DateTime.now();
+    final now = DateTime.now();
 
-      final result = await _supabase
-          .from('spaced_repetition')
-          .select('id')
-          .eq('user_id', userId)
-          .lte('next_review_at', now.toIso8601String());
+    final result = await _supabase
+        .from('spaced_repetition')
+        .select('id, fragen!inner(id)')
+        .eq('user_id', userId)
+        .lte('next_review_at', now.toIso8601String());
 
-      return result.length;
-    } catch (e) {
-      print('❌ Fehler beim Zählen: $e');
-      return 0;
-    }
+    print('✅ getDueCount result: ${result.length}');
+    return result.length;
+  } catch (e) {
+    print('❌ getDueCount Fehler: $e');
+    return 0;
   }
+}
 
   /// Statistiken für Dashboard
   Future<Map<String, dynamic>> getStats() async {
