@@ -61,8 +61,10 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _fadeAnimation =
-        CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut);
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    );
     _fadeController.forward();
   }
 
@@ -71,17 +73,27 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
       final res = await supabase
           .from('fragen')
           .select(
-              'id, frage, question_type, calculation_data, antworten(id, text, ist_richtig, erklaerung)')
+            'id, frage, question_type, calculation_data, antworten(id, text, ist_richtig, erklaerung)',
+          )
           .in_('id', widget.frageIds);
       if (!mounted) return;
+      final list = List<dynamic>.from(res);
+      for (final frage in list) {
+        if (frage['antworten'] != null) {
+          final antworten = List<dynamic>.from(frage['antworten']);
+          antworten.shuffle();
+          frage['antworten'] = antworten;
+        }
+      }
       setState(() {
-        fragen = res;
+        fragen = list;
         loading = false;
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Fehler: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
     }
   }
 
@@ -159,7 +171,9 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
               Text(
                 passed ? 'Super gemacht!' : 'Weiter üben!',
                 style: const TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.bold),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -187,11 +201,13 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: const Text('Fertig',
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'Fertig',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
@@ -229,8 +245,11 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_rounded,
-                              color: Colors.white, size: 20),
+                          icon: const Icon(
+                            Icons.arrow_back_ios_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           onPressed: () => Navigator.pop(context),
                         ),
                         Container(
@@ -239,20 +258,28 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.replay_rounded,
-                              color: Colors.white, size: 20),
+                          child: const Icon(
+                            Icons.replay_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         const Expanded(
-                          child: Text('Wiederholung',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold)),
+                          child: Text(
+                            'Wiederholung',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
@@ -260,9 +287,10 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                           child: Text(
                             '${currentIndex + 1} / ${fragen.length}',
                             style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13),
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
@@ -277,7 +305,8 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                             value: (currentIndex + 1) / fragen.length,
                             backgroundColor: Colors.white.withOpacity(0.25),
                             valueColor: const AlwaysStoppedAnimation<Color>(
-                                Colors.white),
+                              Colors.white,
+                            ),
                             minHeight: 7,
                           ),
                         ),
@@ -292,8 +321,7 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
           // Content
           Expanded(
             child: loading
-                ? const Center(
-                    child: CircularProgressIndicator(color: _orange))
+                ? const Center(child: CircularProgressIndicator(color: _orange))
                 : FadeTransition(
                     opacity: _fadeAnimation,
                     child: _buildQuestionContent(),
@@ -321,14 +349,17 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                           ? 'Weiter'
                           : 'Abschließen',
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _orange,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       elevation: 2,
                     ),
                   ),
@@ -399,9 +430,10 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
               border: Border.all(color: _orange.withOpacity(0.2), width: 1.5),
               boxShadow: [
                 BoxShadow(
-                    color: _orange.withOpacity(0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4)),
+                  color: _orange.withOpacity(0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
             child: Column(
@@ -415,22 +447,31 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                         color: _orange.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.replay_rounded,
-                          color: _orange, size: 16),
+                      child: const Icon(
+                        Icons.replay_rounded,
+                        color: _orange,
+                        size: 16,
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    Text('Wiederholungsfrage',
-                        style: TextStyle(
-                            color: _orange,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700)),
+                    Text(
+                      'Wiederholungsfrage',
+                      style: TextStyle(
+                        color: _orange,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
                   frage['frage'] ?? '',
                   style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w500, height: 1.5),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
@@ -468,9 +509,10 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                 border: Border.all(color: borderColor, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2)),
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
                 ],
               ),
               child: Material(
@@ -490,8 +532,8 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                             color: showResult
                                 ? (isCorrect ? Colors.green : Colors.red)
                                 : showCorrect
-                                    ? Colors.green.withOpacity(0.2)
-                                    : _orange.withOpacity(0.1),
+                                ? Colors.green.withOpacity(0.2)
+                                : _orange.withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -499,7 +541,8 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                                 ? Icon(
                                     isCorrect ? Icons.check : Icons.close,
                                     color: Colors.white,
-                                    size: 18)
+                                    size: 18,
+                                  )
                                 : Text(
                                     String.fromCharCode(65 + i),
                                     style: TextStyle(
@@ -514,9 +557,10 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen>
                         ),
                         const SizedBox(width: 14),
                         Expanded(
-                          child: Text(antwort['text'] ?? '',
-                              style: const TextStyle(
-                                  fontSize: 15, height: 1.4)),
+                          child: Text(
+                            antwort['text'] ?? '',
+                            style: const TextStyle(fontSize: 15, height: 1.4),
+                          ),
                         ),
                       ],
                     ),
