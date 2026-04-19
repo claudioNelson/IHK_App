@@ -722,47 +722,43 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ background: theme.footerBg }}>
-        <div className="footer-grid" style={{ maxWidth: 1100, margin: "0 auto 48px" }}>
-          <div className="footer-brand">
-            <div className="nav-logo">Lernarena</div>
-            <p>Die intelligente Prüfungsvorbereitung für Fachinformatiker und IT-Professionals.</p>
-            <div className="app-badges" style={{ marginTop: 20 }}>
-              <a href="#" className="app-badge"><span>📱</span> iOS App</a>
-              <a href="#" className="app-badge"><span>🤖</span> Android App</a>
+{/* Footer */}
+<footer className="bg-gray-900 text-white py-12">
+    <div className="container mx-auto px-6">
+        <div className="grid md:grid-cols-4 gap-8">
+            <div>
+                <h3 className="display-font text-2xl font-bold mb-4">Lernarena</h3>
+                <p className="text-gray-400">
+                    Deine intelligente Prüfungsvorbereitung
+                </p>
             </div>
-          </div>
-          <div className="footer-col">
-            <h4>Produkt</h4>
-            <ul>
-              <li><a href="#features">Features</a></li>
-              <li><a href="#preise">Preise</a></li>
-              <li><Link href="/pruefungen">Prüfungen</Link></li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Ressourcen</h4>
-            <ul>
-              <li><a href="#">Blog</a></li>
-              <li><a href="#">Hilfe</a></li>
-              <li><a href="#">FAQ</a></li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Legal</h4>
-            <ul>
-              <li><a href="#">Impressum</a></li>
-              <li><a href="#">Datenschutz</a></li>
-              <li><a href="#">AGB</a></li>
-            </ul>
-          </div>
+            <div>
+                <h4 className="font-semibold mb-4">Produkt</h4>
+                <ul className="space-y-2 text-gray-400">
+                    <li><a href="#" className="hover:text-white transition">Features</a></li>
+                    <li><a href="#" className="hover:text-white transition">Preise</a></li>
+                    <li><Link href="/pruefungen" className="hover:text-white transition">Prüfungen</Link></li>
+                </ul>
+            </div>
+            <div>
+                <h4 className="font-semibold mb-4">Ressourcen</h4>
+                <ul className="space-y-2 text-gray-400">
+                    <li><a href="#" className="hover:text-white transition">Blog</a></li>
+                    <li><a href="#" className="hover:text-white transition">Hilfe</a></li>
+                    <li><a href="#" className="hover:text-white transition">FAQ</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 className="font-semibold mb-4">Legal</h4>
+                <ul className="space-y-2 text-gray-400">
+                    <li><Link href="/impressum" className="hover:text-white transition">Impressum</Link></li>
+                    <li><Link href="/datenschutz" className="hover:text-white transition">Datenschutz</Link></li>
+                    <li><Link href="/agb" className="hover:text-white transition">AGB</Link></li>
+                </ul>
+            </div>
         </div>
-        <div className="footer-bottom" style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <p>© 2025 Lernarena. Alle Rechte vorbehalten.</p>
-          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>Made with ❤️ by Azubis für Azubis</p>
+        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+            <p>© {new Date().getFullYear()} Lernarena. Alle Rechte vorbehalten.</p>
         </div>
-      </footer>
     </div>
-  );
-}
+</footer>
