@@ -4,7 +4,7 @@ import '../../screens/learning/learning_hub_screen.dart';
 import '../../screens/zertifikate/zertifikate_screen.dart';
 import '../../screens/simulation/async_match_demo_screen.dart';
 import '../../screens/profile/new_profile_page.dart';
-import '../../pages/pruefung/ihk_pruefung_liste_screen.dart';
+import '../../screens/pruefen/pruefen_screen.dart';
 
 class NavRoot extends StatefulWidget {
   const NavRoot({super.key});
@@ -17,7 +17,7 @@ class _NavRootState extends State<NavRoot> {
 
   late final List<Widget> _pages = [
     const NavKeepAlive(child: LearningHubScreen()),
-    const NavKeepAlive(child: IHKPruefungListeScreen()),
+    const NavKeepAlive(child: PruefenScreen()),
     const NavKeepAlive(child: AsyncMatchDemoPage()),
     const NavKeepAlive(child: ZertifikatePage()),
     const NavKeepAlive(child: NewProfilePage()),
