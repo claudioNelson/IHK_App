@@ -10,6 +10,9 @@ import 'services/app_cache_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
+import 'theme/app_theme.dart';
+import 'theme/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +27,16 @@ void main() async {
 
   await Hive.initFlutter();
   await dotenv.load(fileName: ".env");
-  runApp(const MyApp());
+
+  final themeProvider = ThemeProvider();
+  await themeProvider.loadTheme();
+
+  runApp(
+    ChangeNotifierProvider.value(
+      value: themeProvider,
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -32,14 +44,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
     return MaterialApp(
       title: 'Lernarena',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        primarySwatch: Colors.indigo,
-        scaffoldBackgroundColor: Colors.grey[100],
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeProvider.themeMode,
       home: const AppInitializer(),
     );
   }
