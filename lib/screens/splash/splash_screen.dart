@@ -1,9 +1,9 @@
 // lib/screens/splash/splash_screen.dart
 import 'package:flutter/material.dart';
-
-const _indigo = Color(0xFF4F46E5);
-const _indigoDark = Color(0xFF3730A3);
-const _indigoLight = Color(0xFF6366F1);
+import 'package:provider/provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,21 +17,32 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<double> _scaleAnim;
+  late Animation<double> _pulseAnim;
 
   @override
   void initState() {
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1400),
     );
     _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeIn),
+      CurvedAnimation(
+        parent: _animController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
     );
-    _scaleAnim = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOutBack),
+    _scaleAnim = Tween<double>(begin: 0.92, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
+      ),
+    );
+    _pulseAnim = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
     _animController.forward();
+    _animController.repeat(reverse: true, period: const Duration(seconds: 2));
   }
 
   @override
@@ -42,87 +53,138 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+    final accentSoft =
+        isDark ? AppColors.darkAccentSoft : AppColors.lightAccentSoft;
+
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF1A1A2E), _indigoDark, Color(0xFF1A1A2E)],
+      backgroundColor: bg,
+      body: Stack(
+        children: [
+          // ─── Radial Glow hinter Logo ─────────────────────
+          Align(
+            alignment: const Alignment(0, -0.15),
+            child: AnimatedBuilder(
+              animation: _pulseAnim,
+              builder: (context, child) {
+                return Container(
+                  width: 500,
+                  height: 500,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.accent.withOpacity(0.15 * _pulseAnim.value),
+                        accentSoft.withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-        child: Center(
-          child: FadeTransition(
+
+          // ─── Hauptinhalt ────────────────────────────────
+          FadeTransition(
             opacity: _fadeAnim,
             child: ScaleTransition(
               scale: _scaleAnim,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo
-                  Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [_indigoDark, _indigo, _indigoLight],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo-Dot (wie im Landingpage-Nav)
+                    Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.accent,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.accent.withOpacity(0.6),
+                            blurRadius: 24,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _indigo.withOpacity(0.5),
-                          blurRadius: 40,
-                          spreadRadius: 8,
+                    ),
+                    const SizedBox(height: 32),
+
+                    // "Lernarena" mit Instrument Serif italic
+                    Text(
+                      'Lernarena',
+                      style: AppTextStyles.instrumentSerif(
+                        size: 54,
+                        color: text,
+                        letterSpacing: -1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Subtitle in Inter Tight
+                    Text(
+                      'Deine Prüfungsvorbereitung',
+                      style: AppTextStyles.bodyMedium(textMid),
+                    ),
+                    const SizedBox(height: 80),
+
+                    // Mono-Label "INITIALIZING" mit Pulse-Dot
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedBuilder(
+                          animation: _pulseAnim,
+                          builder: (context, _) {
+                            return Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.accentCyan
+                                    .withOpacity(_pulseAnim.value),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.accentCyan
+                                        .withOpacity(0.5 * _pulseAnim.value),
+                                    blurRadius: 8,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'INITIALIZING',
+                          style: AppTextStyles.monoLabel(textDim),
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.school_rounded,
-                      size: 60,
-                      color: Colors.white,
-                    ),
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  const Text(
-                    'Lernarena',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    'Deine Prüfungsvorbereitung',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
-                      fontSize: 15,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-
-                  const SizedBox(height: 70),
-
-                  SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: _indigoLight.withOpacity(0.8),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
+
+          // ─── Version-Tag unten ──────────────────────────
+          Positioned(
+            bottom: 32,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                'v1.0.0 · BUILD 2026.04',
+                style: AppTextStyles.monoSmall(textDim),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,11 +1,11 @@
 // lib/screens/onboarding/onboarding_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 import '../auth/login_screen.dart';
-
-const _indigo = Color(0xFF4F46E5);
-const _indigoDark = Color(0xFF3730A3);
-const _indigoLight = Color(0xFF6366F1);
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -20,38 +20,48 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<_OnboardingData> _pages = [
     _OnboardingData(
-      icon: Icons.quiz_rounded,
-      gradient: [Color(0xFF4F46E5), Color(0xFF6366F1)],
-      title: 'Echte Prüfungsfragen',
+      code: '01',
+      tag: 'FRAGEN',
+      accentColor: AppColors.accent,
+      title: 'Echte Prüfungsfragen.',
+      titleAccent: '600+',
       description:
           'Über 600 Fragen aus allen IHK-Themenbereichen — so wie sie in der echten Abschlussprüfung vorkommen.',
-      badge: '600+ Fragen',
     ),
     _OnboardingData(
-      icon: Icons.assignment_rounded,
-      gradient: [Color(0xFF2563EB), Color(0xFF3B82F6)],
-      title: 'IHK Prüfungssimulation',
+      code: '02',
+      tag: 'SIMULATION',
+      accentColor: AppColors.accentCyan,
+      title: 'Prüfungsbedingungen.',
+      titleAccent: 'Echt.',
       description:
-          'Simuliere die echte Abschlussprüfung mit Timer, Fragenübersicht und realistischen Bedingungen — für FIAE und FISI.',
-      badge: 'FIAE & FISI',
+          'Simuliere die echte Abschlussprüfung mit Timer, Fragenübersicht und realistischen Bedingungen — für Fachinformatiker AE und SI.',
     ),
     _OnboardingData(
-      icon: Icons.psychology_rounded,
-      gradient: [Color(0xFF7C3AED), Color(0xFF8B5CF6)],
-      title: 'KI-Tutor Ada',
+      code: '03',
+      tag: 'KI-TUTOR',
+      accentColor: AppColors.accent,
+      title: 'Ada erklärt dir,',
+      titleAccent: 'was du nicht verstehst.',
       description:
           'Deine persönliche KI-Assistentin erklärt Lösungen, gibt Feedback und hilft dir gezielt bei Schwächen.',
-      badge: 'Powered by KI',
     ),
     _OnboardingData(
-      icon: Icons.emoji_events_rounded,
-      gradient: [Color(0xFFEA580C), Color(0xFFF97316)],
-      title: 'Gegen andere antreten',
+      code: '04',
+      tag: 'MULTIPLAYER',
+      accentColor: AppColors.accentCyan,
+      title: 'Tritt gegen andere an.',
+      titleAccent: 'AsyncMatch.',
       description:
-          'Fordere andere Azubis im AsyncMatch-Modus heraus und klettere in der Rangliste nach oben.',
-      badge: 'AsyncMatch',
+          'Fordere andere Azubis im asynchronen Quiz-Modus heraus und klettere in der Rangliste nach oben.',
     ),
   ];
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Future<void> _finishOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
@@ -69,183 +79,256 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final page = _pages[_currentPage];
+    final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDark;
+
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final borderStrong =
+        isDark ? AppColors.darkBorderStrong : AppColors.lightBorderStrong;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     final isLast = _currentPage == _pages.length - 1;
+    final progress = (_currentPage + 1) / _pages.length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FF),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Top Bar ─────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Logo
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                              colors: [_indigoDark, _indigo]),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.school_rounded,
-                            color: Colors.white, size: 16),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'IHK App',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            color: _indigoDark),
-                      ),
-                    ],
-                  ),
-                  // Skip
-                  TextButton(
-                    onPressed: _finishOnboarding,
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.grey.shade500,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                    ),
-                    child: const Text('Überspringen',
-                        style: TextStyle(fontSize: 13)),
-                  ),
-                ],
-              ),
+      backgroundColor: bg,
+      body: Stack(
+        children: [
+          // Subtle Glow je nach Page
+          AnimatedAlign(
+            duration: const Duration(milliseconds: 600),
+            alignment: Alignment(
+              (_currentPage - 1.5) * 0.4,
+              -0.5,
             ),
-
-            // ── Slide ───────────────────────────────────────────
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (i) => setState(() => _currentPage = i),
-                itemCount: _pages.length,
-                itemBuilder: (_, i) => _OnboardingSlide(data: _pages[i]),
-              ),
-            ),
-
-            // ── Dots ────────────────────────────────────────────
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                _pages.length,
-                (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _currentPage == i ? 28 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    gradient: _currentPage == i
-                        ? const LinearGradient(
-                            colors: [_indigoDark, _indigoLight])
-                        : null,
-                    color:
-                        _currentPage == i ? null : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+            child: Container(
+              width: 500,
+              height: 500,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    _pages[_currentPage].accentColor.withOpacity(0.12),
+                    _pages[_currentPage].accentColor.withOpacity(0.0),
+                  ],
                 ),
               ),
             ),
+          ),
 
-            const SizedBox(height: 28),
-
-            // ── Button ──────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  // Zurück-Button (ab Seite 2)
-                  if (_currentPage > 0) ...[
-                    GestureDetector(
-                      onTap: () => _pageController.previousPage(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      ),
-                      child: Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                              color: Colors.grey.shade200, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2)),
-                          ],
-                        ),
-                        child: const Icon(Icons.arrow_back_rounded,
-                            color: _indigo, size: 22),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-
-                  // Weiter / Starten Button
-                  Expanded(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      height: 52,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: isLast
-                              ? [Colors.green.shade600, Colors.green.shade400]
-                              : page.gradient,
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (isLast ? Colors.green : page.gradient[0])
-                                .withOpacity(0.35),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+          SafeArea(
+            child: Column(
+              children: [
+                // ─── Top Bar ──────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Logo
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.accent,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.accent.withOpacity(0.6),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Lernarena',
+                            style: AppTextStyles.instrumentSerif(
+                              size: 22,
+                              color: text,
+                              letterSpacing: -0.5,
+                            ),
                           ),
                         ],
                       ),
-                      child: Material(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(14),
-                        child: InkWell(
-                          onTap: () {
-                            if (!isLast) {
-                              _pageController.nextPage(
-                                duration: const Duration(milliseconds: 350),
-                                curve: Curves.easeInOut,
-                              );
-                            } else {
-                              _finishOnboarding();
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(14),
-                          child: Center(
+
+                      // Right side: Theme Toggle + Skip
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => themeProvider.toggleTheme(),
+                            icon: Icon(
+                              isDark
+                                  ? Icons.wb_sunny_outlined
+                                  : Icons.nightlight_outlined,
+                              color: textMid,
+                              size: 18,
+                            ),
+                            style: IconButton.styleFrom(
+                              backgroundColor: surface,
+                              padding: const EdgeInsets.all(8),
+                              minimumSize: const Size(36, 36),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(color: border),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: _finishOnboarding,
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 8),
+                            ),
+                            child: Text(
+                              'Überspringen',
+                              style: AppTextStyles.labelSmall(textMid),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // ─── Progress Bar ─────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${(_currentPage + 1).toString().padLeft(2, '0')} / ${_pages.length.toString().padLeft(2, '0')}',
+                        style: AppTextStyles.monoSmall(textDim),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            Container(
+                              height: 2,
+                              decoration: BoxDecoration(
+                                color: border,
+                                borderRadius: BorderRadius.circular(1),
+                              ),
+                            ),
+                            AnimatedFractionallySizedBox(
+                              duration: const Duration(milliseconds: 350),
+                              widthFactor: progress,
+                              curve: Curves.easeInOut,
+                              child: Container(
+                                height: 2,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppColors.accent,
+                                      AppColors.accentCyan,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(1),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ─── Slides ───────────────────────────────────
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (i) => setState(() => _currentPage = i),
+                    itemCount: _pages.length,
+                    itemBuilder: (_, i) => _OnboardingSlide(
+                      data: _pages[i],
+                      isDark: isDark,
+                      text: text,
+                      textMid: textMid,
+                      textDim: textDim,
+                      surface: surface,
+                      border: border,
+                    ),
+                  ),
+                ),
+
+                // ─── Navigation Buttons ───────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                  child: Row(
+                    children: [
+                      // Back Button (ab Seite 2)
+                      if (_currentPage > 0) ...[
+                        SizedBox(
+                          height: 52,
+                          width: 52,
+                          child: OutlinedButton(
+                            onPressed: () => _pageController.previousPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              foregroundColor: text,
+                              side: BorderSide(color: borderStrong),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.arrow_back_rounded,
+                              color: text,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+
+                      // Primary Button
+                      Expanded(
+                        child: SizedBox(
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (!isLast) {
+                                _pageController.nextPage(
+                                  duration: const Duration(milliseconds: 350),
+                                  curve: Curves.easeInOut,
+                                );
+                              } else {
+                                _finishOnboarding();
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: text,
+                              foregroundColor: bg,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   isLast ? 'Jetzt starten' : 'Weiter',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                                  style: AppTextStyles.labelLarge(bg),
                                 ),
                                 const SizedBox(width: 8),
                                 Icon(
-                                  isLast
-                                      ? Icons.rocket_launch_rounded
-                                      : Icons.arrow_forward_rounded,
-                                  color: Colors.white,
+                                  Icons.arrow_forward_rounded,
+                                  color: bg,
                                   size: 18,
                                 ),
                               ],
@@ -253,124 +336,208 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 36),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Data Model ────────────────────────────────────────────────────────────────
-
-class _OnboardingData {
-  final IconData icon;
-  final List<Color> gradient;
-  final String title;
-  final String description;
-  final String badge;
-
-  const _OnboardingData({
-    required this.icon,
-    required this.gradient,
-    required this.title,
-    required this.description,
-    required this.badge,
-  });
-}
-
-// ── Slide Widget ──────────────────────────────────────────────────────────────
-
-class _OnboardingSlide extends StatelessWidget {
-  final _OnboardingData data;
-  const _OnboardingSlide({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Icon Container mit Gradient + Glow
-          Container(
-            width: 140,
-            height: 140,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: data.gradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(40),
-              boxShadow: [
-                BoxShadow(
-                  color: data.gradient[0].withOpacity(0.35),
-                  blurRadius: 28,
-                  offset: const Offset(0, 10),
                 ),
               ],
-            ),
-            child: Icon(data.icon, size: 72, color: Colors.white),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Badge
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: data.gradient[0].withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-              border:
-                  Border.all(color: data.gradient[0].withOpacity(0.3)),
-            ),
-            child: Text(
-              data.badge,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: data.gradient[0],
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Titel
-          Text(
-            data.title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1A1A2E),
-              height: 1.2,
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          // Beschreibung
-          Text(
-            data.description,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey.shade600,
-              height: 1.6,
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+// ─── Data Model ────────────────────────────────────────
+class _OnboardingData {
+  final String code;
+  final String tag;
+  final Color accentColor;
+  final String title;
+  final String titleAccent; // wird in Instrument Serif italic dargestellt
+  final String description;
+
+  const _OnboardingData({
+    required this.code,
+    required this.tag,
+    required this.accentColor,
+    required this.title,
+    required this.titleAccent,
+    required this.description,
+  });
+}
+
+// ─── Slide Widget ──────────────────────────────────────
+class _OnboardingSlide extends StatelessWidget {
+  final _OnboardingData data;
+  final bool isDark;
+  final Color text;
+  final Color textMid;
+  final Color textDim;
+  final Color surface;
+  final Color border;
+
+  const _OnboardingSlide({
+    required this.data,
+    required this.isDark,
+    required this.text,
+    required this.textMid,
+    required this.textDim,
+    required this.surface,
+    required this.border,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 40, 32, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Code + Tag
+          Row(
+            children: [
+              Text(
+                data.code,
+                style: AppTextStyles.mono(
+                  size: 13,
+                  color: data.accentColor,
+                  weight: FontWeight.w700,
+                  letterSpacing: 2,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                height: 1,
+                width: 30,
+                color: border,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                data.tag,
+                style: AppTextStyles.monoSmall(textDim),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 32),
+
+          // Title with Serif Accent
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '${data.title}\n',
+                  style: AppTextStyles.interTight(
+                    size: 38,
+                    weight: FontWeight.w600,
+                    color: text,
+                    letterSpacing: -1.2,
+                    height: 1.1,
+                  ),
+                ),
+                TextSpan(
+                  text: data.titleAccent,
+                  style: AppTextStyles.instrumentSerif(
+                    size: 42,
+                    color: data.accentColor,
+                    letterSpacing: -1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Description
+          Text(
+            data.description,
+            style: AppTextStyles.bodyLarge(textMid),
+          ),
+
+          const SizedBox(height: 40),
+
+          // Feature-Preview-Badge (subtile Feature-Liste)
+          _buildFeatureRow(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureRow() {
+    // Zeigt je nach Page ein anderes Mini-Detail
+    final features = _getFeaturesForTag();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        children: features
+            .map(
+              (f) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: f == features.last ? 0 : 10,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: data.accentColor,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        f,
+                        style: AppTextStyles.bodySmall(text),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  List<String> _getFeaturesForTag() {
+    switch (data.tag) {
+      case 'FRAGEN':
+        return [
+          'Alle 17 Lernmodule abgedeckt',
+          'Real-Data aus IHK-Prüfungen',
+          'Multiple Choice, Drag & Drop, Freitext',
+        ];
+      case 'SIMULATION':
+        return [
+          '90-Minuten-Timer wie in der echten Prüfung',
+          'Fragen flaggen und später reviewen',
+          'Sofortige Auswertung mit Punktzahl',
+        ];
+      case 'KI-TUTOR':
+        return [
+          'Benannt nach Ada Lovelace',
+          'Erklärt Konzepte auf deinem Level',
+          'Verfügbar 24/7 als Chat',
+        ];
+      case 'MULTIPLAYER':
+        return [
+          'ELO-Rating-System',
+          'Wöchentliche Ranglisten',
+          'Async — spiele in deinem Tempo',
+        ];
+      default:
+        return [];
+    }
   }
 }
