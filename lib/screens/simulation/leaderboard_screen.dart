@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/async_duel_service.dart';
 import '../../services/badge_service.dart';
-
-const _indigo = Color(0xFF4F46E5);
-const _indigoDark = Color(0xFF3730A3);
-const _indigoLight = Color(0xFF6366F1);
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -16,14 +16,15 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
   final _svc = AsyncDuelService();
+  final _badgeSvc = BadgeService();
+
   List<Map<String, dynamic>> _leaderboard = [];
   Map<String, dynamic>? _myStats;
   bool _loading = true;
   int? _myRank;
-  final _badgeSvc = BadgeService();
+  Map<String, dynamic>? _meInLeaderboard;
 
-  String get _userId =>
-      Supabase.instance.client.auth.currentUser?.id ?? '';
+  String get _userId => Supabase.instance.client.auth.currentUser?.id ?? '';
 
   @override
   void initState() {
@@ -37,9 +38,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       final leaderboard = await _svc.getLeaderboard(limit: 100);
       final myStats = await _svc.getMyStats();
       int? myRank;
+      Map<String, dynamic>? meInLb;
       for (int i = 0; i < leaderboard.length; i++) {
         if (leaderboard[i]['user_id'] == _userId) {
           myRank = i + 1;
+          meInLb = leaderboard[i];
           break;
         }
       }
@@ -48,338 +51,530 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         _leaderboard = leaderboard;
         _myStats = myStats;
         _myRank = myRank;
+        _meInLeaderboard = meInLb;
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Fehler: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  Color _getRankColor(int rank) {
-    switch (rank) {
-      case 1: return const Color(0xFFFFD700);
-      case 2: return const Color(0xFFC0C0C0);
-      case 3: return const Color(0xFFCD7F32);
-      default: return _indigo;
-    }
+  String _getTier(int elo) {
+    if (elo >= 1500) return 'MEISTER';
+    if (elo >= 1300) return 'DIAMANT';
+    if (elo >= 1150) return 'GOLD';
+    if (elo >= 1000) return 'SILBER';
+    if (elo >= 850) return 'BRONZE';
+    return 'STARTER';
   }
 
-  String _getRankEmoji(int rank) {
-    switch (rank) {
-      case 1: return '🥇';
-      case 2: return '🥈';
-      case 3: return '🥉';
-      default: return '#$rank';
-    }
-  }
-
-  String _getEloTier(int elo) {
-    if (elo >= 1500) return '🔥 Meister';
-    if (elo >= 1300) return '💎 Diamant';
-    if (elo >= 1150) return '🥇 Gold';
-    if (elo >= 1000) return '🥈 Silber';
-    if (elo >= 850) return '🥉 Bronze';
-    return '🌱 Starter';
+  Color _getTierColor(int elo) {
+    if (elo >= 1500) return const Color(0xFFEF4444);
+    if (elo >= 1300) return const Color(0xFF22D3EE);
+    if (elo >= 1150) return const Color(0xFFF59E0B);
+    if (elo >= 1000) return const Color(0xFF94A3B8);
+    if (elo >= 850) return const Color(0xFFB45309);
+    return const Color(0xFF94A3B8);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    // Nur User anzeigen die tatsächlich Matches gespielt haben
+    final activePlayers = _leaderboard
+        .where((p) => (p['matches_played'] ?? 0) > 0)
+        .toList();
+
+    final top3 = activePlayers.take(3).toList();
+    final rest = activePlayers.skip(3).toList();
+
+    // Zeige sticky Row wenn User nicht in Top-100 ist oder weit unten
+    final showStickyRow = _myRank != null && _myRank! > 10;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FF),
+      backgroundColor: bg,
       body: Column(
         children: [
-          // ── HEADER ──────────────────────────────────────
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [_indigoDark, _indigo, _indigoLight],
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(28),
-                bottomRight: Radius.circular(28),
-              ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                                Icons.arrow_back_ios_rounded,
-                                color: Colors.white,
-                                size: 18),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Rangliste',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold)),
-                              Text('Top Spieler',
-                                  style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: _loading ? null : _loadData,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.refresh_rounded,
-                                color: Colors.white, size: 20),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Meine Stats
-                    if (_myStats != null && !_loading) ...[
-                      const SizedBox(height: 16),
-                      _buildMyStatsCard(),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // ── LIST ────────────────────────────────────────
-          Expanded(
-            child: _loading
-                ? const Center(
-                    child: CircularProgressIndicator(color: _indigo))
-                : _leaderboard.isEmpty
-                    ? Center(
-                        child: Text(
-                          'Noch keine Spieler.\nSpiele ein Match!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey.shade500),
-                        ),
-                      )
-                    : ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        padding:
-                            const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                        itemCount: _leaderboard.length,
-                        itemBuilder: (ctx, i) {
-                          final player = _leaderboard[i];
-                          final rank = i + 1;
-                          final isMe = player['user_id'] == _userId;
-                          return _buildPlayerTile(player, rank, isMe);
-                        },
-                      ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMyStatsCard() {
-    final elo = _myStats?['elo_rating'] ?? 1000;
-    final wins = _myStats?['wins'] ?? 0;
-    final losses = _myStats?['losses'] ?? 0;
-    final draws = _myStats?['draws'] ?? 0;
-    final matches = _myStats?['matches_played'] ?? 0;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: Colors.white.withOpacity(0.25), width: 1),
-      ),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Dein Rang',
-                  style: TextStyle(color: Colors.white70, fontSize: 12)),
-              Text(
-                _myRank != null ? '#$_myRank' : '–',
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          Container(
-              width: 1, height: 40, color: Colors.white30),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _headerStat('$elo', 'ELO'),
-                _headerStat('$wins', 'Siege'),
-                _headerStat('$draws', 'Remis'),
-                _headerStat('$losses', 'Niederl.'),
-                _headerStat('$matches', 'Spiele'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _headerStat(String value, String label) {
-    return Column(
-      children: [
-        Text(value,
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold)),
-        Text(label,
-            style:
-                const TextStyle(color: Colors.white60, fontSize: 10)),
-      ],
-    );
-  }
-
-  Widget _buildPlayerTile(
-      Map<String, dynamic> player, int rank, bool isMe) {
-    final username = player['username'] ?? 'Spieler';
-    final elo = player['elo_rating'] ?? 1000;
-    final wins = player['wins'] ?? 0;
-    final losses = player['losses'] ?? 0;
-    final draws = player['draws'] ?? 0;
-    final rankColor = _getRankColor(rank);
-
-    return GestureDetector(
-      onTap: () => _showPlayerProfile(player, rank),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isMe ? _indigo.withOpacity(0.06) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color:
-                isMe ? _indigo.withOpacity(0.3) : Colors.grey.shade100,
-            width: isMe ? 1.5 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Rank badge
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: rank <= 3
-                    ? rankColor.withOpacity(0.15)
-                    : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: rank <= 3
-                    ? Text(_getRankEmoji(rank),
-                        style: const TextStyle(fontSize: 20))
-                    : Text('$rank',
-                        style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13)),
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Name + tier
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          // ─── APPBAR ────────────────────────────────────
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Row(
                 children: [
-                  Text(
-                    isMe ? '$username (Du)' : username,
-                    style: TextStyle(
-                        fontWeight: isMe
-                            ? FontWeight.bold
-                            : FontWeight.w600,
-                        fontSize: 14),
-                    overflow: TextOverflow.ellipsis,
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.arrow_back_rounded, color: text, size: 22),
                   ),
+                  const SizedBox(width: 4),
                   Text(
-                    '${_getEloTier(elo)}  •  $wins S / $draws U / $losses N',
-                    style: TextStyle(
-                        color: Colors.grey.shade500, fontSize: 11),
+                    'Leaderboard',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 24,
+                      color: text,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: _loading ? null : _loadData,
+                    icon: Icon(Icons.refresh_rounded, color: textMid, size: 20),
                   ),
                 ],
               ),
             ),
+          ),
 
-            // ELO chip
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 5),
+          // ─── CONTENT ──────────────────────────────────
+          Expanded(
+            child: _loading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.accent),
+                  )
+                : activePlayers.isEmpty
+                ? _buildEmptyState(textMid, textDim)
+                : RefreshIndicator(
+                    color: AppColors.accent,
+                    onRefresh: _loadData,
+                    child: ListView(
+                      padding: EdgeInsets.only(
+                        left: 20,
+                        right: 20,
+                        top: 8,
+                        bottom: showStickyRow ? 120 : 32,
+                      ),
+                      children: [
+                        // TOP 3 PODIUM
+                        if (top3.isNotEmpty) ...[
+                          _sectionLabel('TOP 3', textDim),
+                          const SizedBox(height: 16),
+                          _buildPodium(
+                            top3,
+                            surface,
+                            border,
+                            text,
+                            textMid,
+                            textDim,
+                          ),
+                          const SizedBox(height: 32),
+                        ],
+
+                        // RANGLISTE
+                        if (rest.isNotEmpty) ...[
+                          _sectionLabel(
+                            'RANGLISTE · ${activePlayers.length} SPIELER',
+                            textDim,
+                          ),
+                          const SizedBox(height: 12),
+                          ...rest.asMap().entries.map((entry) {
+                            final rank = entry.key + 4;
+                            final player = entry.value;
+                            final isMe = player['user_id'] == _userId;
+                            return _buildPlayerRow(
+                              player: player,
+                              rank: rank,
+                              isMe: isMe,
+                              surface: surface,
+                              border: border,
+                              text: text,
+                              textMid: textMid,
+                              textDim: textDim,
+                            );
+                          }),
+                        ],
+                      ],
+                    ),
+                  ),
+          ),
+        ],
+      ),
+
+      // ─── STICKY USER ROW ──────────────────────────────
+      bottomSheet: showStickyRow && _meInLeaderboard != null
+          ? Container(
               decoration: BoxDecoration(
-                color: _indigo.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(10),
+                color: surface,
+                border: Border(
+                  top: BorderSide(color: AppColors.accent.withOpacity(0.4)),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
               ),
-              child: Text(
-                '$elo',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: _indigo,
-                    fontSize: 14),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'DU BIST HIER',
+                        style: AppTextStyles.monoSmall(AppColors.accent),
+                      ),
+                      const SizedBox(height: 6),
+                      _buildPlayerRow(
+                        player: _meInLeaderboard!,
+                        rank: _myRank!,
+                        isMe: true,
+                        surface: surface,
+                        border: border,
+                        text: text,
+                        textMid: textMid,
+                        textDim: textDim,
+                        isSticky: true,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+
+  // ─── SECTION LABEL ────────────────────────────────
+  Widget _sectionLabel(String label, Color color) {
+    return Row(
+      children: [
+        Container(width: 16, height: 1, color: AppColors.accent),
+        const SizedBox(width: 10),
+        Text(label, style: AppTextStyles.monoLabel(AppColors.accent)),
+      ],
+    );
+  }
+
+  // ─── EMPTY STATE ──────────────────────────────────
+  Widget _buildEmptyState(Color textMid, Color textDim) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.emoji_events_outlined, size: 48, color: textDim),
+          const SizedBox(height: 16),
+          Text('Noch keine Ranglisten-Daten', style: AppTextStyles.h3(textMid)),
+          const SizedBox(height: 4),
+          Text(
+            'Spiele Matches um hier zu erscheinen.',
+            style: AppTextStyles.bodyMedium(textDim),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── PODIUM (Top 3) ───────────────────────────────
+  Widget _buildPodium(
+    List<Map<String, dynamic>> top3,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    // Order: [2., 1., 3.]
+    final p1 = top3.isNotEmpty ? top3[0] : null;
+    final p2 = top3.length > 1 ? top3[1] : null;
+    final p3 = top3.length > 2 ? top3[2] : null;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        if (p2 != null)
+          Expanded(
+            child: _podiumCard(
+              player: p2,
+              rank: 2,
+              height: 140,
+              surface: surface,
+              border: border,
+              text: text,
+              textMid: textMid,
+              textDim: textDim,
+            ),
+          )
+        else
+          const Expanded(child: SizedBox()),
+        const SizedBox(width: 8),
+        if (p1 != null)
+          Expanded(
+            child: _podiumCard(
+              player: p1,
+              rank: 1,
+              height: 180,
+              surface: surface,
+              border: border,
+              text: text,
+              textMid: textMid,
+              textDim: textDim,
+              isFirst: true,
+            ),
+          )
+        else
+          const Expanded(child: SizedBox()),
+        const SizedBox(width: 8),
+        if (p3 != null)
+          Expanded(
+            child: _podiumCard(
+              player: p3,
+              rank: 3,
+              height: 120,
+              surface: surface,
+              border: border,
+              text: text,
+              textMid: textMid,
+              textDim: textDim,
+            ),
+          )
+        else
+          const Expanded(child: SizedBox()),
+      ],
+    );
+  }
+
+  Widget _podiumCard({
+    required Map<String, dynamic> player,
+    required int rank,
+    required double height,
+    required Color surface,
+    required Color border,
+    required Color text,
+    required Color textMid,
+    required Color textDim,
+    bool isFirst = false,
+  }) {
+    final username = player['username'] ?? 'Spieler';
+    final elo = player['elo_rating'] ?? 0;
+    final tierColor = _getTierColor(elo);
+    final isMe = player['user_id'] == _userId;
+
+    return GestureDetector(
+      onTap: () => _showPlayerProfile(
+        player,
+        rank,
+        surface,
+        border,
+        text,
+        textMid,
+        textDim,
+      ),
+      child: Container(
+        height: height,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isMe
+                ? AppColors.accent.withOpacity(0.5)
+                : isFirst
+                ? tierColor.withOpacity(0.5)
+                : border,
+            width: isFirst ? 1.5 : 1,
+          ),
+          // Top-Accent je Rang
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: const [0.0, 0.02, 0.02, 1.0],
+            colors: [tierColor, tierColor, surface, surface],
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top: Rang
+            Text(
+              '#0$rank',
+              style: AppTextStyles.mono(
+                size: isFirst ? 14 : 12,
+                color: tierColor,
+                weight: FontWeight.w700,
+                letterSpacing: 1,
               ),
             ),
-
-            if (rank <= 3) ...[
-              const SizedBox(width: 8),
-              Icon(Icons.emoji_events_rounded,
-                  color: rankColor, size: 20),
-            ],
+            // Mid: Avatar-Initial in groß (nur bei #1)
+            if (isFirst)
+              Text(
+                username.isNotEmpty ? username[0].toUpperCase() : '?',
+                style: AppTextStyles.instrumentSerif(
+                  size: 52,
+                  color: tierColor,
+                  letterSpacing: -2,
+                ),
+              ),
+            // Bottom: Name + ELO + Tier
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isMe ? '$username (Du)' : username,
+                  style: AppTextStyles.labelLarge(text),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$elo',
+                  style: AppTextStyles.instrumentSerif(
+                    size: isFirst ? 22 : 18,
+                    color: text,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                Text(
+                  _getTier(elo),
+                  style: AppTextStyles.mono(
+                    size: 9,
+                    color: tierColor,
+                    weight: FontWeight.w700,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
+  // ─── PLAYER ROW ───────────────────────────────────
+  Widget _buildPlayerRow({
+    required Map<String, dynamic> player,
+    required int rank,
+    required bool isMe,
+    required Color surface,
+    required Color border,
+    required Color text,
+    required Color textMid,
+    required Color textDim,
+    bool isSticky = false,
+  }) {
+    final username = player['username'] ?? 'Spieler';
+    final elo = player['elo_rating'] ?? 0;
+    final tierColor = _getTierColor(elo);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: isSticky ? 0 : 8),
+      child: GestureDetector(
+        onTap: () => _showPlayerProfile(
+          player,
+          rank,
+          surface,
+          border,
+          text,
+          textMid,
+          textDim,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: isMe ? AppColors.accent.withOpacity(0.06) : surface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isMe ? AppColors.accent.withOpacity(0.4) : border,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Rank
+              SizedBox(
+                width: 44,
+                child: Text(
+                  '#${rank.toString().padLeft(2, '0')}',
+                  style: AppTextStyles.mono(
+                    size: 13,
+                    color: isMe ? AppColors.accent : textDim,
+                    weight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+
+              // Name + Tier
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isMe ? '$username (Du)' : username,
+                      style: AppTextStyles.labelLarge(text),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _getTier(elo),
+                      style: AppTextStyles.mono(
+                        size: 9,
+                        color: tierColor,
+                        weight: FontWeight.w700,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ELO
+              Text(
+                '$elo',
+                style: AppTextStyles.instrumentSerif(
+                  size: 18,
+                  color: text,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── PLAYER PROFILE MODAL ─────────────────────────
   void _showPlayerProfile(
-      Map<String, dynamic> player, int rank) async {
+    Map<String, dynamic> player,
+    int rank,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) async {
+    final isDark = context.read<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+
     final oderId = player['user_id'] as String?;
     final username = player['username'] ?? 'Spieler';
-    final elo = player['elo_rating'] ?? 1000;
-    final highestElo = player['highest_elo'] ?? 1000;
+    final elo = player['elo_rating'] ?? 0;
+    final highestElo = player['highest_elo'] ?? elo;
     final wins = player['wins'] ?? 0;
     final losses = player['losses'] ?? 0;
     final draws = player['draws'] ?? 0;
@@ -387,12 +582,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final correctAnswers = player['correct_answers'] ?? 0;
     final isMe = player['user_id'] == _userId;
     final winRate = matches > 0
-        ? ((wins / matches) * 100).toStringAsFixed(1)
-        : '0.0';
+        ? ((wins / matches) * 100).toStringAsFixed(0)
+        : '0';
+    final tierColor = _getTierColor(elo);
 
     List<Map<String, dynamic>> badges = [];
     if (oderId != null) {
-      badges = await _badgeSvc.getUserBadges(oderId);
+      try {
+        badges = await _badgeSvc.getUserBadges(oderId);
+      } catch (_) {}
     }
     if (!mounted) return;
 
@@ -401,71 +599,103 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius:
-              BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          border: Border(top: BorderSide(color: border)),
         ),
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Handle
             Container(
               width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
+              height: 3,
+              margin: const EdgeInsets.only(bottom: 24),
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: textDim,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
+
+            // Rang
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: tierColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'RANG #${rank.toString().padLeft(2, '0')}',
+                    style: AppTextStyles.mono(
+                      size: 11,
+                      color: tierColor,
+                      weight: FontWeight.w700,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
 
             // Avatar
             Container(
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    colors: [_getRankColor(rank), _indigo]),
                 shape: BoxShape.circle,
+                color: surface,
+                border: Border.all(color: tierColor, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: _indigo.withOpacity(0.25),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+                    color: tierColor.withOpacity(0.3),
+                    blurRadius: 30,
+                    spreadRadius: 2,
                   ),
                 ],
               ),
               child: Center(
                 child: Text(
-                  username.isNotEmpty
-                      ? username[0].toUpperCase()
-                      : '?',
-                  style: const TextStyle(
-                      fontSize: 28,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold),
+                  username.isNotEmpty ? username[0].toUpperCase() : '?',
+                  style: AppTextStyles.instrumentSerif(
+                    size: 32,
+                    color: tierColor,
+                    letterSpacing: -1,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (rank <= 3)
-                  Text(_getRankEmoji(rank),
-                      style: const TextStyle(fontSize: 22)),
-                const SizedBox(width: 6),
-                Text(
-                  isMe ? '$username (Du)' : username,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-              ],
+            const SizedBox(height: 14),
+
+            // Name
+            Text(
+              isMe ? '$username (Du)' : username,
+              style: AppTextStyles.instrumentSerif(
+                size: 26,
+                color: text,
+                letterSpacing: -0.8,
+              ),
             ),
-            Text('Rang #$rank  •  ${_getEloTier(elo)}',
-                style: TextStyle(
-                    color: Colors.grey.shade500, fontSize: 14)),
+            const SizedBox(height: 4),
+            Text(
+              _getTier(elo),
+              style: AppTextStyles.mono(
+                size: 11,
+                color: tierColor,
+                weight: FontWeight.w700,
+                letterSpacing: 1.5,
+              ),
+            ),
+
             const SizedBox(height: 20),
 
             // Badges
@@ -475,124 +705,201 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 runSpacing: 8,
                 alignment: WrapAlignment.center,
                 children: badges.map((ub) {
-                  final badge =
-                      ub['badges'] as Map<String, dynamic>;
+                  final badge = ub['badges'] as Map<String, dynamic>;
                   return Tooltip(
-                    message:
-                        '${badge['name']}\n${badge['description']}',
+                    message: '${badge['name']}\n${badge['description']}',
                     child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                            color: Colors.amber.shade200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
                       ),
-                      child: Text(badge['icon'] ?? '🏆',
-                          style:
-                              const TextStyle(fontSize: 20)),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.accent.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            badge['icon'] ?? '🏆',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            badge['name'] ?? '',
+                            style: AppTextStyles.labelSmall(text),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
             ],
 
             // ELO Box
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    colors: [_indigoDark, _indigo]),
-                borderRadius: BorderRadius.circular(14),
+                color: surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: border),
               ),
               child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceEvenly,
                 children: [
-                  Column(children: [
-                    const Text('Aktuell',
-                        style: TextStyle(
-                            color: Colors.white70, fontSize: 12)),
-                    Text('$elo',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold)),
-                  ]),
-                  Container(
-                      width: 1,
-                      height: 36,
-                      color: Colors.white24),
-                  Column(children: [
-                    const Text('Höchstes',
-                        style: TextStyle(
-                            color: Colors.white70, fontSize: 12)),
-                    Text('$highestElo',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold)),
-                  ]),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          'AKTUELL',
+                          style: AppTextStyles.monoSmall(textDim),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$elo',
+                          style: AppTextStyles.instrumentSerif(
+                            size: 28,
+                            color: text,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(width: 1, height: 40, color: border),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text('PEAK', style: AppTextStyles.monoSmall(textDim)),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$highestElo',
+                          style: AppTextStyles.instrumentSerif(
+                            size: 28,
+                            color: textMid,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
 
-            // Stats Grid
-            Row(children: [
-              Expanded(
-                  child: _statCard('$wins', 'Siege', Colors.green)),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: _statCard(
-                      '$draws', 'Remis', Colors.orange)),
-              const SizedBox(width: 8),
-              Expanded(
-                  child:
-                      _statCard('$losses', 'Niederl.', Colors.red)),
-            ]),
+            const SizedBox(height: 14),
+
+            // Stats
+            Row(
+              children: [
+                Expanded(
+                  child: _modalStat(
+                    '$wins',
+                    'SIEGE',
+                    AppColors.success,
+                    surface,
+                    border,
+                    textDim,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _modalStat(
+                    '$draws',
+                    'REMIS',
+                    AppColors.warning,
+                    surface,
+                    border,
+                    textDim,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _modalStat(
+                    '$losses',
+                    'NIEDERL.',
+                    AppColors.error,
+                    surface,
+                    border,
+                    textDim,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
-            Row(children: [
-              Expanded(
-                  child:
-                      _statCard('$matches', 'Spiele', Colors.blue)),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: _statCard(
-                      '$winRate%', 'Siegquote', Colors.purple)),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: _statCard(
-                      '$correctAnswers', 'Richtige', Colors.teal)),
-            ]),
-            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: _modalStat(
+                    '$matches',
+                    'SPIELE',
+                    text,
+                    surface,
+                    border,
+                    textDim,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _modalStat(
+                    '$winRate%',
+                    'WINRATE',
+                    AppColors.accent,
+                    surface,
+                    border,
+                    textDim,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _modalStat(
+                    '$correctAnswers',
+                    'RICHTIGE',
+                    AppColors.accentCyan,
+                    surface,
+                    border,
+                    textDim,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _statCard(String value, String label, Color color) {
+  Widget _modalStat(
+    String value,
+    String label,
+    Color color,
+    Color surface,
+    Color border,
+    Color textDim,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: color.withOpacity(0.2), width: 1.5),
+        color: surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: border),
       ),
       child: Column(
         children: [
-          Text(value,
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: color)),
-          const SizedBox(height: 3),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 11, color: Colors.grey.shade500)),
+          Text(
+            value,
+            style: AppTextStyles.interTight(
+              size: 17,
+              weight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(label, style: AppTextStyles.monoSmall(textDim)),
         ],
       ),
     );

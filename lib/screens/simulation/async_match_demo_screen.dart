@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/async_duel_service.dart';
+import '../../../services/app_cache_service.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 import 'leaderboard_screen.dart';
 import 'async_match_play_screen.dart';
-import '../profile/player_profile_screen.dart';
-import '../../../services/app_cache_service.dart';
-
-const _orange = Color(0xFF3949AB); // Indigo
-const _orangeDark = Color(0xFF283593); // Indigo Dark
-const _gold = Color(0xFFFFD700);
 
 class AsyncMatchDemoPage extends StatefulWidget {
   const AsyncMatchDemoPage({super.key});
@@ -19,6 +18,7 @@ class AsyncMatchDemoPage extends StatefulWidget {
 class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   final _svc = AsyncDuelService();
   bool _busy = false;
+
   List<Map<String, dynamic>> _activeMatches = [];
   List<Map<String, dynamic>> _historyMatches = [];
   Map<String, dynamic>? _myStats;
@@ -70,7 +70,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
         _matchScores = scores;
       });
     } catch (e) {
-      print('❌ Fehler: $e');
+      debugPrint('❌ Fehler: $e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -85,7 +85,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       _playMatch(id);
     } catch (e) {
       if (!mounted) return;
-      _showSnack('Fehler: $e', Colors.red);
+      _showSnack('Fehler: $e', AppColors.error);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -97,7 +97,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       final id = await _svc.joinRandomMatch();
       if (id == null) {
         if (!mounted) return;
-        _showSnack('😕 Kein offenes Match gefunden', Colors.orange);
+        _showSnack('Kein offenes Match gefunden', AppColors.warning);
         return;
       }
       await _loadData();
@@ -105,7 +105,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       _playMatch(id);
     } catch (e) {
       if (!mounted) return;
-      _showSnack('Fehler: $e', Colors.red);
+      _showSnack('Fehler: $e', AppColors.error);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -120,7 +120,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       _showOpenMatchesSheet();
     } catch (e) {
       if (!mounted) return;
-      _showSnack('Fehler: $e', Colors.red);
+      _showSnack('Fehler: $e', AppColors.error);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -146,36 +146,46 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   }
 
   void _showOpenMatchesSheet() {
+    final isDark = context.read<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          border: Border(top: BorderSide(color: border)),
         ),
         child: Column(
           children: [
+            // Handle
             Container(
               margin: const EdgeInsets.only(top: 12),
               width: 40,
-              height: 4,
+              height: 3,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: textDim,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
               child: Row(
                 children: [
-                  Icon(Icons.people, color: _orange),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Offene Matches',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Container(width: 16, height: 1, color: AppColors.accent),
+                  const SizedBox(width: 10),
+                  Text(
+                    'OFFENE MATCHES',
+                    style: AppTextStyles.monoLabel(AppColors.accent),
                   ),
                   const Spacer(),
                   TextButton.icon(
@@ -183,26 +193,46 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                       Navigator.pop(ctx);
                       _joinRandom();
                     },
-                    icon: Icon(Icons.shuffle, size: 18, color: _orange),
-                    label: Text('Zufällig', style: TextStyle(color: _orange)),
+                    icon: Icon(
+                      Icons.shuffle_rounded,
+                      size: 16,
+                      color: AppColors.accent,
+                    ),
+                    label: Text(
+                      'Zufällig',
+                      style: AppTextStyles.labelMedium(AppColors.accent),
+                    ),
                   ),
                 ],
               ),
             ),
-            Divider(height: 1),
+            Divider(height: 1, color: border),
             Expanded(
               child: _openMatches.isEmpty
                   ? Center(
-                      child: Text(
-                        'Keine offenen Matches',
-                        style: TextStyle(color: Colors.grey.shade500),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.inbox_outlined, size: 40, color: textDim),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Keine offenen Matches',
+                            style: AppTextStyles.bodyMedium(textMid),
+                          ),
+                        ],
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                       itemCount: _openMatches.length,
-                      itemBuilder: (_, i) =>
-                          _buildOpenMatchTile(_openMatches[i]),
+                      itemBuilder: (_, i) => _buildOpenMatchTile(
+                        _openMatches[i],
+                        surface,
+                        border,
+                        text,
+                        textMid,
+                        textDim,
+                      ),
                     ),
             ),
           ],
@@ -211,7 +241,14 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     );
   }
 
-  Widget _buildOpenMatchTile(Map<String, dynamic> match) {
+  Widget _buildOpenMatchTile(
+    Map<String, dynamic> match,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
     final matchId = match['id'] as String;
     final questions = match['total_questions'] ?? 10;
     final createdAt = match['created_at'] as String?;
@@ -219,24 +256,31 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     final creatorName = creator?['username'] ?? 'Unbekannt';
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          color: surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: border),
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: _orange.withOpacity(0.1),
-              child: Text(
-                creatorName.isNotEmpty ? creatorName[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: _orange,
-                  fontWeight: FontWeight.bold,
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text(
+                  creatorName.isNotEmpty ? creatorName[0].toUpperCase() : '?',
+                  style: AppTextStyles.instrumentSerif(
+                    size: 18,
+                    color: AppColors.accent,
+                    letterSpacing: 0,
+                  ),
                 ),
               ),
             ),
@@ -245,13 +289,11 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(creatorName, style: AppTextStyles.labelLarge(text)),
+                  const SizedBox(height: 2),
                   Text(
-                    creatorName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '$questions Fragen • ${_formatDate(createdAt)}',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    '$questions Fragen · ${_formatDate(createdAt)}',
+                    style: AppTextStyles.monoSmall(textDim),
                   ),
                 ],
               ),
@@ -259,14 +301,18 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
             ElevatedButton(
               onPressed: () => _joinMatch(matchId),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _orange,
-                foregroundColor: Colors.white,
+                backgroundColor: text,
+                foregroundColor: surface,
                 elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
                 ),
               ),
-              child: const Text('Beitreten'),
+              child: Text(
+                'Beitreten',
+                style: AppTextStyles.labelMedium(surface),
+              ),
             ),
           ],
         ),
@@ -294,7 +340,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       _playMatch(matchId);
     } catch (e) {
       if (!mounted) return;
-      _showSnack('Fehler: $e', Colors.red);
+      _showSnack('Fehler: $e', AppColors.error);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -305,10 +351,10 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     try {
       final date = DateTime.parse(timestamp);
       final diff = DateTime.now().difference(date);
-      if (diff.inMinutes < 1) return 'Gerade eben';
+      if (diff.inMinutes < 1) return 'gerade eben';
       if (diff.inMinutes < 60) return 'vor ${diff.inMinutes} Min';
       if (diff.inHours < 24) return 'vor ${diff.inHours}h';
-      if (diff.inDays == 1) return 'Gestern';
+      if (diff.inDays == 1) return 'gestern';
       if (diff.inDays < 7) return 'vor ${diff.inDays} Tagen';
       return '${date.day}.${date.month}.${date.year}';
     } catch (e) {
@@ -316,448 +362,551 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     }
   }
 
-  String _getStatusText(String status) {
-    switch (status) {
-      case 'open':
-        return 'Offen';
-      case 'active':
-        return 'Aktiv';
-      case 'waiting':
-        return 'Wartet';
-      default:
-        return 'Beendet';
-    }
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'open':
-        return Colors.orange;
-      case 'active':
-        return Colors.green;
-      case 'waiting':
-        return Colors.blue;
-      default:
-        return Colors.purple;
-    }
-  }
-
   String _getTier(int elo) {
-    if (elo >= 1500) return '🔥 Meister';
-    if (elo >= 1300) return '💎 Diamant';
-    if (elo >= 1150) return '🥇 Gold';
-    if (elo >= 1000) return '🥈 Silber';
-    return '🥉 Bronze';
+    if (elo >= 1500) return 'MEISTER';
+    if (elo >= 1300) return 'DIAMANT';
+    if (elo >= 1150) return 'GOLD';
+    if (elo >= 1000) return 'SILBER';
+    if (elo >= 850) return 'BRONZE';
+    return 'STARTER';
+  }
+
+  Color _getTierColor(int elo) {
+    if (elo >= 1500) return const Color(0xFFEF4444);
+    if (elo >= 1300) return const Color(0xFF22D3EE);
+    if (elo >= 1150) return const Color(0xFFF59E0B);
+    if (elo >= 1000) return const Color(0xFF94A3B8);
+    if (elo >= 850) return const Color(0xFFB45309);
+    return const Color(0xFF94A3B8);
   }
 
   @override
   Widget build(BuildContext context) {
-    final elo = _myStats?['elo_rating'] ?? 1000;
+    final isDark = context.watch<ThemeProvider>().isDark;
+
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    final elo = _myStats?['elo_rating'] ?? 0;
+    final hasPlayed = (_myStats?['matches_played'] ?? 0) > 0;
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        color: AppColors.accent,
+        child: ListView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          padding: EdgeInsets.zero,
+          children: [
+            // ─── HEADER ───────────────────────────────────
+            SafeArea(
+              bottom: false,
+              child: _buildHeader(text, textMid, textDim, surface, border),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Status (nur wenn gespielt)
+                  if (hasPlayed) ...[
+                    _buildStatusBanner(
+                      elo,
+                      surface,
+                      border,
+                      text,
+                      textMid,
+                      textDim,
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Progress Bar (wenn loading)
+                  if (_busy)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: LinearProgressIndicator(
+                          color: AppColors.accent,
+                          backgroundColor: border,
+                          minHeight: 2,
+                        ),
+                      ),
+                    ),
+
+                  // Actions
+                  _sectionLabel('MATCH STARTEN', textDim),
+                  const SizedBox(height: 12),
+                  _buildPrimaryActions(surface, border, text, textMid, textDim),
+
+                  const SizedBox(height: 32),
+
+                  // Aktive Matches
+                  _sectionLabel(
+                    'AKTIVE MATCHES · ${_activeMatches.length}',
+                    textDim,
+                  ),
+                  const SizedBox(height: 12),
+                  if (_activeMatches.isEmpty)
+                    _buildEmpty(
+                      icon: Icons.sports_kabaddi_outlined,
+                      title: 'Keine aktiven Matches',
+                      sub: 'Starte ein neues Match um loszulegen',
+                      surface: surface,
+                      border: border,
+                      textMid: textMid,
+                      textDim: textDim,
+                    )
+                  else
+                    ..._activeMatches.map(
+                      (m) => _buildMatchCard(
+                        m,
+                        isHistory: false,
+                        surface: surface,
+                        border: border,
+                        text: text,
+                        textMid: textMid,
+                        textDim: textDim,
+                      ),
+                    ),
+
+                  const SizedBox(height: 32),
+
+                  // History
+                  if (_historyMatches.isNotEmpty) ...[
+                    GestureDetector(
+                      onTap: () =>
+                          setState(() => _historyExpanded = !_historyExpanded),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 16,
+                            height: 1,
+                            color: AppColors.accent,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'HISTORY · ${_historyMatches.length}',
+                            style: AppTextStyles.monoLabel(AppColors.accent),
+                          ),
+                          const Spacer(),
+                          Icon(
+                            _historyExpanded
+                                ? Icons.keyboard_arrow_up_rounded
+                                : Icons.keyboard_arrow_down_rounded,
+                            color: textMid,
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Zeige max 3 wenn eingeklappt
+                    ..._historyMatches
+                        .take(_historyExpanded ? _historyMatches.length : 3)
+                        .map(
+                          (m) => _buildMatchCard(
+                            m,
+                            isHistory: true,
+                            surface: surface,
+                            border: border,
+                            text: text,
+                            textMid: textMid,
+                            textDim: textDim,
+                          ),
+                        ),
+                    if (!_historyExpanded && _historyMatches.length > 3)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: TextButton(
+                          onPressed: () =>
+                              setState(() => _historyExpanded = true),
+                          child: Text(
+                            'Alle ${_historyMatches.length} anzeigen',
+                            style: AppTextStyles.labelMedium(AppColors.accent),
+                          ),
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── HEADER ───────────────────────────────────────
+  Widget _buildHeader(
+    Color text,
+    Color textMid,
+    Color textDim,
+    Color surface,
+    Color border,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(width: 16, height: 1, color: AppColors.accent),
+                    const SizedBox(width: 10),
+                    Text(
+                      'ARENA',
+                      style: AppTextStyles.monoLabel(AppColors.accent),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Fordere andere heraus.',
+                  style: AppTextStyles.instrumentSerif(
+                    size: 34,
+                    color: text,
+                    letterSpacing: -1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Async-Matches · ELO-Rating · Wöchentliche Ranglisten',
+                  style: AppTextStyles.bodyMedium(textMid),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Leaderboard Button
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: surface,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: border),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.emoji_events_outlined, color: textMid, size: 18),
+                  const SizedBox(height: 4),
+                  Text(
+                    'LEADERBOARD',
+                    style: AppTextStyles.mono(
+                      size: 9,
+                      color: textMid,
+                      weight: FontWeight.w600,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── STATUS BANNER ────────────────────────────────
+  Widget _buildStatusBanner(
+    int elo,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    final tierColor = _getTierColor(elo);
     final wins = _myStats?['wins'] ?? 0;
     final losses = _myStats?['losses'] ?? 0;
     final draws = _myStats?['draws'] ?? 0;
     final total = wins + losses + draws;
     final winRate = total > 0 ? ((wins / total) * 100).toInt() : 0;
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      body: RefreshIndicator(
-        onRefresh: _loadData,
-        color: _orange,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── HEADER ─────────────────────────────────────
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [_orange, _orangeDark],
-                  ),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(28),
-                    bottomRight: Radius.circular(28),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _orange.withOpacity(0.25),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Titel Row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Match Arena',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  'Fordere andere heraus',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            GestureDetector(
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const LeaderboardScreen(),
-                                ),
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Icon(
-                                  Icons.emoji_events,
-                                  color: _gold,
-                                  size: 24,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Stats Row
-                        Row(
-                          children: [
-                            _buildHeaderStat('$elo', 'ELO', Colors.white),
-                            _buildHeaderDivider(),
-                            _buildHeaderStat('$wins', 'Siege', Colors.white),
-                            _buildHeaderDivider(),
-                            _buildHeaderStat(
-                              '$losses',
-                              'Niederl.',
-                              Colors.white,
-                            ),
-                            _buildHeaderDivider(),
-                            _buildHeaderStat(
-                              '$winRate%',
-                              'Winrate',
-                              Colors.white,
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Tier
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            _getTier(elo),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // ── 3 ACTION BUTTONS ───────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildActionBtn(
-                        icon: Icons.add_rounded,
-                        label: 'Erstellen',
-                        color: Color(0xFF3949AB),
-                        onTap: _busy ? null : _createMatch,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildActionBtn(
-                        icon: Icons.search_rounded,
-                        label: 'Beitreten',
-                        color: Color(0xFF3949AB),
-                        onTap: _busy ? null : _showOpenMatches,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildActionBtn(
-                        icon: Icons.shuffle_rounded,
-                        label: 'Zufällig',
-                        color: Color(0xFF3949AB),
-                        onTap: _busy ? null : _joinRandom,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              if (_busy)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      color: _orange,
-                      backgroundColor: Colors.grey.shade200,
-                    ),
-                  ),
-                ),
-
-              const SizedBox(height: 24),
-
-              // ── AKTIVE MATCHES ─────────────────────────────
-              _buildSectionHeader(
-                'Aktive Matches',
-                _activeMatches.length,
-                Colors.green,
-              ),
-              const SizedBox(height: 10),
-
-              if (_activeMatches.isEmpty)
-                _buildEmptyState(
-                  icon: Icons.sports_esports_outlined,
-                  title: 'Keine aktiven Matches',
-                  sub: 'Erstelle ein Match oder tritt einem bei!',
-                )
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _activeMatches.length,
-                  itemBuilder: (_, i) =>
-                      _buildMatchCard(_activeMatches[i], false),
-                ),
-
-              const SizedBox(height: 20),
-
-              // ── HISTORY ────────────────────────────────────
-              if (_historyMatches.isNotEmpty) ...[
-                GestureDetector(
-                  onTap: () =>
-                      setState(() => _historyExpanded = !_historyExpanded),
-                  child: _buildSectionHeader(
-                    'Match History',
-                    _historyMatches.length,
-                    Colors.purple,
-                    trailing: Icon(
-                      _historyExpanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                if (_historyExpanded)
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _historyMatches.length,
-                    itemBuilder: (_, i) =>
-                        _buildMatchCard(_historyMatches[i], true),
-                  ),
-              ],
-
-              const SizedBox(height: 100),
-            ],
-          ),
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: border),
+        // Top-Accent in Tier-Farbe
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [tierColor, tierColor, surface, surface],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeaderStat(String value, String label, Color color) {
-    return Expanded(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: tierColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  _getTier(elo),
+                  style: AppTextStyles.mono(
+                    size: 10,
+                    color: tierColor,
+                    weight: FontWeight.w700,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Text('ELO', style: AppTextStyles.monoSmall(textDim)),
+              const SizedBox(width: 6),
+              Text(
+                '$elo',
+                style: AppTextStyles.instrumentSerif(
+                  size: 28,
+                  color: text,
+                  letterSpacing: -1.0,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 11),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              _statMini('$wins', 'SIEGE', AppColors.success, textDim),
+              const SizedBox(width: 20),
+              _statMini('$draws', 'REMIS', AppColors.warning, textDim),
+              const SizedBox(width: 20),
+              _statMini('$losses', 'NIEDERL.', AppColors.error, textDim),
+              const Spacer(),
+              _statMini('$winRate%', 'WINRATE', AppColors.accent, textDim),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderDivider() {
-    return Container(width: 1, height: 32, color: Colors.white30);
+  Widget _statMini(String value, String label, Color color, Color textDim) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: AppTextStyles.interTight(
+            size: 16,
+            weight: FontWeight.w700,
+            color: color,
+          ),
+        ),
+        Text(label, style: AppTextStyles.monoSmall(textDim)),
+      ],
+    );
   }
 
-  Widget _buildActionBtn({
+  // ─── SECTION LABEL ────────────────────────────────
+  Widget _sectionLabel(String label, Color color) {
+    return Row(
+      children: [
+        Container(width: 16, height: 1, color: AppColors.accent),
+        const SizedBox(width: 10),
+        Text(label, style: AppTextStyles.monoLabel(AppColors.accent)),
+      ],
+    );
+  }
+
+  // ─── PRIMARY ACTIONS ──────────────────────────────
+  Widget _buildPrimaryActions(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    return Column(
+      children: [
+        // Hero CTA: Neues Match
+        GestureDetector(
+          onTap: _busy ? null : _createMatch,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: text,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: surface.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.bolt_rounded, color: surface, size: 22),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Neues Match',
+                        style: AppTextStyles.interTight(
+                          size: 16,
+                          weight: FontWeight.w600,
+                          color: surface,
+                        ),
+                      ),
+                      Text(
+                        '10 Fragen · warten auf Gegner',
+                        style: AppTextStyles.bodySmall(
+                          surface.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_rounded, color: surface, size: 20),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        // 2 Secondary Actions
+        Row(
+          children: [
+            Expanded(
+              child: _buildSecondaryAction(
+                icon: Icons.search_rounded,
+                label: 'Beitreten',
+                sub: 'Offene Matches',
+                onTap: _busy ? null : _showOpenMatches,
+                surface: surface,
+                border: border,
+                text: text,
+                textMid: textMid,
+                textDim: textDim,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildSecondaryAction(
+                icon: Icons.shuffle_rounded,
+                label: 'Zufällig',
+                sub: 'Sofort starten',
+                onTap: _busy ? null : _joinRandom,
+                surface: surface,
+                border: border,
+                text: text,
+                textMid: textMid,
+                textDim: textDim,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSecondaryAction({
     required IconData icon,
     required String label,
-    required Color color,
-    VoidCallback? onTap,
+    required String sub,
+    required VoidCallback? onTap,
+    required Color surface,
+    required Color border,
+    required Color text,
+    required Color textMid,
+    required Color textDim,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          color: surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: border),
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            ),
+            Icon(icon, color: text, size: 20),
+            const SizedBox(height: 14),
+            Text(label, style: AppTextStyles.labelLarge(text)),
+            const SizedBox(height: 2),
+            Text(sub, style: AppTextStyles.bodySmall(textDim)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(
-    String title,
-    int count,
-    Color color, {
-    Widget? trailing,
+  // ─── EMPTY ────────────────────────────────────────
+  Widget _buildEmpty({
+    required IconData icon,
+    required String title,
+    required String sub,
+    required Color surface,
+    required Color border,
+    required Color textMid,
+    required Color textDim,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+      decoration: BoxDecoration(
+        border: Border.all(color: border, style: BorderStyle.solid),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
         children: [
-          Container(
-            width: 4,
-            height: 18,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              '$count',
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          if (trailing != null) ...[const SizedBox(width: 8), trailing],
+          Icon(icon, size: 36, color: textDim),
+          const SizedBox(height: 12),
+          Text(title, style: AppTextStyles.labelLarge(textMid)),
+          const SizedBox(height: 4),
+          Text(sub, style: AppTextStyles.bodySmall(textDim)),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyState({
-    required IconData icon,
-    required String title,
-    required String sub,
+  // ─── MATCH CARD ───────────────────────────────────
+  Widget _buildMatchCard(
+    Map<String, dynamic> match, {
+    required bool isHistory,
+    required Color surface,
+    required Color border,
+    required Color text,
+    required Color textMid,
+    required Color textDim,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(icon, size: 48, color: Colors.grey.shade300),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              sub,
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMatchCard(Map<String, dynamic> match, bool isHistory) {
     final matchId = match['id'] as String;
     final status = match['status'] as String;
     final questions = match['total_questions'] ?? 10;
     final createdAt = match['created_at'] as String?;
     final canPlay = status == 'active' || status == 'open';
-    final statusColor = _getStatusColor(status);
 
     bool? didWin;
     int? myScore;
@@ -773,6 +922,10 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       didWin = myScore! > opponentScore!;
     }
 
+    final resultColor = isHistory
+        ? (didWin == true ? AppColors.success : AppColors.error)
+        : AppColors.accent;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
@@ -780,32 +933,13 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
+            color: surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: border),
           ),
           child: Row(
             children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                child: Icon(
-                  canPlay ? Icons.play_arrow_rounded : Icons.check_rounded,
-                  color: statusColor,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 14),
+              // Match-ID in Mono + Status
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -814,77 +948,90 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                       children: [
                         Text(
                           '#${matchId.substring(0, 6).toUpperCase()}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                          style: AppTextStyles.mono(
+                            size: 13,
+                            color: text,
+                            weight: FontWeight.w700,
+                            letterSpacing: 0.5,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            _getStatusText(status),
-                            style: TextStyle(
-                              color: statusColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                        if (!isHistory)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.accent.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 5,
+                                  height: 5,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.accent,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  status == 'active' ? 'AKTIV' : 'OFFEN',
+                                  style: AppTextStyles.mono(
+                                    size: 9,
+                                    color: AppColors.accent,
+                                    weight: FontWeight.w700,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$questions Fragen  •  ${_formatDate(createdAt)}',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 12,
-                      ),
+                      '$questions Fragen · ${_formatDate(createdAt)}',
+                      style: AppTextStyles.monoSmall(textDim),
                     ),
                   ],
                 ),
               ),
 
+              // Right-Side: Score (History) oder Play-Button (Active)
               if (isHistory && didWin != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
-                    vertical: 8,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: (didWin ? Colors.green : Colors.red).withOpacity(
-                      0.08,
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: (didWin ? Colors.green : Colors.red).withOpacity(
-                        0.3,
-                      ),
-                    ),
+                    color: resultColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: resultColor.withOpacity(0.3)),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        didWin ? 'Sieg' : 'Niederlage',
-                        style: TextStyle(
-                          color: didWin ? Colors.green : Colors.red,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                        didWin ? 'SIEG' : 'NIEDERL.',
+                        style: AppTextStyles.mono(
+                          size: 9,
+                          color: resultColor,
+                          weight: FontWeight.w700,
+                          letterSpacing: 1,
                         ),
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         '$myScore:$opponentScore',
-                        style: TextStyle(
-                          color: didWin ? Colors.green : Colors.red,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        style: AppTextStyles.interTight(
+                          size: 15,
+                          weight: FontWeight.w700,
+                          color: resultColor,
                         ),
                       ),
                     ],
@@ -897,27 +1044,20 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: _orange,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _orange.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
+                    color: text,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.play_arrow, color: Colors.white, size: 16),
-                      SizedBox(width: 4),
+                      Icon(Icons.play_arrow_rounded, color: surface, size: 14),
+                      const SizedBox(width: 4),
                       Text(
                         'Spielen',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                        style: AppTextStyles.interTight(
+                          size: 12,
+                          weight: FontWeight.w600,
+                          color: surface,
                         ),
                       ),
                     ],

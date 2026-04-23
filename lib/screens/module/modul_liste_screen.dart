@@ -1,13 +1,13 @@
 // lib/screens/module/modul_liste_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../module/themen_liste_screen.dart';
 import '../../services/app_cache_service.dart';
-
-const _indigo = Color(0xFF4F46E5);
-const _indigoDark = Color(0xFF3730A3);
-const _indigoLight = Color(0xFF6366F1);
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class ModulListe extends StatefulWidget {
   const ModulListe({super.key});
@@ -24,7 +24,7 @@ class _ModulListeState extends State<ModulListe> {
   Map<int, int> beantworteteFragen = {};
   Map<int, int> letzteThemaId = {};
   bool loading = true;
-  bool _showAsList = false;
+  bool _showAsList = true;
 
   @override
   void initState() {
@@ -44,8 +44,9 @@ class _ModulListeState extends State<ModulListe> {
 
   Future<void> _loadViewPreference() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
-      _showAsList = prefs.getBool('module_view_as_list') ?? false;
+      _showAsList = prefs.getBool('module_view_as_list') ?? true;
     });
   }
 
@@ -64,8 +65,9 @@ class _ModulListeState extends State<ModulListe> {
             .select('id')
             .eq('modul_id', modul['id']);
         anzahlFragen[modul['id']] = fragen.length;
-        beantworteteFragen[modul['id']] =
-            await _ladeModulFortschritt(modul['id']);
+        beantworteteFragen[modul['id']] = await _ladeModulFortschritt(
+          modul['id'],
+        );
         letzteThemaId[modul['id']] = await _ladeLetzteThemaId(modul['id']);
       }
       if (!mounted) return;
@@ -75,8 +77,13 @@ class _ModulListeState extends State<ModulListe> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Fehler: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       setState(() => loading = false);
     }
   }
@@ -99,42 +106,6 @@ class _ModulListeState extends State<ModulListe> {
     }
   }
 
-  Color _getModulColor(int index) {
-    const colors = [
-      Color(0xFF4F46E5),
-      Color(0xFF7C3AED),
-      Color(0xFF0D9488),
-      Color(0xFFEA580C),
-      Color(0xFFDB2777),
-      Color(0xFF2563EB),
-      Color(0xFF16A34A),
-      Color(0xFFDC2626),
-    ];
-    return colors[index % colors.length];
-  }
-
-  IconData _getModulIcon(int modulId) {
-    switch (modulId) {
-      case 1: return Icons.business_center;
-      case 2: return Icons.gavel;
-      case 15: return Icons.assignment;
-      case 16: return Icons.verified;
-      case 17: return Icons.account_tree;
-      case 9001: return Icons.calculate;
-      case 9002: return Icons.public;
-      case 9003: return Icons.storage;
-      case 9004: return Icons.lan;
-      case 9005: return Icons.terminal;
-      case 9006: return Icons.memory;
-      case 9007: return Icons.code;
-      case 9008: return Icons.security;
-      case 9009: return Icons.web;
-      case 9010: return Icons.cloud;
-      case 9011: return Icons.data_array;
-      default: return Icons.school;
-    }
-  }
-
   void _openModul(Map<String, dynamic> modul) {
     Navigator.push(
       context,
@@ -151,139 +122,443 @@ class _ModulListeState extends State<ModulListe> {
     ).then((_) => ladeModule());
   }
 
-  double get _overallProgress {
-    if (module.isEmpty) return 0;
-    final total = anzahlFragen.values.fold(0, (a, b) => a + b);
-    final done = beantworteteFragen.values.fold(0, (a, b) => a + b);
-    return total > 0 ? done / total : 0;
+  int get _totalFragen {
+    return anzahlFragen.values.fold(0, (a, b) => a + b);
+  }
+
+  int get _totalAnswered {
+    return beantworteteFragen.values.fold(0, (a, b) => a + b);
+  }
+
+  int get _completedModules {
+    return module.where((m) {
+      final id = m['id'] as int;
+      final total = anzahlFragen[id] ?? 0;
+      final answered = beantworteteFragen[id] ?? 0;
+      return total > 0 && answered >= total;
+    }).length;
+  }
+
+  /// Gruppiert Module nach `kategorie` aus DB
+  Map<String, List<Map<String, dynamic>>> _groupedModules() {
+    final grouped = <String, List<Map<String, dynamic>>>{};
+    for (final m in module) {
+      final kat = (m['kategorie'] as String?)?.toUpperCase() ?? 'ALLGEMEIN';
+      grouped.putIfAbsent(kat, () => []).add(m as Map<String, dynamic>);
+    }
+    return grouped;
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FF),
+      backgroundColor: bg,
       body: Column(
         children: [
-          _buildHeader(),
+          // ─── APPBAR ─────────────────────────────
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.arrow_back_rounded, color: text, size: 22),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Lernmodule',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 24,
+                      color: text,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: _toggleView,
+                    icon: Icon(
+                      _showAsList
+                          ? Icons.grid_view_rounded
+                          : Icons.view_list_rounded,
+                      color: textMid,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ─── CONTENT ────────────────────────────
           Expanded(
             child: loading
-                ? const Center(child: CircularProgressIndicator(color: _indigo))
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.accent),
+                  )
                 : module.isEmpty
-                    ? _buildEmpty()
-                    : RefreshIndicator(
-                        color: _indigo,
-                        onRefresh: ladeModule,
-                        child: _showAsList ? _buildListView() : _buildGridView(),
-                      ),
+                ? _buildEmpty(textMid, textDim)
+                : RefreshIndicator(
+                    color: AppColors.accent,
+                    onRefresh: ladeModule,
+                    child: _buildBody(surface, border, text, textMid, textDim),
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildBody(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    final grouped = _groupedModules();
+    final categories = grouped.keys.toList();
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      children: [
+        // Stats-Banner
+        _buildStatsBanner(surface, border, text, textMid, textDim),
+
+        const SizedBox(height: 32),
+
+        // Module je Kategorie
+        for (int catIdx = 0; catIdx < categories.length; catIdx++) ...[
+          _buildCategoryHeader(
+            categories[catIdx],
+            grouped[categories[catIdx]]!.length,
+            textDim,
+          ),
+          const SizedBox(height: 12),
+          if (_showAsList)
+            ...grouped[categories[catIdx]]!.asMap().entries.map(
+              (e) => _buildListItem(
+                modul: e.value,
+                surface: surface,
+                border: border,
+                text: text,
+                textMid: textMid,
+                textDim: textDim,
+              ),
+            )
+          else
+            _buildGrid(
+              grouped[categories[catIdx]]!,
+              surface,
+              border,
+              text,
+              textMid,
+              textDim,
+            ),
+          if (catIdx < categories.length - 1) const SizedBox(height: 28),
+        ],
+      ],
+    );
+  }
+
+  // ─── STATS BANNER ────────────────────────────
+  Widget _buildStatsBanner(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    final overallProgress = _totalFragen > 0
+        ? (_totalAnswered / _totalFragen * 100).round()
+        : 0;
+
     return Container(
-      decoration: const BoxDecoration(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: border),
         gradient: LinearGradient(
-          colors: [_indigoDark, _indigo, _indigoLight],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [AppColors.accent, AppColors.accent, surface, surface],
         ),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: AppColors.accent),
+              const SizedBox(width: 10),
+              Text(
+                'DEIN FORTSCHRITT',
+                style: AppTextStyles.monoLabel(AppColors.accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$_totalAnswered',
+                style: AppTextStyles.instrumentSerif(
+                  size: 42,
+                  color: text,
+                  letterSpacing: -1.5,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  '/ $_totalFragen',
+                  style: AppTextStyles.bodyMedium(textMid),
+                ),
+              ),
+              const Spacer(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$overallProgress%',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 28,
+                      color: AppColors.accent,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  Text('GESAMT', style: AppTextStyles.monoSmall(textDim)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Progress Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              value: _totalFragen > 0 ? _totalAnswered / _totalFragen : 0,
+              backgroundColor: border,
+              valueColor: const AlwaysStoppedAnimation(AppColors.accent),
+              minHeight: 3,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              _statMini(
+                '$_completedModules / ${module.length}',
+                'MODULE FERTIG',
+                text,
+                textDim,
+              ),
+              const SizedBox(width: 24),
+              _statMini(
+                '${anzahlFragen.length}',
+                'MODULE GESAMT',
+                text,
+                textDim,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statMini(String value, String label, Color text, Color textDim) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: AppTextStyles.interTight(
+            size: 13,
+            weight: FontWeight.w600,
+            color: text,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(label, style: AppTextStyles.monoSmall(textDim)),
+      ],
+    );
+  }
+
+  // ─── CATEGORY HEADER ─────────────────────────
+  Widget _buildCategoryHeader(String category, int count, Color textDim) {
+    return Row(
+      children: [
+        Container(width: 16, height: 1, color: AppColors.accent),
+        const SizedBox(width: 10),
+        Text(
+          '$category · $count',
+          style: AppTextStyles.monoLabel(AppColors.accent),
+        ),
+      ],
+    );
+  }
+
+  // ─── LIST ITEM ───────────────────────────────
+  Widget _buildListItem({
+    required Map<String, dynamic> modul,
+    required Color surface,
+    required Color border,
+    required Color text,
+    required Color textMid,
+    required Color textDim,
+  }) {
+    final modulId = modul['id'] as int;
+    final total = anzahlFragen[modulId] ?? 0;
+    final answered = beantworteteFragen[modulId] ?? 0;
+    final progress = total > 0 ? answered / total : 0.0;
+    final isComplete = total > 0 && answered >= total;
+    final isStarted = answered > 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: GestureDetector(
+        onTap: () => _openModul(modul),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isComplete ? AppColors.success.withOpacity(0.4) : border,
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  if (Navigator.canPop(context)) ...[
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded,
-                          color: Colors.white, size: 20),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const SizedBox(width: 4),
-                  ],
+                  // Modul-ID Badge
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    width: 42,
+                    height: 42,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(14),
+                      color: isComplete
+                          ? AppColors.success.withOpacity(0.12)
+                          : AppColors.accent.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isComplete
+                            ? AppColors.success.withOpacity(0.3)
+                            : AppColors.accent.withOpacity(0.3),
+                      ),
                     ),
-                    child: const Icon(Icons.library_books_rounded,
-                        color: Colors.white, size: 22),
+                    child: Center(
+                      child: isComplete
+                          ? Icon(
+                              Icons.check_rounded,
+                              color: AppColors.success,
+                              size: 20,
+                            )
+                          : Text(
+                              _formatModulNumber(modulId),
+                              style: AppTextStyles.mono(
+                                size: 12,
+                                color: AppColors.accent,
+                                weight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                    ),
                   ),
-                  const SizedBox(width: 12),
-                  const Expanded(
+                  const SizedBox(width: 14),
+                  // Name
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Lernmodule',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                          modul['name'] ?? '',
+                          style: AppTextStyles.labelLarge(text),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (isStarted) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            '$answered / $total Fragen',
+                            style: AppTextStyles.monoSmall(textDim),
                           ),
-                        ),
-                        Text(
-                          'Wähle ein Modul zum Üben',
-                          style: TextStyle(color: Colors.white70, fontSize: 13),
-                        ),
+                        ] else ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            '$total Fragen',
+                            style: AppTextStyles.monoSmall(textDim),
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                  GestureDetector(
-                    onTap: _toggleView,
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
+                  // Progress oder Badge
+                  if (isComplete)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.success.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Icon(
-                        _showAsList
-                            ? Icons.grid_view_rounded
-                            : Icons.list_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (!loading && module.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: LinearProgressIndicator(
-                          value: _overallProgress,
-                          backgroundColor: Colors.white.withOpacity(0.25),
-                          valueColor:
-                              const AlwaysStoppedAnimation<Color>(Colors.white),
-                          minHeight: 7,
+                      child: Text(
+                        'FERTIG',
+                        style: AppTextStyles.mono(
+                          size: 9,
+                          color: AppColors.success,
+                          weight: FontWeight.w700,
+                          letterSpacing: 1,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
+                    )
+                  else if (isStarted)
                     Text(
-                      '${(_overallProgress * 100).toInt()}% gesamt',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600),
+                      '${(progress * 100).round()}%',
+                      style: AppTextStyles.interTight(
+                        size: 14,
+                        weight: FontWeight.w700,
+                        color: AppColors.accent,
+                      ),
+                    )
+                  else
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: textDim,
+                      size: 12,
                     ),
-                  ],
+                ],
+              ),
+              // Progress Bar (nur wenn gestartet und nicht fertig)
+              if (isStarted && !isComplete) ...[
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: border,
+                    valueColor: const AlwaysStoppedAnimation(AppColors.accent),
+                    minHeight: 2,
+                  ),
                 ),
               ],
             ],
@@ -293,258 +568,170 @@ class _ModulListeState extends State<ModulListe> {
     );
   }
 
-  Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-                color: _indigo.withOpacity(0.1), shape: BoxShape.circle),
-            child: const Icon(Icons.inbox_outlined, size: 56, color: _indigo),
-          ),
-          const SizedBox(height: 16),
-          const Text('Keine Module gefunden',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGridView() {
+  // ─── GRID ────────────────────────────────────
+  Widget _buildGrid(
+    List<Map<String, dynamic>> modulList,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.82,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        childAspectRatio: 0.95,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
-      itemCount: module.length,
+      itemCount: modulList.length,
       itemBuilder: (ctx, i) {
-        final modul = module[i] as Map<String, dynamic>;
-        final modulId = modul['id'] as int;
-        final total = anzahlFragen[modulId] ?? 0;
-        final answered = beantworteteFragen[modulId] ?? 0;
-        final progress = total > 0 ? answered / total : 0.0;
-        final color = _getModulColor(i);
-
-        return TweenAnimationBuilder<double>(
-          duration: Duration(milliseconds: 200 + (i * 40)),
-          tween: Tween(begin: 0.0, end: 1.0),
-          builder: (context, value, child) => Transform.translate(
-            offset: Offset(0, 20 * (1 - value)),
-            child: Opacity(opacity: value, child: child),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color.withOpacity(0.15), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                    color: color.withOpacity(0.1),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4)),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-              child: InkWell(
-                onTap: () => _openModul(modul),
-                borderRadius: BorderRadius.circular(20),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [color, color.withOpacity(0.75)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                                color: color.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4)),
-                          ],
-                        ),
-                        child: Icon(_getModulIcon(modulId),
-                            color: Colors.white, size: 26),
-                      ),
-                      const Spacer(),
-                      Text(
-                        modul['name'],
-                        style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(children: [
-                            Icon(Icons.quiz_outlined,
-                                size: 13, color: Colors.grey.shade500),
-                            const SizedBox(width: 3),
-                            Text('$answered/$total',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade500,
-                                    fontWeight: FontWeight.w500)),
-                          ]),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: color.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text('${(progress * 100).toInt()}%',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: color)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          backgroundColor: Colors.grey.shade100,
-                          valueColor: AlwaysStoppedAnimation<Color>(color),
-                          minHeight: 6,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+        return _buildGridItem(
+          modul: modulList[i],
+          surface: surface,
+          border: border,
+          text: text,
+          textMid: textMid,
+          textDim: textDim,
         );
       },
     );
   }
 
-  Widget _buildListView() {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
-      itemCount: module.length,
-      itemBuilder: (ctx, i) {
-        final modul = module[i] as Map<String, dynamic>;
-        final modulId = modul['id'] as int;
-        final total = anzahlFragen[modulId] ?? 0;
-        final answered = beantworteteFragen[modulId] ?? 0;
-        final progress = total > 0 ? answered / total : 0.0;
-        final color = _getModulColor(i);
+  Widget _buildGridItem({
+    required Map<String, dynamic> modul,
+    required Color surface,
+    required Color border,
+    required Color text,
+    required Color textMid,
+    required Color textDim,
+  }) {
+    final modulId = modul['id'] as int;
+    final total = anzahlFragen[modulId] ?? 0;
+    final answered = beantworteteFragen[modulId] ?? 0;
+    final progress = total > 0 ? answered / total : 0.0;
+    final isComplete = total > 0 && answered >= total;
+    final isStarted = answered > 0;
 
-        return TweenAnimationBuilder<double>(
-          duration: Duration(milliseconds: 150 + (i * 40)),
-          tween: Tween(begin: 0.0, end: 1.0),
-          builder: (context, value, child) => Transform.translate(
-            offset: Offset(20 * (1 - value), 0),
-            child: Opacity(opacity: value, child: child),
+    return GestureDetector(
+      onTap: () => _openModul(modul),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isComplete ? AppColors.success.withOpacity(0.4) : border,
           ),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: color.withOpacity(0.12), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                    color: color.withOpacity(0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3)),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(18),
-              child: InkWell(
-                onTap: () => _openModul(modul),
-                borderRadius: BorderRadius.circular(18),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [color, color.withOpacity(0.75)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: isComplete
+                        ? AppColors.success.withOpacity(0.12)
+                        : AppColors.accent.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isComplete
+                          ? AppColors.success.withOpacity(0.3)
+                          : AppColors.accent.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Center(
+                    child: isComplete
+                        ? Icon(
+                            Icons.check_rounded,
+                            color: AppColors.success,
+                            size: 16,
+                          )
+                        : Text(
+                            _formatModulNumber(modulId),
+                            style: AppTextStyles.mono(
+                              size: 10,
+                              color: AppColors.accent,
+                              weight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                        child: Icon(_getModulIcon(modulId),
-                            color: Colors.white, size: 24),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(modul['name'],
-                                style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 6),
-                            Row(children: [
-                              Text('$answered/$total Fragen',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade500)),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(4),
-                                  child: LinearProgressIndicator(
-                                    value: progress,
-                                    backgroundColor: Colors.grey.shade100,
-                                    valueColor:
-                                        AlwaysStoppedAnimation<Color>(color),
-                                    minHeight: 5,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text('${(progress * 100).toInt()}%',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: color)),
-                            ]),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(Icons.chevron_right_rounded,
-                          color: Colors.grey.shade300, size: 26),
-                    ],
                   ),
                 ),
+                if (isComplete)
+                  Icon(Icons.star_rounded, color: AppColors.success, size: 16)
+                else if (isStarted)
+                  Text(
+                    '${(progress * 100).round()}%',
+                    style: AppTextStyles.mono(
+                      size: 11,
+                      color: AppColors.accent,
+                      weight: FontWeight.w700,
+                      letterSpacing: 0,
+                    ),
+                  ),
+              ],
+            ),
+            const Spacer(),
+            Text(
+              modul['name'] ?? '',
+              style: AppTextStyles.labelMedium(text),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 6),
+            Text('$answered / $total', style: AppTextStyles.monoSmall(textDim)),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: border,
+                valueColor: AlwaysStoppedAnimation(
+                  isComplete ? AppColors.success : AppColors.accent,
+                ),
+                minHeight: 2,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Formatiert Modul-IDs zu schönen 2-stelligen Labels
+  // 9001-9011 → 01-11, andere bleiben wie sie sind
+  String _formatModulNumber(int id) {
+    if (id >= 9001 && id <= 9099) {
+      return (id - 9000).toString().padLeft(2, '0');
+    }
+    if (id < 100) return id.toString().padLeft(2, '0');
+    return id.toString();
+  }
+
+  // ─── EMPTY ───────────────────────────────────
+  Widget _buildEmpty(Color textMid, Color textDim) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.library_books_outlined, size: 48, color: textDim),
+          const SizedBox(height: 16),
+          Text('Keine Module gefunden', style: AppTextStyles.h3(textMid)),
+          const SizedBox(height: 4),
+          Text(
+            'Zieh runter um zu aktualisieren',
+            style: AppTextStyles.bodySmall(textDim),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

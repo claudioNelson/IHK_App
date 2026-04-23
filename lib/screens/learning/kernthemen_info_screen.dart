@@ -1,11 +1,11 @@
 // lib/screens/learning/kernthemen_info_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../screens/learning/ai_tutor_chat_screen.dart';
-
-const _indigo = Color(0xFF4F46E5);
-const _indigoDark = Color(0xFF3730A3);
-const _indigoLight = Color(0xFF6366F1);
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class KernthemenInfoScreen extends StatefulWidget {
   const KernthemenInfoScreen({super.key});
@@ -19,139 +19,147 @@ class _KernthemenInfoScreenState extends State<KernthemenInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FF),
-      body: CustomScrollView(
-        slivers: [
-          // Header
-          SliverAppBar(
-            expandedHeight: 160,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: _indigoDark,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.parallax,
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [_indigoDark, _indigo, _indigoLight],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+      backgroundColor: bg,
+      body: Column(
+        children: [
+          // ─── APPBAR ───────────────────────────
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close_rounded, color: text, size: 22),
                   ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(28),
-                    bottomRight: Radius.circular(28),
-                  ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(Icons.star_rounded,
-                              color: Colors.white, size: 26),
-                        ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('Kernthemen',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold)),
-                              Text('Deine Prüfungsvorbereitung',
-                                  style: TextStyle(
-                                      color: Colors.white70, fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                      ],
+                  const SizedBox(width: 4),
+                  Text(
+                    'Kernthemen',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 24,
+                      color: text,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                ),
+                ],
               ),
-              title: const Text('Kernthemen',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16)),
             ),
           ),
 
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // Wichtigkeit
+          // ─── CONTENT ──────────────────────────
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+              physics: const BouncingScrollPhysics(),
+              children: [
+                // Intro
+                _buildIntro(text, textMid, textDim),
+
+                const SizedBox(height: 28),
+
+                // Info Cards
                 _buildInfoCard(
-                  icon: Icons.warning_amber_rounded,
-                  color: Colors.orange,
+                  number: '01',
                   title: 'Warum sind Kernthemen so wichtig?',
                   content:
                       'Die IHK-Abschlussprüfung besteht aus mehreren Teilen – und in fast jedem davon tauchen diese Kernthemen auf. Themen wie IP-Subnetting, RAID-Systeme, das OSI-Modell oder IT-Sicherheit sind keine Zufallsfragen: Sie gehören zum absoluten Pflichtprogramm jedes IT-Fachinformatikers.\n\nWer diese Themen sicher beherrscht, legt ein starkes Fundament für die gesamte Prüfung.',
-                ),
-                const SizedBox(height: 14),
-
-                // Was dich erwartet
-                _buildInfoCard(
-                  icon: Icons.quiz_rounded,
-                  color: Colors.blue,
-                  title: 'Was dich hier erwartet',
-                  content:
-                      'Jedes Kernthema enthält eine Mischung aus verschiedenen Aufgabentypen – genau wie in der echten Prüfung:\n\n• Berechnungsaufgaben (z. B. Subnetzmasken, RAID-Kapazitäten)\n• Multiple-Choice-Fragen zum schnellen Wiederholen\n• Freitext-Aufgaben, bei denen du Konzepte erklärst\n\nDie Fragen werden jedes Mal in zufälliger Reihenfolge angezeigt, damit du wirklich lernst – und nicht nur die Reihenfolge auswendig kennst.',
-                ),
-                const SizedBox(height: 14),
-
-                // Ada Card
-                _buildAdaCard(context),
-                const SizedBox(height: 14),
-
-                // Tipps
-                _buildInfoCard(
-                  icon: Icons.tips_and_updates_rounded,
-                  color: Colors.green,
-                  title: 'Tipps für deine Vorbereitung',
-                  content:
-                      '📝 Nutze das Scratch Pad bei Rechenaufgaben – genau wie in der echten Prüfung hast du dort Platz für deine Zwischenrechnungen.\n\n🔁 Wiederhole jedes Thema mehrmals – beim ersten Durchgang geht es ums Verstehen, danach ums Festigen.\n\n💬 Scheue dich nicht, Ada zu fragen – sie erklärt Konzepte geduldig und geht auf deine Fragen ein.\n\n🎯 Fokussiere dich besonders auf Themen, bei denen dein Fortschritt noch niedrig ist.',
-                ),
-                const SizedBox(height: 20),
-
-                // Checkbox
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Row(
-                    children: [
-                      Checkbox(
-                        value: _nichtMehrAnzeigen,
-                        onChanged: (v) =>
-                            setState(() => _nichtMehrAnzeigen = v ?? false),
-                        activeColor: _indigo,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4)),
-                      ),
-                      const Text('Diesen Hinweis nicht mehr anzeigen',
-                          style: TextStyle(fontSize: 14)),
-                    ],
-                  ),
+                  surface: surface,
+                  border: border,
+                  text: text,
+                  textMid: textMid,
+                  textDim: textDim,
                 ),
                 const SizedBox(height: 12),
 
-                // Los geht's Button
+                _buildInfoCard(
+                  number: '02',
+                  title: 'Was dich hier erwartet',
+                  content:
+                      'Jedes Kernthema enthält eine Mischung aus verschiedenen Aufgabentypen – genau wie in der echten Prüfung:\n\n• Berechnungsaufgaben (z. B. Subnetzmasken, RAID-Kapazitäten)\n• Multiple-Choice-Fragen zum schnellen Wiederholen\n• Freitext-Aufgaben, bei denen du Konzepte erklärst\n\nDie Fragen werden jedes Mal in zufälliger Reihenfolge angezeigt, damit du wirklich lernst – und nicht nur die Reihenfolge auswendig kennst.',
+                  surface: surface,
+                  border: border,
+                  text: text,
+                  textMid: textMid,
+                  textDim: textDim,
+                ),
+                const SizedBox(height: 12),
+
+                // Ada Card (accent)
+                _buildAdaCard(surface, border, text, textMid, textDim),
+                const SizedBox(height: 12),
+
+                _buildInfoCard(
+                  number: '03',
+                  title: 'Tipps für deine Vorbereitung',
+                  content:
+                      '📝 Nutze das Scratch Pad bei Rechenaufgaben – genau wie in der echten Prüfung hast du dort Platz für deine Zwischenrechnungen.\n\n🔁 Wiederhole jedes Thema mehrmals – beim ersten Durchgang geht es ums Verstehen, danach ums Festigen.\n\n💬 Scheue dich nicht, Ada zu fragen – sie erklärt Konzepte geduldig und geht auf deine Fragen ein.\n\n🎯 Fokussiere dich besonders auf Themen, bei denen dein Fortschritt noch niedrig ist.',
+                  surface: surface,
+                  border: border,
+                  text: text,
+                  textMid: textMid,
+                  textDim: textDim,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Checkbox
+                GestureDetector(
+                  onTap: () =>
+                      setState(() => _nichtMehrAnzeigen = !_nichtMehrAnzeigen),
+                  behavior: HitTestBehavior.opaque,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: _nichtMehrAnzeigen
+                              ? AppColors.accent
+                              : Colors.transparent,
+                          border: Border.all(
+                            color: _nichtMehrAnzeigen
+                                ? AppColors.accent
+                                : border,
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: _nichtMehrAnzeigen
+                            ? const Icon(
+                                Icons.check_rounded,
+                                color: Colors.white,
+                                size: 14,
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Diesen Hinweis nicht mehr anzeigen',
+                          style: AppTextStyles.bodyMedium(textMid),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Primary Button
                 SizedBox(
                   width: double.infinity,
+                  height: 52,
                   child: ElevatedButton.icon(
                     onPressed: () async {
                       if (_nichtMehrAnzeigen) {
@@ -160,24 +168,25 @@ class _KernthemenInfoScreenState extends State<KernthemenInfoScreen> {
                       }
                       if (context.mounted) Navigator.of(context).pop();
                     },
-                    icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-                    label: const Text('Los geht\'s!',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                    label: const Text('Los geht\'s'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _indigo,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: text,
+                      foregroundColor: bg,
+                      elevation: 0,
+                      textStyle: AppTextStyles.labelLarge(bg),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                      elevation: 2,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
 
-                // Ada fragen Button
+                // Secondary Button
                 SizedBox(
                   width: double.infinity,
+                  height: 52,
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.push(
                       context,
@@ -188,19 +197,19 @@ class _KernthemenInfoScreenState extends State<KernthemenInfoScreen> {
                         ),
                       ),
                     ),
-                    icon: const Icon(Icons.psychology_rounded, size: 20),
-                    label: const Text('Ada fragen bevor ich starte',
-                        style: TextStyle(fontSize: 15)),
+                    icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+                    label: const Text('Ada fragen'),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: _indigoLight, width: 1.5),
-                      foregroundColor: _indigo,
+                      foregroundColor: text,
+                      side: BorderSide(color: border),
+                      textStyle: AppTextStyles.labelLarge(text),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ),
-              ]),
+              ],
             ),
           ),
         ],
@@ -208,100 +217,187 @@ class _KernthemenInfoScreenState extends State<KernthemenInfoScreen> {
     );
   }
 
+  // ─── INTRO ────────────────────────────────
+  Widget _buildIntro(Color text, Color textMid, Color textDim) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(width: 16, height: 1, color: AppColors.accent),
+            const SizedBox(width: 10),
+            Text(
+              'WILLKOMMEN',
+              style: AppTextStyles.monoLabel(AppColors.accent),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Kernthemen.',
+          style: AppTextStyles.instrumentSerif(
+            size: 34,
+            color: text,
+            letterSpacing: -1.2,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Bevor du loslegst — das solltest du wissen.',
+          style: AppTextStyles.bodyMedium(textMid),
+        ),
+      ],
+    );
+  }
+
+  // ─── INFO CARD ────────────────────────────
   Widget _buildInfoCard({
-    required IconData icon,
-    required Color color,
+    required String number,
     required String title,
     required String content,
+    required Color surface,
+    required Color border,
+    required Color text,
+    required Color textMid,
+    required Color textDim,
   }) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withOpacity(0.15), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-              color: color.withOpacity(0.06),
-              blurRadius: 12,
-              offset: const Offset(0, 4)),
-        ],
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+              Text(
+                number,
+                style: AppTextStyles.mono(
+                  size: 11,
+                  color: AppColors.accent,
+                  weight: FontWeight.w700,
+                  letterSpacing: 1,
                 ),
-                child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(width: 10),
-              Expanded(
-                child: Text(title,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
+              Container(width: 24, height: 1, color: border),
+              const SizedBox(width: 10),
+              Expanded(child: Text(title, style: AppTextStyles.h3(text))),
             ],
           ),
           const SizedBox(height: 12),
-          Text(content,
-              style: TextStyle(
-                  fontSize: 14, color: Colors.grey.shade700, height: 1.6)),
+          Text(content, style: AppTextStyles.bodyMedium(textMid)),
         ],
       ),
     );
   }
 
-  Widget _buildAdaCard(BuildContext context) {
+  // ─── ADA CARD ─────────────────────────────
+  Widget _buildAdaCard(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accent.withOpacity(0.3)),
         gradient: LinearGradient(
-          colors: [Colors.purple.shade50, Colors.blue.shade50],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [AppColors.accent, AppColors.accent, surface, surface],
         ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.purple.shade200, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              // Avatar
               Container(
-                padding: const EdgeInsets.all(10),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF7C3AED),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.accent.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.accent.withOpacity(0.3)),
                 ),
-                child: const Icon(Icons.psychology_rounded,
-                    color: Colors.white, size: 22),
+                child: Center(
+                  child: Text(
+                    'A',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 24,
+                      color: AppColors.accent,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Ada – Deine KI-Tutorin',
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('Immer für dich da',
-                      style: TextStyle(fontSize: 13, color: Colors.grey)),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'KI-TUTOR',
+                      style: AppTextStyles.monoSmall(AppColors.accent),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Ada hilft dir.',
+                      style: AppTextStyles.instrumentSerif(
+                        size: 22,
+                        color: text,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
           const SizedBox(height: 14),
           Text(
-            'Ada ist benannt nach Ada Lovelace – der ersten Programmiererin der Geschichte.\n\nSie kann dir:\n\n💡 Einen gezielten Tipp geben, ohne die Lösung zu verraten\n💬 Im Chat ausführlich erklären, was du noch nicht verstehst\n✅ Deine Freitext-Antworten bewerten und Feedback geben\n📚 Gemeinsam mit dir ein Thema von Grund auf durcharbeiten',
-            style: TextStyle(
-                fontSize: 14, color: Colors.grey.shade700, height: 1.6),
+            'Ada ist benannt nach Ada Lovelace – der ersten Programmiererin der Geschichte.',
+            style: AppTextStyles.bodyMedium(textMid),
           ),
+          const SizedBox(height: 14),
+          _adaFeature('💡', 'Gezielte Tipps ohne die Lösung zu verraten', text),
+          _adaFeature('💬', 'Ausführliche Erklärungen im Chat', text),
+          _adaFeature('✅', 'Bewertet deine Freitext-Antworten', text),
+          _adaFeature(
+            '📚',
+            'Arbeitet ein Thema von Grund auf mit dir durch',
+            text,
+            isLast: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _adaFeature(
+    String emoji,
+    String label,
+    Color text, {
+    bool isLast = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 10),
+          Expanded(child: Text(label, style: AppTextStyles.bodySmall(text))),
         ],
       ),
     );

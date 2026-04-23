@@ -1,10 +1,10 @@
 // lib/screens/learning/flashcard_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../services/flashcard_service.dart';
-
-const _indigo = Color(0xFF4F46E5);
-const _indigoDark = Color(0xFF3730A3);
-const _indigoLight = Color(0xFF6366F1);
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class FlashcardScreen extends StatefulWidget {
   const FlashcardScreen({super.key});
@@ -60,18 +60,6 @@ class _FlashcardScreenState extends State<FlashcardScreen>
     setState(() => _showAnswer = !_showAnswer);
   }
 
-  void _nextCard() {
-    if (_currentIndex < _cards.length - 1) {
-      setState(() {
-        _currentIndex++;
-        _showAnswer = false;
-      });
-      _flipController.reverse(from: 1);
-    } else {
-      _showDoneDialog();
-    }
-  }
-
   Future<void> _markKnown() async {
     await _service.markAsKnown(_cards[_currentIndex]['id']);
     setState(() => _cards.removeAt(_currentIndex));
@@ -99,129 +87,96 @@ class _FlashcardScreenState extends State<FlashcardScreen>
   }
 
   void _showDoneDialog() {
+    final isDark = context.read<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Text('🎉', style: TextStyle(fontSize: 28)),
-            SizedBox(width: 12),
-            Text('Alle geschafft!'),
-          ],
-        ),
-        content: const Text(
-          'Du hast alle Flashcards durchgearbeitet. Gut gemacht!',
-          style: TextStyle(height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text('Zurück'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _currentIndex = 0;
-                _showAnswer = false;
-              });
-              _loadCards();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _indigo,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Nochmal'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FF),
-      body: Column(
-        children: [
-          _buildHeader(),
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator(color: _indigo))
-                : _cards.isEmpty
-                ? _buildEmpty()
-                : _buildContent(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [_indigoDark, _indigo, _indigoLight],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
+      builder: (_) => Dialog(
+        backgroundColor: surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 4, 20, 20),
-          child: Row(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_rounded,
-                  color: Colors.white,
-                ),
-                onPressed: () => Navigator.pop(context),
+              Row(
+                children: [
+                  Container(width: 16, height: 1, color: AppColors.success),
+                  const SizedBox(width: 10),
+                  Text(
+                    'ABGESCHLOSSEN',
+                    style: AppTextStyles.monoLabel(AppColors.success),
+                  ),
+                ],
               ),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(14),
+              const SizedBox(height: 12),
+              Text(
+                'Alle Karten geschafft.',
+                style: AppTextStyles.instrumentSerif(
+                  size: 28,
+                  color: text,
+                  letterSpacing: -0.8,
                 ),
-                child: const Text('🃏', style: TextStyle(fontSize: 20)),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Meine Flashcards',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (_cards.isNotEmpty)
-                      Text(
-                        '${_currentIndex + 1} von ${_cards.length} Karten',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
+              const SizedBox(height: 6),
+              Text(
+                'Du hast alle Flashcards durchgearbeitet. Gut gemacht.',
+                style: AppTextStyles.bodyMedium(textMid),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: textMid,
+                        side: BorderSide(color: border),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                  ],
-                ),
+                      child: const Text('Zurück'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        setState(() {
+                          _currentIndex = 0;
+                          _showAnswer = false;
+                          _loading = true;
+                        });
+                        _loadCards();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: text,
+                        foregroundColor: bg,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        textStyle: AppTextStyles.labelLarge(bg),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('Nochmal'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -230,54 +185,147 @@ class _FlashcardScreenState extends State<FlashcardScreen>
     );
   }
 
-  Widget _buildEmpty() {
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: Column(
+        children: [
+          _buildAppBar(text, textMid, textDim),
+          Expanded(
+            child: _loading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.accent),
+                  )
+                : _cards.isEmpty
+                ? _buildEmpty(text, textMid, textDim, bg, surface, border)
+                : _buildContent(
+                    bg,
+                    surface,
+                    border,
+                    text,
+                    textMid,
+                    textDim,
+                    isDark,
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── APPBAR ─────────────────────────────
+  Widget _buildAppBar(Color text, Color textMid, Color textDim) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: Icon(Icons.arrow_back_rounded, color: text, size: 22),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Flashcards',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 24,
+                      color: text,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  if (_cards.isNotEmpty)
+                    Text(
+                      'KARTE ${(_currentIndex + 1).toString().padLeft(2, '0')} / ${_cards.length.toString().padLeft(2, '0')}',
+                      style: AppTextStyles.monoSmall(textDim),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── EMPTY ──────────────────────────────
+  Widget _buildEmpty(
+    Color text,
+    Color textMid,
+    Color textDim,
+    Color bg,
+    Color surface,
+    Color border,
+  ) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(40),
+        padding: const EdgeInsets.symmetric(horizontal: 40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(28),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: _indigo.withOpacity(0.08),
-                shape: BoxShape.circle,
+                color: AppColors.success.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text('🎉', style: TextStyle(fontSize: 56)),
+              child: Text(
+                'ALLES SAUBER',
+                style: AppTextStyles.mono(
+                  size: 11,
+                  color: AppColors.success,
+                  weight: FontWeight.w700,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Keine Flashcards.',
+              style: AppTextStyles.instrumentSerif(
+                size: 32,
+                color: text,
+                letterSpacing: -1.0,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Falsch beantwortete Fragen werden automatisch als Flashcards gespeichert.',
+              style: AppTextStyles.bodyMedium(textMid),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Keine Flashcards',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1A2E),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Falsch beantwortete Fragen werden\nautomatisch als Flashcards gespeichert.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey.shade500,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.school_rounded),
-              label: const Text('Jetzt lernen'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _indigo,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                label: const Text('Jetzt lernen'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: text,
+                  foregroundColor: bg,
+                  elevation: 0,
+                  textStyle: AppTextStyles.labelLarge(bg),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ),
@@ -287,37 +335,39 @@ class _FlashcardScreenState extends State<FlashcardScreen>
     );
   }
 
-  Widget _buildContent() {
+  // ─── CONTENT ────────────────────────────
+  Widget _buildContent(
+    Color bg,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+    bool isDark,
+  ) {
     final card = _cards[_currentIndex];
 
     return Column(
       children: [
         // Progress Bar
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: (_currentIndex + 1) / _cards.length,
-              backgroundColor: Colors.grey.shade200,
-              valueColor: const AlwaysStoppedAnimation<Color>(_indigo),
-              minHeight: 6,
-            ),
-          ),
+        LinearProgressIndicator(
+          value: (_currentIndex + 1) / _cards.length,
+          backgroundColor: border,
+          valueColor: const AlwaysStoppedAnimation(AppColors.accent),
+          minHeight: 2,
         ),
 
-        // Modul/Thema Label
+        // Modul/Thema Tags
         if (card['modul_name'] != null || card['thema_name'] != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+            child: Wrap(
+              spacing: 6,
               children: [
                 if (card['modul_name'] != null)
-                  _buildChip(card['modul_name'], _indigo),
-                if (card['thema_name'] != null) ...[
-                  const SizedBox(width: 8),
-                  _buildChip(card['thema_name'], Colors.purple),
-                ],
+                  _buildTag(card['modul_name'], AppColors.accent),
+                if (card['thema_name'] != null)
+                  _buildTag(card['thema_name'], textMid),
               ],
             ),
           ),
@@ -341,9 +391,15 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                         ? Transform(
                             alignment: Alignment.center,
                             transform: Matrix4.identity()..rotateY(3.14159),
-                            child: _buildCardBack(card),
+                            child: _buildCardBack(
+                              card,
+                              surface,
+                              border,
+                              text,
+                              textMid,
+                            ),
                           )
-                        : _buildCardFront(card),
+                        : _buildCardFront(card, surface, border, text, textMid),
                   );
                 },
               ),
@@ -355,200 +411,139 @@ class _FlashcardScreenState extends State<FlashcardScreen>
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(
-            _showAnswer ? 'Wusstest du es?' : 'Tippe um die Antwort zu sehen',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey.shade500,
-              fontStyle: FontStyle.italic,
-            ),
+            _showAnswer ? 'WUSSTEST DU ES?' : 'TIPPE ZUM UMDREHEN',
+            style: AppTextStyles.monoSmall(textDim),
           ),
         ),
 
-        // Action Buttons
-        if (_showAnswer)
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              0,
-              20,
-              MediaQuery.of(context).padding.bottom + 16,
-            ),
-            child: Row(
-              children: [
-                // Nochmal
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _markRepeat,
-                    icon: const Icon(Icons.replay_rounded, size: 20),
-                    label: const Text(
-                      'Später nochmal',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      foregroundColor: Colors.orange,
-                      side: const BorderSide(color: Colors.orange, width: 1.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+        // Action Bar
+        Container(
+          decoration: BoxDecoration(
+            color: surface,
+            border: Border(top: BorderSide(color: border)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+              child: _showAnswer
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 52,
+                            child: OutlinedButton.icon(
+                              onPressed: _markRepeat,
+                              icon: const Icon(Icons.replay_rounded, size: 16),
+                              label: const Text('Nochmal'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.warning,
+                                side: BorderSide(
+                                  color: AppColors.warning.withOpacity(0.5),
+                                ),
+                                textStyle: AppTextStyles.labelLarge(
+                                  AppColors.warning,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: SizedBox(
+                            height: 52,
+                            child: ElevatedButton.icon(
+                              onPressed: _markKnown,
+                              icon: const Icon(Icons.check_rounded, size: 16),
+                              label: const Text('Gewusst'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.success,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                textStyle: AppTextStyles.labelLarge(
+                                  Colors.white,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        onPressed: _flipCard,
+                        icon: const Icon(Icons.autorenew_rounded, size: 18),
+                        label: const Text('Antwort zeigen'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: text,
+                          foregroundColor: bg,
+                          elevation: 0,
+                          textStyle: AppTextStyles.labelLarge(bg),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Gewusst
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _markKnown,
-                    icon: const Icon(Icons.check_rounded, size: 20),
-                    label: const Text(
-                      'Gewusst ✓',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 2,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )
-        else
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              0,
-              20,
-              MediaQuery.of(context).padding.bottom + 16,
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _flipCard,
-                icon: const Icon(Icons.flip_rounded, size: 20),
-                label: const Text(
-                  'Antwort zeigen',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: _indigo,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
             ),
           ),
+        ),
       ],
     );
   }
 
-  Widget _buildCardFront(Map<String, dynamic> card) {
+  // ─── CARD FRONT ─────────────────────────
+  Widget _buildCardFront(
+    Map<String, dynamic> card,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _indigo.withOpacity(0.15), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: _indigo.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-            decoration: BoxDecoration(
-              color: _indigo.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _indigo.withOpacity(0.2)),
-            ),
-            child: const Text(
-              'FRAGE',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: _indigo,
-                letterSpacing: 1.5,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            card['frage_text'] ?? '',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              height: 1.5,
-              color: Color(0xFF1A1A2E),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCardBack(Map<String, dynamic> card) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3730A3), Color(0xFF4F46E5)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: border),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [AppColors.accent, AppColors.accent, surface, surface],
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: _indigo.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              'ANTWORT',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 1.5,
-              ),
-            ),
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: AppColors.accent),
+              const SizedBox(width: 10),
+              Text('FRAGE', style: AppTextStyles.monoLabel(AppColors.accent)),
+            ],
           ),
           const SizedBox(height: 24),
-          Text(
-            card['antwort_text'] ?? '',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              height: 1.5,
-              color: Colors.white,
+          Flexible(
+            child: SingleChildScrollView(
+              child: Text(
+                card['frage_text'] ?? '',
+                style: AppTextStyles.instrumentSerif(
+                  size: 26,
+                  color: text,
+                  letterSpacing: -0.8,
+                ),
+              ),
             ),
           ),
         ],
@@ -556,20 +551,75 @@ class _FlashcardScreenState extends State<FlashcardScreen>
     );
   }
 
-  Widget _buildChip(String label, Color color) {
+  // ─── CARD BACK ──────────────────────────
+  Widget _buildCardBack(
+    Map<String, dynamic> card,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+  ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.2)),
+        color: surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.success.withOpacity(0.4)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [AppColors.success, AppColors.success, surface, surface],
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: AppColors.success),
+              const SizedBox(width: 10),
+              Text(
+                'ANTWORT',
+                style: AppTextStyles.monoLabel(AppColors.success),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Text(
+                card['antwort_text'] ?? '',
+                style: AppTextStyles.instrumentSerif(
+                  size: 26,
+                  color: text,
+                  letterSpacing: -0.8,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── TAG ────────────────────────────────
+  Widget _buildTag(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+        label.toUpperCase(),
+        style: AppTextStyles.mono(
+          size: 10,
           color: color,
+          weight: FontWeight.w700,
+          letterSpacing: 1,
         ),
       ),
     );

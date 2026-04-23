@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'test_fragen_screen.dart';
 import '../../services/app_cache_service.dart';
 import '../../data/themen_summaries.dart';
-
-const _indigo = Color(0xFF4F46E5);
-const _indigoDark = Color(0xFF3730A3);
-const _indigoLight = Color(0xFF6366F1);
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class ThemenListe extends StatefulWidget {
   final int modulId;
@@ -25,8 +25,7 @@ class ThemenListe extends StatefulWidget {
   State<ThemenListe> createState() => _ThemenListeState();
 }
 
-class _ThemenListeState extends State<ThemenListe>
-    with TickerProviderStateMixin {
+class _ThemenListeState extends State<ThemenListe> {
   final supabase = Supabase.instance.client;
 
   List<dynamic> themen = [];
@@ -35,12 +34,9 @@ class _ThemenListeState extends State<ThemenListe>
   Map<int, int> themenRequired = {};
   Map<int, int> fragenCount = {};
 
-  late AnimationController _lockAnimController;
-
   @override
   void initState() {
     super.initState();
-    _setupAnimations();
     final cacheService = AppCacheService();
     if (cacheService.themenLoaded[widget.modulId] == true) {
       _loadFromCache();
@@ -57,19 +53,6 @@ class _ThemenListeState extends State<ThemenListe>
       loading = false;
     });
     _loadScores();
-  }
-
-  @override
-  void dispose() {
-    _lockAnimController.dispose();
-    super.dispose();
-  }
-
-  void _setupAnimations() {
-    _lockAnimController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
   }
 
   Future<void> _load() async {
@@ -104,7 +87,11 @@ class _ThemenListeState extends State<ThemenListe>
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Laden der Themen: $e')),
+        SnackBar(
+          content: Text('Fehler beim Laden: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -118,7 +105,7 @@ class _ThemenListeState extends State<ThemenListe>
         cachedScores[id] = prefs.getDouble(key) ?? 0.0;
       }
       if (mounted) setState(() {});
-    } catch (e) {}
+    } catch (_) {}
   }
 
   Future<void> _loadFragenCount() async {
@@ -151,26 +138,13 @@ class _ThemenListeState extends State<ThemenListe>
   Color _getDifficultyColor(String? difficulty) {
     switch (difficulty?.toLowerCase()) {
       case 'leicht':
-        return Colors.green;
+        return AppColors.success;
       case 'mittel':
-        return Colors.orange;
+        return AppColors.warning;
       case 'schwer':
-        return Colors.red;
+        return AppColors.error;
       default:
-        return Colors.blue;
-    }
-  }
-
-  IconData _getDifficultyIcon(String? difficulty) {
-    switch (difficulty?.toLowerCase()) {
-      case 'leicht':
-        return Icons.sentiment_satisfied;
-      case 'mittel':
-        return Icons.sentiment_neutral;
-      case 'schwer':
-        return Icons.sentiment_very_dissatisfied;
-      default:
-        return Icons.help_outline;
+        return AppColors.accentCyan;
     }
   }
 
@@ -193,729 +167,6 @@ class _ThemenListeState extends State<ThemenListe>
     }).length;
   }
 
-  void _showSummary(Map<String, dynamic> thema) {
-    final id = thema['id'] as int;
-    final summary = themenSummaries[id];
-
-    if (summary == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zusammenfassung folgt bald!')),
-      );
-      return;
-    }
-
-    final sections = summary['sections'] as List;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.75,
-        maxChildSize: 0.95,
-        minChildSize: 0.4,
-        builder: (_, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            children: [
-              // Handle
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              // Header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 16, 0),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [_indigoDark, _indigo],
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Center(
-                        child: Text(
-                          summary['emoji'] as String? ?? '📖',
-                          style: const TextStyle(fontSize: 24),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            summary['title'] as String,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Zusammenfassung',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close, color: Colors.grey.shade400),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 20),
-              // Content
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                  itemCount: sections.length,
-                  itemBuilder: (_, i) {
-                    final section = sections[i] as Map<String, dynamic>;
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 14),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: _indigo.withOpacity(0.04),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: _indigo.withOpacity(0.12)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: _indigo,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                section['heading'] as String,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: _indigo,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            section['text'] as String,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              height: 1.6,
-                              color: Color(0xFF374151),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // Start Button
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  24,
-                  8,
-                  24,
-                  MediaQuery.of(context).padding.bottom + 16,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _openThema(thema);
-                    },
-                    icon: const Icon(Icons.play_arrow_rounded, size: 22),
-                    label: const Text(
-                      'Jetzt üben',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _indigo,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FF),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 200,
-            floating: false,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: _indigoDark,
-            leading: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_rounded,
-                color: Colors.white,
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.parallax,
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [_indigoDark, _indigo, _indigoLight],
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(28),
-                    bottomRight: Radius.circular(28),
-                  ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.modulName,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${themen.length} Themen verfügbar',
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (!loading)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  '$_passedCount/${themen.length} ✓',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        if (!loading && themen.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(4),
-                                  child: LinearProgressIndicator(
-                                    value: _overallProgress,
-                                    backgroundColor: Colors.white.withOpacity(
-                                      0.2,
-                                    ),
-                                    valueColor:
-                                        const AlwaysStoppedAnimation<Color>(
-                                          Colors.white,
-                                        ),
-                                    minHeight: 6,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                '${(_overallProgress * 100).toInt()}%',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          if (loading)
-            const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator(color: _indigo)),
-            )
-          else if (themen.isEmpty)
-            const SliverFillRemaining(
-              child: Center(
-                child: Text(
-                  'Keine Themen vorhanden',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) => TweenAnimationBuilder<double>(
-                    duration: Duration(milliseconds: 200 + (i * 80)),
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    builder: (context, value, child) => Transform.translate(
-                      offset: Offset(0, 24 * (1 - value)),
-                      child: Opacity(opacity: value, child: child),
-                    ),
-                    child: _buildThemaCard(themen[i] as Map<String, dynamic>),
-                  ),
-                  childCount: themen.length,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildThemaCard(Map<String, dynamic> thema) {
-    final id = thema['id'] as int;
-    final unlocked = _isUnlocked(thema);
-    final score = cachedScores[id] ?? 0.0;
-    final difficulty = thema['schwierigkeitsgrad'] as String?;
-    final fragenAnzahl = fragenCount[id] ?? 0;
-    final estimatedMin = _getEstimatedMinutes(fragenAnzahl);
-    final requiredScore = thema['required_score'] ?? 80;
-    final isPerfect = score >= 100;
-    final isPassed = score >= requiredScore;
-    final beschreibung = thema['beschreibung'] as String? ?? '';
-    final hasBeschreibung = themenSummaries.containsKey(id);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.white,
-        border: Border.all(
-          color: unlocked
-              ? (isPassed
-                    ? Colors.green.withOpacity(0.3)
-                    : _indigo.withOpacity(0.12))
-              : Colors.grey.withOpacity(0.2),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: unlocked
-                ? _indigo.withOpacity(0.08)
-                : Colors.grey.withOpacity(0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          onTap: () => unlocked ? _openThema(thema) : _showLockedDialog(thema),
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    // Icon
-                    AnimatedBuilder(
-                      animation: _lockAnimController,
-                      builder: (context, child) => Transform.rotate(
-                        angle: unlocked
-                            ? 0
-                            : _lockAnimController.value * 0.08 - 0.04,
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: unlocked
-                                  ? (isPassed
-                                        ? [
-                                            Colors.green.shade400,
-                                            Colors.green.shade700,
-                                          ]
-                                        : [_indigoLight, _indigoDark])
-                                  : [
-                                      Colors.grey.shade400,
-                                      Colors.grey.shade600,
-                                    ],
-                            ),
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    (unlocked
-                                            ? (isPassed
-                                                  ? Colors.green
-                                                  : _indigo)
-                                            : Colors.grey)
-                                        .withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            unlocked
-                                ? (isPassed
-                                      ? Icons.check_rounded
-                                      : Icons.menu_book_rounded)
-                                : Icons.lock_rounded,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 14),
-
-                    // Name + Badge
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  thema['name'] ?? '',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: unlocked
-                                        ? const Color(0xFF1A1A2E)
-                                        : Colors.grey.shade500,
-                                  ),
-                                ),
-                              ),
-                              if (isPerfect && unlocked)
-                                _buildBadge(
-                                  Icons.star_rounded,
-                                  '100%',
-                                  Colors.amber,
-                                )
-                              else if (isPassed && unlocked)
-                                _buildBadge(
-                                  Icons.check_circle_rounded,
-                                  'Bestanden',
-                                  Colors.green,
-                                ),
-                            ],
-                          ),
-                          if (hasBeschreibung) ...[
-                            const SizedBox(height: 3),
-                            Text(
-                              beschreibung,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade500,
-                                height: 1.4,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-
-                    // Info Button
-                    if (unlocked && hasBeschreibung) ...[
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () => _showSummary(thema),
-                        child: Container(
-                          width: 34,
-                          height: 34,
-                          decoration: BoxDecoration(
-                            color: _indigo.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: _indigo.withOpacity(0.2)),
-                          ),
-                          child: const Icon(
-                            Icons.info_outline_rounded,
-                            color: _indigo,
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    // Score Ring
-                    if (unlocked) ...[
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        width: 56,
-                        height: 56,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: 56,
-                              height: 56,
-                              child: CircularProgressIndicator(
-                                value: 1.0,
-                                strokeWidth: 5,
-                                backgroundColor: Colors.transparent,
-                                valueColor: AlwaysStoppedAnimation(
-                                  Colors.grey.shade200,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 56,
-                              height: 56,
-                              child: TweenAnimationBuilder<double>(
-                                duration: const Duration(milliseconds: 900),
-                                tween: Tween(begin: 0.0, end: score / 100),
-                                curve: Curves.easeOutCubic,
-                                builder: (context, value, _) =>
-                                    CircularProgressIndicator(
-                                      value: value,
-                                      strokeWidth: 5,
-                                      backgroundColor: Colors.transparent,
-                                      valueColor: AlwaysStoppedAnimation(
-                                        isPassed ? Colors.green : _indigo,
-                                      ),
-                                      strokeCap: StrokeCap.round,
-                                    ),
-                              ),
-                            ),
-                            Text(
-                              '${score.toStringAsFixed(0)}%',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: isPassed ? Colors.green : _indigo,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-
-                const SizedBox(height: 14),
-
-                // Chips
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    if (difficulty != null && difficulty.isNotEmpty)
-                      _buildInfoChip(
-                        _getDifficultyIcon(difficulty),
-                        difficulty,
-                        _getDifficultyColor(difficulty),
-                      ),
-                    _buildInfoChip(
-                      Icons.quiz_outlined,
-                      '$fragenAnzahl Fragen',
-                      _indigo,
-                    ),
-                    _buildInfoChip(
-                      Icons.timer_outlined,
-                      '~$estimatedMin Min',
-                      Colors.orange,
-                    ),
-                    if (!unlocked)
-                      _buildInfoChip(
-                        Icons.military_tech_rounded,
-                        'Mind. $requiredScore%',
-                        Colors.purple,
-                      ),
-                  ],
-                ),
-
-                // Locked Hinweis
-                if (!unlocked) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.orange.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          size: 18,
-                          color: Colors.orange.shade700,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _getUnlockMessage(thema),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.orange.shade800,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoChip(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBadge(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [color, color.withOpacity(0.8)]),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: Colors.white),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getUnlockMessage(Map<String, dynamic> thema) {
-    final prevId = thema['unlocked_by'];
-    final need = themenRequired[prevId] ?? 80;
-    final have = cachedScores[prevId] ?? 0.0;
-    final prevThema = themen.firstWhere(
-      (t) => t['id'] == prevId,
-      orElse: () => {'name': 'vorheriges Thema'},
-    );
-    return 'Erreiche mindestens $need% in "${prevThema['name']}" (aktuell ${have.toStringAsFixed(0)}%)';
-  }
-
   void _openThema(Map<String, dynamic> thema) async {
     final id = thema['id'] as int;
     widget.onThemaSelected?.call(id);
@@ -933,42 +184,756 @@ class _ThemenListeState extends State<ThemenListe>
   }
 
   void _showLockedDialog(Map<String, dynamic> thema) {
+    final isDark = context.read<ThemeProvider>().isDark;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [_indigoLight, _indigoDark],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.lock_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
+            Icon(
+              Icons.lock_outline_rounded,
+              color: AppColors.warning,
+              size: 20,
             ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text('Thema gesperrt', style: TextStyle(fontSize: 17)),
-            ),
+            const SizedBox(width: 10),
+            Text('Thema gesperrt', style: AppTextStyles.h3(text)),
           ],
         ),
         content: Text(
           _getUnlockMessage(thema),
-          style: const TextStyle(height: 1.5),
+          style: AppTextStyles.bodyMedium(textMid),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(foregroundColor: _indigo),
             child: const Text('Verstanden'),
           ),
+        ],
+      ),
+    );
+  }
+
+  String _getUnlockMessage(Map<String, dynamic> thema) {
+    final prevId = thema['unlocked_by'];
+    final need = themenRequired[prevId] ?? 80;
+    final have = cachedScores[prevId] ?? 0.0;
+    final prevThema = themen.firstWhere(
+      (t) => t['id'] == prevId,
+      orElse: () => {'name': 'vorheriges Thema'},
+    );
+    return 'Erreiche mindestens $need% in "${prevThema['name']}" (aktuell ${have.toStringAsFixed(0)}%)';
+  }
+
+  void _showSummary(Map<String, dynamic> thema) {
+    final id = thema['id'] as int;
+    final summary = themenSummaries[id];
+
+    if (summary == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Zusammenfassung folgt bald'),
+          backgroundColor: AppColors.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final isDark = context.read<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    final sections = summary['sections'] as List;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        maxChildSize: 0.95,
+        minChildSize: 0.4,
+        builder: (_, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border(top: BorderSide(color: border)),
+          ),
+          child: Column(
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: textDim,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
+                child: Row(
+                  children: [
+                    Container(width: 16, height: 1, color: AppColors.accent),
+                    const SizedBox(width: 10),
+                    Text(
+                      'ZUSAMMENFASSUNG',
+                      style: AppTextStyles.monoLabel(AppColors.accent),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.close_rounded, color: textMid, size: 22),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        summary['title'] as String,
+                        style: AppTextStyles.instrumentSerif(
+                          size: 30,
+                          color: text,
+                          letterSpacing: -1.0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(color: border, height: 24),
+
+              // Content
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  itemCount: sections.length,
+                  itemBuilder: (_, i) {
+                    final section = sections[i] as Map<String, dynamic>;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                '${(i + 1).toString().padLeft(2, '0')}',
+                                style: AppTextStyles.mono(
+                                  size: 11,
+                                  color: AppColors.accent,
+                                  weight: FontWeight.w700,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Container(width: 24, height: 1, color: border),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  section['heading'] as String,
+                                  style: AppTextStyles.h3(text),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 44),
+                            child: Text(
+                              section['text'] as String,
+                              style: AppTextStyles.bodyMedium(textMid),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // Start Button
+              Container(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  12,
+                  20,
+                  MediaQuery.of(context).padding.bottom + 16,
+                ),
+                decoration: BoxDecoration(
+                  color: surface,
+                  border: Border(top: BorderSide(color: border)),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _openThema(thema);
+                    },
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                    label: const Text('Jetzt üben'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: text,
+                      foregroundColor: bg,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      textStyle: AppTextStyles.labelLarge(bg),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: Column(
+        children: [
+          // ─── APPBAR ──────────────────────────────
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.arrow_back_rounded, color: text, size: 22),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      widget.modulName,
+                      style: AppTextStyles.instrumentSerif(
+                        size: 22,
+                        color: text,
+                        letterSpacing: -0.5,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ─── BODY ─────────────────────────────────
+          Expanded(
+            child: loading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.accent),
+                  )
+                : themen.isEmpty
+                ? _buildEmpty(textMid, textDim)
+                : RefreshIndicator(
+                    color: AppColors.accent,
+                    onRefresh: _load,
+                    child: _buildList(surface, border, text, textMid, textDim),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildList(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      children: [
+        // Status Banner
+        _buildStatusBanner(surface, border, text, textMid, textDim),
+
+        const SizedBox(height: 28),
+
+        // Themen-Header
+        Row(
+          children: [
+            Container(width: 16, height: 1, color: AppColors.accent),
+            const SizedBox(width: 10),
+            Text(
+              'THEMEN · ${themen.length}',
+              style: AppTextStyles.monoLabel(AppColors.accent),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Themen-Liste
+        ...themen.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final thema = entry.value as Map<String, dynamic>;
+          return _buildThemaCard(
+            thema: thema,
+            index: idx,
+            surface: surface,
+            border: border,
+            text: text,
+            textMid: textMid,
+            textDim: textDim,
+          );
+        }),
+      ],
+    );
+  }
+
+  // ─── STATUS BANNER ───────────────────────────
+  Widget _buildStatusBanner(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: border),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [AppColors.accent, AppColors.accent, surface, surface],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: AppColors.accent),
+              const SizedBox(width: 10),
+              Text(
+                'DEIN FORTSCHRITT',
+                style: AppTextStyles.monoLabel(AppColors.accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$_passedCount',
+                style: AppTextStyles.instrumentSerif(
+                  size: 42,
+                  color: text,
+                  letterSpacing: -1.5,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  '/ ${themen.length} bestanden',
+                  style: AppTextStyles.bodyMedium(textMid),
+                ),
+              ),
+              const Spacer(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${(_overallProgress * 100).toInt()}%',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 28,
+                      color: AppColors.accent,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  Text('Ø SCORE', style: AppTextStyles.monoSmall(textDim)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              value: _overallProgress,
+              backgroundColor: border,
+              valueColor: const AlwaysStoppedAnimation(AppColors.accent),
+              minHeight: 3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── THEMA CARD ──────────────────────────────
+  Widget _buildThemaCard({
+    required Map<String, dynamic> thema,
+    required int index,
+    required Color surface,
+    required Color border,
+    required Color text,
+    required Color textMid,
+    required Color textDim,
+  }) {
+    final id = thema['id'] as int;
+    final unlocked = _isUnlocked(thema);
+    final score = cachedScores[id] ?? 0.0;
+    final difficulty = thema['schwierigkeitsgrad'] as String?;
+    final fragenAnzahl = fragenCount[id] ?? 0;
+    final estimatedMin = _getEstimatedMinutes(fragenAnzahl);
+    final requiredScore = (thema['required_score'] ?? 80) as int;
+    final isPerfect = score >= 100;
+    final isPassed = score >= requiredScore;
+    final hasBeschreibung = themenSummaries.containsKey(id);
+    final scoreColor = isPerfect
+        ? AppColors.accentCyan
+        : isPassed
+        ? AppColors.success
+        : score > 0
+        ? AppColors.warning
+        : textDim;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: GestureDetector(
+        onTap: () => unlocked ? _openThema(thema) : _showLockedDialog(thema),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: !unlocked
+                  ? border
+                  : isPerfect
+                  ? AppColors.accentCyan.withOpacity(0.4)
+                  : isPassed
+                  ? AppColors.success.withOpacity(0.4)
+                  : border,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Row: Index + Name + Status
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Number-Badge
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: !unlocked
+                          ? border.withOpacity(0.5)
+                          : AppColors.accent.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: !unlocked
+                            ? border
+                            : AppColors.accent.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Center(
+                      child: unlocked
+                          ? Text(
+                              '#${(index + 1).toString().padLeft(2, '0')}',
+                              style: AppTextStyles.mono(
+                                size: 11,
+                                color: AppColors.accent,
+                                weight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            )
+                          : Icon(Icons.lock_rounded, color: textDim, size: 16),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Name & Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          thema['name'] ?? '',
+                          style: AppTextStyles.interTight(
+                            size: 15,
+                            weight: FontWeight.w600,
+                            color: unlocked ? text : textMid,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        _buildInfoRow(
+                          difficulty: difficulty,
+                          fragenAnzahl: fragenAnzahl,
+                          estimatedMin: estimatedMin,
+                          unlocked: unlocked,
+                          textMid: textMid,
+                          textDim: textDim,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  // Right: Status-Badge oder Arrow
+                  if (unlocked && isPerfect)
+                    _statusBadge('100%', AppColors.accentCyan)
+                  else if (unlocked && isPassed)
+                    _statusBadge('✓', AppColors.success)
+                  else if (unlocked && score > 0)
+                    _scoreDisplay(score, scoreColor)
+                  else if (unlocked)
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: textDim,
+                      size: 12,
+                    ),
+                ],
+              ),
+
+              // Score-Progress (nur wenn gestartet aber nicht fertig)
+              if (unlocked && score > 0 && !isPassed) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Text(
+                      'FORTSCHRITT',
+                      style: AppTextStyles.monoSmall(textDim),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: LinearProgressIndicator(
+                          value: score / 100,
+                          backgroundColor: border,
+                          valueColor: AlwaysStoppedAnimation(scoreColor),
+                          minHeight: 2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'ZIEL ${requiredScore}%',
+                      style: AppTextStyles.monoSmall(textDim),
+                    ),
+                  ],
+                ),
+              ],
+
+              // Locked Info
+              if (!unlocked) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.warning.withOpacity(0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        color: AppColors.warning,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _getUnlockMessage(thema),
+                          style: AppTextStyles.bodySmall(AppColors.warning),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Info-Button für Summary
+              if (unlocked && hasBeschreibung) ...[
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () => _showSummary(thema),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.menu_book_outlined, color: textMid, size: 14),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Zusammenfassung lesen',
+                        style: AppTextStyles.mono(
+                          size: 11,
+                          color: textMid,
+                          weight: FontWeight.w500,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        color: textMid,
+                        size: 12,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required String? difficulty,
+    required int fragenAnzahl,
+    required int estimatedMin,
+    required bool unlocked,
+    required Color textMid,
+    required Color textDim,
+  }) {
+    final parts = <Widget>[];
+
+    // Difficulty
+    if (difficulty != null && difficulty.isNotEmpty && unlocked) {
+      parts.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _getDifficultyColor(difficulty),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              difficulty.toUpperCase(),
+              style: AppTextStyles.mono(
+                size: 10,
+                color: _getDifficultyColor(difficulty),
+                weight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    parts.add(
+      Text('$fragenAnzahl FRAGEN', style: AppTextStyles.monoSmall(textDim)),
+    );
+
+    if (unlocked) {
+      parts.add(
+        Text('~$estimatedMin MIN', style: AppTextStyles.monoSmall(textDim)),
+      );
+    }
+
+    return Wrap(spacing: 12, runSpacing: 4, children: parts);
+  }
+
+  Widget _statusBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.mono(
+          size: 10,
+          color: color,
+          weight: FontWeight.w700,
+          letterSpacing: 1,
+        ),
+      ),
+    );
+  }
+
+  Widget _scoreDisplay(double score, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          '${score.toInt()}%',
+          style: AppTextStyles.interTight(
+            size: 15,
+            weight: FontWeight.w700,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── EMPTY ───────────────────────────────────
+  Widget _buildEmpty(Color textMid, Color textDim) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.inbox_outlined, size: 48, color: textDim),
+          const SizedBox(height: 16),
+          Text('Keine Themen verfügbar', style: AppTextStyles.h3(textMid)),
         ],
       ),
     );

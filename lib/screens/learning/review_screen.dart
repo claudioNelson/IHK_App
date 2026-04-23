@@ -1,13 +1,12 @@
 // lib/screens/learning/review_screen.dart
 import 'package:flutter/material.dart';
-import '../../services/spaced_repetition_service.dart';
-import 'review_questions_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-const _indigo = Color(0xFF4F46E5);
-const _indigoDark = Color(0xFF3730A3);
-const _indigoLight = Color(0xFF6366F1);
-const _orange = Color(0xFFEA580C);
+import '../../services/spaced_repetition_service.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
+import 'review_questions_screen.dart';
 
 class ReviewScreen extends StatefulWidget {
   final int? totalCount;
@@ -60,7 +59,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       if (modul?['name'] != null) return modul!['name'];
       if (frage?['modul_id'] == null) return 'Kernthemen';
       return 'Modul ${frage!['modul_id']}';
-    } catch (e) {
+    } catch (_) {
       return 'Kernthemen';
     }
   }
@@ -77,10 +76,19 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   void _showInfoDialog() {
+    final isDark = context.read<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     showDialog(
       context: context,
       builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
@@ -88,113 +96,84 @@ class _ReviewScreenState extends State<ReviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Header
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [_indigoDark, _indigo],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.psychology_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text(
-                        'Wie funktioniert das?',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    Container(width: 16, height: 1, color: AppColors.accent),
+                    const SizedBox(width: 10),
+                    Text(
+                      'SPACED REPETITION',
+                      style: AppTextStyles.monoLabel(AppColors.accent),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Spaced Repetition ist die effektivste Lernmethode!',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-                const SizedBox(height: 16),
-                _buildInfoRow(
-                  Icons.trending_down_rounded,
-                  Colors.red,
-                  'Das Problem',
-                  'Wir vergessen 80% des Gelernten innerhalb von 24 Stunden!',
-                ),
                 const SizedBox(height: 12),
-                _buildInfoRow(
-                  Icons.wb_incandescent_rounded,
-                  _orange,
-                  'Die Lösung',
-                  'Gezielte Wiederholung in optimalen Abständen: 1 Tag → 3 Tage → 1 Woche...',
-                ),
-                const SizedBox(height: 12),
-                _buildInfoRow(
-                  Icons.auto_awesome_rounded,
-                  Colors.blue,
-                  'So funktioniert\'s',
-                  'Die App merkt sich welche Fragen du falsch hattest, wann du sie wiederholen solltest und wie oft du sie schon richtig hattest.',
-                ),
-                const SizedBox(height: 12),
-                _buildInfoRow(
-                  Icons.emoji_events_rounded,
-                  Colors.amber,
-                  'Dein Vorteil',
-                  'Solides Langzeitwissen statt schnelles Vergessen!',
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: _indigo.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _indigo.withOpacity(0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.science_rounded,
-                        color: _indigo,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Basiert auf über 100 Jahren Gedächtnisforschung',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: _indigo,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+                Text(
+                  'Der schnellste Weg\nzum Behalten.',
+                  style: AppTextStyles.instrumentSerif(
+                    size: 28,
+                    color: text,
+                    letterSpacing: -0.8,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 6),
+                Text(
+                  'Wissenschaftlich bewiesene Lernmethode, '
+                  'basierend auf 100+ Jahren Gedächtnisforschung.',
+                  style: AppTextStyles.bodyMedium(textMid),
+                ),
+
+                const SizedBox(height: 24),
+
+                _infoItem(
+                  number: '01',
+                  title: 'Das Problem',
+                  description:
+                      'Ohne Wiederholung vergessen wir 80% des Gelernten innerhalb von 24 Stunden.',
+                  text: text,
+                  textMid: textMid,
+                  border: border,
+                ),
+                const SizedBox(height: 16),
+                _infoItem(
+                  number: '02',
+                  title: 'Die Lösung',
+                  description:
+                      'Wiederholung in optimalen Abständen: 1 Tag → 3 Tage → 1 Woche → 2 Wochen...',
+                  text: text,
+                  textMid: textMid,
+                  border: border,
+                ),
+                const SizedBox(height: 16),
+                _infoItem(
+                  number: '03',
+                  title: 'Automatisch',
+                  description:
+                      'Die App merkt sich welche Fragen du falsch hattest und plant die Wiederholung.',
+                  text: text,
+                  textMid: textMid,
+                  border: border,
+                ),
+
+                const SizedBox(height: 24),
+
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
+                          foregroundColor: textMid,
+                          side: BorderSide(color: border),
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          side: BorderSide(color: Colors.grey.shade300),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                         child: const Text('Verstanden'),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
@@ -202,14 +181,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
                           _startReview();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _indigo,
-                          foregroundColor: Colors.white,
+                          backgroundColor: text,
+                          foregroundColor: bg,
                           padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                          textStyle: AppTextStyles.labelLarge(bg),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text('Los geht\'s!'),
+                        child: const Text('Los geht\'s'),
                       ),
                     ),
                   ],
@@ -222,41 +203,36 @@ class _ReviewScreenState extends State<ReviewScreen> {
     );
   }
 
-  Widget _buildInfoRow(
-    IconData icon,
-    Color color,
-    String title,
-    String description,
-  ) {
+  Widget _infoItem({
+    required String number,
+    required String title,
+    required String description,
+    required Color text,
+    required Color textMid,
+    required Color border,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+        SizedBox(
+          width: 32,
+          child: Text(
+            number,
+            style: AppTextStyles.mono(
+              size: 11,
+              color: AppColors.accent,
+              weight: FontWeight.w700,
+              letterSpacing: 1,
+            ),
           ),
-          child: Icon(icon, color: color, size: 18),
         ),
-        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                description,
-                style: const TextStyle(fontSize: 13, height: 1.4),
-              ),
+              Text(title, style: AppTextStyles.labelLarge(text)),
+              const SizedBox(height: 4),
+              Text(description, style: AppTextStyles.bodySmall(textMid)),
             ],
           ),
         ),
@@ -266,17 +242,21 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    // Gruppiere Fragen nach Modul
     final byModule = <String, List<Map<String, dynamic>>>{};
-    int skipped = 0;
     for (final q in _dueQuestions) {
       final frage = q['fragen'] as Map<String, dynamic>?;
-      if (frage == null) {
-        skipped++;
-        print('⚠️ Übersprungen: $q');
-        continue;
-      }
+      if (frage == null) continue;
       final modul = frage['module'] as Map<String, dynamic>?;
-      print('🔍 modul: $modul, modul_id: ${frage['modul_id']}');
       final modulName =
           modul?['name'] ??
           (frage['modul_id'] == null
@@ -284,305 +264,408 @@ class _ReviewScreenState extends State<ReviewScreen> {
               : 'Modul ${frage['modul_id']}');
       byModule.putIfAbsent(modulName, () => []).add(q);
     }
-    print('⚠️ Gesamt übersprungen: $skipped von ${_dueQuestions.length}');
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FF),
+      backgroundColor: bg,
       body: Column(
         children: [
-          // Header
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFC2410C), _orange, Color(0xFFFB923C)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(28),
-                bottomRight: Radius.circular(28),
+          // ─── APPBAR ──────────────────────────
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.arrow_back_rounded, color: text, size: 22),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Wiederholen',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 24,
+                      color: text,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: _showInfoDialog,
+                    icon: Icon(
+                      Icons.info_outline_rounded,
+                      color: textMid,
+                      size: 20,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                child: Row(
-                  children: [
-                    if (Navigator.canPop(context)) ...[
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(
-                        Icons.replay_rounded,
-                        color: Colors.white,
-                        size: 22,
-                      ),
+          ),
+
+          // ─── CONTENT ─────────────────────────
+          Expanded(
+            child: _loading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.accent),
+                  )
+                : _dueQuestions.isEmpty
+                ? _buildEmptyState(text, textMid, textDim)
+                : RefreshIndicator(
+                    color: AppColors.accent,
+                    onRefresh: _loadDueQuestions,
+                    child: _buildList(
+                      byModule,
+                      surface,
+                      border,
+                      text,
+                      textMid,
+                      textDim,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Wiederholungen',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            _loading
-                                ? 'Lädt...'
-                                : '${_dueQuestions.length} Fragen fällig',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.help_outline_rounded,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ),
-                      onPressed: _showInfoDialog,
+                  ),
+          ),
+
+          // ─── START BUTTON ─────────────────────
+          if (!_loading && _dueQuestions.isNotEmpty)
+            _buildStartBar(bg, surface, border, text, textMid),
+        ],
+      ),
+    );
+  }
+
+  // ─── EMPTY STATE ─────────────────────────
+  Widget _buildEmptyState(Color text, Color textMid, Color textDim) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Success-Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'ALLES ERLEDIGT',
+                style: AppTextStyles.mono(
+                  size: 11,
+                  color: AppColors.success,
+                  weight: FontWeight.w700,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Nichts zu wiederholen.',
+              style: AppTextStyles.instrumentSerif(
+                size: 32,
+                color: text,
+                letterSpacing: -1.0,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Deine Wiederholungen sind auf dem neuesten Stand. '
+              'Schau später wieder vorbei.',
+              style: AppTextStyles.bodyMedium(textMid),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── LIST ────────────────────────────────
+  Widget _buildList(
+    Map<String, List<Map<String, dynamic>>> byModule,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      children: [
+        // Intro
+        Row(
+          children: [
+            Container(width: 16, height: 1, color: AppColors.accent),
+            const SizedBox(width: 10),
+            Text(
+              'FÄLLIG HEUTE',
+              style: AppTextStyles.monoLabel(AppColors.accent),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Zeit für Wiederholung.',
+          style: AppTextStyles.instrumentSerif(
+            size: 32,
+            color: text,
+            letterSpacing: -1.2,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Was du heute nicht wiederholst, vergisst du morgen.',
+          style: AppTextStyles.bodyMedium(textMid),
+        ),
+
+        const SizedBox(height: 28),
+
+        // Stats-Banner
+        _buildStatsBanner(
+          byModule.length,
+          surface,
+          border,
+          text,
+          textMid,
+          textDim,
+        ),
+
+        const SizedBox(height: 28),
+
+        // Section Header
+        Row(
+          children: [
+            Container(width: 16, height: 1, color: AppColors.accent),
+            const SizedBox(width: 10),
+            Text(
+              'VERTEILUNG · ${byModule.length} MODULE',
+              style: AppTextStyles.monoLabel(AppColors.accent),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Module-Liste
+        ...byModule.entries.map((entry) {
+          return _buildModuleRow(
+            name: entry.key,
+            count: entry.value.length,
+            totalCount: _dueQuestions.length,
+            surface: surface,
+            border: border,
+            text: text,
+            textMid: textMid,
+            textDim: textDim,
+          );
+        }),
+      ],
+    );
+  }
+
+  // ─── STATS BANNER ────────────────────────
+  Widget _buildStatsBanner(
+    int modulCount,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [AppColors.warning, AppColors.warning, surface, surface],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Pulsating Dot
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.warning,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.warning.withOpacity(0.6),
+                      blurRadius: 8,
+                      spreadRadius: 1,
                     ),
                   ],
                 ),
               ),
-            ),
-          ),
-
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator(color: _orange))
-                : _dueQuestions.isEmpty
-                ? _buildEmptyState()
-                : _buildContent(byModule),
-          ),
-        ],
-      ),
-      floatingActionButton: _dueQuestions.isNotEmpty
-          ? FloatingActionButton.extended(
-              onPressed: _startReview,
-              backgroundColor: _orange,
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text(
-                'Starten',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              const SizedBox(width: 10),
+              Text(
+                'WARTEN AUF DICH',
+                style: AppTextStyles.monoLabel(AppColors.warning),
               ),
-            )
-          : null,
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.check_circle_rounded,
-              size: 80,
-              color: Colors.green,
-            ),
+            ],
           ),
-          const SizedBox(height: 24),
-          const Text(
-            'Alles erledigt! 🎉',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Keine Fragen zum Wiederholen',
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContent(Map<String, List<Map<String, dynamic>>> byModule) {
-    return RefreshIndicator(
-      color: _orange,
-      onRefresh: _loadDueQuestions,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
-        children: [
-          // Summary Card
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _orange.withOpacity(0.2), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: _orange.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${_dueQuestions.length}',
+                style: AppTextStyles.instrumentSerif(
+                  size: 52,
+                  color: text,
+                  letterSpacing: -2,
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: _orange,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _orange.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.replay_circle_filled_rounded,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${widget.totalCount ?? _dueQuestions.length} Fragen',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'aus ${byModule.length} Modulen',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Modul-Liste
-          ...byModule.entries.map((entry) {
-            final modulName = entry.key;
-            final questions = entry.value;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _indigo.withOpacity(0.1), width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
               ),
-              child: Row(
+              const SizedBox(width: 6),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Text(
+                  _dueQuestions.length == 1 ? 'Frage' : 'Fragen',
+                  style: AppTextStyles.bodyMedium(textMid),
+                ),
+              ),
+              const Spacer(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: _indigo.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.auto_stories_rounded,
-                      color: _indigo,
-                      size: 22,
+                  Text(
+                    '$modulCount',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 28,
+                      color: AppColors.warning,
+                      letterSpacing: -1,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _getModulName(entry.value),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        Text(
-                          '${questions.length} Fragen fällig',
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: _orange.withOpacity(0.3)),
-                    ),
-                    child: Text(
-                      '${questions.length}',
-                      style: const TextStyle(
-                        color: _orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
+                  Text(
+                    modulCount == 1 ? 'MODUL' : 'MODULE',
+                    style: AppTextStyles.monoSmall(textDim),
                   ),
                 ],
               ),
-            );
-          }),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Diese Fragen sind heute fällig — basierend auf dem Spaced-Repetition-Algorithmus.',
+            style: AppTextStyles.bodySmall(textMid),
+          ),
         ],
+      ),
+    );
+  }
+
+  // ─── MODULE ROW ──────────────────────────
+  Widget _buildModuleRow({
+    required String name,
+    required int count,
+    required int totalCount,
+    required Color surface,
+    required Color border,
+    required Color text,
+    required Color textMid,
+    required Color textDim,
+  }) {
+    final percent = totalCount > 0 ? count / totalCount : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    name,
+                    style: AppTextStyles.labelLarge(text),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '$count',
+                  style: AppTextStyles.mono(
+                    size: 14,
+                    color: AppColors.warning,
+                    weight: FontWeight.w700,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: LinearProgressIndicator(
+                value: percent,
+                backgroundColor: border,
+                valueColor: const AlwaysStoppedAnimation(AppColors.warning),
+                minHeight: 2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── START BAR ───────────────────────────
+  Widget _buildStartBar(
+    Color bg,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: surface,
+        border: Border(top: BorderSide(color: border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed: _startReview,
+              icon: const Icon(Icons.play_arrow_rounded, size: 18),
+              label: Text('Wiederholung starten · ${_dueQuestions.length}'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: text,
+                foregroundColor: bg,
+                elevation: 0,
+                textStyle: AppTextStyles.labelLarge(bg),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
