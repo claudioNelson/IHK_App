@@ -2,20 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'network_practice_screen.dart';
-import 'raid_practice_screen.dart';
-import 'dns_port_practice_screen.dart';
 import '../../services/app_cache_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
-import 'security_practice_screen.dart';
-import 'osi_practice_screen.dart';
-import 'backup_practice_screen.dart';
-import 'binary_practice_screen.dart';
 import 'kernthemen_info_screen.dart';
-import 'database_practice_screen.dart';
-import 'project_management_practice_screen.dart';
+import 'generic_practice_screen.dart';
 
 // ── Zusammenfassungen pro Thema ──────────────────────────────────────────────
 const Map<int, Map<String, dynamic>> _summaries = {
@@ -353,69 +345,15 @@ class _CoreTopicsScreenState extends State<CoreTopicsScreen> {
   }
 
   Future<void> _openTopic(Map<String, dynamic> topic) async {
-    Widget? screen;
-    switch (topic['id']) {
-      case 18:
-        screen = NetworkPracticeScreen(
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GenericPracticeScreen(
           moduleId: topic['id'],
           moduleName: topic['name'],
-        );
-        break;
-      case 20:
-        screen = RaidPracticeScreen(
-          moduleId: topic['id'],
-          moduleName: topic['name'],
-        );
-        break;
-      case 21:
-        screen = DnsPortPracticeScreen(
-          moduleId: topic['id'],
-          moduleName: topic['name'],
-        );
-        break;
-      case 22:
-        screen = SecurityPracticeScreen(
-          moduleId: topic['id'],
-          moduleName: topic['name'],
-        );
-        break;
-      case 23:
-        screen = OsiPracticeScreen(
-          moduleId: topic['id'],
-          moduleName: topic['name'],
-        );
-        break;
-      case 24:
-        screen = BackupPracticeScreen(
-          moduleId: topic['id'],
-          moduleName: topic['name'],
-        );
-        break;
-      case 25:
-        screen = BinaryPracticeScreen(
-          moduleId: topic['id'],
-          moduleName: topic['name'],
-        );
-        break;
-      case 26:
-        screen = DatabasePracticeScreen(
-          moduleId: topic['id'],
-          moduleName: topic['name'],
-        );
-        break;
-      case 27:
-        screen = ProjectManagementPracticeScreen(
-          moduleId: topic['id'],
-          moduleName: topic['name'],
-        );
-        break;
-      default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${topic['name']} — Coming Soon!')),
-        );
-        return;
-    }
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => screen!));
+        ),
+      ),
+    );
     _refreshProgress();
   }
 

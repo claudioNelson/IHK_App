@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
@@ -6,6 +7,9 @@ import '../../models/ihk_exam_model.dart';
 import '../../widgets/photo_upload_widget.dart';
 import '../../widgets/code_editor_widget.dart';
 import '../../services/gemini_service.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class IHKPruefungExamScreen extends StatefulWidget {
   final IHKExam exam;
@@ -17,14 +21,18 @@ class IHKPruefungExamScreen extends StatefulWidget {
 }
 
 class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
-  Map<String, String> answers = {}; // questionId -> answer (text or photo path)
-  Map<String, bool> completed = {}; // questionId -> completed
+  Map<String, String> answers = {};
+  Map<String, bool> completed = {};
   bool started = false;
   bool submitted = false;
 
-  // Timer
   late int remainingSeconds;
   Timer? timer;
+
+  final _geminiService = GeminiService();
+  String? _kiKorrektur;
+  bool _isLoadingKi = false;
+  bool _showKiKorrektur = false;
 
   @override
   void initState() {
@@ -38,12 +46,6 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
     timer?.cancel();
     super.dispose();
   }
-
-  // KI Korrektur
-  final _geminiService = GeminiService();
-  String? _kiKorrektur;
-  bool _isLoadingKi = false;
-  bool _showKiKorrektur = false;
 
   Future<void> _loadProgress() async {
     final prefs = await SharedPreferences.getInstance();
@@ -64,9 +66,7 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
       submitted = submittedStr ?? false;
     });
 
-    if (started && !submitted) {
-      _startTimer();
-    }
+    if (started && !submitted) _startTimer();
   }
 
   Future<void> _saveProgress() async {
@@ -107,22 +107,66 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
   }
 
   void _resetExam() async {
+    final isDark = context.read<ThemeProvider>().isDark;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Prüfung zurücksetzen?'),
-        content: const Text('Alle Antworten werden gelöscht.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Abbrechen'),
+      builder: (_) => Dialog(
+        backgroundColor: surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Prüfung zurücksetzen?', style: AppTextStyles.h3(text)),
+              const SizedBox(height: 8),
+              Text(
+                'Alle Antworten werden gelöscht.',
+                style: AppTextStyles.bodyMedium(textMid),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: textMid,
+                        side: BorderSide(color: border),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('Abbrechen'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('Zurücksetzen'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Zurücksetzen'),
-          ),
-        ],
+        ),
       ),
     );
 
@@ -143,163 +187,293 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
     }
   }
 
-  int _getCompletedCount() {
-    return completed.values.where((v) => v == true).length;
+  int _getCompletedCount() => completed.values.where((v) => v == true).length;
+
+  int _getTotalQuestions() => widget.exam.sections
+      .expand((s) => s.questions)
+      .where((q) => q.type != QuestionType.info)
+      .length;
+
+  String _formatTime(int seconds) {
+    final mins = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
-  int _getTotalQuestions() {
-    return widget.exam.sections
-        .expand((s) => s.questions)
-        .where((q) => q.type != QuestionType.info)
-        .length;
+  Color _getTimerColor() {
+    final percent = remainingSeconds / (widget.exam.duration * 60);
+    if (percent > 0.3) return AppColors.success;
+    if (percent > 0.1) return AppColors.warning;
+    return AppColors.error;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!started) {
-      return _buildIntro();
-    }
-
-    if (submitted) {
-      return _buildResult();
-    }
-
+    if (!started) return _buildIntro();
+    if (submitted) return _buildResult();
     return _buildExam();
   }
 
+  // ─── INTRO ───────────────────────────────
   Widget _buildIntro() {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Prüfungsstart'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.timer, size: 64, color: Colors.blue.shade700),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Bereit?',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Die Prüfung dauert ${widget.exam.duration} Minuten.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _handleStart,
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('Jetzt starten'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    textStyle: const TextStyle(fontSize: 16),
+      backgroundColor: bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close_rounded, color: text, size: 22),
                   ),
+                  Text(
+                    'Prüfungsstart',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 24,
+                      color: text,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 16,
+                          height: 1,
+                          color: AppColors.accent,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'BEREIT?',
+                          style: AppTextStyles.monoLabel(AppColors.accent),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Timer startet\nsofort.',
+                      style: AppTextStyles.instrumentSerif(
+                        size: 42,
+                        color: text,
+                        letterSpacing: -1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: border),
+                      ),
+                      child: Column(
+                        children: [
+                          _introStat(
+                            'DAUER',
+                            '${widget.exam.duration} Minuten',
+                            text,
+                            textDim,
+                          ),
+                          Divider(height: 20, color: border),
+                          _introStat(
+                            'AUFGABEN',
+                            '${_getTotalQuestions()} Fragen',
+                            text,
+                            textDim,
+                          ),
+                          Divider(height: 20, color: border),
+                          _introStat(
+                            'PUNKTE',
+                            '${widget.exam.totalPoints} Punkte',
+                            text,
+                            textDim,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.warning.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.timer_outlined,
+                            color: AppColors.warning,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Sobald du startest läuft der Timer. Keine Hilfsmittel erlaubt.',
+                              style: AppTextStyles.bodySmall(AppColors.warning),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        onPressed: _handleStart,
+                        icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                        label: const Text('Jetzt starten'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: text,
+                          foregroundColor: bg,
+                          elevation: 0,
+                          textStyle: AppTextStyles.labelLarge(bg),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  Widget _introStat(String label, String value, Color text, Color textDim) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppTextStyles.monoSmall(textDim)),
+        Text(value, style: AppTextStyles.labelLarge(text)),
+      ],
+    );
+  }
+
+  // ─── EXAM ────────────────────────────────
   Widget _buildExam() {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     final progress = _getCompletedCount() / _getTotalQuestions();
+    final timerColor = _getTimerColor();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.exam.title),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-        actions: [
-          IconButton(
-            onPressed: _submitExam,
-            icon: const Icon(Icons.check_circle),
-            tooltip: 'Abgeben',
-          ),
-        ],
-      ),
+      backgroundColor: bg,
       body: Column(
         children: [
-          // Timer & Progress
+          // AppBar
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close_rounded, color: text, size: 22),
+                  ),
+                  Expanded(
+                    child: Text(
+                      widget.exam.title,
+                      style: AppTextStyles.labelLarge(text),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  // Submit Button
+                  TextButton.icon(
+                    onPressed: _submitExam,
+                    icon: Icon(
+                      Icons.check_rounded,
+                      color: AppColors.success,
+                      size: 16,
+                    ),
+                    label: Text(
+                      'Abgeben',
+                      style: AppTextStyles.labelMedium(AppColors.success),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Timer + Progress
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
             decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              color: surface,
+              border: Border(bottom: BorderSide(color: border)),
             ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getTimerColor().withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: _getTimerColor()),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.timer, color: _getTimerColor(), size: 16),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatTime(remainingSeconds),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: _getTimerColor(),
-                            ),
+                    // Timer
+                    Row(
+                      children: [
+                        Icon(Icons.timer_outlined, color: timerColor, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          _formatTime(remainingSeconds),
+                          style: AppTextStyles.mono(
+                            size: 16,
+                            color: timerColor,
+                            weight: FontWeight.w700,
+                            letterSpacing: 1,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                    // Progress Count
                     Text(
                       '${_getCompletedCount()} / ${_getTotalQuestions()} erledigt',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 13,
-                      ),
+                      style: AppTextStyles.monoSmall(textDim),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
                     value: progress,
-                    minHeight: 8,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation(Colors.green.shade600),
+                    minHeight: 2,
+                    backgroundColor: border,
+                    valueColor: AlwaysStoppedAnimation(AppColors.success),
                   ),
                 ),
               ],
@@ -309,9 +483,16 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
           // Questions
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
               itemCount: widget.exam.sections.length,
-              itemBuilder: (ctx, i) => _buildSection(widget.exam.sections[i]),
+              itemBuilder: (ctx, i) => _buildSection(
+                widget.exam.sections[i],
+                surface,
+                border,
+                text,
+                textMid,
+                textDim,
+              ),
             ),
           ),
         ],
@@ -319,43 +500,63 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
     );
   }
 
-  Widget _buildSection(ExamSection section) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+  Widget _buildSection(
+    ExamSection section,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: border),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              section.title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Container(width: 16, height: 1, color: AppColors.accent),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    section.title.toUpperCase(),
+                    style: AppTextStyles.monoLabel(AppColors.accent),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            ...section.questions.map((q) => _buildQuestion(q)),
+            ...section.questions.map(
+              (q) => _buildQuestion(q, border, text, textMid, textDim),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuestion(ExamQuestion question) {
+  Widget _buildQuestion(
+    ExamQuestion question,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
     final isCompleted = completed[question.id] ?? false;
 
     if (question.type == QuestionType.info) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            question.description,
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
-          ),
+        child: Text(
+          question.description,
+          style: AppTextStyles.bodySmall(textMid),
         ),
       );
     }
@@ -366,44 +567,51 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (isCompleted)
-                const Icon(Icons.check_circle, color: Colors.green, size: 20),
-              if (isCompleted) const SizedBox(width: 8),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8, top: 2),
+                  child: Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.success,
+                    size: 16,
+                  ),
+                ),
               Expanded(
                 child: Text(
                   question.title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isCompleted ? Colors.green.shade700 : Colors.black,
+                  style: AppTextStyles.interTight(
+                    size: 14,
+                    weight: FontWeight.w600,
+                    color: isCompleted ? AppColors.success : text,
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.accent.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   '${question.points} Pkt',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
+                  style: AppTextStyles.mono(
+                    size: 10,
+                    color: AppColors.accent,
+                    weight: FontWeight.w700,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            question.description,
-            style: const TextStyle(fontSize: 13, height: 1.5),
-          ),
+          Text(question.description, style: AppTextStyles.bodySmall(textMid)),
           const SizedBox(height: 12),
 
-          // ANTWORT-WIDGET basierend auf Fragetyp
+          // Answer Widget
           if (question.type == QuestionType.diagram)
             PhotoUploadWidget(
               questionId: question.id,
@@ -433,13 +641,24 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
               maxLines: 8,
               decoration: InputDecoration(
                 hintText: 'Antwort eingeben...',
+                hintStyle: AppTextStyles.bodySmall(textMid),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: border),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: AppColors.accent),
                 ),
                 filled: true,
-                fillColor: Colors.grey.shade50,
+                fillColor: text.withOpacity(0.02),
+                contentPadding: const EdgeInsets.all(14),
               ),
-              style: const TextStyle(fontSize: 13),
+              style: AppTextStyles.bodyMedium(text),
               onChanged: (val) {
                 answers[question.id] = val;
                 _saveProgress();
@@ -450,20 +669,32 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
             ),
 
           const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  completed[question.id] = !isCompleted;
-                });
-                _saveProgress();
-              },
-              icon: Icon(
-                isCompleted ? Icons.check_circle : Icons.circle_outlined,
-                size: 16,
-              ),
-              label: Text(isCompleted ? 'Erledigt' : 'Als erledigt markieren'),
+          GestureDetector(
+            onTap: () {
+              setState(() => completed[question.id] = !isCompleted);
+              _saveProgress();
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isCompleted
+                      ? Icons.check_circle_rounded
+                      : Icons.circle_outlined,
+                  size: 16,
+                  color: isCompleted ? AppColors.success : textMid,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  isCompleted ? 'Erledigt' : 'Als erledigt markieren',
+                  style: AppTextStyles.mono(
+                    size: 11,
+                    color: isCompleted ? AppColors.success : textMid,
+                    weight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -471,254 +702,302 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
     );
   }
 
+  // ─── RESULT ──────────────────────────────
   Widget _buildResult() {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     final completedCount = _getCompletedCount();
     final totalQuestions = _getTotalQuestions();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ergebnis'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Icon(Icons.celebration, size: 80, color: Colors.green),
-              const SizedBox(height: 24),
-              const Text(
-                'Prüfung abgegeben!',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+      backgroundColor: bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // AppBar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close_rounded, color: text, size: 22),
+                  ),
+                  Text(
+                    'Ergebnis',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 24,
+                      color: text,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 32),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
+            ),
+
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+                children: [
+                  // Header
+                  Row(
                     children: [
+                      Container(width: 16, height: 1, color: AppColors.success),
+                      const SizedBox(width: 10),
                       Text(
-                        '$completedCount / $totalQuestions',
-                        style: const TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
+                        'ABGEGEBEN',
+                        style: AppTextStyles.monoLabel(AppColors.success),
                       ),
-                      const Text('Aufgaben bearbeitet'),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // KI-Korrektur Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _isLoadingKi ? null : _requestKiKorrektur,
-                  icon: _isLoadingKi
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.psychology, size: 28),
-                  label: Text(
-                    _isLoadingKi ? 'KI analysiert...' : '🤖 KI-Tutor Korrektur',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(height: 12),
+                  Text(
+                    'Prüfung abgegeben.',
+                    style: AppTextStyles.instrumentSerif(
+                      size: 34,
+                      color: text,
+                      letterSpacing: -1.2,
                     ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple[700],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
+                  const SizedBox(height: 24),
+
+                  // Stats Card
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: surface,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: border),
                     ),
-                  ),
-                ),
-              ),
-
-              // KI-Korrektur Ergebnis
-              if (_showKiKorrektur && _kiKorrektur != null) ...[
-                const SizedBox(height: 24),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.purple.shade50, Colors.blue.shade50],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.purple.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.purple.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.psychology,
-                              color: Colors.purple.shade700,
-                              size: 24,
-                            ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'BEARBEITET',
+                                style: AppTextStyles.monoSmall(textDim),
+                              ),
+                              const SizedBox(height: 4),
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: '$completedCount',
+                                      style: AppTextStyles.instrumentSerif(
+                                        size: 36,
+                                        color: text,
+                                        letterSpacing: -1,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: ' / $totalQuestions',
+                                      style: AppTextStyles.bodyMedium(textMid),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'KI-Tutor Feedback',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ),
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: AppColors.success,
+                          size: 40,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // KI-Korrektur Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoadingKi ? null : _requestKiKorrektur,
+                      icon: _isLoadingKi
+                          ? SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: bg,
+                              ),
+                            )
+                          : const Icon(Icons.auto_awesome_rounded, size: 18),
+                      label: Text(
+                        _isLoadingKi
+                            ? 'KI analysiert...'
+                            : 'KI-Tutor Korrektur',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accent,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        textStyle: AppTextStyles.labelLarge(Colors.white),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // KI-Ergebnis
+                  if (_showKiKorrektur && _kiKorrektur != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.accent.withOpacity(0.3),
+                        ),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: const [0.0, 0.015, 0.015, 1.0],
+                          colors: [
+                            AppColors.accent,
+                            AppColors.accent,
+                            surface,
+                            surface,
+                          ],
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 16,
+                                height: 1,
+                                color: AppColors.accent,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'KI-TUTOR FEEDBACK',
+                                style: AppTextStyles.monoLabel(
+                                  AppColors.accent,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          SelectableText(
+                            _kiKorrektur!,
+                            style: AppTextStyles.bodyMedium(text),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      const Divider(),
-                      const SizedBox(height: 16),
-                      SelectableText(
-                        _kiKorrektur!,
-                        style: const TextStyle(fontSize: 15, height: 1.6),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  ],
 
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.home),
-                  label: const Text('Zur Übersicht'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  const SizedBox(height: 20),
+
+                  // Buttons
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                      label: const Text('Zur Übersicht'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: text,
+                        foregroundColor: bg,
+                        elevation: 0,
+                        textStyle: AppTextStyles.labelLarge(bg),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _resetExam,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Prüfung zurücksetzen'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      onPressed: _resetExam,
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('Prüfung zurücksetzen'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: textMid,
+                        side: BorderSide(color: border),
+                        textStyle: AppTextStyles.labelLarge(textMid),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 32),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Future<void> _requestKiKorrektur() async {
-  setState(() => _isLoadingKi = true);
-
-  try {
-    final buffer = StringBuffer();
-    buffer.writeln('Du bist ein strenger aber fairer IHK-Prüfer für Fachinformatiker.');
-    buffer.writeln('Bewerte diese Prüfung und vergib Punkte für jede Antwort.');
-    buffer.writeln('');
-    buffer.writeln('=== PRÜFUNGSDATEN ===');
-    buffer.writeln('Prüfung: ${widget.exam.title}');
-    buffer.writeln('Gesamtpunkte: ${widget.exam.totalPoints}');
-    buffer.writeln('');
-    buffer.writeln('Szenario: ${widget.exam.scenario}');
-    buffer.writeln('');
-    buffer.writeln('=== ANTWORTEN DES PRÜFLINGS ===');
-    
-    for (var section in widget.exam.sections) {
+    setState(() => _isLoadingKi = true);
+    try {
+      final buffer = StringBuffer();
+      buffer.writeln(
+        'Du bist ein strenger aber fairer IHK-Prüfer für Fachinformatiker.',
+      );
+      buffer.writeln(
+        'Bewerte diese Prüfung und vergib Punkte für jede Antwort.',
+      );
       buffer.writeln('');
-      buffer.writeln('--- ${section.title} (${section.totalPoints} Punkte) ---');
-      for (var q in section.questions) {
-        if (q.type == QuestionType.info) continue;
-        buffer.writeln('');
-        buffer.writeln('Aufgabe (${q.points} Punkte): ${q.title}');
-        buffer.writeln('Aufgabenstellung: ${q.description}');
-        buffer.writeln('Antwort des Prüflings: ${answers[q.id] ?? "NICHT BEANTWORTET"}');
+      buffer.writeln('=== PRÜFUNGSDATEN ===');
+      buffer.writeln('Prüfung: ${widget.exam.title}');
+      buffer.writeln('Gesamtpunkte: ${widget.exam.totalPoints}');
+      buffer.writeln('Szenario: ${widget.exam.scenario}');
+      buffer.writeln('');
+      buffer.writeln('=== ANTWORTEN ===');
+      for (var section in widget.exam.sections) {
+        buffer.writeln('--- ${section.title} ---');
+        for (var q in section.questions) {
+          if (q.type == QuestionType.info) continue;
+          buffer.writeln('Aufgabe (${q.points} Pkt): ${q.title}');
+          buffer.writeln('Antwort: ${answers[q.id] ?? "NICHT BEANTWORTET"}');
+          buffer.writeln('');
+        }
+      }
+      buffer.writeln(
+        'Bewerte jede Aufgabe mit Punkten und Feedback. Antworte auf Deutsch.',
+      );
+
+      final response = await _geminiService.generateContent(buffer.toString());
+      setState(() {
+        _kiKorrektur = response;
+        _showKiKorrektur = true;
+        _isLoadingKi = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingKi = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
-    
-    buffer.writeln('');
-    buffer.writeln('=== DEINE AUFGABE ===');
-    buffer.writeln('');
-    buffer.writeln('1. 📝 EINZELBEWERTUNG');
-    buffer.writeln('   Bewerte JEDE Aufgabe einzeln:');
-    buffer.writeln('   - Erreichte Punkte / Mögliche Punkte');
-    buffer.writeln('   - Kurze Begründung');
-    buffer.writeln('');
-    buffer.writeln('2. 📊 GESAMTERGEBNIS');
-    buffer.writeln('   - Erreichte Gesamtpunkte: X / ${widget.exam.totalPoints}');
-    buffer.writeln('   - Prozent: X%');
-    buffer.writeln('   - Note nach IHK-Schlüssel:');
-    buffer.writeln('     * 100-92% = 1 (sehr gut)');
-    buffer.writeln('     * 91-81% = 2 (gut)');
-    buffer.writeln('     * 80-67% = 3 (befriedigend)');
-    buffer.writeln('     * 66-50% = 4 (ausreichend) - Bestanden');
-    buffer.writeln('     * 49-30% = 5 (mangelhaft) - Nicht bestanden');
-    buffer.writeln('     * 29-0% = 6 (ungenügend) - Nicht bestanden');
-    buffer.writeln('');
-    buffer.writeln('3. ✅ oder ❌ BESTANDEN / NICHT BESTANDEN');
-    buffer.writeln('   (Mindestens 50% = bestanden)');
-    buffer.writeln('');
-    buffer.writeln('4. 💡 VERBESSERUNGSTIPPS');
-    buffer.writeln('   - Was war gut?');
-    buffer.writeln('   - Was muss verbessert werden?');
-    buffer.writeln('   - Konkrete Lernempfehlungen');
-    buffer.writeln('');
-    buffer.writeln('Sei streng aber fair. Nicht beantwortete Fragen = 0 Punkte.');
-    buffer.writeln('Antworte auf Deutsch, strukturiert mit Emojis.');
-
-    final response = await _geminiService.generateContent(buffer.toString());
-    
-    setState(() {
-      _kiKorrektur = response;
-      _showKiKorrektur = true;
-      _isLoadingKi = false;
-    });
-  } catch (e) {
-    setState(() => _isLoadingKi = false);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
-      );
-    }
-  }
-}
-
-
-  String _formatTime(int seconds) {
-    final mins = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
-  }
-
-  Color _getTimerColor() {
-    final percent = remainingSeconds / (widget.exam.duration * 60);
-    if (percent > 0.3) return Colors.green;
-    if (percent > 0.1) return Colors.orange;
-    return Colors.red;
   }
 }
