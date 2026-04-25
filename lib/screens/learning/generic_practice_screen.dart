@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/questions/dns_port_match_widget.dart';
 import '../../widgets/questions/freitext_ada_widget.dart';
+import '../../widgets/questions/binary_calculation_widget.dart';
+import '../../widgets/questions/raid_calculation_widget.dart';
+import '../../widgets/questions/network_calculation_widget.dart';
+import '../../widgets/questions/er_to_tables_widget.dart';
 import '../../services/flashcard_service.dart';
 import '../../services/progress_service.dart';
 import '../../services/sound_service.dart';
@@ -96,13 +100,15 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
       } else if (type == 'dns_port_match') {
         richtigeAntwort = q['calculation_data']?['correct_answer'] ?? '';
       }
-      await _flashcardService.createFromWrongAnswer(
-        frageId: q['id'],
-        frageText: q['frage'],
-        richtigeAntwort: richtigeAntwort,
-        modulName: widget.moduleName,
-        themaName: null,
-      );
+      if (richtigeAntwort.isNotEmpty) {
+        await _flashcardService.createFromWrongAnswer(
+          frageId: q['id'],
+          frageText: q['frage'],
+          richtigeAntwort: richtigeAntwort,
+          modulName: widget.moduleName,
+          themaName: null,
+        );
+      }
     }
     _nextQuestion();
   }
@@ -229,7 +235,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
       backgroundColor: bg,
       body: Column(
         children: [
-          // ─── APPBAR ─────────────────────────
           SafeArea(
             bottom: false,
             child: Padding(
@@ -262,8 +267,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
               ),
             ),
           ),
-
-          // ─── PROGRESS BAR ───────────────────
           if (!_loading && _questions.isNotEmpty)
             LinearProgressIndicator(
               value: (_currentIndex + 1) / _questions.length,
@@ -271,8 +274,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
               valueColor: const AlwaysStoppedAnimation(AppColors.accent),
               minHeight: 2,
             ),
-
-          // ─── CONTENT ────────────────────────
           Expanded(
             child: _loading
                 ? const Center(
@@ -294,7 +295,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
     );
   }
 
-  // ─── EMPTY ────────────────────────────────
   Widget _buildEmpty(Color textMid, Color textDim) {
     return Center(
       child: Column(
@@ -308,7 +308,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
     );
   }
 
-  // ─── QUESTION ROUTER ──────────────────────
   Widget _buildQuestionWidget(
     Color surface,
     Color border,
@@ -320,8 +319,11 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
     final q = _questions[_currentIndex];
     final type = q['question_type'] as String?;
 
+    final key = ValueKey('${q['id']}_$_currentIndex');
+
     if (type == 'dns_port_match') {
       return DnsPortMatchWidget(
+        key: key,
         questionText: q['frage'],
         correctAnswers: Map<String, dynamic>.from(q['calculation_data'] ?? {}),
         explanation: q['erklaerung'],
@@ -331,12 +333,56 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
       );
     } else if (type == 'freitext_ada') {
       return FreitextAdaWidget(
+        key: key,
         questionText: q['frage'],
         correctAnswers: Map<String, dynamic>.from(q['calculation_data'] ?? {}),
         explanation: q['erklaerung'],
-        onAnswered: (_) => _nextQuestion(),
+        onAnswered: _onAnswered,
         questionId: q['id'],
         moduleId: widget.moduleId,
+      );
+    } else if (type == 'binary_calculation') {
+      return BinaryCalculationWidget(
+        key: key,
+        questionText: q['frage'],
+        correctAnswers: Map<String, dynamic>.from(q['calculation_data'] ?? {}),
+        explanation: q['erklaerung'],
+        onAnswered: _onAnswered,
+        questionId: q['id'],
+        moduleId: widget.moduleId,
+      );
+    } else if (type == 'raid_calculation') {
+      return RaidCalculationWidget(
+        key: key,
+        questionText: q['frage'],
+        correctAnswers: Map<String, dynamic>.from(q['calculation_data'] ?? {}),
+        explanation: q['erklaerung'],
+        onAnswered: _onAnswered,
+        questionId: q['id'],
+        moduleId: widget.moduleId,
+      );
+    } else if (type == 'network_calculation') {
+      return NetworkCalculationWidget(
+        key: key,
+        questionText: q['frage'],
+        correctAnswers: Map<String, String>.from(
+          (q['calculation_data'] ?? {}).map(
+            (k, v) => MapEntry(k.toString(), v.toString()),
+          ),
+        ),
+        explanation: q['erklaerung'],
+        onAnswered: _onAnswered,
+        questionId: q['id'],
+        moduleId: widget.moduleId,
+        moduleName: widget.moduleName,
+      );
+    } else if (type == 'er_to_tables') {
+      return ErToTablesWidget(
+        key: key,
+        questionText: q['frage'],
+        correctAnswers: Map<String, dynamic>.from(q['calculation_data'] ?? {}),
+        explanation: q['erklaerung'],
+        onAnswered: _onAnswered,
       );
     } else if (type == 'multiple_choice') {
       return _buildMCQuestion(q, surface, border, text, textMid, textDim, bg);
@@ -350,7 +396,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
     );
   }
 
-  // ─── MULTIPLE CHOICE ──────────────────────
   Widget _buildMCQuestion(
     Map<String, dynamic> q,
     Color surface,
@@ -368,7 +413,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section Label
           Row(
             children: [
               Container(width: 16, height: 1, color: AppColors.accent),
@@ -377,8 +421,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
             ],
           ),
           const SizedBox(height: 14),
-
-          // Frage in Serif
           Text(
             q['frage'] ?? '',
             style: AppTextStyles.instrumentSerif(
@@ -388,8 +430,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
             ),
           ),
           const SizedBox(height: 28),
-
-          // Antworten
           ...antworten.asMap().entries.map((entry) {
             final index = entry.key;
             final antwort = entry.value;
@@ -497,11 +537,8 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
               ),
             );
           }),
-
-          // Weiter Button
           if (_hasAnswered) ...[
             const SizedBox(height: 12),
-            // Erklärung (falls vorhanden)
             _buildExplanation(q, surface, border, text, textMid),
             const SizedBox(height: 16),
             SizedBox(
@@ -534,7 +571,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
     );
   }
 
-  // ─── EXPLANATION ──────────────────────────
   Widget _buildExplanation(
     Map<String, dynamic> q,
     Color surface,
@@ -542,7 +578,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
     Color text,
     Color textMid,
   ) {
-    // Erklärung der ausgewählten Antwort
     final antworten = q['antworten'] as List? ?? [];
     final selected = antworten.firstWhere(
       (a) => a['id'] == _selectedAnswer,
@@ -586,12 +621,7 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
               const SizedBox(width: 8),
               Text(
                 isCorrect ? 'RICHTIG' : 'ERKLÄRUNG',
-                style: AppTextStyles.mono(
-                  size: 10,
-                  color: accentColor,
-                  weight: FontWeight.w700,
-                  letterSpacing: 1.5,
-                ),
+                style: AppTextStyles.monoLabel(accentColor),
               ),
             ],
           ),

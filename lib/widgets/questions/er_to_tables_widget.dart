@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class ErToTablesWidget extends StatefulWidget {
   final String questionText;
@@ -19,7 +23,6 @@ class ErToTablesWidget extends StatefulWidget {
 }
 
 class _ErToTablesWidgetState extends State<ErToTablesWidget> {
-  // Speichert Eingaben: tableName -> columnIndex -> value
   final Map<String, List<TextEditingController>> _tableControllers = {};
 
   bool isChecked = false;
@@ -33,18 +36,13 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
 
   void _initializeControllers() {
     final tables = widget.correctAnswers['tables'] as Map<String, dynamic>;
-
     for (var tableName in tables.keys) {
       final tableData = tables[tableName] as Map<String, dynamic>;
       final columns = List<String>.from(tableData['columns'] as List);
-
-      // Controller für jede Spalte
       _tableControllers[tableName] = List.generate(
         columns.length,
         (_) => TextEditingController(),
       );
-
-      // Ergebnis-Array initialisieren
       fieldResults[tableName] = List.filled(columns.length, false);
     }
   }
@@ -52,79 +50,184 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
   @override
   void dispose() {
     for (var controllers in _tableControllers.values) {
-      for (var controller in controllers) {
-        controller.dispose();
-      }
+      for (var c in controllers) c.dispose();
     }
     super.dispose();
   }
 
+  void _checkAnswers() {
+    final tables = widget.correctAnswers['tables'] as Map<String, dynamic>;
+    bool allCorrect = true;
+
+    for (var tableName in tables.keys) {
+      final tableData = tables[tableName] as Map<String, dynamic>;
+      final correctColumns = List<String>.from(tableData['columns'] as List);
+      final userControllers = _tableControllers[tableName]!;
+
+      for (int i = 0; i < correctColumns.length; i++) {
+        final userInput = userControllers[i].text.trim().toLowerCase();
+        final correct = correctColumns[i].toLowerCase();
+        final isCorrect = userInput == correct;
+        fieldResults[tableName]![i] = isCorrect;
+        if (!isCorrect) allCorrect = false;
+      }
+    }
+
+    setState(() => isChecked = true);
+  }
+
+  void _showSolution() {
+    final tables = widget.correctAnswers['tables'] as Map<String, dynamic>;
+    setState(() {
+      for (var tableName in tables.keys) {
+        final tableData = tables[tableName] as Map<String, dynamic>;
+        final correctColumns = List<String>.from(tableData['columns'] as List);
+        final controllers = _tableControllers[tableName]!;
+        for (int i = 0; i < correctColumns.length; i++) {
+          controllers[i].text = correctColumns[i];
+          fieldResults[tableName]![i] = true;
+        }
+      }
+      isChecked = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Fragetext
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue[200]!),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Label
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: AppColors.accent),
+              const SizedBox(width: 10),
+              Text(
+                'ER → TABELLEN',
+                style: AppTextStyles.monoLabel(AppColors.accent),
               ),
-              child: Text(
-                widget.questionText,
-                style: const TextStyle(fontSize: 16, height: 1.5),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Frage
+          Text(
+            widget.questionText,
+            style: AppTextStyles.instrumentSerif(
+              size: 22,
+              color: text,
+              letterSpacing: -0.6,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Hint Banner
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: AppColors.accent,
+                  size: 14,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Achte auf Primär- (PK) und Fremdschlüssel (FK)',
+                    style: AppTextStyles.bodySmall(AppColors.accent),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Tables
+          ..._buildTables(surface, border, text, textMid, textDim),
+
+          const SizedBox(height: 20),
+
+          // Buttons
+          if (!isChecked) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: _checkAnswers,
+                icon: const Icon(Icons.check_rounded, size: 18),
+                label: const Text('Prüfen'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: text,
+                  foregroundColor: bg,
+                  elevation: 0,
+                  textStyle: AppTextStyles.labelLarge(bg),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            // Info-Box
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.purple[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.purple[200]!),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.lightbulb_outline,
-                    color: Colors.purple[700],
-                    size: 20,
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: _showSolution,
+                icon: Icon(
+                  Icons.lightbulb_outline_rounded,
+                  size: 14,
+                  color: textMid,
+                ),
+                label: Text(
+                  'Lösung zeigen',
+                  style: AppTextStyles.mono(
+                    size: 11,
+                    color: textMid,
+                    weight: FontWeight.w700,
+                    letterSpacing: 0.5,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Trage die Spaltennamen ein. Achte auf Primär- (PK) und Fremdschlüssel (FK)!',
-                      style: TextStyle(fontSize: 13, color: Colors.purple[900]),
-                    ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: border),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ],
+                ),
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            // Tabellen
-            ..._buildTables(),
-
-            const SizedBox(height: 24),
-
-            // Buttons
-            _buildActionButtons(),
           ],
-        ),
+
+          // Feedback
+          if (isChecked) ...[_buildFeedback(surface, text, textMid, bg)],
+        ],
       ),
     );
   }
 
-  List<Widget> _buildTables() {
+  List<Widget> _buildTables(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
     final tables = widget.correctAnswers['tables'] as Map<String, dynamic>;
     List<Widget> widgets = [];
 
@@ -133,11 +236,20 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
       final columns = List<String>.from(tableData['columns'] as List);
       final pk = tableData['pk'] as String?;
       final fkList = tableData['fk'] as List?;
-
-      widgets.add(_buildTableCard(tableName, columns, pk, fkList));
-      widgets.add(const SizedBox(height: 20));
+      widgets.add(
+        _buildTableCard(
+          tableName,
+          columns,
+          pk,
+          fkList,
+          surface,
+          border,
+          text,
+          textMid,
+        ),
+      );
+      widgets.add(const SizedBox(height: 14));
     }
-
     return widgets;
   }
 
@@ -146,64 +258,77 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
     List<String> columns,
     String? pk,
     List? fkList,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.indigo[300]!, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.indigo.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Tabellen-Header
+          // Table Header
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.indigo[600],
+              color: AppColors.accent.withOpacity(0.08),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
+                topLeft: Radius.circular(11),
+                topRight: Radius.circular(11),
+              ),
+              border: Border(
+                bottom: BorderSide(color: AppColors.accent.withOpacity(0.2)),
               ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.table_chart, color: Colors.white, size: 20),
+                Icon(
+                  Icons.table_chart_rounded,
+                  color: AppColors.accent,
+                  size: 16,
+                ),
                 const SizedBox(width: 8),
                 Text(
-                  'Tabelle: $tableName',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  'TABELLE',
+                  style: AppTextStyles.monoLabel(AppColors.accent),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  tableName,
+                  style: AppTextStyles.mono(
+                    size: 14,
+                    color: AppColors.accent,
+                    weight: FontWeight.w700,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ],
             ),
           ),
-
-          // Spalten-Eingaben
+          // Columns
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 for (int i = 0; i < columns.length; i++)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: 10),
                     child: _buildColumnField(
                       tableName,
                       i,
                       columns[i],
                       pk,
                       fkList,
+                      surface,
+                      border,
+                      text,
+                      textMid,
                     ),
                   ),
               ],
@@ -220,8 +345,11 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
     String correctValue,
     String? pk,
     List? fkList,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
   ) {
-    // Null-Safe Controller-Zugriff
     if (_tableControllers[tableName] == null ||
         _tableControllers[tableName]!.length <= index) {
       return const SizedBox.shrink();
@@ -233,76 +361,81 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
         ? fkList.any((fk) => fk['column'] == correctValue)
         : false;
 
-    String label = 'Spalte ${index + 1}';
+    String label = 'SPALTE ${index + 1}';
+    Color labelColor = textMid;
     if (isPk && isFk) {
-      label += ' (PK + FK)';
+      label += ' · PK + FK';
+      labelColor = AppColors.warning;
     } else if (isPk) {
-      label += ' (PK)';
+      label += ' · PK';
+      labelColor = AppColors.warning;
     } else if (isFk) {
-      label += ' (FK)';
+      label += ' · FK';
+      labelColor = AppColors.success;
+    }
+
+    Color fieldColor = surface;
+    Color fieldBorder = border;
+    if (isChecked) {
+      final ok =
+          fieldResults[tableName] != null &&
+          index < fieldResults[tableName]!.length &&
+          fieldResults[tableName]![index];
+      fieldColor = ok
+          ? AppColors.success.withOpacity(0.08)
+          : AppColors.error.withOpacity(0.08);
+      fieldBorder = ok
+          ? AppColors.success.withOpacity(0.5)
+          : AppColors.error.withOpacity(0.5);
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-            color: isPk
-                ? Colors.amber[800]
-                : (isFk ? Colors.green[800] : Colors.grey[700]),
-          ),
-        ),
+        Text(label, style: AppTextStyles.monoSmall(labelColor)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
+          style: AppTextStyles.mono(
+            size: 14,
+            color: text,
+            weight: FontWeight.w600,
+            letterSpacing: 0,
+          ),
           decoration: InputDecoration(
-            hintText:
-                'z.B. ${isPk ? "id" : (isFk ? "foreign_id" : "spaltenname")}',
-            border: const OutlineInputBorder(),
             filled: true,
-            fillColor: isChecked
-                ? ((fieldResults[tableName] != null &&
-                          index < fieldResults[tableName]!.length &&
-                          fieldResults[tableName]![index])
-                      ? Colors.green[50]
-                      : Colors.red[50])
-                : Colors.white,
+            fillColor: fieldColor,
+            hintText: isPk ? 'id' : (isFk ? 'foreign_id' : 'spaltenname'),
+            hintStyle: AppTextStyles.mono(
+              size: 13,
+              color: textMid.withOpacity(0.5),
+              weight: FontWeight.w400,
+              letterSpacing: 0,
+            ),
             prefixIcon: isPk
-                ? Icon(Icons.key, color: Colors.amber[700], size: 20)
+                ? Icon(Icons.key_rounded, color: AppColors.warning, size: 16)
                 : (isFk
-                      ? Icon(Icons.link, color: Colors.green[700], size: 20)
+                      ? Icon(
+                          Icons.link_rounded,
+                          color: AppColors.success,
+                          size: 16,
+                        )
                       : null),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _checkAnswers,
-            icon: const Icon(Icons.check),
-            label: const Text('Prüfen'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              backgroundColor: Colors.indigo,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: fieldBorder),
             ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: _showSolution,
-            icon: const Icon(Icons.lightbulb_outline),
-            label: const Text('Lösung'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: fieldBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: AppColors.accent),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
             ),
           ),
         ),
@@ -310,126 +443,69 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
     );
   }
 
-  void _checkAnswers() {
-    final tables = widget.correctAnswers['tables'] as Map<String, dynamic>;
-    bool allCorrect = true;
+  Widget _buildFeedback(Color surface, Color text, Color textMid, Color bg) {
+    final allCorrect = fieldResults.values.every(
+      (list) => list.every((v) => v == true),
+    );
+    final accentColor = allCorrect ? AppColors.success : AppColors.warning;
 
-    for (var tableName in tables.keys) {
-      final tableData = tables[tableName] as Map<String, dynamic>;
-      final correctColumns = List<String>.from(tableData['columns'] as List);
-      final userControllers = _tableControllers[tableName]!;
-
-      for (int i = 0; i < correctColumns.length; i++) {
-        final userInput = userControllers[i].text.trim().toLowerCase();
-        final correct = correctColumns[i].toLowerCase();
-        final isCorrect = userInput == correct;
-
-        fieldResults[tableName]![i] = isCorrect;
-        if (!isCorrect) allCorrect = false;
-      }
-    }
-
-    setState(() {
-      isChecked = true;
-    });
-
-    if (allCorrect) {
-      _showFeedbackDialog(
-        title: 'Perfekt! 🎉',
-        message: 'Alle Tabellen-Strukturen sind korrekt!',
-        isCorrect: true,
-      );
-    } else {
-      _showFeedbackDialog(
-        title: 'Nicht ganz richtig',
-        message: 'Prüfe die rot markierten Felder nochmal.',
-        isCorrect: false,
-      );
-    }
-  }
-
-  void _showSolution() {
-    final tables = widget.correctAnswers['tables'] as Map<String, dynamic>;
-
-    setState(() {
-      for (var tableName in tables.keys) {
-        final tableData = tables[tableName] as Map<String, dynamic>;
-        final correctColumns = List<String>.from(tableData['columns'] as List);
-        final controllers = _tableControllers[tableName]!;
-
-        for (int i = 0; i < correctColumns.length; i++) {
-          controllers[i].text = correctColumns[i];
-          fieldResults[tableName]![i] = true;
-        }
-      }
-      isChecked = true;
-    });
-
-    if (widget.explanation != null) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Lösung & Erklärung'),
-          content: SingleChildScrollView(child: Text(widget.explanation!)),
-          actions: [
-            if (widget.onAnswered != null)
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  widget.onAnswered!(false);
-                },
-                child: const Text('Nächste Frage'),
-              ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [accentColor, accentColor, surface, surface],
         ),
-      );
-    }
-  }
-
-  void _showFeedbackDialog({
-    required String title,
-    required String message,
-    required bool isCorrect,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(message),
-            if (widget.explanation != null && isCorrect) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              const Text(
-                'Erklärung:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                allCorrect
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.lightbulb_outline_rounded,
+                color: accentColor,
+                size: 14,
               ),
-              const SizedBox(height: 8),
-              Text(widget.explanation!),
+              const SizedBox(width: 8),
+              Text(
+                allCorrect ? 'ALLES RICHTIG' : 'ERKLÄRUNG',
+                style: AppTextStyles.monoLabel(accentColor),
+              ),
             ],
-          ],
-        ),
-        actions: [
-          if (isCorrect && widget.onAnswered != null)
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                widget.onAnswered!(false);
-              },
-              child: const Text('Weiter'),
-            ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(isCorrect ? 'OK' : 'Nochmal versuchen'),
           ),
+          if (widget.explanation != null) ...[
+            const SizedBox(height: 10),
+            Text(widget.explanation!, style: AppTextStyles.bodyMedium(textMid)),
+          ],
+          if (widget.onAnswered != null) ...[
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () => widget.onAnswered!(allCorrect),
+                icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                label: const Text('Weiter'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: text,
+                  foregroundColor: bg,
+                  elevation: 0,
+                  textStyle: AppTextStyles.labelLarge(bg),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

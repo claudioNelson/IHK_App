@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/sound_service.dart';
 import '../../services/gemini_service.dart';
 import '../../screens/learning/ai_tutor_chat_screen.dart';
 import '../../services/progress_service.dart';
 import '../../services/flashcard_service.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class NetworkCalculationWidget extends StatefulWidget {
   final String questionText;
@@ -31,29 +35,20 @@ class NetworkCalculationWidget extends StatefulWidget {
 }
 
 class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
-  // Scratch Pad Controller
-  final TextEditingController scratchPadController = TextEditingController();
-
-  // IP Address Controllers (Netzadresse)
+  final scratchPadController = TextEditingController();
   final List<TextEditingController> networkControllers = List.generate(
     4,
     (_) => TextEditingController(),
   );
-
-  // IP Address Controllers (Broadcast)
   final List<TextEditingController> broadcastControllers = List.generate(
     4,
     (_) => TextEditingController(),
   );
-
-  // Subnet Mask Controllers
   final List<TextEditingController> subnetControllers = List.generate(
     4,
     (_) => TextEditingController(),
   );
-
-  // Usable Hosts Controller
-  final TextEditingController hostsController = TextEditingController();
+  final hostsController = TextEditingController();
 
   bool isChecked = false;
   Map<String, bool> fieldResults = {};
@@ -61,8 +56,8 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   final _aiService = GeminiService();
   final _progressService = ProgressService();
   final _flashcardService = FlashcardService();
-  bool _loadingAiHelp = false;
-  String? _aiResponse;
+  bool _loadingHint = false;
+  String? _hintText;
 
   @override
   void initState() {
@@ -73,24 +68,16 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   @override
   void didUpdateWidget(NetworkCalculationWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // Reset wenn neue Frage geladen wird
     if (oldWidget.questionText != widget.questionText) {
       scratchPadController.clear();
-      for (var controller in networkControllers) {
-        controller.clear();
-      }
-      for (var controller in broadcastControllers) {
-        controller.clear();
-      }
-      for (var controller in subnetControllers) {
-        controller.clear();
-      }
+      for (var c in networkControllers) c.clear();
+      for (var c in broadcastControllers) c.clear();
+      for (var c in subnetControllers) c.clear();
       hostsController.clear();
-
       setState(() {
         isChecked = false;
         fieldResults = {};
+        _hintText = null;
       });
     }
   }
@@ -98,294 +85,24 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
   @override
   void dispose() {
     scratchPadController.dispose();
-    for (var controller in networkControllers) {
-      controller.dispose();
-    }
-    for (var controller in broadcastControllers) {
-      controller.dispose();
-    }
-    for (var controller in subnetControllers) {
-      controller.dispose();
-    }
+    for (var c in networkControllers) c.dispose();
+    for (var c in broadcastControllers) c.dispose();
+    for (var c in subnetControllers) c.dispose();
     hostsController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Fragetext
-            Text(
-              widget.questionText,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-
-            // Scratch Pad
-            _buildScratchPad(),
-            const SizedBox(height: 24),
-
-            // Netzadresse Input
-            _buildIPAddressField(
-              label: 'Netzadresse:',
-              controllers: networkControllers,
-              fieldKey: 'network_address',
-            ),
-            const SizedBox(height: 16),
-
-            // Broadcast Input
-            _buildIPAddressField(
-              label: 'Broadcast-Adresse:',
-              controllers: broadcastControllers,
-              fieldKey: 'broadcast_address',
-            ),
-            const SizedBox(height: 16),
-
-            // Nutzbare Hosts
-            _buildHostsField(),
-            const SizedBox(height: 16),
-
-            // Subnetzmaske
-            _buildIPAddressField(
-              label: 'Subnetzmaske (dezimal):',
-              controllers: subnetControllers,
-              fieldKey: 'subnet_mask',
-            ),
-            const SizedBox(height: 24),
-
-            // Buttons
-            _buildActionButtons(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildScratchPad() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              children: [
-                Icon(Icons.edit_note, size: 20, color: Colors.grey[600]),
-                const SizedBox(width: 8),
-                Text(
-                  'Notizen & Berechnungen',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[700],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          TextField(
-            controller: scratchPadController,
-            maxLines: 6,
-            decoration: const InputDecoration(
-              hintText:
-                  'Hier kannst du deine Berechnungen notieren...\n\nZ.B. Subnetzgröße berechnen, IP-Bereiche aufschreiben, etc.',
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(12),
-            ),
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIPAddressField({
-    required String label,
-    required List<TextEditingController> controllers,
-    required String fieldKey,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            for (int i = 0; i < 4; i++) ...[
-              Expanded(
-                child: TextField(
-                  controller: controllers[i],
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  maxLength: 3,
-                  decoration: InputDecoration(
-                    counterText: '',
-                    border: const OutlineInputBorder(),
-                    filled: true,
-                    fillColor: isChecked
-                        ? (fieldResults[fieldKey] == true
-                              ? Colors.green[50]
-                              : Colors.red[50])
-                        : Colors.white,
-                  ),
-                ),
-              ),
-              if (i < 3)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    '.',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-            ],
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHostsField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Nutzbare Hosts:',
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: hostsController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            filled: true,
-            fillColor: isChecked
-                ? (fieldResults['usable_hosts'] == true
-                      ? Colors.green[50]
-                      : Colors.red[50])
-                : Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Column(
-      children: [
-        // KI-Tutor Buttons in einer Reihe
-        Row(
-          children: [
-            // Quick-Hint Button
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _loadingAiHelp ? null : _getAiHint,
-                icon: _loadingAiHelp
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.tips_and_updates, size: 20),
-                label: Text(
-                  _loadingAiHelp ? 'Lädt...' : 'Tipp',
-                  style: const TextStyle(fontSize: 13),
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  side: BorderSide(color: Colors.blue.shade300),
-                  foregroundColor: Colors.blue.shade700,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Chat Button
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _openAiChat,
-                icon: const Icon(Icons.chat, size: 20),
-                label: const Text(
-                  'Ada Chat', // ← GEÄNDERT
-                  style: TextStyle(fontSize: 13),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 8),
-
-        // Prüfen & Lösung Buttons
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _checkAnswers,
-                icon: const Icon(Icons.check),
-                label: const Text('Prüfen'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _showSolution,
-                icon: const Icon(Icons.lightbulb_outline),
-                label: const Text('Lösung'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Future<void> _checkAnswers() async {
-    debugPrint('═══════════════════════════════'); // ← NEU - Auffällig!
-    debugPrint('🔵 _checkAnswers GESTARTET!'); // ← NEU
-    debugPrint('🔵 questionId: ${widget.questionId}'); // ← NEU
-    debugPrint('🔵 moduleId: ${widget.moduleId}'); // ← NEU
-    debugPrint('═══════════════════════════════'); // ← NEU
-    // IP-Adressen zusammenbauen
-    String enteredNetwork = networkControllers
-        .map((c) => c.text.trim())
-        .join('.');
-    String enteredBroadcast = broadcastControllers
-        .map((c) => c.text.trim())
-        .join('.');
-    String enteredSubnet = subnetControllers
-        .map((c) => c.text.trim())
-        .join('.');
-    String enteredHosts = hostsController.text.trim();
+    String network = networkControllers.map((c) => c.text.trim()).join('.');
+    String broadcast = broadcastControllers.map((c) => c.text.trim()).join('.');
+    String subnet = subnetControllers.map((c) => c.text.trim()).join('.');
+    String hosts = hostsController.text.trim();
 
-    // Vergleichen
-    bool networkCorrect =
-        enteredNetwork == widget.correctAnswers['network_address'];
+    bool networkCorrect = network == widget.correctAnswers['network_address'];
     bool broadcastCorrect =
-        enteredBroadcast == widget.correctAnswers['broadcast_address'];
-    bool subnetCorrect = enteredSubnet == widget.correctAnswers['subnet_mask'];
-    bool hostsCorrect = enteredHosts == widget.correctAnswers['usable_hosts'];
+        broadcast == widget.correctAnswers['broadcast_address'];
+    bool subnetCorrect = subnet == widget.correctAnswers['subnet_mask'];
+    bool hostsCorrect = hosts == widget.correctAnswers['usable_hosts'];
 
     setState(() {
       isChecked = true;
@@ -397,39 +114,23 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
       };
     });
 
-    // Feedback + Sounds
     bool allCorrect =
         networkCorrect && broadcastCorrect && subnetCorrect && hostsCorrect;
 
     if (allCorrect) {
       _soundService.playSound(SoundType.correct);
-
-      // Progress speichern
-      if (widget.questionId != null && widget.moduleId != null) {
-        await _progressService.saveKernthemaAnswer(
-          modulId: widget.moduleId!,
-          frageId: widget.questionId!,
-          isCorrect: true,
-        );
-      }
-
-      _showFeedbackDialog(
-        title: 'Richtig! 🎉',
-        message: 'Alle Antworten sind korrekt!',
-        isCorrect: true,
-      );
     } else {
       _soundService.playSound(SoundType.wrong);
+    }
 
-      // Progress speichern
-      if (widget.questionId != null && widget.moduleId != null) {
-        await _progressService.saveKernthemaAnswer(
-          modulId: widget.moduleId!,
-          frageId: widget.questionId!,
-          isCorrect: false,
-        );
+    if (widget.questionId != null && widget.moduleId != null) {
+      await _progressService.saveKernthemaAnswer(
+        modulId: widget.moduleId!,
+        frageId: widget.questionId!,
+        isCorrect: allCorrect,
+      );
 
-        // Flashcard erstellen
+      if (!allCorrect) {
         final richtigeAntwort = widget.correctAnswers.entries
             .map((e) => '${e.key}: ${e.value}')
             .join('\n');
@@ -441,148 +142,36 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
           themaName: null,
         );
       }
-
-      _showFeedbackDialog(
-        title: 'Nicht ganz richtig',
-        message: 'Prüfe die rot markierten Felder nochmal.',
-        isCorrect: false,
-      );
     }
   }
 
-  void _showFeedbackDialog({
-    required String title,
-    required String message,
-    required bool isCorrect,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(message),
-            if (widget.explanation != null && isCorrect) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              const Text(
-                'Erklärung:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(widget.explanation!),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(isCorrect ? 'OK' : 'Verstanden'),
-          ),
-          if (widget.onAnswered != null)
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                widget.onAnswered!(isCorrect); // ← isCorrect übergeben
-              },
-              child: Text(isCorrect ? 'Weiter' : 'Nächste Frage'),
-            ),
-        ],
-      ),
-    );
-  }
-
-  void _showSolution() {
-    // Felder mit richtigen Antworten füllen
-    final network = widget.correctAnswers['network_address']?.split('.') ?? [];
-    final broadcast =
-        widget.correctAnswers['broadcast_address']?.split('.') ?? [];
-    final subnet = widget.correctAnswers['subnet_mask']?.split('.') ?? [];
-
+  Future<void> _getHint() async {
     setState(() {
-      // Netzadresse
-      for (int i = 0; i < 4 && i < network.length; i++) {
-        networkControllers[i].text = network[i];
-      }
-      // Broadcast
-      for (int i = 0; i < 4 && i < broadcast.length; i++) {
-        broadcastControllers[i].text = broadcast[i];
-      }
-      // Subnet
-      for (int i = 0; i < 4 && i < subnet.length; i++) {
-        subnetControllers[i].text = subnet[i];
-      }
-      // Hosts
-      hostsController.text = widget.correctAnswers['usable_hosts'] ?? '';
-
-      // Alle als richtig markieren
-      isChecked = true;
-      fieldResults = {
-        'network_address': true,
-        'broadcast_address': true,
-        'subnet_mask': true,
-        'usable_hosts': true,
-      };
+      _loadingHint = true;
+      _hintText = null;
     });
-
-    // Erklärung anzeigen
-    if (widget.explanation != null) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Lösung & Erklärung'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSolutionRow(
-                  'Netzadresse',
-                  widget.correctAnswers['network_address'],
-                ),
-                _buildSolutionRow(
-                  'Broadcast',
-                  widget.correctAnswers['broadcast_address'],
-                ),
-                _buildSolutionRow(
-                  'Nutzbare Hosts',
-                  widget.correctAnswers['usable_hosts'],
-                ),
-                _buildSolutionRow(
-                  'Subnetzmaske',
-                  widget.correctAnswers['subnet_mask'],
-                ),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 8),
-                const Text(
-                  'Erklärung:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                Text(widget.explanation!),
-              ],
-            ),
-          ),
-          actions: [
-            if (widget.onAnswered != null)
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  widget.onAnswered!(true); // ← true, da Lösung gezeigt
-                },
-                child: const Text('Nächste Frage'),
-              ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+    try {
+      final currentAttempt =
+          '''
+Netzadresse: ${networkControllers.map((c) => c.text.trim()).join('.')}
+Broadcast: ${broadcastControllers.map((c) => c.text.trim()).join('.')}
+Subnetzmaske: ${subnetControllers.map((c) => c.text.trim()).join('.')}
+Nutzbare Hosts: ${hostsController.text.trim()}
+''';
+      final hint = await _aiService.getHint(
+        question: widget.questionText,
+        topic: 'IP-Subnetting',
+        currentAttempt: currentAttempt,
       );
+      setState(() {
+        _hintText = hint;
+        _loadingHint = false;
+      });
+    } catch (e) {
+      setState(() {
+        _hintText = 'Fehler: $e';
+        _loadingHint = false;
+      });
     }
   }
 
@@ -598,85 +187,496 @@ class _NetworkCalculationWidgetState extends State<NetworkCalculationWidget> {
     );
   }
 
-  Future<void> _getAiHint() async {
-    setState(() {
-      _loadingAiHelp = true;
-      _aiResponse = null;
-    });
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
 
-    try {
-      final currentAttempt =
-          '''
-Netzadresse: ${networkControllers.map((c) => c.text.trim()).join('.')}
-Broadcast: ${broadcastControllers.map((c) => c.text.trim()).join('.')}
-Subnetzmaske: ${subnetControllers.map((c) => c.text.trim()).join('.')}
-Nutzbare Hosts: ${hostsController.text.trim()}
-''';
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Label
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: AppColors.accent),
+              const SizedBox(width: 10),
+              Text(
+                'SUBNETTING',
+                style: AppTextStyles.monoLabel(AppColors.accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
 
-      final hint = await _aiService.getHint(
-        question: widget.questionText,
-        topic: 'IP-Subnetting',
-        currentAttempt: currentAttempt,
-      );
+          // Frage
+          Text(
+            widget.questionText,
+            style: AppTextStyles.instrumentSerif(
+              size: 22,
+              color: text,
+              letterSpacing: -0.6,
+            ),
+          ),
+          const SizedBox(height: 20),
 
-      setState(() {
-        _aiResponse = hint;
-        _loadingAiHelp = false;
-      });
+          // Scratch Pad
+          _buildScratchPad(surface, border, text, textMid, textDim),
+          const SizedBox(height: 20),
 
-      _showAiDialog();
-    } catch (e) {
-      setState(() {
-        _aiResponse = 'Fehler: $e';
-        _loadingAiHelp = false;
-      });
-      _showAiDialog();
-    }
+          // Fields
+          _buildIPField(
+            'NETZADRESSE',
+            networkControllers,
+            'network_address',
+            surface,
+            border,
+            text,
+            textMid,
+            textDim,
+          ),
+          const SizedBox(height: 16),
+          _buildIPField(
+            'BROADCAST',
+            broadcastControllers,
+            'broadcast_address',
+            surface,
+            border,
+            text,
+            textMid,
+            textDim,
+          ),
+          const SizedBox(height: 16),
+          _buildHostsField(surface, border, text, textMid, textDim),
+          const SizedBox(height: 16),
+          _buildIPField(
+            'SUBNETZMASKE',
+            subnetControllers,
+            'subnet_mask',
+            surface,
+            border,
+            text,
+            textMid,
+            textDim,
+          ),
+
+          const SizedBox(height: 20),
+
+          // Check Button
+          if (!isChecked)
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: _checkAnswers,
+                icon: const Icon(Icons.check_rounded, size: 18),
+                label: const Text('Prüfen'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: text,
+                  foregroundColor: bg,
+                  elevation: 0,
+                  textStyle: AppTextStyles.labelLarge(bg),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+
+          // Hint
+          if (_hintText != null) ...[
+            const SizedBox(height: 16),
+            _buildHintBox(surface, textMid),
+          ],
+
+          // Feedback
+          if (isChecked) ...[
+            const SizedBox(height: 16),
+            _buildFeedback(surface, text, textMid, bg),
+          ],
+
+          // Ada Buttons
+          const SizedBox(height: 16),
+          _buildAdaButtons(textMid, border),
+        ],
+      ),
+    );
   }
 
-  void _showAiDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.psychology, color: Colors.blue.shade700),
-            const SizedBox(width: 8),
-            const Text('KI-Tutor'),
-          ],
-        ),
-        content: SingleChildScrollView(child: Text(_aiResponse ?? 'Lädt...')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Verstanden'),
+  Widget _buildScratchPad(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+            child: Row(
+              children: [
+                Icon(Icons.edit_note_rounded, size: 14, color: textMid),
+                const SizedBox(width: 6),
+                Text(
+                  'NOTIZEN & BERECHNUNGEN',
+                  style: AppTextStyles.monoSmall(textMid),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, color: border),
+          TextField(
+            controller: scratchPadController,
+            maxLines: 5,
+            style: AppTextStyles.mono(
+              size: 13,
+              color: text,
+              weight: FontWeight.w500,
+              letterSpacing: 0,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Zwischenrechnungen, IP-Bereiche...',
+              hintStyle: AppTextStyles.mono(
+                size: 12,
+                color: textDim,
+                weight: FontWeight.w400,
+                letterSpacing: 0,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(14),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSolutionRow(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
+  Widget _buildIPField(
+    String label,
+    List<TextEditingController> controllers,
+    String fieldKey,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    Color fieldColor = surface;
+    Color fieldBorder = border;
+    if (isChecked) {
+      fieldColor = fieldResults[fieldKey] == true
+          ? AppColors.success.withOpacity(0.08)
+          : AppColors.error.withOpacity(0.08);
+      fieldBorder = fieldResults[fieldKey] == true
+          ? AppColors.success.withOpacity(0.5)
+          : AppColors.error.withOpacity(0.5);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.monoSmall(textDim)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (int i = 0; i < 4; i++) ...[
+              Expanded(
+                child: TextField(
+                  controller: controllers[i],
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  maxLength: 3,
+                  style: AppTextStyles.mono(
+                    size: 14,
+                    color: text,
+                    weight: FontWeight.w600,
+                    letterSpacing: 0,
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    filled: true,
+                    fillColor: fieldColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: fieldBorder),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: fieldBorder),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: AppColors.accent),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              if (i < 3)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    '.',
+                    style: AppTextStyles.mono(
+                      size: 18,
+                      color: textMid,
+                      weight: FontWeight.w700,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHostsField(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    Color fieldColor = surface;
+    Color fieldBorder = border;
+    if (isChecked) {
+      fieldColor = fieldResults['usable_hosts'] == true
+          ? AppColors.success.withOpacity(0.08)
+          : AppColors.error.withOpacity(0.08);
+      fieldBorder = fieldResults['usable_hosts'] == true
+          ? AppColors.success.withOpacity(0.5)
+          : AppColors.error.withOpacity(0.5);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('NUTZBARE HOSTS', style: AppTextStyles.monoSmall(textDim)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: hostsController,
+          keyboardType: TextInputType.number,
+          style: AppTextStyles.mono(
+            size: 14,
+            color: text,
+            weight: FontWeight.w600,
+            letterSpacing: 0,
+          ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: fieldColor,
+            hintText: 'z.B. 254',
+            hintStyle: AppTextStyles.mono(
+              size: 13,
+              color: textDim,
+              weight: FontWeight.w400,
+              letterSpacing: 0,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: fieldBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: fieldBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: AppColors.accent),
+            ),
+            contentPadding: const EdgeInsets.all(14),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHintBox(Color surface, Color textMid) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [AppColors.accent, AppColors.accent, surface, surface],
+        ),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
+          Row(
+            children: [
+              Icon(
+                Icons.tips_and_updates_outlined,
+                color: AppColors.accent,
+                size: 14,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'TIPP VON ADA',
+                style: AppTextStyles.monoLabel(AppColors.accent),
+              ),
+            ],
           ),
-          Expanded(
-            child: Text(
-              value ?? '—',
-              style: const TextStyle(fontFamily: 'monospace'),
+          const SizedBox(height: 10),
+          Text(_hintText!, style: AppTextStyles.bodyMedium(textMid)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeedback(Color surface, Color text, Color textMid, Color bg) {
+    final allCorrect = fieldResults.values.every((v) => v == true);
+    final accentColor = allCorrect ? AppColors.success : AppColors.warning;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [accentColor, accentColor, surface, surface],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                allCorrect
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.lightbulb_outline_rounded,
+                color: accentColor,
+                size: 14,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                allCorrect ? 'ALLES RICHTIG' : 'PRÜFE DEINE EINGABEN',
+                style: AppTextStyles.monoLabel(accentColor),
+              ),
+            ],
+          ),
+          if (widget.explanation != null) ...[
+            const SizedBox(height: 10),
+            Text(widget.explanation!, style: AppTextStyles.bodyMedium(textMid)),
+          ],
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: widget.onAnswered != null
+                  ? () => widget.onAnswered!(allCorrect)
+                  : null,
+              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+              label: const Text('Weiter'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: text,
+                foregroundColor: bg,
+                elevation: 0,
+                textStyle: AppTextStyles.labelLarge(bg),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAdaButtons(Color textMid, Color border) {
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: _loadingHint ? null : _getHint,
+              icon: _loadingHint
+                  ? SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.accent,
+                      ),
+                    )
+                  : Icon(
+                      Icons.tips_and_updates_outlined,
+                      size: 14,
+                      color: AppColors.accent,
+                    ),
+              label: Text(
+                _loadingHint ? 'Lädt...' : 'Tipp',
+                style: AppTextStyles.mono(
+                  size: 11,
+                  color: AppColors.accent,
+                  weight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppColors.accent.withOpacity(0.3)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: SizedBox(
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: _openAiChat,
+              icon: Icon(Icons.auto_awesome_outlined, size: 14, color: textMid),
+              label: Text(
+                'Ada Chat',
+                style: AppTextStyles.mono(
+                  size: 11,
+                  color: textMid,
+                  weight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: border),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

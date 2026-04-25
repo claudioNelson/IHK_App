@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/sound_service.dart';
 import '../../services/gemini_service.dart';
 import '../../screens/learning/ai_tutor_chat_screen.dart';
 import '../../services/progress_service.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class DnsPortMatchWidget extends StatefulWidget {
   final String questionText;
@@ -33,8 +37,8 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
 
   String? selectedAnswer;
   bool hasAnswered = false;
-  bool _loadingAiHelp = false;
-  String? _aiResponse;
+  bool _loadingHint = false;
+  String? _hintText;
   List<String> _shuffledOptions = [];
 
   @override
@@ -57,174 +61,10 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
       setState(() {
         selectedAnswer = null;
         hasAnswered = false;
-        _aiResponse = null;
+        _hintText = null;
       });
       _shuffleOptions();
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Frage Card
-            Container(
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.indigo.shade50, Colors.white],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.indigo.withOpacity(0.12)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.indigo.withOpacity(0.08),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF3730A3), Color(0xFF4F46E5)],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.help_outline, color: Colors.white, size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text('Frage',
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF4F46E5))),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    widget.questionText,
-                    style: const TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.w500, height: 1.5),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            ...(_buildOptions()),
-
-            const SizedBox(height: 16),
-
-            if (hasAnswered) _buildFeedback(),
-
-            const SizedBox(height: 16),
-
-            _buildAdaButtons(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildOptions() {
-    return _shuffledOptions.asMap().entries.map((entry) {
-      final index = entry.key;
-      final option = entry.value;
-      final isSelected = selectedAnswer == option;
-      final correctAnswer = widget.correctAnswers['correct_answer'] as String;
-      final isCorrect = option == correctAnswer;
-
-      Color? cardColor;
-      if (hasAnswered && isSelected) {
-        cardColor = isCorrect ? Colors.green.shade50 : Colors.red.shade50;
-      } else if (isSelected) {
-        cardColor = Colors.indigo.shade50;
-      }
-
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Material(
-          color: cardColor ?? Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          elevation: isSelected ? 4 : 1,
-          child: InkWell(
-            onTap: hasAnswered ? null : () => _selectAnswer(option),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: hasAnswered && isSelected
-                      ? (isCorrect ? Colors.green : Colors.red)
-                      : (isSelected ? const Color(0xFF4F46E5) : Colors.grey.shade200),
-                  width: hasAnswered && isSelected ? 2 : 1.5,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: hasAnswered && isSelected
-                          ? (isCorrect ? Colors.green : Colors.red)
-                          : (isSelected
-                              ? const Color(0xFF4F46E5)
-                              : Colors.grey.shade200),
-                    ),
-                    child: Center(
-                      child: hasAnswered && isSelected
-                          ? Icon(
-                              isCorrect ? Icons.check : Icons.close,
-                              color: Colors.white,
-                              size: 18,
-                            )
-                          : Text(
-                              String.fromCharCode(65 + index),
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.grey.shade600,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      option,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                        color: hasAnswered && isSelected
-                            ? (isCorrect ? Colors.green.shade900 : Colors.red.shade900)
-                            : Colors.black87,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }).toList();
   }
 
   void _selectAnswer(String answer) async {
@@ -233,8 +73,8 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
       hasAnswered = true;
     });
 
-    final correctAnswer = widget.correctAnswers['correct_answer'] as String;
-    final isCorrect = answer == correctAnswer;
+    final correct = widget.correctAnswers['correct_answer'] as String;
+    final isCorrect = answer == correct;
 
     if (isCorrect) {
       _soundService.playSound(SoundType.correct);
@@ -251,113 +91,10 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
     }
   }
 
-  Widget _buildFeedback() {
-    final correctAnswer = widget.correctAnswers['correct_answer'] as String;
-    final isCorrect = selectedAnswer == correctAnswer;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isCorrect ? Colors.green.shade50 : Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isCorrect ? Colors.green : Colors.orange,
-          width: 2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                isCorrect ? Icons.check_circle : Icons.info,
-                color: isCorrect ? Colors.green.shade700 : Colors.orange.shade700,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                isCorrect ? 'Richtig!' : 'Nicht ganz',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isCorrect ? Colors.green.shade900 : Colors.orange.shade900,
-                ),
-              ),
-            ],
-          ),
-          if (widget.explanation != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              widget.explanation!,
-              style: TextStyle(fontSize: 15, color: Colors.grey.shade800, height: 1.5),
-            ),
-          ],
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: widget.onAnswered != null
-                  ? () => widget.onAnswered!(isCorrect)
-                  : null,
-              icon: const Icon(Icons.arrow_forward),
-              label: Text(isCorrect ? 'Weiter' : 'Nächste Frage'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isCorrect ? Colors.green : Colors.orange,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAdaButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: _loadingAiHelp ? null : _getAiHint,
-            icon: _loadingAiHelp
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.tips_and_updates, size: 20),
-            label: Text(
-              _loadingAiHelp ? 'Lädt...' : 'Tipp',
-              style: const TextStyle(fontSize: 13),
-            ),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              side: BorderSide(color: Colors.blue.shade300),
-              foregroundColor: Colors.blue.shade700,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _openAiChat,
-            icon: const Icon(Icons.chat, size: 20),
-            label: const Text('Ada Chat', style: TextStyle(fontSize: 13)),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _getAiHint() async {
+  Future<void> _getHint() async {
     setState(() {
-      _loadingAiHelp = true;
-      _aiResponse = null;
+      _loadingHint = true;
+      _hintText = null;
     });
 
     try {
@@ -368,47 +105,22 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
 
       final hint = await _aiService.getHint(
         question: widget.questionText,
-        topic: 'Kernthemen',
+        topic: 'DNS & Ports',
         currentAttempt: selectedAnswer != null
             ? 'Meine Antwort: $selectedAnswer'
             : 'Ich bin mir unsicher bei: $contextInfo',
       );
 
       setState(() {
-        _aiResponse = hint;
-        _loadingAiHelp = false;
+        _hintText = hint;
+        _loadingHint = false;
       });
-
-      _showAiDialog();
     } catch (e) {
       setState(() {
-        _aiResponse = 'Fehler: $e';
-        _loadingAiHelp = false;
+        _hintText = 'Fehler: $e';
+        _loadingHint = false;
       });
-      _showAiDialog();
     }
-  }
-
-  void _showAiDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.psychology, color: Colors.blue.shade700),
-            const SizedBox(width: 8),
-            const Text('Ada - Tipp'),
-          ],
-        ),
-        content: SingleChildScrollView(child: Text(_aiResponse ?? 'Lädt...')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Verstanden'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _openAiChat() {
@@ -417,9 +129,361 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
       MaterialPageRoute(
         builder: (_) => AiTutorChatScreen(
           currentQuestion: widget.questionText,
-          topic: 'Kernthemen',
+          topic: 'DNS & Ports',
         ),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Label
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: AppColors.accent),
+              const SizedBox(width: 10),
+              Text('FRAGE', style: AppTextStyles.monoLabel(AppColors.accent)),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Frage
+          Text(
+            widget.questionText,
+            style: AppTextStyles.instrumentSerif(
+              size: 24,
+              color: text,
+              letterSpacing: -0.8,
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Options
+          ..._shuffledOptions.asMap().entries.map((entry) {
+            return _buildOption(
+              entry.key,
+              entry.value,
+              surface,
+              border,
+              text,
+              textMid,
+            );
+          }),
+
+          // Hint
+          if (_hintText != null) ...[
+            const SizedBox(height: 16),
+            _buildHintBox(surface, border, text, textMid),
+          ],
+
+          // Feedback
+          if (hasAnswered) ...[
+            const SizedBox(height: 16),
+            _buildFeedback(surface, border, text, textMid, bg),
+          ],
+
+          // Ada Buttons
+          const SizedBox(height: 16),
+          _buildAdaButtons(text, textMid, border),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOption(
+    int index,
+    String option,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+  ) {
+    final isSelected = selectedAnswer == option;
+    final correct = widget.correctAnswers['correct_answer'] as String;
+    final isCorrect = option == correct;
+    final showResult = hasAnswered && isSelected;
+    final showCorrect = hasAnswered && !isSelected && isCorrect;
+
+    Color borderColor = border;
+    Color bgColor = surface;
+    Color letterColor = textMid;
+    Color letterBg = border;
+
+    if (showResult) {
+      if (isCorrect) {
+        borderColor = AppColors.success;
+        bgColor = AppColors.success.withOpacity(0.05);
+        letterColor = Colors.white;
+        letterBg = AppColors.success;
+      } else {
+        borderColor = AppColors.error;
+        bgColor = AppColors.error.withOpacity(0.05);
+        letterColor = Colors.white;
+        letterBg = AppColors.error;
+      }
+    } else if (showCorrect) {
+      borderColor = AppColors.success.withOpacity(0.5);
+      letterColor = AppColors.success;
+      letterBg = AppColors.success.withOpacity(0.15);
+    } else if (isSelected) {
+      borderColor = AppColors.accent;
+      letterColor = Colors.white;
+      letterBg = AppColors.accent;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: GestureDetector(
+        onTap: hasAnswered ? null : () => _selectAnswer(option),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: letterBg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: showResult
+                      ? Icon(
+                          isCorrect ? Icons.check_rounded : Icons.close_rounded,
+                          color: letterColor,
+                          size: 16,
+                        )
+                      : showCorrect
+                      ? Icon(Icons.check_rounded, color: letterColor, size: 16)
+                      : Text(
+                          String.fromCharCode(65 + index),
+                          style: AppTextStyles.mono(
+                            size: 12,
+                            color: letterColor,
+                            weight: FontWeight.w700,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  option,
+                  style: AppTextStyles.interTight(
+                    size: 15,
+                    weight: isSelected || showCorrect
+                        ? FontWeight.w600
+                        : FontWeight.w500,
+                    color: text,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHintBox(Color surface, Color border, Color text, Color textMid) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [AppColors.accent, AppColors.accent, surface, surface],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.tips_and_updates_outlined,
+                color: AppColors.accent,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'TIPP VON ADA',
+                style: AppTextStyles.monoLabel(AppColors.accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(_hintText!, style: AppTextStyles.bodyMedium(textMid)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeedback(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color bg,
+  ) {
+    final correct = widget.correctAnswers['correct_answer'] as String;
+    final isCorrect = selectedAnswer == correct;
+    final accentColor = isCorrect ? AppColors.success : AppColors.warning;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [accentColor, accentColor, surface, surface],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isCorrect
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.lightbulb_outline_rounded,
+                color: accentColor,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isCorrect ? 'RICHTIG' : 'ERKLÄRUNG',
+                style: AppTextStyles.monoLabel(accentColor),
+              ),
+            ],
+          ),
+          if (widget.explanation != null) ...[
+            const SizedBox(height: 10),
+            Text(widget.explanation!, style: AppTextStyles.bodyMedium(textMid)),
+          ],
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: widget.onAnswered != null
+                  ? () => widget.onAnswered!(isCorrect)
+                  : null,
+              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+              label: const Text('Weiter'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: text,
+                foregroundColor: bg,
+                elevation: 0,
+                textStyle: AppTextStyles.labelLarge(bg),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdaButtons(Color text, Color textMid, Color border) {
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: _loadingHint ? null : _getHint,
+              icon: _loadingHint
+                  ? SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.accent,
+                      ),
+                    )
+                  : Icon(
+                      Icons.tips_and_updates_outlined,
+                      size: 14,
+                      color: AppColors.accent,
+                    ),
+              label: Text(
+                _loadingHint ? 'Lädt...' : 'Tipp',
+                style: AppTextStyles.mono(
+                  size: 11,
+                  color: AppColors.accent,
+                  weight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppColors.accent.withOpacity(0.3)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: SizedBox(
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: _openAiChat,
+              icon: Icon(Icons.auto_awesome_outlined, size: 14, color: textMid),
+              label: Text(
+                'Ada Chat',
+                style: AppTextStyles.mono(
+                  size: 11,
+                  color: textMid,
+                  weight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: border),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/sound_service.dart';
 import '../../screens/learning/ai_tutor_chat_screen.dart';
 import '../../services/gemini_service.dart';
 import '../../services/progress_service.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class RaidCalculationWidget extends StatefulWidget {
   final String questionText;
@@ -27,19 +31,18 @@ class RaidCalculationWidget extends StatefulWidget {
 }
 
 class _RaidCalculationWidgetState extends State<RaidCalculationWidget> {
-  final TextEditingController scratchPadController = TextEditingController();
-  final TextEditingController capacityController = TextEditingController();
-  final TextEditingController faultToleranceController =
-      TextEditingController();
-  final TextEditingController minDrivesController = TextEditingController();
+  final scratchPadController = TextEditingController();
+  final capacityController = TextEditingController();
+  final faultToleranceController = TextEditingController();
+  final minDrivesController = TextEditingController();
 
   bool isChecked = false;
   Map<String, bool> fieldResults = {};
   final _soundService = SoundService();
   final _aiService = GeminiService();
   final _progressService = ProgressService();
-  bool _loadingAiHelp = false;
-  String? _aiResponse;
+  bool _loadingHint = false;
+  String? _hintText;
 
   @override
   void initState() {
@@ -59,279 +62,17 @@ class _RaidCalculationWidgetState extends State<RaidCalculationWidget> {
   @override
   void didUpdateWidget(RaidCalculationWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // Reset wenn neue Frage geladen wird
     if (oldWidget.questionText != widget.questionText) {
       scratchPadController.clear();
       capacityController.clear();
       faultToleranceController.clear();
       minDrivesController.clear();
-
       setState(() {
         isChecked = false;
         fieldResults = {};
+        _hintText = null;
       });
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final raidLevel = widget.correctAnswers['raid_level'] ?? 'RAID';
-    final drives = widget.correctAnswers['drives'] ?? 0;
-    final driveSize = widget.correctAnswers['drive_size'] ?? 0;
-    final unit = widget.correctAnswers['unit'] ?? 'TB';
-
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Fragetext
-            Text(
-              widget.questionText,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-
-            // RAID Info-Box
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade50, Colors.blue.shade100],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.shade300, width: 2),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.storage, size: 32, color: Colors.blue),
-                      const SizedBox(width: 12),
-                      Text(
-                        raidLevel,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade900,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '$drives × $driveSize $unit Festplatten',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.blue.shade800,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Scratch Pad
-            _buildScratchPad(),
-            const SizedBox(height: 24),
-
-            // Input-Felder
-            _buildInputField(
-              label: 'Nutzbare Kapazität ($unit):',
-              controller: capacityController,
-              fieldKey: 'usable_capacity',
-              icon: Icons.storage,
-              color: Colors.green,
-            ),
-            const SizedBox(height: 16),
-
-            _buildInputField(
-              label: 'Ausfalltoleranz (Anzahl Platten):',
-              controller: faultToleranceController,
-              fieldKey: 'fault_tolerance',
-              icon: Icons.shield,
-              color: Colors.orange,
-            ),
-            const SizedBox(height: 16),
-
-            _buildInputField(
-              label: 'Mindestanzahl Platten:',
-              controller: minDrivesController,
-              fieldKey: 'min_drives',
-              icon: Icons.settings,
-              color: Colors.purple,
-            ),
-
-            const SizedBox(height: 24),
-
-            // Buttons
-            _buildActionButtons(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildScratchPad() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              children: [
-                Icon(Icons.edit_note, size: 20, color: Colors.grey[600]),
-                const SizedBox(width: 8),
-                Text(
-                  'Notizen & Berechnungen',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[700],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          TextField(
-            controller: scratchPadController,
-            maxLines: 6,
-            decoration: const InputDecoration(
-              hintText:
-                  'Hier kannst du rechnen...\n\nZ.B. für RAID 5:\n(n-1) × Plattengröße\n= (5-1) × 3TB = 12TB',
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(12),
-            ),
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputField({
-    required String label,
-    required TextEditingController controller,
-    required String fieldKey,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            filled: true,
-            fillColor: isChecked
-                ? (fieldResults[fieldKey] == true
-                      ? Colors.green[50]
-                      : Colors.red[50])
-                : Colors.white,
-            prefixIcon: Icon(icon, color: color, size: 22),
-            hintText: 'Zahl eingeben',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Column(
-      children: [
-        // Ada Buttons
-        Row(
-          children: [
-            // Quick-Hint Button
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _loadingAiHelp ? null : _getAiHint,
-                icon: _loadingAiHelp
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.tips_and_updates, size: 20),
-                label: Text(
-                  _loadingAiHelp ? 'Lädt...' : 'Tipp',
-                  style: const TextStyle(fontSize: 13),
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  side: BorderSide(color: Colors.blue.shade300),
-                  foregroundColor: Colors.blue.shade700,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Ada Chat Button
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _openAiChat,
-                icon: const Icon(Icons.chat, size: 20),
-                label: const Text('Ada Chat', style: TextStyle(fontSize: 13)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 8),
-
-        // Prüfen & Lösung Buttons
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _checkAnswers,
-                icon: const Icon(Icons.check),
-                label: const Text('Prüfen'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor: Colors.blue,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _showSolution,
-                icon: const Icon(Icons.lightbulb_outline),
-                label: const Text('Lösung'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
   }
 
   Future<void> _checkAnswers() async {
@@ -340,161 +81,63 @@ class _RaidCalculationWidgetState extends State<RaidCalculationWidget> {
     final minDrives = minDrivesController.text.trim();
 
     final correctCapacity = widget.correctAnswers['usable_capacity'].toString();
-    final correctFaultTolerance = widget.correctAnswers['fault_tolerance']
-        .toString();
-    final correctMinDrives = widget.correctAnswers['min_drives'].toString();
+    final correctFT = widget.correctAnswers['fault_tolerance'].toString();
+    final correctMin = widget.correctAnswers['min_drives'].toString();
 
     setState(() {
       isChecked = true;
       fieldResults = {
         'usable_capacity': capacity == correctCapacity,
-        'fault_tolerance': faultTolerance == correctFaultTolerance,
-        'min_drives': minDrives == correctMinDrives,
+        'fault_tolerance': faultTolerance == correctFT,
+        'min_drives': minDrives == correctMin,
       };
     });
 
-    bool allCorrect =
-        capacity == correctCapacity &&
-        faultTolerance == correctFaultTolerance &&
-        minDrives == correctMinDrives;
+    bool allCorrect = fieldResults.values.every((v) => v == true);
 
     if (allCorrect) {
       _soundService.playSound(SoundType.correct);
-
-      // Progress speichern
-      if (widget.questionId != null && widget.moduleId != null) {
-        await _progressService.saveKernthemaAnswer(
-          modulId: widget.moduleId!,
-          frageId: widget.questionId!,
-          isCorrect: true,
-        );
-      }
-
-      _showFeedbackDialog(
-        title: 'Richtig! 🎉',
-        message: 'Alle Antworten sind korrekt!',
-        isCorrect: true,
-      );
     } else {
       _soundService.playSound(SoundType.wrong);
+    }
 
-      // Progress speichern
-      if (widget.questionId != null && widget.moduleId != null) {
-        await _progressService.saveKernthemaAnswer(
-          modulId: widget.moduleId!,
-          frageId: widget.questionId!,
-          isCorrect: false,
-        );
-      }
-
-      _showFeedbackDialog(
-        title: 'Nicht ganz richtig',
-        message: 'Prüfe die rot markierten Felder nochmal.',
-        isCorrect: false,
+    if (widget.questionId != null && widget.moduleId != null) {
+      await _progressService.saveKernthemaAnswer(
+        modulId: widget.moduleId!,
+        frageId: widget.questionId!,
+        isCorrect: allCorrect,
       );
     }
   }
 
-  void _showSolution() {
+  Future<void> _getHint() async {
     setState(() {
-      capacityController.text = widget.correctAnswers['usable_capacity']
-          .toString();
-      faultToleranceController.text = widget.correctAnswers['fault_tolerance']
-          .toString();
-      minDrivesController.text = widget.correctAnswers['min_drives'].toString();
-
-      isChecked = true;
-      fieldResults = {
-        'usable_capacity': true,
-        'fault_tolerance': true,
-        'min_drives': true,
-      };
+      _loadingHint = true;
+      _hintText = null;
     });
-
-    if (widget.explanation != null) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Lösung & Erklärung'),
-          content: SingleChildScrollView(child: Text(widget.explanation!)),
-          actions: [
-            if (widget.onAnswered != null)
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  widget.onAnswered!(false);
-                },
-                child: const Text('Nächste Frage'),
-              ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
-  Future<void> _getAiHint() async {
-    setState(() {
-      _loadingAiHelp = true;
-      _aiResponse = null;
-    });
-
     try {
       final raidLevel = widget.correctAnswers['raid_level'] ?? 'RAID';
-      final currentAttempt =
-          '''
-${widget.correctAnswers['drives']} × ${widget.correctAnswers['drive_size']} ${widget.correctAnswers['unit'] ?? 'TB'} in $raidLevel
-
-Meine Antworten:
-- Nutzbare Kapazität: ${capacityController.text.trim()}
-- Ausfalltoleranz: ${faultToleranceController.text.trim()} Platten
-- Mindestanzahl: ${minDrivesController.text.trim()} Platten
-''';
-
       final hint = await _aiService.getHint(
         question: widget.questionText,
         topic: 'RAID & Storage',
-        currentAttempt: currentAttempt,
+        currentAttempt:
+            '''
+${widget.correctAnswers['drives']} × ${widget.correctAnswers['drive_size']} ${widget.correctAnswers['unit'] ?? 'TB'} in $raidLevel
+Kapazität: ${capacityController.text.trim()}
+Ausfalltoleranz: ${faultToleranceController.text.trim()}
+Mindestanzahl: ${minDrivesController.text.trim()}
+''',
       );
-
       setState(() {
-        _aiResponse = hint;
-        _loadingAiHelp = false;
+        _hintText = hint;
+        _loadingHint = false;
       });
-
-      _showAiDialog();
     } catch (e) {
       setState(() {
-        _aiResponse = 'Fehler: $e';
-        _loadingAiHelp = false;
+        _hintText = 'Fehler: $e';
+        _loadingHint = false;
       });
-      _showAiDialog();
     }
-  }
-
-  void _showAiDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.psychology, color: Colors.blue.shade700),
-            const SizedBox(width: 8),
-            const Text('Ada - Tipp'),
-          ],
-        ),
-        content: SingleChildScrollView(child: Text(_aiResponse ?? 'Lädt...')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Verstanden'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _openAiChat() {
@@ -509,47 +152,491 @@ Meine Antworten:
     );
   }
 
-  void _showFeedbackDialog({
-    required String title,
-    required String message,
-    required bool isCorrect,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(message),
-            if (widget.explanation != null && isCorrect) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              const Text(
-                'Erklärung:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    final raidLevel = widget.correctAnswers['raid_level'] ?? 'RAID';
+    final drives = widget.correctAnswers['drives'] ?? 0;
+    final driveSize = widget.correctAnswers['drive_size'] ?? 0;
+    final unit = widget.correctAnswers['unit'] ?? 'TB';
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Label
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: AppColors.accent),
+              const SizedBox(width: 10),
+              Text(
+                'RAID & STORAGE',
+                style: AppTextStyles.monoLabel(AppColors.accent),
               ),
-              const SizedBox(height: 8),
-              Text(widget.explanation!),
             ],
-          ],
-        ),
-        actions: [
-          if (widget.onAnswered != null)
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                widget.onAnswered!(isCorrect);
-              },
-              child: const Text('Weiter'),
+          ),
+          const SizedBox(height: 14),
+
+          // Frage
+          Text(
+            widget.questionText,
+            style: AppTextStyles.instrumentSerif(
+              size: 22,
+              color: text,
+              letterSpacing: -0.6,
             ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(isCorrect ? 'OK' : 'Nochmal versuchen'),
+          ),
+          const SizedBox(height: 20),
+
+          // RAID Info Card
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: border),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0.0, 0.015, 0.015, 1.0],
+                colors: [
+                  AppColors.accentCyan,
+                  AppColors.accentCyan,
+                  surface,
+                  surface,
+                ],
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'KONFIGURATION',
+                        style: AppTextStyles.monoLabel(AppColors.accentCyan),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        raidLevel,
+                        style: AppTextStyles.instrumentSerif(
+                          size: 32,
+                          color: text,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$drives × $driveSize $unit Festplatten',
+                        style: AppTextStyles.mono(
+                          size: 12,
+                          color: textMid,
+                          weight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.storage_rounded,
+                  color: AppColors.accentCyan,
+                  size: 32,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Scratch Pad
+          _buildScratchPad(surface, border, text, textMid, textDim),
+          const SizedBox(height: 20),
+
+          // Fields
+          _buildField(
+            'NUTZBARE KAPAZITÄT',
+            '($unit)',
+            capacityController,
+            'usable_capacity',
+            surface,
+            border,
+            text,
+            textMid,
+            textDim,
+          ),
+          const SizedBox(height: 14),
+          _buildField(
+            'AUSFALLTOLERANZ',
+            '(Platten)',
+            faultToleranceController,
+            'fault_tolerance',
+            surface,
+            border,
+            text,
+            textMid,
+            textDim,
+          ),
+          const SizedBox(height: 14),
+          _buildField(
+            'MINDESTANZAHL PLATTEN',
+            '',
+            minDrivesController,
+            'min_drives',
+            surface,
+            border,
+            text,
+            textMid,
+            textDim,
+          ),
+
+          const SizedBox(height: 20),
+
+          // Check Button
+          if (!isChecked)
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: _checkAnswers,
+                icon: const Icon(Icons.check_rounded, size: 18),
+                label: const Text('Prüfen'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: text,
+                  foregroundColor: bg,
+                  elevation: 0,
+                  textStyle: AppTextStyles.labelLarge(bg),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+
+          // Hint
+          if (_hintText != null) ...[
+            const SizedBox(height: 16),
+            _buildHintBox(surface, textMid),
+          ],
+
+          // Feedback
+          if (isChecked) ...[
+            const SizedBox(height: 16),
+            _buildFeedback(surface, text, textMid, bg),
+          ],
+
+          // Ada Buttons
+          const SizedBox(height: 16),
+          _buildAdaButtons(textMid, border),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScratchPad(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+            child: Row(
+              children: [
+                Icon(Icons.edit_note_rounded, size: 14, color: textMid),
+                const SizedBox(width: 6),
+                Text('NOTIZEN', style: AppTextStyles.monoSmall(textMid)),
+              ],
+            ),
+          ),
+          Divider(height: 1, color: border),
+          TextField(
+            controller: scratchPadController,
+            maxLines: 4,
+            style: AppTextStyles.mono(
+              size: 13,
+              color: text,
+              weight: FontWeight.w500,
+              letterSpacing: 0,
+            ),
+            decoration: InputDecoration(
+              hintText: 'z.B. RAID 5: (n-1) × Plattengröße = ...',
+              hintStyle: AppTextStyles.mono(
+                size: 12,
+                color: textDim,
+                weight: FontWeight.w400,
+                letterSpacing: 0,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(14),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildField(
+    String label,
+    String suffix,
+    TextEditingController controller,
+    String fieldKey,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    Color fieldColor = surface;
+    Color fieldBorder = border;
+    if (isChecked) {
+      fieldColor = fieldResults[fieldKey] == true
+          ? AppColors.success.withOpacity(0.08)
+          : AppColors.error.withOpacity(0.08);
+      fieldBorder = fieldResults[fieldKey] == true
+          ? AppColors.success.withOpacity(0.5)
+          : AppColors.error.withOpacity(0.5);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(label, style: AppTextStyles.monoSmall(textDim)),
+            if (suffix.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Text(suffix, style: AppTextStyles.monoSmall(textDim)),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          style: AppTextStyles.mono(
+            size: 14,
+            color: text,
+            weight: FontWeight.w600,
+            letterSpacing: 0,
+          ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: fieldColor,
+            hintText: 'Zahl',
+            hintStyle: AppTextStyles.mono(
+              size: 13,
+              color: textDim,
+              weight: FontWeight.w400,
+              letterSpacing: 0,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: fieldBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: fieldBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: AppColors.accent),
+            ),
+            contentPadding: const EdgeInsets.all(14),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHintBox(Color surface, Color textMid) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [AppColors.accent, AppColors.accent, surface, surface],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.tips_and_updates_outlined,
+                color: AppColors.accent,
+                size: 14,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'TIPP VON ADA',
+                style: AppTextStyles.monoLabel(AppColors.accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(_hintText!, style: AppTextStyles.bodyMedium(textMid)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeedback(Color surface, Color text, Color textMid, Color bg) {
+    final allCorrect = fieldResults.values.every((v) => v == true);
+    final accentColor = allCorrect ? AppColors.success : AppColors.warning;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [accentColor, accentColor, surface, surface],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                allCorrect
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.lightbulb_outline_rounded,
+                color: accentColor,
+                size: 14,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                allCorrect ? 'ALLES RICHTIG' : 'ERKLÄRUNG',
+                style: AppTextStyles.monoLabel(accentColor),
+              ),
+            ],
+          ),
+          if (widget.explanation != null) ...[
+            const SizedBox(height: 10),
+            Text(widget.explanation!, style: AppTextStyles.bodyMedium(textMid)),
+          ],
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: widget.onAnswered != null
+                  ? () => widget.onAnswered!(allCorrect)
+                  : null,
+              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+              label: const Text('Weiter'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: text,
+                foregroundColor: bg,
+                elevation: 0,
+                textStyle: AppTextStyles.labelLarge(bg),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdaButtons(Color textMid, Color border) {
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: _loadingHint ? null : _getHint,
+              icon: _loadingHint
+                  ? SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.accent,
+                      ),
+                    )
+                  : Icon(
+                      Icons.tips_and_updates_outlined,
+                      size: 14,
+                      color: AppColors.accent,
+                    ),
+              label: Text(
+                _loadingHint ? 'Lädt...' : 'Tipp',
+                style: AppTextStyles.mono(
+                  size: 11,
+                  color: AppColors.accent,
+                  weight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppColors.accent.withOpacity(0.3)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: SizedBox(
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: _openAiChat,
+              icon: Icon(Icons.auto_awesome_outlined, size: 14, color: textMid),
+              label: Text(
+                'Ada Chat',
+                style: AppTextStyles.mono(
+                  size: 11,
+                  color: textMid,
+                  weight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: border),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

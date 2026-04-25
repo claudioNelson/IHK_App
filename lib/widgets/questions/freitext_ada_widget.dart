@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../services/sound_service.dart';
 import '../../../services/gemini_service.dart';
 import '../../../services/progress_service.dart';
 import '../../../screens/learning/ai_tutor_chat_screen.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 import 'dart:convert';
 
 class FreitextAdaWidget extends StatefulWidget {
@@ -32,7 +36,7 @@ class _FreitextAdaWidgetState extends State<FreitextAdaWidget> {
   final _aiService = GeminiService();
   final _progressService = ProgressService();
   final _answerController = TextEditingController();
-  
+
   bool _isEvaluating = false;
   bool _hasEvaluated = false;
   Map<String, dynamic>? _evaluation;
@@ -46,7 +50,6 @@ class _FreitextAdaWidgetState extends State<FreitextAdaWidget> {
   @override
   void didUpdateWidget(FreitextAdaWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
     if (oldWidget.questionText != widget.questionText) {
       _answerController.clear();
       setState(() {
@@ -62,278 +65,23 @@ class _FreitextAdaWidgetState extends State<FreitextAdaWidget> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final maxLength = widget.correctAnswers['max_length'] as int? ?? 500;
-
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Info-Banner
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.purple.shade50, Colors.white],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.purple.shade200, width: 2),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.psychology, color: Colors.purple.shade700, size: 32),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Freitext-Aufgabe',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple.shade900,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Ada bewertet deine Antwort',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.purple.shade700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Frage
-            Text(
-              widget.questionText,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                height: 1.4,
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Antwort-Feld
-            TextField(
-              controller: _answerController,
-              maxLines: 8,
-              maxLength: maxLength,
-              enabled: !_hasEvaluated,
-              decoration: InputDecoration(
-                hintText: 'Schreibe deine Antwort hier...\n\nNimm dir Zeit und erkläre es in eigenen Worten.',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: _hasEvaluated ? Colors.grey.shade100 : Colors.white,
-                counterStyle: TextStyle(color: Colors.grey.shade600),
-              ),
-              style: const TextStyle(fontSize: 15, height: 1.5),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Evaluation Result
-            if (_evaluation != null) _buildEvaluationResult(),
-
-            const SizedBox(height: 16),
-
-            // Buttons
-            _buildActionButtons(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEvaluationResult() {
-    final score = _evaluation!['score'] as int;
-    final feedback = _evaluation!['feedback'] as String;
-    final isGood = score >= 70;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isGood ? Colors.green.shade50 : Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isGood ? Colors.green : Colors.orange,
-          width: 2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isGood ? Colors.green : Colors.orange,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '$score%',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  isGood ? 'Gut gemacht! 🎉' : 'Noch verbesserbar 💪',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: isGood ? Colors.green.shade900 : Colors.orange.shade900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 16),
-          const Text(
-            'Adas Feedback:',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            feedback,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey.shade800,
-              height: 1.5,
-            ),
-          ),
-          if (widget.explanation != null) ...[
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
-            const Text(
-              'Musterlösung:',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.explanation!,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade700,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Column(
-      children: [
-        // Ada Chat Button (immer sichtbar)
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _openAiChat,
-            icon: const Icon(Icons.chat, size: 20),
-            label: const Text('Mit Ada besprechen'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // Prüfen / Weiter Buttons
-        if (!_hasEvaluated)
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _isEvaluating ? null : _evaluateAnswer,
-              icon: _isEvaluating
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation(Colors.white),
-                      ),
-                    )
-                  : const Icon(Icons.psychology),
-              label: Text(_isEvaluating ? 'Ada denkt nach...' : 'Von Ada prüfen lassen'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                backgroundColor: Colors.purple,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          )
-        else if (widget.onAnswered != null)
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => widget.onAnswered!(false),
-              icon: const Icon(Icons.arrow_forward),
-              label: const Text('Weiter'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
   Future<void> _evaluateAnswer() async {
     final answer = _answerController.text.trim();
-    
     if (answer.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte schreibe eine Antwort!')),
+        SnackBar(
+          content: const Text('Bitte schreibe eine Antwort'),
+          backgroundColor: AppColors.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
-    setState(() {
-      _isEvaluating = true;
-    });
+    setState(() => _isEvaluating = true);
 
     try {
       final evaluation = await _evaluateWithAda(answer);
-      
       setState(() {
         _evaluation = evaluation;
         _hasEvaluated = true;
@@ -343,14 +91,12 @@ class _FreitextAdaWidgetState extends State<FreitextAdaWidget> {
       final score = evaluation['score'] as int;
       final isCorrect = score >= 70;
 
-      // Sound abspielen
       if (isCorrect) {
         _soundService.playSound(SoundType.correct);
       } else {
         _soundService.playSound(SoundType.wrong);
       }
 
-      // Progress speichern
       if (widget.questionId != null && widget.moduleId != null) {
         await _progressService.saveKernthemaAnswer(
           modulId: widget.moduleId!,
@@ -359,20 +105,25 @@ class _FreitextAdaWidgetState extends State<FreitextAdaWidget> {
         );
       }
     } catch (e) {
-      setState(() {
-        _isEvaluating = false;
-      });
+      setState(() => _isEvaluating = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler: $e')),
+        SnackBar(
+          content: Text('Fehler: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
 
   Future<Map<String, dynamic>> _evaluateWithAda(String userAnswer) async {
-    final criteria = List<String>.from(widget.correctAnswers['bewertungskriterien'] ?? []);
-    
-    final prompt = '''Du bist Ada, eine geduldige KI-Tutorin für IHK-Prüfungsvorbereitung.
+    final criteria = List<String>.from(
+      widget.correctAnswers['bewertungskriterien'] ?? [],
+    );
+
+    final prompt =
+        '''Du bist Ada, eine geduldige KI-Tutorin für IHK-Prüfungsvorbereitung.
 
 **Aufgabe:** Bewerte die Antwort des Azubis auf diese Freitext-Frage.
 
@@ -400,26 +151,25 @@ ${criteria.map((c) => '- $c').join('\n')}
 }''';
 
     final response = await _aiService.generateContent(prompt);
-    
-    // Parse JSON response
+
     try {
-      final cleaned = response.trim().replaceAll('```json', '').replaceAll('```', '').trim();
+      final cleaned = response
+          .trim()
+          .replaceAll('```json', '')
+          .replaceAll('```', '')
+          .trim();
       final parsed = Map<String, dynamic>.from(
         const JsonDecoder().convert(cleaned) as Map,
       );
-      
       return {
         'score': parsed['score'] as int,
         'feedback': parsed['feedback'] as String,
       };
     } catch (e) {
-      print('❌ JSON Parse Fehler: $e');
-      print('Response: $response');
-      
-      // Fallback
       return {
         'score': 50,
-        'feedback': 'Fehler beim Auswerten. Bitte versuche es nochmal oder sprich mit Ada im Chat.',
+        'feedback':
+            'Fehler beim Auswerten. Bitte versuche es nochmal oder sprich mit Ada im Chat.',
       };
     }
   }
@@ -430,8 +180,246 @@ ${criteria.map((c) => '- $c').join('\n')}
       MaterialPageRoute(
         builder: (_) => AiTutorChatScreen(
           currentQuestion: widget.questionText,
-          topic: 'IT-Sicherheit',
+          topic: 'Freitext',
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    final maxLength = widget.correctAnswers['max_length'] as int? ?? 500;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Type Label
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: AppColors.accent),
+              const SizedBox(width: 10),
+              Text(
+                'FREITEXT · ADA BEWERTET',
+                style: AppTextStyles.monoLabel(AppColors.accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Frage
+          Text(
+            widget.questionText,
+            style: AppTextStyles.instrumentSerif(
+              size: 24,
+              color: text,
+              letterSpacing: -0.8,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Antwort-Feld
+          Text('DEINE ANTWORT', style: AppTextStyles.monoSmall(textDim)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _answerController,
+            maxLines: 8,
+            maxLength: maxLength,
+            enabled: !_hasEvaluated,
+            style: AppTextStyles.bodyMedium(text),
+            decoration: InputDecoration(
+              hintText: 'Schreibe deine Antwort in eigenen Worten...',
+              hintStyle: AppTextStyles.bodyMedium(textDim),
+              filled: true,
+              fillColor: _hasEvaluated ? bg : surface,
+              counterStyle: AppTextStyles.monoSmall(textDim),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: AppColors.accent),
+              ),
+              contentPadding: const EdgeInsets.all(14),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Evaluation
+          if (_evaluation != null) ...[
+            _buildEvaluation(surface, border, text, textMid),
+            const SizedBox(height: 16),
+          ],
+
+          // Action Buttons
+          if (!_hasEvaluated) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: _isEvaluating ? null : _evaluateAnswer,
+                icon: _isEvaluating
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: bg,
+                        ),
+                      )
+                    : const Icon(Icons.auto_awesome_rounded, size: 18),
+                label: Text(
+                  _isEvaluating ? 'Ada denkt nach...' : 'Von Ada prüfen lassen',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: text,
+                  foregroundColor: bg,
+                  elevation: 0,
+                  textStyle: AppTextStyles.labelLarge(bg),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: _openAiChat,
+                icon: Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  size: 14,
+                  color: textMid,
+                ),
+                label: Text(
+                  'Mit Ada besprechen',
+                  style: AppTextStyles.mono(
+                    size: 11,
+                    color: textMid,
+                    weight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: border),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+          ] else if (widget.onAnswered != null)
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  final score = _evaluation!['score'] as int;
+                  widget.onAnswered!(score >= 70);
+                },
+                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                label: const Text('Weiter'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: text,
+                  foregroundColor: bg,
+                  elevation: 0,
+                  textStyle: AppTextStyles.labelLarge(bg),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEvaluation(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+  ) {
+    final score = _evaluation!['score'] as int;
+    final feedback = _evaluation!['feedback'] as String;
+    final isGood = score >= 70;
+    final accentColor = isGood ? AppColors.success : AppColors.warning;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [accentColor, accentColor, surface, surface],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: accentColor),
+              const SizedBox(width: 10),
+              Text(
+                isGood ? 'GUT GEMACHT' : 'VERBESSERBAR',
+                style: AppTextStyles.monoLabel(accentColor),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$score',
+                style: AppTextStyles.instrumentSerif(
+                  size: 48,
+                  color: text,
+                  letterSpacing: -1.5,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(' / 100', style: AppTextStyles.bodyMedium(textMid)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'ADAS FEEDBACK',
+            style: AppTextStyles.monoSmall(AppColors.accent),
+          ),
+          const SizedBox(height: 6),
+          Text(feedback, style: AppTextStyles.bodyMedium(text)),
+          if (widget.explanation != null) ...[
+            const SizedBox(height: 14),
+            Text('MUSTERLÖSUNG', style: AppTextStyles.monoSmall(textMid)),
+            const SizedBox(height: 6),
+            Text(widget.explanation!, style: AppTextStyles.bodySmall(textMid)),
+          ],
+        ],
       ),
     );
   }
