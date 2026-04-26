@@ -58,7 +58,11 @@ class _ModulListeState extends State<ModulListe> {
 
   Future<void> ladeModule() async {
     try {
-      final response = await supabase.from('module').select().order('id');
+      final response = await supabase
+          .from('module')
+          .select()
+          .neq('kategorie', 'kernthema')
+          .order('id');
       for (var modul in response) {
         final fragen = await supabase
             .from('fragen')

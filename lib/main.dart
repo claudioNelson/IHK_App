@@ -13,6 +13,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_provider.dart';
+import 'services/subscription_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,10 +33,7 @@ void main() async {
   await themeProvider.loadTheme();
 
   runApp(
-    ChangeNotifierProvider.value(
-      value: themeProvider,
-      child: const MyApp(),
-    ),
+    ChangeNotifierProvider.value(value: themeProvider, child: const MyApp()),
   );
 }
 
@@ -84,6 +82,15 @@ class _AppInitializerState extends State<AppInitializer> {
 
       print('✅ Supabase initialisiert');
 
+      // Auf Auth-Änderungen reagieren (Login/Logout)
+      Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+        if (data.event == AuthChangeEvent.signedIn) {
+          SubscriptionService().load();
+        } else if (data.event == AuthChangeEvent.signedOut) {
+          SubscriptionService().clear();
+        }
+      });
+
       final session = Supabase.instance.client.auth.currentSession;
       print(
         '🔐 Aktuelle Session: ${session != null ? "Eingeloggt" : "Nicht eingeloggt"}',
@@ -91,6 +98,7 @@ class _AppInitializerState extends State<AppInitializer> {
 
       if (session != null) {
         await AppCacheService().preloadAllData();
+        await SubscriptionService().load();
       }
 
       await Future.delayed(const Duration(milliseconds: 500));

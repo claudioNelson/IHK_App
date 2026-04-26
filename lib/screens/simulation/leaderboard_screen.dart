@@ -619,7 +619,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               ),
             ),
 
-            // Rang
+            // Rang + Premium Badge
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -642,6 +642,42 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     ),
                   ),
                 ),
+                if (player['is_premium'] == true) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: AppColors.accent.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.workspace_premium_rounded,
+                          color: AppColors.accent,
+                          size: 11,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'PREMIUM',
+                          style: AppTextStyles.mono(
+                            size: 11,
+                            color: AppColors.accent,
+                            weight: FontWeight.w700,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
 

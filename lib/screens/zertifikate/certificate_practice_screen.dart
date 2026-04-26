@@ -7,6 +7,7 @@ import '../../services/sound_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
+import '../../services/question_validator.dart';
 
 class CertificatePracticeScreen extends StatefulWidget {
   final int zertifikatId;
@@ -89,6 +90,12 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen> {
         _questions = list;
         _loading = false;
       });
+
+      QuestionValidator().validateQuestions(
+        questions: list,
+        contextName: widget.certName,
+        contextType: 'zertifikat',
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);

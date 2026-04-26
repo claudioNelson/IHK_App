@@ -15,6 +15,7 @@ import '../../services/flashcard_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
+import '../../services/question_validator.dart';
 
 class TestFragen extends StatefulWidget {
   final int modulId;
@@ -120,6 +121,11 @@ class _TestFragenState extends State<TestFragen>
         fragen = frageListe;
         loading = false;
       });
+      QuestionValidator().validateQuestions(
+        questions: frageListe,
+        contextName: widget.modulName,
+        contextType: 'modul',
+      );
 
       await _loadProgress();
       _fadeController.forward(from: 0);

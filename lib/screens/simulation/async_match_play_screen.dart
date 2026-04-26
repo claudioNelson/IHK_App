@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/async_duel_service.dart';
 import '../../../async_match_progress.dart';
@@ -7,6 +8,9 @@ import '../../../widgets/report_dialog.dart';
 import '../../../services/sound_service.dart';
 import '../../services/badge_service.dart';
 import '../../widgets/badge_celebration_dialog.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/theme_provider.dart';
 
 class AsyncMatchPlayPage extends StatefulWidget {
   final String matchId;
@@ -33,10 +37,10 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   int? _selectedAnswerId;
   bool _waitingForOpponent = false;
 
-  // NEU - Für fill_blank und sequence
-  Map<int, String> _fillBlankAnswers = {}; // Lücke-Index -> Antwort
-  List<String> _sequenceOrder = []; // Aktuelle Reihenfolge
+  Map<int, String> _fillBlankAnswers = {};
+  List<String> _sequenceOrder = [];
   Map<int, List<dynamic>> _shuffledAnswers = {};
+  final Map<int, TextEditingController> _freitextControllers = {};
 
   bool _matchCompleted = false;
   Map<String, dynamic>? _finalScores;
@@ -58,34 +62,25 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   @override
   void dispose() {
     _stopTimer();
+    for (final c in _freitextControllers.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
   Future<void> _init() async {
     try {
-      print('🟢 _init() gestartet für Match: ${widget.matchId}');
-
-      // Sound Service initialisieren
       await _soundService.init();
-
       _store ??= await AsyncMatchProgressStore.instance;
       _progress = await _store!.ensure(_userId, widget.matchId);
 
-      print('🟡 Lade Match-Daten...');
       final data = await _svc.loadMatch(widget.matchId);
-      print('🟢 Match-Daten geladen: $data');
-
       final q = (data['questions'] as List<dynamic>).toList()
         ..sort((a, b) => (a['idx'] as int).compareTo(b['idx'] as int));
-
-      print('🟢 Anzahl Fragen: ${q.length}');
       _questions = q;
 
       final myAnswers = data['myAnswers'] as List<dynamic>;
-      print('🟢 Bereits beantwortete Fragen: ${myAnswers.length}');
-
       if (myAnswers.length >= _questions.length) {
-        print('✅ Alle Fragen bereits beantwortet, finalisiere...');
         await _tryFinalize();
         return;
       }
@@ -103,19 +98,16 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       _progress!.currentIdx = _idx;
       await _store!.save(_progress!);
 
-      print('🟢 Starte bei Frage $_idx');
-
-      // Timer starten
       _startTimer();
-    } catch (e, stackTrace) {
-      print('🔴 FEHLER in _init:');
-      print('🔴 Error: $e');
-      print('🔴 StackTrace: $stackTrace');
-
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Fehler beim Laden: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler beim Laden: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -130,11 +122,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         timer.cancel();
         return;
       }
-
-      setState(() {
-        _timeLeft--;
-      });
-
+      setState(() => _timeLeft--);
       if (_timeLeft <= 0) {
         timer.cancel();
         _onTimeUp();
@@ -148,10 +136,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
 
   void _onTimeUp() {
     if (_answered || _submitting) return;
-
-    _soundService.playSound(SoundType.timeUp); // ← NEU
-
-    print('⏰ Zeit abgelaufen für Frage $_idx');
+    _soundService.playSound(SoundType.timeUp);
 
     setState(() {
       _answered = true;
@@ -164,10 +149,8 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     });
   }
 
-  // Für Multiple Choice
   Future<void> _submitMultipleChoice(int answerId, bool correct) async {
     if (_submitting || _answered) return;
-
     _stopTimer();
 
     setState(() {
@@ -187,7 +170,11 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       if (!ok) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Antwort nicht akzeptiert ❌')),
+            SnackBar(
+              content: const Text('Antwort nicht akzeptiert'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
           setState(() {
             _submitting = false;
@@ -205,7 +192,6 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         _wasCorrect = correct;
       });
 
-      print('🔊 Spiele Sound: ${correct ? "correct" : "wrong"}');
       if (correct) {
         _soundService.playSound(SoundType.correct);
       } else {
@@ -213,9 +199,13 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       setState(() {
         _submitting = false;
         _selectedAnswerId = null;
@@ -230,12 +220,9 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     dynamic userAnswer,
   ) async {
     if (_submitting || _answered) return;
-
     _stopTimer();
 
-    setState(() {
-      _submitting = true;
-    });
+    setState(() => _submitting = true);
 
     final q = _questions[_idx];
 
@@ -243,17 +230,19 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       final ok = await _svc.submitAnswer(
         matchId: widget.matchId,
         idx: q['idx'] as int,
-        answerId: 1, // Dummy-ID für Supabase
+        answerId: 1,
       );
 
       if (!ok) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Antwort nicht akzeptiert ❌')),
+            SnackBar(
+              content: const Text('Antwort nicht akzeptiert'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
-          setState(() {
-            _submitting = false;
-          });
+          setState(() => _submitting = false);
         }
         return;
       }
@@ -272,18 +261,19 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         _soundService.playSound(SoundType.wrong);
       }
 
-      // NEU: Automatisch weiter nach kurzer Pause
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted) _next();
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
-      setState(() {
-        _submitting = false;
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() => _submitting = false);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -300,8 +290,8 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       _answered = false;
       _wasCorrect = false;
       _selectedAnswerId = null;
-      _fillBlankAnswers = {}; // NEU - Reset
-      _sequenceOrder = []; // NEU - Reset
+      _fillBlankAnswers = {};
+      _sequenceOrder = [];
     });
 
     _progress!.currentIdx = _idx;
@@ -312,8 +302,6 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   Future<void> _tryFinalize() async {
     try {
       final status = await _svc.tryFinalize(widget.matchId);
-      print('🏁 Finalize-Status: $status');
-
       if (status == 'completed' || status == 'finalized') {
         final scores = await _svc.loadScores(widget.matchId);
         setState(() {
@@ -321,22 +309,17 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
           _finalScores = scores;
         });
       } else if (status == 'waiting') {
-        setState(() {
-          _waitingForOpponent = true;
-        });
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Match-Status: $status')));
-        }
+        setState(() => _waitingForOpponent = true);
       }
     } catch (e) {
-      print('🔴 Fehler beim Finalisieren: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Fehler beim Abschluss: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler beim Abschluss: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -347,132 +330,404 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     return frageData['question_type'] as String? ?? 'multiple_choice';
   }
 
+  Color _timerColor() {
+    if (_timeLeft <= 5) return AppColors.error;
+    if (_timeLeft <= 10) return AppColors.warning;
+    return AppColors.accent;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('AsyncMatch')),
-        body: const Center(child: CircularProgressIndicator()),
+        backgroundColor: bg,
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.accent),
+        ),
       );
     }
+
     if (_waitingForOpponent) {
-      return _buildWaitingScreen();
+      return _buildWaitingScreen(bg, surface, border, text, textMid, textDim);
     }
+
     if (_matchCompleted && _finalScores != null) {
-      return _buildResultScreen();
+      return _buildResultScreen(bg, surface, border, text, textMid, textDim);
     }
+
     if (_questions.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('AsyncMatch')),
-        body: const Center(child: Text('Keine Fragen verfügbar')),
-      );
-    }
-    final questionType = _getQuestionType();
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Frage ${_idx + 1} / ${_questions.length}'),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3730A3), Color(0xFF6366F1)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        backgroundColor: bg,
+        body: Center(
+          child: Text(
+            'Keine Fragen verfügbar',
+            style: AppTextStyles.h3(textMid),
           ),
         ),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          // Timer (unverändert)
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: Column(
+        children: [
+          // ─── APPBAR ─────────────────────────
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close_rounded, color: text, size: 22),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ASYNC MATCH',
+                          style: AppTextStyles.monoLabel(textMid),
+                        ),
+                        Text(
+                          'FRAGE ${(_idx + 1).toString().padLeft(2, '0')} / ${_questions.length.toString().padLeft(2, '0')}',
+                          style: AppTextStyles.monoSmall(textDim),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Timer Pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _timerColor().withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: _timerColor().withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _timeLeft <= 5
+                              ? Icons.alarm_rounded
+                              : Icons.timer_outlined,
+                          size: 13,
+                          color: _timerColor(),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          '${_timeLeft}s',
+                          style: AppTextStyles.mono(
+                            size: 12,
+                            color: _timerColor(),
+                            weight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Report Button
+                  IconButton(
+                    onPressed: () {
+                      if (_questions.isEmpty || _idx >= _questions.length) {
+                        return;
+                      }
+                      final q = _questions[_idx];
+                      final frageId = q['fragen']['id'] as int;
+                      showDialog(
+                        context: context,
+                        builder: (context) => ReportDialog(
+                          frageId: frageId,
+                          screenType: 'async_match',
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.flag_outlined, color: textMid, size: 20),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ─── PROGRESS BAR ───────────────────
+          LinearProgressIndicator(
+            value: (_idx + 1) / _questions.length,
+            backgroundColor: border,
+            valueColor: const AlwaysStoppedAnimation(AppColors.accent),
+            minHeight: 2,
+          ),
+
+          // ─── CONTENT ────────────────────────
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+              child: _buildQuestionByType(
+                surface,
+                border,
+                text,
+                textMid,
+                textDim,
+                bg,
+              ),
+            ),
+          ),
+
+          // ─── WEITER BUTTON ──────────────────
+          if (_answered)
+            Container(
+              decoration: BoxDecoration(
+                color: surface,
+                border: Border(top: BorderSide(color: border)),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: _next,
+                      icon: Icon(
+                        _idx + 1 >= _questions.length
+                            ? Icons.check_rounded
+                            : Icons.arrow_forward_rounded,
+                        size: 18,
+                      ),
+                      label: Text(
+                        _idx + 1 >= _questions.length ? 'Beenden' : 'Weiter',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: text,
+                        foregroundColor: bg,
+                        elevation: 0,
+                        textStyle: AppTextStyles.labelLarge(bg),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuestionByType(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+    Color bg,
+  ) {
+    final type = _getQuestionType();
+
+    if (type == 'fill_blank') {
+      return _buildFillBlank(surface, border, text, textMid, textDim, bg);
+    } else if (type == 'sequence') {
+      return _buildSequence(surface, border, text, textMid, textDim, bg);
+    } else if (type == 'dns_port_match') {
+      return _buildDnsPortMatch(surface, border, text, textMid, textDim, bg);
+    } else if (type == 'freitext_ada') {
+      return _buildFreitext(surface, border, text, textMid, textDim, bg);
+    }
+    return _buildMultipleChoice(surface, border, text, textMid, textDim, bg);
+  }
+
+  // ═══════════════════════════════════════════
+  // MULTIPLE CHOICE
+  // ═══════════════════════════════════════════
+  Widget _buildMultipleChoice(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+    Color bg,
+  ) {
+    final q = _questions[_idx];
+    final frageData = q['fragen'];
+    final frageText = frageData['frage'] as String;
+
+    if (!_shuffledAnswers.containsKey(_idx)) {
+      final list = (frageData['antworten'] as List<dynamic>? ?? []).toList();
+      list.shuffle();
+      _shuffledAnswers[_idx] = list;
+    }
+    final antworten = _shuffledAnswers[_idx]!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Label
+        Row(
+          children: [
+            Container(width: 16, height: 1, color: AppColors.accent),
+            const SizedBox(width: 10),
+            Text('FRAGE', style: AppTextStyles.monoLabel(AppColors.accent)),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          frageText,
+          style: AppTextStyles.instrumentSerif(
+            size: 22,
+            color: text,
+            letterSpacing: -0.6,
+          ),
+        ),
+        const SizedBox(height: 24),
+        ..._buildMCOptions(antworten, surface, border, text, textMid),
+      ],
+    );
+  }
+
+  List<Widget> _buildMCOptions(
+    List<dynamic> antworten,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+  ) {
+    return antworten.asMap().entries.map((entry) {
+      final i = entry.key;
+      final a = entry.value;
+      final aid = a['id'] as int;
+      final antwortText = a['text'] as String;
+      final correct = a['ist_richtig'] == true;
+      final isSelected = _selectedAnswerId == aid;
+      final showResult = _answered && isSelected;
+      final showCorrect = _answered && !isSelected && correct;
+
+      Color borderColor = border;
+      Color bgColor = surface;
+      Color letterColor = textMid;
+      Color letterBg = border;
+
+      if (showResult) {
+        if (correct) {
+          borderColor = AppColors.success;
+          bgColor = AppColors.success.withOpacity(0.05);
+          letterColor = Colors.white;
+          letterBg = AppColors.success;
+        } else {
+          borderColor = AppColors.error;
+          bgColor = AppColors.error.withOpacity(0.05);
+          letterColor = Colors.white;
+          letterBg = AppColors.error;
+        }
+      } else if (showCorrect) {
+        borderColor = AppColors.success.withOpacity(0.5);
+        letterColor = AppColors.success;
+        letterBg = AppColors.success.withOpacity(0.15);
+      } else if (isSelected) {
+        borderColor = AppColors.accent;
+        letterColor = Colors.white;
+        letterBg = AppColors.accent;
+      }
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: GestureDetector(
+          onTap: _answered || _submitting
+              ? null
+              : () => _submitMultipleChoice(aid, correct),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: _timeLeft <= 5
-                  ? Colors.red
-                  : _timeLeft <= 10
-                  ? Colors.orange
-                  : Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.timer, color: Colors.white, size: 20),
-                const SizedBox(width: 4),
-                Text(
-                  '$_timeLeft',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: letterBg,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: showResult
+                        ? Icon(
+                            correct ? Icons.check_rounded : Icons.close_rounded,
+                            color: letterColor,
+                            size: 16,
+                          )
+                        : showCorrect
+                        ? Icon(
+                            Icons.check_rounded,
+                            color: letterColor,
+                            size: 16,
+                          )
+                        : Text(
+                            String.fromCharCode(65 + i),
+                            style: AppTextStyles.mono(
+                              size: 12,
+                              color: letterColor,
+                              weight: FontWeight.w700,
+                              letterSpacing: 0,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      antwortText,
+                      style: AppTextStyles.interTight(
+                        size: 15,
+                        weight: isSelected || showCorrect
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: text,
+                        height: 1.4,
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          // Report Button (unverändert)
-          IconButton(
-            icon: const Icon(Icons.flag_outlined),
-            tooltip: 'Problem melden',
-            onPressed: () {
-              if (_questions.isEmpty || _idx >= _questions.length) return;
-              final q = _questions[_idx];
-              final frageData = q['fragen'];
-              final frageId = frageData['id'] as int;
-              showDialog(
-                context: context,
-                builder: (context) =>
-                    ReportDialog(frageId: frageId, screenType: 'async_match'),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_submitting) const LinearProgressIndicator(),
-            const SizedBox(height: 16),
-            // Render based on question type
-            Expanded(
-              child: SingleChildScrollView(
-                // NEU:
-                child: questionType == 'fill_blank'
-                    ? _buildFillBlankQuestion()
-                    : questionType == 'sequence'
-                    ? _buildSequenceQuestion()
-                    : questionType == 'dns_port_match'
-                    ? _buildDnsPortMatchQuestion()
-                    : questionType == 'freitext_ada'
-                    ? _buildFreitextQuestion()
-                    : _buildMultipleChoiceQuestion(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (_answered)
-              ElevatedButton(
-                onPressed: _next,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.indigo,
-                ),
-                child: Text(
-                  _idx + 1 >= _questions.length ? 'Beenden' : 'Weiter',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-          ],
         ),
-      ),
-    );
+      );
+    }).toList();
   }
 
-  Widget _buildDnsPortMatchQuestion() {
+  // ═══════════════════════════════════════════
+  // DNS PORT MATCH (intern als MC mit options)
+  // ═══════════════════════════════════════════
+  Widget _buildDnsPortMatch(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+    Color bg,
+  ) {
     final q = _questions[_idx];
     final frageData = q['fragen'];
     final frageText = frageData['frage'] as String;
@@ -483,7 +738,15 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
 
     if (!_shuffledAnswers.containsKey(_idx)) {
       final list = options
-          .map((o) => {'text': o, 'ist_richtig': o == correctAnswer})
+          .asMap()
+          .entries
+          .map(
+            (e) => {
+              'id': e.key,
+              'text': e.value,
+              'ist_richtig': e.value == correctAnswer,
+            },
+          )
           .toList();
       list.shuffle();
       _shuffledAnswers[_idx] = list;
@@ -491,228 +754,202 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     final antworten = _shuffledAnswers[_idx]!;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              colors: [Colors.indigo.shade700, Colors.indigo.shade500],
+        Row(
+          children: [
+            Container(width: 16, height: 1, color: AppColors.accent),
+            const SizedBox(width: 10),
+            Text(
+              'DNS · PORTS',
+              style: AppTextStyles.monoLabel(AppColors.accent),
             ),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            frageText,
-            style: const TextStyle(
-              fontSize: 17,
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              height: 1.5,
-            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          frageText,
+          style: AppTextStyles.instrumentSerif(
+            size: 22,
+            color: text,
+            letterSpacing: -0.6,
           ),
         ),
-        const SizedBox(height: 20),
-        ...antworten.asMap().entries.map((entry) {
-          final i = entry.key;
-          final a = entry.value as Map<String, dynamic>;
-          final text = a['text'] as String;
-          final correct = a['ist_richtig'] == true;
-          final label = String.fromCharCode(65 + i);
-
-          Color borderColor = Colors.grey.shade300;
-          Color bgColor = Colors.white;
-          Color labelBg = Colors.grey.shade100;
-          Color labelText = Colors.grey.shade600;
-          Widget? trailingIcon;
-
-          if (_answered) {
-            if (_selectedAnswerId == i && _wasCorrect) {
-              borderColor = Colors.green;
-              bgColor = Colors.green.shade50;
-              labelBg = Colors.green;
-              labelText = Colors.white;
-              trailingIcon = const Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 22,
-              );
-            } else if (_selectedAnswerId == i && !_wasCorrect) {
-              borderColor = Colors.red;
-              bgColor = Colors.red.shade50;
-              labelBg = Colors.red;
-              labelText = Colors.white;
-              trailingIcon = const Icon(
-                Icons.cancel,
-                color: Colors.red,
-                size: 22,
-              );
-            } else if (correct) {
-              borderColor = Colors.green.shade300;
-              bgColor = Colors.green.shade50;
-              labelBg = Colors.green.shade300;
-              labelText = Colors.white;
-            }
-          } else if (_selectedAnswerId == i) {
-            borderColor = Colors.indigo;
-            bgColor = Colors.indigo.shade50;
-            labelBg = Colors.indigo;
-            labelText = Colors.white;
-          }
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: InkWell(
-              onTap: _answered || _submitting
-                  ? null
-                  : () {
-                      setState(() => _selectedAnswerId = i);
-                      _submitMultipleChoice(i, correct);
-                    },
-              borderRadius: BorderRadius.circular(16),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: borderColor, width: 2),
-                ),
-                child: Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: labelBg,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            color: labelText,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        text,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    if (trailingIcon != null) ...[
-                      const SizedBox(width: 8),
-                      trailingIcon,
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          );
-        }),
+        const SizedBox(height: 24),
+        ..._buildMCOptions(antworten, surface, border, text, textMid),
       ],
     );
   }
 
-  Widget _buildFreitextQuestion() {
+  // ═══════════════════════════════════════════
+  // FREITEXT
+  // ═══════════════════════════════════════════
+  Widget _buildFreitext(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+    Color bg,
+  ) {
     final q = _questions[_idx];
     final frageData = q['fragen'];
     final frageText = frageData['frage'] as String;
     final calcData =
         frageData['calculation_data'] as Map<String, dynamic>? ?? {};
     final keywords = (calcData['keywords'] as List?)?.cast<String>() ?? [];
-    final controller = TextEditingController();
+
+    _freitextControllers[_idx] ??= TextEditingController();
+    final controller = _freitextControllers[_idx]!;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              colors: [Colors.indigo.shade700, Colors.indigo.shade500],
-            ),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            frageText,
-            style: const TextStyle(
-              fontSize: 17,
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              height: 1.5,
-            ),
+        Row(
+          children: [
+            Container(width: 16, height: 1, color: AppColors.accent),
+            const SizedBox(width: 10),
+            Text('FREITEXT', style: AppTextStyles.monoLabel(AppColors.accent)),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          frageText,
+          style: AppTextStyles.instrumentSerif(
+            size: 22,
+            color: text,
+            letterSpacing: -0.6,
           ),
         ),
         const SizedBox(height: 20),
         if (!_answered) ...[
+          Text('DEINE ANTWORT', style: AppTextStyles.monoSmall(textDim)),
+          const SizedBox(height: 8),
           TextField(
             controller: controller,
             maxLines: 5,
             maxLength: calcData['max_length'] as int? ?? 500,
+            style: AppTextStyles.bodyMedium(text),
             decoration: InputDecoration(
-              hintText: 'Deine Antwort...',
+              hintText: 'Schreibe deine Antwort...',
+              hintStyle: AppTextStyles.bodyMedium(textDim),
+              filled: true,
+              fillColor: surface,
+              counterStyle: AppTextStyles.monoSmall(textDim),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: border),
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: AppColors.accent),
+              ),
+              contentPadding: const EdgeInsets.all(14),
             ),
           ),
           const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: _submitting
-                ? null
-                : () {
-                    final text = controller.text.toLowerCase();
-                    final hits = keywords
-                        .where((k) => text.contains(k.toLowerCase()))
-                        .length;
-                    final isCorrect = hits >= (keywords.length * 0.5).ceil();
-                    _submitSpecialQuestion(isCorrect, controller.text);
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.indigo,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: const Text(
-              'Antwort prüfen',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed: _submitting
+                  ? null
+                  : () {
+                      final input = controller.text.toLowerCase();
+                      final hits = keywords
+                          .where((k) => input.contains(k.toLowerCase()))
+                          .length;
+                      final isCorrect = hits >= (keywords.length * 0.5).ceil();
+                      _submitSpecialQuestion(isCorrect, controller.text);
+                    },
+              icon: const Icon(Icons.check_rounded, size: 18),
+              label: const Text('Antwort prüfen'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: text,
+                foregroundColor: bg,
+                elevation: 0,
+                textStyle: AppTextStyles.labelLarge(bg),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
           ),
         ] else ...[
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: _wasCorrect ? Colors.green.shade50 : Colors.orange.shade50,
+              color: surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _wasCorrect ? Colors.green : Colors.orange,
+                color: (_wasCorrect ? AppColors.success : AppColors.warning)
+                    .withOpacity(0.3),
+              ),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0.0, 0.015, 0.015, 1.0],
+                colors: [
+                  _wasCorrect ? AppColors.success : AppColors.warning,
+                  _wasCorrect ? AppColors.success : AppColors.warning,
+                  surface,
+                  surface,
+                ],
               ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _wasCorrect ? '✅ Gut erklärt!' : '💡 Wichtige Begriffe:',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                Row(
+                  children: [
+                    Icon(
+                      _wasCorrect
+                          ? Icons.check_circle_outline_rounded
+                          : Icons.lightbulb_outline_rounded,
+                      color: _wasCorrect
+                          ? AppColors.success
+                          : AppColors.warning,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _wasCorrect ? 'GUT ERKLÄRT' : 'WICHTIGE BEGRIFFE',
+                      style: AppTextStyles.monoLabel(
+                        _wasCorrect ? AppColors.success : AppColors.warning,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: keywords
-                      .map(
-                        (k) => Chip(
-                          label: Text(k, style: const TextStyle(fontSize: 12)),
+                  children: keywords.map((k) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: surface,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: border),
+                      ),
+                      child: Text(
+                        k,
+                        style: AppTextStyles.mono(
+                          size: 11,
+                          color: textMid,
+                          weight: FontWeight.w600,
+                          letterSpacing: 0.3,
                         ),
-                      )
-                      .toList(),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
             ),
@@ -722,257 +959,58 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     );
   }
 
-  Widget _buildMultipleChoiceQuestion() {
+  // ═══════════════════════════════════════════
+  // FILL BLANK
+  // ═══════════════════════════════════════════
+  Widget _buildFillBlank(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+    Color bg,
+  ) {
     final q = _questions[_idx];
     final frageData = q['fragen'];
     final frageText = frageData['frage'] as String;
-    if (!_shuffledAnswers.containsKey(_idx)) {
-      final list = (frageData['antworten'] as List<dynamic>? ?? []).toList();
-      list.shuffle();
-      _shuffledAnswers[_idx] = list;
-    }
-    final antworten = _shuffledAnswers[_idx]!;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Frage-Card mit Gradient
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.indigo.shade700, Colors.indigo.shade500],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.indigo.withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.help_outline,
-                          color: Colors.white,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Frage ${_idx + 1} von ${_questions.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                frageText,
-                style: const TextStyle(
-                  fontSize: 17,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        // Antwort-Optionen
-        Text(
-          'Wähle die richtige Antwort:',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey.shade600,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        ...antworten.asMap().entries.map((entry) {
-          final i = entry.key;
-          final a = entry.value;
-          final aid = a['id'] as int;
-          final text = a['text'] as String;
-          final correct = a['ist_richtig'] == true;
-          final selected = _selectedAnswerId == aid;
-
-          // Label A, B, C, D
-          final label = String.fromCharCode(65 + i);
-
-          Color borderColor = Colors.grey.shade300;
-          Color bgColor = Colors.white;
-          Color labelBg = Colors.grey.shade100;
-          Color labelText = Colors.grey.shade600;
-          Widget? trailingIcon;
-
-          if (_answered) {
-            if (selected && _wasCorrect) {
-              borderColor = Colors.green;
-              bgColor = Colors.green.shade50;
-              labelBg = Colors.green;
-              labelText = Colors.white;
-              trailingIcon = const Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 22,
-              );
-            } else if (selected && !_wasCorrect) {
-              borderColor = Colors.red;
-              bgColor = Colors.red.shade50;
-              labelBg = Colors.red;
-              labelText = Colors.white;
-              trailingIcon = const Icon(
-                Icons.cancel,
-                color: Colors.red,
-                size: 22,
-              );
-            } else if (correct) {
-              borderColor = Colors.green.shade300;
-              bgColor = Colors.green.shade50;
-              labelBg = Colors.green.shade300;
-              labelText = Colors.white;
-            }
-          } else if (selected) {
-            borderColor = Colors.indigo;
-            bgColor = Colors.indigo.shade50;
-            labelBg = Colors.indigo;
-            labelText = Colors.white;
-          }
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _answered || _submitting
-                    ? null
-                    : () => _submitMultipleChoice(aid, correct),
-                borderRadius: BorderRadius.circular(16),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: borderColor, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      // Label-Kreis
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: labelBg,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              color: labelText,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          text,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                      if (trailingIcon != null) ...[
-                        const SizedBox(width: 8),
-                        trailingIcon,
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildFillBlankQuestion() {
-    final q = _questions[_idx];
-    final frageData = q['fragen'];
-    final frageText = frageData['frage'] as String;
-    final calculationData =
+    final calcData =
         frageData['calculation_data'] as Map<String, dynamic>? ?? {};
-
     final blanks =
-        (calculationData['blanks'] as List?)?.cast<Map<String, dynamic>>() ??
-        [];
-
-    // Alle ausgefüllt?
+        (calcData['blanks'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final allFilled = _fillBlankAnswers.length == blanks.length;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(frageText, style: const TextStyle(fontSize: 18)),
+        Row(
+          children: [
+            Container(width: 16, height: 1, color: AppColors.accent),
+            const SizedBox(width: 10),
+            Text(
+              'LÜCKENTEXT',
+              style: AppTextStyles.monoLabel(AppColors.accent),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          frageText,
+          style: AppTextStyles.instrumentSerif(
+            size: 22,
+            color: text,
+            letterSpacing: -0.6,
           ),
         ),
         const SizedBox(height: 24),
 
-        // Lücken
+        // Blanks
         ...List.generate(blanks.length, (index) {
           final blank = blanks[index];
           final options = (blank['options'] as List?)?.cast<String>() ?? [];
           final selectedAnswer = _fillBlankAnswers[index];
 
           return Padding(
-            padding: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.only(bottom: 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -980,116 +1018,128 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: 7,
+                        vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.indigo.shade100,
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.accent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(
+                          color: AppColors.accent.withOpacity(0.3),
+                        ),
                       ),
                       child: Text(
-                        'Lücke ${index + 1}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.indigo.shade700,
+                        'LÜCKE ${index + 1}',
+                        style: AppTextStyles.mono(
+                          size: 9,
+                          color: AppColors.accent,
+                          weight: FontWeight.w700,
+                          letterSpacing: 0.8,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    if (selectedAnswer != null)
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.indigo.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.indigo.shade300,
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  selectedAnswer,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: selectedAnswer != null
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.accent.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.accent.withOpacity(0.3),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      selectedAnswer,
+                                      style: AppTextStyles.mono(
+                                        size: 13,
+                                        color: text,
+                                        weight: FontWeight.w600,
+                                        letterSpacing: 0,
+                                      ),
+                                    ),
                                   ),
+                                  GestureDetector(
+                                    onTap: _answered || _submitting
+                                        ? null
+                                        : () {
+                                            setState(
+                                              () => _fillBlankAnswers.remove(
+                                                index,
+                                              ),
+                                            );
+                                          },
+                                    child: Icon(
+                                      Icons.close_rounded,
+                                      color: textMid,
+                                      size: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Text(
+                                '______',
+                                style: AppTextStyles.mono(
+                                  size: 14,
+                                  color: textDim,
+                                  weight: FontWeight.w400,
+                                  letterSpacing: 0,
                                 ),
                               ),
-                              InkWell(
-                                onTap: _answered || _submitting
-                                    ? null
-                                    : () {
-                                        setState(() {
-                                          _fillBlankAnswers.remove(index);
-                                        });
-                                      },
-                                child: Icon(
-                                  Icons.close,
-                                  color: Colors.grey.shade600,
-                                  size: 20,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else
-                      const Expanded(
-                        child: Text(
-                          '_____',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
+                            ),
+                    ),
                   ],
                 ),
                 if (selectedAnswer == null) ...[
                   const SizedBox(height: 8),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: 6,
+                    runSpacing: 6,
                     children: options.map((option) {
                       final isUsed = _fillBlankAnswers.values.contains(option);
-
-                      return Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: _answered || _submitting || isUsed
-                              ? null
-                              : () {
-                                  setState(() {
-                                    _fillBlankAnswers[index] = option;
-                                  });
-                                },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
+                      return GestureDetector(
+                        onTap: _answered || _submitting || isUsed
+                            ? null
+                            : () {
+                                setState(() {
+                                  _fillBlankAnswers[index] = option;
+                                });
+                              },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isUsed ? bg : surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
                               color: isUsed
-                                  ? Colors.grey.shade200
-                                  : Colors.indigo.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isUsed
-                                    ? Colors.grey.shade400
-                                    : Colors.indigo.shade300,
-                                width: 2,
-                              ),
+                                  ? border
+                                  : AppColors.accent.withOpacity(0.3),
                             ),
-                            child: Text(
-                              option,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: isUsed
-                                    ? Colors.grey.shade500
-                                    : Colors.indigo.shade700,
-                              ),
+                          ),
+                          child: Text(
+                            option,
+                            style: AppTextStyles.mono(
+                              size: 12,
+                              color: isUsed
+                                  ? textDim
+                                  : (isDarkMode(context)
+                                        ? AppColors.darkText
+                                        : AppColors.accent),
+                              weight: FontWeight.w600,
+                              letterSpacing: 0,
                             ),
                           ),
                         ),
@@ -1102,17 +1152,17 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
           );
         }),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
 
-        // Submit Button
+        // Submit
         if (!_answered)
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            height: 52,
+            child: ElevatedButton.icon(
               onPressed: (_submitting || !allFilled)
                   ? null
                   : () {
-                      // Prüfe Korrektheit
                       bool allCorrect = true;
                       for (int i = 0; i < blanks.length; i++) {
                         final correctAnswer =
@@ -1123,18 +1173,19 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                           break;
                         }
                       }
-
                       _submitSpecialQuestion(allCorrect, _fillBlankAnswers);
                     },
+              icon: const Icon(Icons.check_rounded, size: 18),
+              label: Text(allFilled ? 'Prüfen' : 'Bitte alle Lücken ausfüllen'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: Text(
-                allFilled ? 'Prüfen' : 'Bitte alle Lücken ausfüllen',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                backgroundColor: text,
+                foregroundColor: bg,
+                disabledBackgroundColor: border,
+                disabledForegroundColor: textDim,
+                elevation: 0,
+                textStyle: AppTextStyles.labelLarge(bg),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
@@ -1143,33 +1194,57 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     );
   }
 
-  Widget _buildSequenceQuestion() {
+  bool isDarkMode(BuildContext context) {
+    return context.read<ThemeProvider>().isDark;
+  }
+
+  // ═══════════════════════════════════════════
+  // SEQUENCE
+  // ═══════════════════════════════════════════
+  Widget _buildSequence(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+    Color bg,
+  ) {
     final q = _questions[_idx];
     final frageData = q['fragen'];
     final frageText = frageData['frage'] as String;
-    final calculationData =
+    final calcData =
         frageData['calculation_data'] as Map<String, dynamic>? ?? {};
-
-    final items = (calculationData['items'] as List?)?.cast<String>() ?? [];
+    final items = (calcData['items'] as List?)?.cast<String>() ?? [];
     final correctOrder =
-        (calculationData['correctOrder'] as List?)?.cast<String>() ?? [];
+        (calcData['correctOrder'] as List?)?.cast<String>() ?? [];
 
-    // Initialisiere _sequenceOrder wenn leer
     if (_sequenceOrder.isEmpty && items.isNotEmpty) {
       _sequenceOrder = List<String>.filled(items.length, '');
     }
 
-    // Alle Slots gefüllt?
     final allFilled =
         _sequenceOrder.where((s) => s.isNotEmpty).length == items.length;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(frageText, style: const TextStyle(fontSize: 18)),
+        Row(
+          children: [
+            Container(width: 16, height: 1, color: AppColors.accent),
+            const SizedBox(width: 10),
+            Text(
+              'REIHENFOLGE',
+              style: AppTextStyles.monoLabel(AppColors.accent),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          frageText,
+          style: AppTextStyles.instrumentSerif(
+            size: 22,
+            color: text,
+            letterSpacing: -0.6,
           ),
         ),
         const SizedBox(height: 24),
@@ -1181,80 +1256,71 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
               : '';
           final isEmpty = item.isEmpty;
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
-                // Positions-Nummer
+                // Position
                 Container(
-                  width: 40,
-                  height: 56,
+                  width: 36,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.indigo.shade100,
+                    color: AppColors.accent.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.accent.withOpacity(0.3),
+                    ),
                   ),
                   child: Center(
                     child: Text(
-                      '${index + 1}.',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.indigo.shade700,
+                      '${index + 1}',
+                      style: AppTextStyles.mono(
+                        size: 14,
+                        color: AppColors.accent,
+                        weight: FontWeight.w700,
+                        letterSpacing: 0,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-
+                const SizedBox(width: 10),
                 // Slot
                 Expanded(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: isEmpty || _answered || _submitting
-                          ? null
-                          : () {
-                              setState(() {
-                                _sequenceOrder[index] = '';
-                              });
-                            },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isEmpty ? Colors.white : Colors.indigo.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isEmpty
-                                ? Colors.grey.shade300
-                                : Colors.indigo.shade300,
-                            width: 2,
-                          ),
+                  child: GestureDetector(
+                    onTap: isEmpty || _answered || _submitting
+                        ? null
+                        : () => setState(() => _sequenceOrder[index] = ''),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isEmpty
+                            ? surface
+                            : AppColors.accent.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isEmpty
+                              ? border
+                              : AppColors.accent.withOpacity(0.3),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                isEmpty ? '__________' : item,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: isEmpty
-                                      ? FontWeight.normal
-                                      : FontWeight.w500,
-                                  color: isEmpty
-                                      ? Colors.grey.shade400
-                                      : Colors.black87,
-                                ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              isEmpty ? '__________' : item,
+                              style: AppTextStyles.interTight(
+                                size: 14,
+                                weight: isEmpty
+                                    ? FontWeight.w400
+                                    : FontWeight.w600,
+                                color: isEmpty ? textDim : text,
+                                height: 1.3,
                               ),
                             ),
-                            if (!isEmpty && !_answered && !_submitting)
-                              Icon(
-                                Icons.close,
-                                color: Colors.grey.shade600,
-                                size: 20,
-                              ),
-                          ],
-                        ),
+                          ),
+                          if (!isEmpty && !_answered && !_submitting)
+                            Icon(Icons.close_rounded, color: textMid, size: 14),
+                        ],
                       ),
                     ),
                   ),
@@ -1264,84 +1330,63 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
           );
         }),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
 
         // Auswahl
         if (!_answered) ...[
-          Text(
-            'Wähle aus:',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 12),
+          Text('AUSWAHL', style: AppTextStyles.monoSmall(textDim)),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: items.map((item) {
               final isSelected = _sequenceOrder.contains(item);
-
-              return Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: _answered || _submitting || isSelected
-                      ? null
-                      : () {
-                          setState(() {
-                            // Finde ersten leeren Slot
-                            final emptyIndex = _sequenceOrder.indexOf('');
-                            if (emptyIndex != -1) {
-                              _sequenceOrder[emptyIndex] = item;
-                            }
-                          });
-                        },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
+              return GestureDetector(
+                onTap: _answered || _submitting || isSelected
+                    ? null
+                    : () {
+                        setState(() {
+                          final emptyIndex = _sequenceOrder.indexOf('');
+                          if (emptyIndex != -1) {
+                            _sequenceOrder[emptyIndex] = item;
+                          }
+                        });
+                      },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected ? bg : surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
                       color: isSelected
-                          ? Colors.grey.shade200
-                          : Colors.indigo.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected
-                            ? Colors.grey.shade400
-                            : Colors.indigo.shade300,
-                        width: 2,
-                      ),
+                          ? border
+                          : AppColors.accent.withOpacity(0.3),
                     ),
-                    child: Text(
-                      item,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: isSelected
-                            ? Colors.grey.shade500
-                            : Colors.indigo.shade700,
-                      ),
+                  ),
+                  child: Text(
+                    item,
+                    style: AppTextStyles.interTight(
+                      size: 13,
+                      weight: FontWeight.w600,
+                      color: isSelected ? textDim : text,
+                      height: 1.3,
                     ),
                   ),
                 ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 24),
-        ],
-
-        // Submit Button
-        if (!_answered)
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            height: 52,
+            child: ElevatedButton.icon(
               onPressed: (_submitting || !allFilled)
                   ? null
                   : () {
-                      // Prüfe Korrektheit
                       bool isCorrect = true;
                       for (int i = 0; i < correctOrder.length; i++) {
                         if (i >= _sequenceOrder.length ||
@@ -1350,62 +1395,124 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                           break;
                         }
                       }
-
                       _submitSpecialQuestion(isCorrect, _sequenceOrder);
                     },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: Text(
+              icon: const Icon(Icons.check_rounded, size: 18),
+              label: Text(
                 allFilled ? 'Prüfen' : 'Bitte alle Positionen ausfüllen',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: text,
+                foregroundColor: bg,
+                disabledBackgroundColor: border,
+                disabledForegroundColor: textDim,
+                elevation: 0,
+                textStyle: AppTextStyles.labelLarge(bg),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
           ),
+        ],
       ],
     );
   }
 
-  Widget _buildWaitingScreen() {
+  // ═══════════════════════════════════════════
+  // WAITING SCREEN
+  // ═══════════════════════════════════════════
+  Widget _buildWaitingScreen(
+    Color bg,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Match abgeschlossen')),
-      body: Center(
+      backgroundColor: bg,
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.hourglass_empty, size: 80, color: Colors.orange),
-              const SizedBox(height: 24),
-              const Text(
-                'Warte auf Gegner...',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Container(width: 16, height: 1, color: AppColors.warning),
+                  const SizedBox(width: 10),
+                  Text(
+                    'WARTE AUF GEGNER',
+                    style: AppTextStyles.monoLabel(AppColors.warning),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Du hast alle Fragen beantwortet!\nDas Ergebnis wird angezeigt, sobald dein Gegner fertig ist.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+              const SizedBox(height: 14),
+              Text(
+                'Du hast alles\nbeantwortet.',
+                style: AppTextStyles.instrumentSerif(
+                  size: 36,
+                  color: text,
+                  letterSpacing: -1,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Das Ergebnis wird angezeigt, sobald dein Gegner fertig ist.',
+                style: AppTextStyles.bodyMedium(textMid),
               ),
               const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  setState(() => _loading = true);
-                  await _tryFinalize();
-                  setState(() => _loading = false);
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Status prüfen'),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    setState(() => _loading = true);
+                    await _tryFinalize();
+                    setState(() => _loading = false);
+                  },
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Status prüfen'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: text,
+                    foregroundColor: bg,
+                    elevation: 0,
+                    textStyle: AppTextStyles.labelLarge(bg),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
-              TextButton.icon(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('Zurück'),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(
+                    Icons.arrow_back_rounded,
+                    size: 14,
+                    color: textMid,
+                  ),
+                  label: Text(
+                    'Zurück',
+                    style: AppTextStyles.mono(
+                      size: 11,
+                      color: textMid,
+                      weight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1414,13 +1521,22 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     );
   }
 
-  Widget _buildResultScreen() {
+  // ═══════════════════════════════════════════
+  // RESULT SCREEN
+  // ═══════════════════════════════════════════
+  Widget _buildResultScreen(
+    Color bg,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
     final myScore = _finalScores?['my_score'] ?? 0;
     final oppScore = _finalScores?['opponent_score'] ?? 0;
     final myProfile = _finalScores?['my_profile'] as Map<String, dynamic>?;
     final oppProfile =
         _finalScores?['opponent_profile'] as Map<String, dynamic>?;
-
     final myName = myProfile?['username'] ?? 'Du';
     final oppName = oppProfile?['username'] ?? 'Gegner';
 
@@ -1434,17 +1550,12 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         _soundService.playSound(SoundType.defeat);
       }
 
-      // Badges prüfen
-      print('🏆 Prüfe Badges...');
       final newBadges = await _badgeService.checkMatchBadges();
-      print('🏆 Neue Badges: $newBadges');
       if (newBadges.isNotEmpty && mounted) {
-        // Badge-Details laden
         final allBadges = await _badgeService.getAllBadges();
         final earnedDetails = allBadges
             .where((b) => newBadges.contains(b['id']))
             .toList();
-
         if (mounted) {
           showDialog(
             context: context,
@@ -1458,141 +1569,206 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       }
     });
 
+    final accentColor = isDraw
+        ? AppColors.warning
+        : (isWinner ? AppColors.success : AppColors.error);
+    final statusLabel = isDraw
+        ? 'UNENTSCHIEDEN'
+        : (isWinner ? 'GEWONNEN' : 'VERLOREN');
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Match beendet')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isDraw ? Icons.handshake : Icons.emoji_events,
-                size: 80,
-                color: isDraw
-                    ? Colors.orange
-                    : (isWinner ? Colors.amber : Colors.grey),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                isWinner
-                    ? '🎉 Gewonnen!'
-                    : (isDraw ? '🤝 Unentschieden' : '😔 Verloren'),
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 32),
-              Row(
+      backgroundColor: bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 16, 8),
+              child: Row(
                 children: [
-                  Expanded(
-                    child: _buildPlayerCard(
-                      name: myName,
-                      score: myScore,
-                      isMe: true,
-                      isWinner: myScore > oppScore,
-                    ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close_rounded, color: text, size: 22),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
+                  Expanded(
                     child: Text(
-                      'VS',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildPlayerCard(
-                      name: oppName,
-                      score: oppScore,
-                      isMe: false,
-                      isWinner: oppScore > myScore,
+                      'MATCH ERGEBNIS',
+                      style: AppTextStyles.monoLabel(textMid),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('Zurück zur Übersicht'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
-                  ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(width: 16, height: 1, color: accentColor),
+                        const SizedBox(width: 10),
+                        Text(
+                          statusLabel,
+                          style: AppTextStyles.monoLabel(accentColor),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      isDraw
+                          ? 'Patt.'
+                          : (isWinner ? 'Gewonnen!' : 'Knapp daneben.'),
+                      style: AppTextStyles.instrumentSerif(
+                        size: 48,
+                        color: text,
+                        letterSpacing: -1.8,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Score Comparison
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildPlayerScoreCard(
+                            myName,
+                            myScore,
+                            true,
+                            isWinner,
+                            surface,
+                            border,
+                            text,
+                            textMid,
+                            textDim,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'VS',
+                            style: AppTextStyles.mono(
+                              size: 14,
+                              color: textDim,
+                              weight: FontWeight.w700,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildPlayerScoreCard(
+                            oppName,
+                            oppScore,
+                            false,
+                            !isWinner && !isDraw,
+                            surface,
+                            border,
+                            text,
+                            textMid,
+                            textDim,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                        label: const Text('Zurück zur Übersicht'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: text,
+                          foregroundColor: bg,
+                          elevation: 0,
+                          textStyle: AppTextStyles.labelLarge(bg),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildPlayerCard({
-    required String name,
-    required int score,
-    required bool isMe,
-    required bool isWinner,
-  }) {
-    return Card(
-      elevation: isWinner ? 8 : 2,
-      color: isWinner ? Colors.amber.shade50 : null,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: isWinner
-            ? const BorderSide(color: Colors.amber, width: 2)
-            : BorderSide.none,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: isMe ? Colors.indigo : Colors.deepPurple,
-              child: Text(
-                name.isNotEmpty ? name[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  fontSize: 24,
-                  color: Color.fromARGB(255, 218, 148, 148),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              isMe ? '$name (Du)' : name,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isWinner ? Colors.amber : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '$score Punkte',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isWinner ? Colors.black : Colors.grey.shade700,
-                ),
-              ),
-            ),
-            if (isWinner) ...[
-              const SizedBox(height: 8),
-              const Text('👑', style: TextStyle(fontSize: 24)),
-            ],
-          ],
+  Widget _buildPlayerScoreCard(
+    String name,
+    int score,
+    bool isMe,
+    bool isWinner,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    final accentColor = isWinner ? AppColors.success : AppColors.accent;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isWinner ? AppColors.success.withOpacity(0.4) : border,
         ),
+        gradient: isWinner
+            ? LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0.0, 0.015, 0.015, 1.0],
+                colors: [
+                  AppColors.success,
+                  AppColors.success,
+                  surface,
+                  surface,
+                ],
+              )
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isMe ? 'DU' : 'GEGNER',
+            style: AppTextStyles.monoSmall(
+              isWinner ? AppColors.success : textMid,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            name,
+            style: AppTextStyles.interTight(
+              size: 14,
+              weight: FontWeight.w600,
+              color: text,
+              height: 1.2,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '$score',
+            style: AppTextStyles.instrumentSerif(
+              size: 40,
+              color: text,
+              letterSpacing: -1.5,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text('PUNKTE', style: AppTextStyles.monoSmall(textMid)),
+        ],
       ),
     );
   }

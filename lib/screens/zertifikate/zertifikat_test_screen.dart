@@ -8,6 +8,7 @@ import '../../widgets/badge_celebration_dialog.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
+import '../../services/question_validator.dart';
 
 class ZertifikatTestPage extends StatefulWidget {
   final int zertifikatId;

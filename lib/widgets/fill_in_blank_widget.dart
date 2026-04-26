@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/theme_provider.dart';
 
 class FillInTheBlankWidget extends StatefulWidget {
   final String questionText;
@@ -34,7 +38,6 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
 
   String get _explanation => widget.blankData['explanation'] ?? '';
 
-  // Alle verfügbaren Optionen aus allen Lücken
   Set<String> get _allOptions {
     final options = <String>{};
     for (var blank in _blanks) {
@@ -44,40 +47,31 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
     return options;
   }
 
-  bool _isOptionSelected(String option) {
-    return selectedAnswers.values.contains(option);
-  }
+  bool _isOptionSelected(String option) =>
+      selectedAnswers.values.contains(option);
 
   void _selectOption(String option, int blankIndex) {
     if (_hasSubmitted || _isOptionSelected(option)) return;
-
-    setState(() {
-      selectedAnswers[blankIndex] = option;
-    });
+    setState(() => selectedAnswers[blankIndex] = option);
   }
 
   void _clearBlank(int index) {
     if (_hasSubmitted) return;
-
-    setState(() {
-      selectedAnswers[index] = null;
-    });
+    setState(() => selectedAnswers[index] = null);
   }
 
   void _checkAnswer() {
-    // Prüfe ob alle Lücken ausgefüllt sind
     if (selectedAnswers.length < _blanks.length) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Bitte fülle alle Lücken aus!'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: const Text('Bitte fülle alle Lücken aus'),
+          backgroundColor: AppColors.warning,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
     }
 
-    // Prüfe ob alle Antworten korrekt sind
     bool allCorrect = true;
     for (int i = 0; i < _blanks.length; i++) {
       final correctAnswer = _blanks[i]['correctAnswer'];
@@ -93,188 +87,181 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
       _hasSubmitted = true;
     });
 
-    // Callback mit Ergebnis
     final userAnswersMap = selectedAnswers.map(
       (key, value) => MapEntry(key.toString(), value ?? ''),
     );
     widget.onAnswerSubmitted(allCorrect, userAnswersMap);
   }
 
-  Color _getBlankColor(int index) {
-    if (!_hasSubmitted) return Colors.white;
-    final isCorrect = selectedAnswers[index] == _blanks[index]['correctAnswer'];
-    return isCorrect ? Colors.green.shade50 : Colors.red.shade50;
-  }
-
-  Color _getBlankBorderColor(int index) {
-    if (!_hasSubmitted) {
-      return selectedAnswers[index] != null
-          ? Colors.indigo.shade300
-          : Colors.grey.shade300;
-    }
-    final isCorrect = selectedAnswers[index] == _blanks[index]['correctAnswer'];
-    return isCorrect ? Colors.green : Colors.red;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Frage mit Lücken-Nummern
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.indigo.shade50, Colors.white],
+        // Section Label
+        Row(
+          children: [
+            Container(width: 16, height: 1, color: AppColors.accent),
+            const SizedBox(width: 10),
+            Text(
+              'LÜCKENTEXT',
+              style: AppTextStyles.monoLabel(AppColors.accent),
             ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.indigo.shade200, width: 2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.indigo, Colors.indigo.shade700],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.text_fields,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Fülle die Lücken aus',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.indigo,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildTextWithBlanks(),
-            ],
-          ),
+          ],
         ),
+        const SizedBox(height: 14),
 
+        // Frage mit Lücken-Markierung
+        _buildTextWithBlanks(text, textMid),
         const SizedBox(height: 24),
 
-        // Lücken zum Befüllen
+        // Lücken
         ...List.generate(_blanks.length, (index) {
           final answer = selectedAnswers[index];
           final isEmpty = answer == null;
+          final isSubmitted = _hasSubmitted;
+          final correct =
+              isSubmitted &&
+              !isEmpty &&
+              answer == _blanks[index]['correctAnswer'];
+          final wrong =
+              isSubmitted &&
+              !isEmpty &&
+              answer != _blanks[index]['correctAnswer'];
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
+          Color slotColor = surface;
+          Color slotBorder = border;
+
+          if (correct) {
+            slotColor = AppColors.success.withOpacity(0.05);
+            slotBorder = AppColors.success.withOpacity(0.5);
+          } else if (wrong) {
+            slotColor = AppColors.error.withOpacity(0.05);
+            slotBorder = AppColors.error.withOpacity(0.5);
+          } else if (!isEmpty) {
+            slotColor = AppColors.accent.withOpacity(0.05);
+            slotBorder = AppColors.accent.withOpacity(0.4);
+          }
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Lücke ${index + 1}:',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.indigo,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: isEmpty || _hasSubmitted
-                        ? null
-                        : () => _clearBlank(index),
-                    borderRadius: BorderRadius.circular(12),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(16),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
-                        color: _getBlankColor(index),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.accent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(5),
                         border: Border.all(
-                          color: _getBlankBorderColor(index),
-                          width: 2,
+                          color: AppColors.accent.withOpacity(0.3),
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              isEmpty ? '__________' : answer,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: isEmpty
-                                    ? FontWeight.normal
-                                    : FontWeight.w500,
-                                color: isEmpty
-                                    ? Colors.grey.shade400
-                                    : Colors.black87,
-                              ),
+                      child: Text(
+                        'LÜCKE ${index + 1}',
+                        style: AppTextStyles.mono(
+                          size: 9,
+                          color: AppColors.accent,
+                          weight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: isEmpty || _hasSubmitted
+                      ? null
+                      : () => _clearBlank(index),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: slotColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: slotBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            isEmpty ? '__________' : answer,
+                            style: AppTextStyles.interTight(
+                              size: 14,
+                              weight: isEmpty
+                                  ? FontWeight.w400
+                                  : FontWeight.w600,
+                              color: isEmpty ? textDim : text,
+                              height: 1.3,
                             ),
                           ),
-                          if (!isEmpty && !_hasSubmitted)
-                            Icon(
-                              Icons.close,
-                              color: Colors.grey.shade600,
-                              size: 20,
-                            ),
-                          if (_hasSubmitted && !isEmpty)
-                            Icon(
-                              selectedAnswers[index] ==
-                                      _blanks[index]['correctAnswer']
-                                  ? Icons.check_circle
-                                  : Icons.cancel,
-                              color:
-                                  selectedAnswers[index] ==
-                                      _blanks[index]['correctAnswer']
-                                  ? Colors.green
-                                  : Colors.red,
-                              size: 24,
-                            ),
-                        ],
-                      ),
+                        ),
+                        if (!isEmpty && !_hasSubmitted)
+                          Icon(Icons.close_rounded, color: textMid, size: 14),
+                        if (correct)
+                          const Icon(
+                            Icons.check_rounded,
+                            color: AppColors.success,
+                            size: 16,
+                          ),
+                        if (wrong)
+                          const Icon(
+                            Icons.close_rounded,
+                            color: AppColors.error,
+                            size: 16,
+                          ),
+                      ],
                     ),
                   ),
                 ),
-                if (_hasSubmitted &&
-                    selectedAnswers[index] !=
-                        _blanks[index]['correctAnswer']) ...[
-                  const SizedBox(height: 8),
+                // Korrekte Antwort bei falsch
+                if (wrong) ...[
+                  const SizedBox(height: 6),
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green.shade200),
+                      color: AppColors.success.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: AppColors.success.withOpacity(0.3),
+                      ),
                     ),
                     child: Row(
                       children: [
                         Icon(
-                          Icons.check,
-                          color: Colors.green.shade700,
-                          size: 18,
+                          Icons.check_rounded,
+                          color: AppColors.success,
+                          size: 12,
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Richtig: ${_blanks[index]['correctAnswer']}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.green.shade900,
-                              fontWeight: FontWeight.w500,
-                            ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'RICHTIG: ',
+                          style: AppTextStyles.monoSmall(AppColors.success),
+                        ),
+                        Text(
+                          _blanks[index]['correctAnswer'],
+                          style: AppTextStyles.mono(
+                            size: 12,
+                            color: text,
+                            weight: FontWeight.w600,
+                            letterSpacing: 0,
                           ),
                         ),
                       ],
@@ -286,26 +273,17 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
           );
         }),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 12),
 
-        // Auswahl-Bereich
+        // Auswahl
         if (!_hasSubmitted) ...[
-          Text(
-            'Wähle aus:',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 12),
+          Text('AUSWAHL', style: AppTextStyles.monoSmall(textDim)),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: _allOptions.map((option) {
               final isSelected = _isOptionSelected(option);
-
-              // Finde die nächste leere Lücke
               int? nextBlankIndex;
               if (!isSelected) {
                 for (int i = 0; i < _blanks.length; i++) {
@@ -316,40 +294,31 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
                 }
               }
 
-              return Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: isSelected || nextBlankIndex == null
-                      ? null
-                      : () => _selectOption(option, nextBlankIndex!),
-                  borderRadius: BorderRadius.circular(12),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
+              return GestureDetector(
+                onTap: isSelected || nextBlankIndex == null
+                    ? null
+                    : () => _selectOption(option, nextBlankIndex!),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected ? bg : surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
                       color: isSelected
-                          ? Colors.grey.shade200
-                          : Colors.indigo.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected
-                            ? Colors.grey.shade400
-                            : Colors.indigo.shade300,
-                        width: 2,
-                      ),
+                          ? border
+                          : AppColors.accent.withOpacity(0.3),
                     ),
-                    child: Text(
-                      option,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: isSelected
-                            ? Colors.grey.shade500
-                            : Colors.indigo.shade700,
-                      ),
+                  ),
+                  child: Text(
+                    option,
+                    style: AppTextStyles.interTight(
+                      size: 13,
+                      weight: FontWeight.w600,
+                      color: isSelected ? textDim : text,
+                      height: 1.3,
                     ),
                   ),
                 ),
@@ -357,65 +326,75 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
             }).toList(),
           ),
           const SizedBox(height: 24),
-        ],
 
-        // Submit Button
-        if (!_hasSubmitted)
+          // Submit
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            height: 52,
+            child: ElevatedButton.icon(
               onPressed: _checkAnswer,
+              icon: const Icon(Icons.check_rounded, size: 18),
+              label: const Text('Prüfen'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: text,
+                foregroundColor: bg,
+                elevation: 0,
+                textStyle: AppTextStyles.labelLarge(bg),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              ),
-              child: const Text(
-                'Prüfen',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ),
+        ],
 
         // Feedback
-        if (_hasSubmitted) ...[const SizedBox(height: 16), _buildFeedback()],
+        if (_hasSubmitted) ...[
+          const SizedBox(height: 16),
+          _buildFeedback(surface, border, text, textMid),
+        ],
       ],
     );
   }
 
-  Widget _buildTextWithBlanks() {
-    final text = widget.questionText;
-    final parts = text.split('_____');
+  Widget _buildTextWithBlanks(Color text, Color textMid) {
+    final txt = widget.questionText;
+    final parts = txt.split('_____');
 
     List<Widget> widgets = [];
 
     for (int i = 0; i < parts.length; i++) {
-      // Text vor der Lücke
       if (parts[i].isNotEmpty) {
         widgets.add(
-          Text(parts[i], style: const TextStyle(fontSize: 16, height: 1.5)),
+          Text(
+            parts[i],
+            style: AppTextStyles.instrumentSerif(
+              size: 22,
+              color: text,
+              letterSpacing: -0.6,
+            ),
+          ),
         );
       }
-
-      // Lücken-Nummer (außer nach dem letzten Teil)
       if (i < parts.length - 1) {
         widgets.add(
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.indigo.shade100,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.indigo.shade300, width: 2),
-            ),
-            child: Text(
-              '(${i + 1})',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.indigo.shade700,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(color: AppColors.accent.withOpacity(0.4)),
+              ),
+              child: Text(
+                '${i + 1}',
+                style: AppTextStyles.mono(
+                  size: 12,
+                  color: AppColors.accent,
+                  weight: FontWeight.w700,
+                  letterSpacing: 0,
+                ),
               ),
             ),
           ),
@@ -429,57 +408,50 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
     );
   }
 
-  Widget _buildFeedback() {
+  Widget _buildFeedback(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+  ) {
     final isCorrect = _isCorrect == true;
-    final color = isCorrect ? Colors.green : Colors.orange;
-    final icon = isCorrect ? Icons.check_circle : Icons.info;
-    final text = isCorrect ? 'Richtig!' : 'Nicht ganz richtig';
+    final accentColor = isCorrect ? AppColors.success : AppColors.warning;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color, width: 2),
+        border: Border.all(color: accentColor.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.015, 0.015, 1.0],
+          colors: [accentColor, accentColor, surface, surface],
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 24),
+              Icon(
+                isCorrect
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.lightbulb_outline_rounded,
+                color: accentColor,
+                size: 16,
+              ),
               const SizedBox(width: 8),
               Text(
-                text,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                isCorrect ? 'RICHTIG' : 'NICHT GANZ',
+                style: AppTextStyles.monoLabel(accentColor),
               ),
             ],
           ),
           if (_explanation.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            const Divider(),
-            const SizedBox(height: 8),
-            Text(
-              'Erklärung:',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _explanation,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade700,
-                height: 1.5,
-              ),
-            ),
+            const SizedBox(height: 10),
+            Text(_explanation, style: AppTextStyles.bodyMedium(textMid)),
           ],
         ],
       ),

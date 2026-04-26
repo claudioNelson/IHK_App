@@ -123,7 +123,31 @@ class AsyncDuelService {
         .order('elo_rating', ascending: false)
         .limit(limit);
 
-    return List<Map<String, dynamic>>.from(result);
+    final list = List<Map<String, dynamic>>.from(result);
+    if (list.isEmpty) return list;
+
+    // Premium-Status für alle User in einem Query laden
+    final userIds = list.map((p) => p['user_id'] as String).toList();
+    final profiles = await c
+        .from('profiles')
+        .select('id, is_premium, premium_tier')
+        .in_('id', userIds);
+
+    // Map für schnelles Lookup
+    final premiumMap = <String, Map<String, dynamic>>{};
+    for (final p in profiles) {
+      premiumMap[p['id'] as String] = p as Map<String, dynamic>;
+    }
+
+    // Premium-Daten ins Hauptobjekt mergen
+    for (final player in list) {
+      final userId = player['user_id'] as String;
+      final profile = premiumMap[userId];
+      player['is_premium'] = profile?['is_premium'] ?? false;
+      player['premium_tier'] = profile?['premium_tier'];
+    }
+
+    return list;
   }
 
   /// Lädt die eigenen Stats

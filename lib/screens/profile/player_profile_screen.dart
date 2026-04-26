@@ -47,7 +47,9 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
       final client = Supabase.instance.client;
       final profile = await client
           .from('profiles')
-          .select('id, username, avatar_url, created_at')
+          .select(
+            'id, username, avatar_url, created_at, is_premium, premium_tier',
+          )
           .eq('id', widget.oderId)
           .maybeSingle();
       final stats = await client
@@ -63,6 +65,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
       final badges = await _badgeSvc.getUserBadges(widget.oderId);
 
       if (!mounted) return;
+      print('🔍 DEBUG Player Profile: $profile'); // ← NEU
       setState(() {
         _profile = profile;
         _stats = stats;
@@ -333,24 +336,63 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
               : null,
         ),
         const SizedBox(height: 16),
-
-        // Tier Badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            color: tierColor.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: tierColor.withOpacity(0.3)),
-          ),
-          child: Text(
-            tierLabel,
-            style: AppTextStyles.mono(
-              size: 10,
-              color: tierColor,
-              weight: FontWeight.w700,
-              letterSpacing: 1.5,
+        // Badges Row: Tier + Premium
+        Row(
+          children: [
+            // Tier Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: tierColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: tierColor.withOpacity(0.3)),
+              ),
+              child: Text(
+                tierLabel,
+                style: AppTextStyles.mono(
+                  size: 10,
+                  color: tierColor,
+                  weight: FontWeight.w700,
+                  letterSpacing: 1.5,
+                ),
+              ),
             ),
-          ),
+            // Premium Badge (nur wenn Premium)
+            if (_profile?['is_premium'] == true) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.workspace_premium_rounded,
+                      color: AppColors.accent,
+                      size: 11,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'PREMIUM',
+                      style: AppTextStyles.mono(
+                        size: 10,
+                        color: AppColors.accent,
+                        weight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: 12),
 

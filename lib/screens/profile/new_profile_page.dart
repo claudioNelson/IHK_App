@@ -10,6 +10,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../auth/change_password_screen.dart';
+import '../../services/subscription_service.dart';
 
 class NewProfilePage extends StatefulWidget {
   const NewProfilePage({super.key});
@@ -629,11 +630,14 @@ class _NewProfilePageState extends State<NewProfilePage> {
           const SizedBox(height: 16),
 
           // Meta Row: Tier + Join Date
+          // Meta Row: Tier + Join Date
           Wrap(
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
             children: [
+              // Premium / Free Badge
+              _premiumPill(border: border, surface: surface),
               if (hasElo) ...[
                 _metaPill(
                   text: _getEloTier(elo),
@@ -689,6 +693,40 @@ class _NewProfilePageState extends State<NewProfilePage> {
           weight: FontWeight.w600,
           letterSpacing: 1,
         ),
+      ),
+    );
+  }
+
+  // ─── PREMIUM / FREE PILL ───────────────────────
+  Widget _premiumPill({required Color border, required Color surface}) {
+    final isPremium = SubscriptionService().isPremium;
+    final color = isPremium ? AppColors.accent : AppColors.warning;
+    final label = isPremium ? 'PREMIUM' : 'FREE';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        border: Border.all(color: color.withOpacity(0.4)),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isPremium) ...[
+            Icon(Icons.workspace_premium_rounded, color: color, size: 11),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: AppTextStyles.mono(
+              size: 10,
+              color: color,
+              weight: FontWeight.w700,
+              letterSpacing: 1,
+            ),
+          ),
+        ],
       ),
     );
   }
