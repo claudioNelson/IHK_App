@@ -8,6 +8,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/question_validator.dart';
+import '../../services/subscription_service.dart';
+import '../../widgets/premium_lock.dart';
 
 class CertificatePracticeScreen extends StatefulWidget {
   final int zertifikatId;
@@ -64,6 +66,7 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen> {
   }
 
   Future<void> _loadQuestions() async {
+    print('🔍 CertificatePracticeScreen _loadQuestions aufgerufen!');
     try {
       final result = await _supabase
           .from('fragen')
@@ -272,6 +275,24 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen> {
     final text = isDark ? AppColors.darkText : AppColors.lightText;
     final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
     final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    // ─── PAYWALL ─────────────────────────────
+    // ─── PAYWALL ─────────────────────────────
+    final isPrem = SubscriptionService().isPremium;
+    print('🔒 Certificate Practice — isPremium: $isPrem');
+    if (!isPrem) {
+      return PremiumLock(
+        featureName: 'Zertifikate',
+        description:
+            'Mit Premium bereitest du dich auf alle Cloud-Zertifikate vor: AWS, Azure, GCP und SAP.',
+        icon: Icons.workspace_premium_outlined,
+        onUpgrade: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Stripe-Checkout kommt bald!')),
+          );
+        },
+      );
+    }
 
     return Scaffold(
       backgroundColor: bg,

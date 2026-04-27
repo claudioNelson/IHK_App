@@ -9,6 +9,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/question_validator.dart';
+import '../../services/subscription_service.dart';
+import '../../widgets/premium_lock.dart';
 
 class ZertifikatTestPage extends StatefulWidget {
   final int zertifikatId;
@@ -476,6 +478,21 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
     final text = isDark ? AppColors.darkText : AppColors.lightText;
     final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
     final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    // ─── PAYWALL ─────────────────────────────
+    if (!SubscriptionService().isPremium) {
+      return PremiumLock(
+        featureName: 'Zertifikat-Prüfungen',
+        description:
+            'Mit Premium absolvierst du echte Zertifikat-Prüfungen mit Timer und Bestehensgrenze.',
+        icon: Icons.workspace_premium_outlined,
+        onUpgrade: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Stripe-Checkout kommt bald!')),
+          );
+        },
+      );
+    }
 
     if (loading) {
       return Scaffold(
