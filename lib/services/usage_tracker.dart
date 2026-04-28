@@ -37,10 +37,20 @@ class UsageTracker {
     required UsageFeature feature,
     String? context,
   }) async {
-    if (_subscription.isPremium) return;
+    debugPrint(
+      '🟡 increment called: feature=${feature.key} context=$context isPremium=${_subscription.isPremium}',
+    );
+    if (_subscription.isPremium) {
+      debugPrint('   → skipped (premium)');
+      return;
+    }
 
     final user = _supabase.auth.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      debugPrint('   → skipped (no user)');
+      return;
+    }
+    debugPrint('   → proceeding for user ${user.id}');
 
     final today = DateTime.now().toIso8601String().substring(0, 10);
     final featureKey = feature.key;

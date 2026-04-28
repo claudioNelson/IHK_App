@@ -13,7 +13,7 @@ import '../../services/progress_service.dart';
 import '../../services/sound_service.dart';
 import '../../services/question_validator.dart';
 import '../../services/usage_tracker.dart';
-import '../../widgets/limit_reached_dialog.dart';
+import '../../mixins/practice_limit_mixin.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
@@ -32,7 +32,8 @@ class GenericPracticeScreen extends StatefulWidget {
   State<GenericPracticeScreen> createState() => _GenericPracticeScreenState();
 }
 
-class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
+class _GenericPracticeScreenState extends State<GenericPracticeScreen>
+    with PracticeLimitMixin<GenericPracticeScreen> {
   final _supabase = Supabase.instance.client;
   final _flashcardService = FlashcardService();
   final _progressService = ProgressService();
@@ -53,23 +54,8 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
 
   Future<void> _loadQuestions() async {
     // ─── LIMIT-CHECK für Free-User ─────────────────
-    final canUse = await UsageTracker().canUse(
-      feature: UsageFeature.moduleQuestions,
-      context: widget.moduleId.toString(),
-    );
-    if (!canUse && mounted) {
-      setState(() => _loading = false);
-      LimitReachedDialog.show(
-        context,
-        featureName: 'Modul-Fragen',
-        limit: UsageTracker.limitModuleQuestions,
-        icon: Icons.help_outline_rounded,
-        onUpgrade: () {
-          // TODO: später zur Pricing-Page
-        },
-      ).then((_) {
-        if (mounted) Navigator.pop(context);
-      });
+    if (!await checkPracticeLimit(widget.moduleId)) {
+      if (mounted) setState(() => _loading = false);
       return;
     }
 
@@ -118,10 +104,7 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
 
   void _onAnswered(bool isCorrect) async {
     // Counter erhöhen für Free-User
-    await UsageTracker().increment(
-      feature: UsageFeature.moduleQuestions,
-      context: widget.moduleId.toString(),
-    );
+    await recordPracticeAnswer(widget.moduleId);
 
     if (!isCorrect) {
       final q = _questions[_currentIndex];
