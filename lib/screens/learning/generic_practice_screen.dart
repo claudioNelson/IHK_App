@@ -11,11 +11,12 @@ import '../../widgets/questions/er_to_tables_widget.dart';
 import '../../services/flashcard_service.dart';
 import '../../services/progress_service.dart';
 import '../../services/sound_service.dart';
+import '../../services/question_validator.dart';
+import '../../services/usage_tracker.dart';
+import '../../widgets/limit_reached_dialog.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
-import '../../services/telegram_service.dart';
-import '../../services/question_validator.dart';
 
 class GenericPracticeScreen extends StatefulWidget {
   final int moduleId;
@@ -51,6 +52,27 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
   }
 
   Future<void> _loadQuestions() async {
+    // ─── LIMIT-CHECK für Free-User ─────────────────
+    final canUse = await UsageTracker().canUse(
+      feature: UsageFeature.moduleQuestions,
+      context: widget.moduleId.toString(),
+    );
+    if (!canUse && mounted) {
+      setState(() => _loading = false);
+      LimitReachedDialog.show(
+        context,
+        featureName: 'Modul-Fragen',
+        limit: UsageTracker.limitModuleQuestions,
+        icon: Icons.help_outline_rounded,
+        onUpgrade: () {
+          // TODO: später zur Pricing-Page
+        },
+      ).then((_) {
+        if (mounted) Navigator.pop(context);
+      });
+      return;
+    }
+
     try {
       final data = await _supabase
           .from('fragen')
@@ -95,6 +117,12 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
   }
 
   void _onAnswered(bool isCorrect) async {
+    // Counter erhöhen für Free-User
+    await UsageTracker().increment(
+      feature: UsageFeature.moduleQuestions,
+      context: widget.moduleId.toString(),
+    );
+
     if (!isCorrect) {
       final q = _questions[_currentIndex];
       final type = q['question_type'] as String?;
@@ -415,65 +443,6 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen> {
     Color bg,
   ) {
     final antworten = q['antworten'] as List? ?? [];
-
-    // Sicherheits-Check: Frage ohne Antworten überspringen
-    if (antworten.isEmpty) {
-      // Auto-Report an Admin via Telegram (einmalig pro Frage)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        TelegramService().reportEmptyQuestion(
-          frageId: q['id'] as int,
-          frageText: q['frage'] ?? '',
-          modulName: widget.moduleName,
-          questionType: q['question_type'] as String?,
-        );
-      });
-
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                size: 48,
-                color: AppColors.warning,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Diese Frage hat keine Antworten',
-                style: AppTextStyles.h3(textMid),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Frage ID: ${q['id']}',
-                style: AppTextStyles.monoSmall(textDim),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: 240,
-                height: 48,
-                child: ElevatedButton.icon(
-                  onPressed: () => _onAnswered(false),
-                  icon: const Icon(Icons.skip_next_rounded, size: 18),
-                  label: const Text('Frage überspringen'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: text,
-                    foregroundColor: bg,
-                    elevation: 0,
-                    textStyle: AppTextStyles.labelLarge(bg),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
