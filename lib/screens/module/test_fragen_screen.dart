@@ -16,6 +16,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/question_validator.dart';
+import '../../mixins/practice_limit_mixin.dart';
 
 class TestFragen extends StatefulWidget {
   final int modulId;
@@ -34,7 +35,7 @@ class TestFragen extends StatefulWidget {
 }
 
 class _TestFragenState extends State<TestFragen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, PracticeLimitMixin<TestFragen> {
   final supabase = Supabase.instance.client;
 
   List<dynamic> fragen = [];
@@ -95,6 +96,12 @@ class _TestFragenState extends State<TestFragen>
   }
 
   Future<void> _loadFragen() async {
+    // ─── LIMIT-CHECK für Free-User ─────────────────
+    if (!await checkPracticeLimit(widget.modulId)) {
+      if (mounted) setState(() => loading = false);
+      return;
+    }
+
     try {
       final res = await supabase
           .from('fragen')
@@ -194,6 +201,9 @@ class _TestFragenState extends State<TestFragen>
   void _checkAnswer(int answerId) async {
     if (hasAnswered) return;
 
+    // Counter erhöhen für Free-User
+    await recordPracticeAnswer(widget.modulId);
+
     setState(() {
       selectedAnswer = answerId;
       hasAnswered = true;
@@ -232,6 +242,10 @@ class _TestFragenState extends State<TestFragen>
 
   void _handleCalculationAnswer(bool isCorrect, String? userAnswer) async {
     if (hasAnswered) return;
+
+    // Counter erhöhen für Free-User
+    await recordPracticeAnswer(widget.modulId);
+
     setState(() {
       hasAnswered = true;
       calculationAnswer = userAnswer;
