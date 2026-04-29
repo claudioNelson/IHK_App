@@ -17,6 +17,7 @@ import '../../mixins/practice_limit_mixin.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
+import '../../widgets/limit_indicator_pill.dart';
 
 class GenericPracticeScreen extends StatefulWidget {
   final int moduleId;
@@ -282,6 +283,11 @@ class _GenericPracticeScreenState extends State<GenericPracticeScreen>
                           ),
                       ],
                     ),
+                  ),
+                  LimitIndicatorPill(
+                    key: ValueKey('limit_$_currentIndex'),
+                    feature: UsageFeature.moduleQuestions,
+                    contextValue: widget.moduleId.toString(),
                   ),
                 ],
               ),

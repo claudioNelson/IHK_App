@@ -11,6 +11,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/question_validator.dart';
+import '../../widgets/limit_indicator_pill.dart';
 import '../../services/usage_tracker.dart';
 import '../../widgets/limit_reached_dialog.dart';
 
@@ -296,6 +297,7 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen> {
                     ),
                   ),
                   // Score Tag
+                  // Score Tag
                   if (!loading && fragen.isNotEmpty && hasAnswered)
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -319,6 +321,13 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen> {
                         ),
                       ),
                     ),
+                  if (!loading && fragen.isNotEmpty) ...[
+                    const SizedBox(width: 6),
+                    LimitIndicatorPill(
+                      key: ValueKey('limit_$currentIndex'),
+                      feature: UsageFeature.flashcards,
+                    ),
+                  ],
                 ],
               ),
             ),
