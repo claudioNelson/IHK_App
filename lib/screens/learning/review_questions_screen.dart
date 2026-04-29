@@ -11,6 +11,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/question_validator.dart';
+import '../../services/usage_tracker.dart';
+import '../../widgets/limit_reached_dialog.dart';
 
 class ReviewQuestionsScreen extends StatefulWidget {
   final List<int> frageIds;
@@ -46,6 +48,26 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen> {
   }
 
   Future<void> _loadFragen() async {
+    // ─── LIMIT-CHECK für Free-User ─────────────────
+    final canUse = await UsageTracker().canUse(
+      feature: UsageFeature.flashcards,
+    );
+    if (!canUse && mounted) {
+      setState(() => loading = false);
+      LimitReachedDialog.show(
+        context,
+        featureName: 'Wiederholungen',
+        limit: UsageTracker.limitFlashcards,
+        icon: Icons.refresh_rounded,
+        onUpgrade: () {
+          // TODO: später zur Pricing-Page
+        },
+      ).then((_) {
+        if (mounted) Navigator.pop(context);
+      });
+      return;
+    }
+
     try {
       final res = await supabase
           .from('fragen')
@@ -87,6 +109,10 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen> {
 
   void _checkAnswer(int answerId) async {
     if (hasAnswered) return;
+
+    // Counter erhöhen für Free-User
+    await UsageTracker().increment(feature: UsageFeature.flashcards);
+
     setState(() {
       selectedAnswer = answerId;
       hasAnswered = true;
@@ -106,6 +132,10 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen> {
 
   void _handleSpecialAnswer(bool isCorrect, int frageId) async {
     if (hasAnswered) return;
+
+    // Counter erhöhen für Free-User
+    await UsageTracker().increment(feature: UsageFeature.flashcards);
+
     setState(() => hasAnswered = true);
     if (isCorrect) {
       _soundService.playSound(SoundType.correct);
