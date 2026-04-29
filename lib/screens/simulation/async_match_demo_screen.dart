@@ -8,6 +8,8 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import 'leaderboard_screen.dart';
 import 'async_match_play_screen.dart';
+import '../../services/usage_tracker.dart';
+import '../../widgets/limit_reached_dialog.dart';
 
 class AsyncMatchDemoPage extends StatefulWidget {
   const AsyncMatchDemoPage({super.key});
@@ -76,10 +78,36 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     }
   }
 
+  // ─── LIMIT-CHECK für Free-User ─────────────────
+  /// Prüft Async-Match-Limit. Returns true wenn Match starten erlaubt ist.
+  /// Bei false: Dialog wird gezeigt + Aktion abgebrochen.
+  Future<bool> _checkAsyncMatchLimit() async {
+    final canUse = await UsageTracker().canUse(
+      feature: UsageFeature.asyncMatch,
+    );
+    if (canUse) return true;
+
+    if (!mounted) return false;
+
+    LimitReachedDialog.show(
+      context,
+      featureName: 'Async Matches',
+      limit: UsageTracker.limitAsyncMatch,
+      icon: Icons.sports_esports_rounded,
+      onUpgrade: () {
+        // TODO: später zur Pricing-Page
+      },
+    );
+    return false;
+  }
+
   Future<void> _createMatch() async {
+    if (!await _checkAsyncMatchLimit()) return;
+
     setState(() => _busy = true);
     try {
       final id = await _svc.createMatch(count: 10);
+      await UsageTracker().increment(feature: UsageFeature.asyncMatch);
       await _loadData();
       if (!mounted) return;
       _playMatch(id);
@@ -92,6 +120,8 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   }
 
   Future<void> _joinRandom() async {
+    if (!await _checkAsyncMatchLimit()) return;
+
     setState(() => _busy = true);
     try {
       final id = await _svc.joinRandomMatch();
@@ -100,6 +130,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
         _showSnack('Kein offenes Match gefunden', AppColors.warning);
         return;
       }
+      await UsageTracker().increment(feature: UsageFeature.asyncMatch);
       await _loadData();
       if (!mounted) return;
       _playMatch(id);
@@ -322,6 +353,8 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
 
   Future<void> _joinMatch(String matchId) async {
     Navigator.pop(context);
+    if (!await _checkAsyncMatchLimit()) return;
+
     setState(() => _busy = true);
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
@@ -335,6 +368,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
           })
           .eq('id', matchId)
           .eq('status', 'open');
+      await UsageTracker().increment(feature: UsageFeature.asyncMatch);
       await _loadData();
       if (!mounted) return;
       _playMatch(matchId);
