@@ -5,6 +5,9 @@ import '../../services/gemini_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
+import '../../widgets/limit_reached_dialog.dart';
+import '../../widgets/limit_indicator_pill.dart';
+import '../../services/usage_tracker.dart';
 
 class AiTutorChatScreen extends StatefulWidget {
   final String? currentQuestion;
@@ -78,6 +81,22 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
         _isLoading = false;
       });
       _scrollToBottom();
+    } on LimitReachedException catch (e) {
+      setState(() {
+        _isLoading = false;
+        _messages.removeLast(); // User-Message wieder entfernen
+      });
+      if (mounted) {
+        await LimitReachedDialog.show(
+          context,
+          featureName: 'AI-Tutor Fragen',
+          limit: e.limit,
+          icon: Icons.auto_awesome_rounded,
+          onUpgrade: () {
+            // TODO: Pricing-Page
+          },
+        );
+      }
     } catch (e) {
       setState(() {
         _messages.add(
@@ -201,7 +220,13 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
                   ),
 
                   // Topic Tag
-                  if (widget.topic != null)
+                  // Limit-Pill
+                  LimitIndicatorPill(
+                    key: ValueKey('limit_${_messages.length}'),
+                    feature: UsageFeature.aiTutor,
+                  ),
+                  if (widget.topic != null) ...[
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -226,6 +251,7 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
                         ),
                       ),
                     ),
+                  ],
                 ],
               ),
             ),
