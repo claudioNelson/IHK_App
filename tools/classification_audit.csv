@@ -1,0 +1,813 @@
+id,modul_id,frage_kurz,alt,neu,confidence
+1,1,"Was sind fixe Kosten?",mittel,basics,1.0
+2,1,"Was sind variable Kosten?",mittel,basics,1.0
+3,1,"Was ist die Deckungsbeitragsrechnung?",mittel,basics,1.0
+4,1,"Was ist ein Budget?",mittel,basics,1.0
+5,1,"Was bedeutet ROI?",mittel,basics,1.0
+6,2,"Was ist ein Kaufvertrag?",mittel,basics,1.0
+7,2,"Wann ist ein Vertrag gültig?",mittel,praxis,1.0
+11,1,"Was ist Inflation?",mittel,basics,1.0
+12,2,"Was ist eine AG?",mittel,basics,1.0
+14,1,"Was bedeutet Liquidität für ein Unternehmen?",mittel,basics,1.0
+15,1,"Was ist der Break-Even-Point?",mittel,basics,1.0
+16,1,"Was unterscheidet Eigenkapital von Fremdkapital?",mittel,praxis,1.0
+17,1,"Was zeigt die Bilanz eines Unternehmens?",mittel,basics,1.0
+18,1,"Wofür steht GuV in der Buchhaltung?",mittel,basics,1.0
+19,1,"Was ist der Cashflow?",mittel,basics,1.0
+20,1,"Was ist eine Abschreibung?",mittel,basics,1.0
+21,1,"Was sind kalkulatorische Kosten?",mittel,basics,1.0
+22,1,"Was bedeutet ""Make or Buy"" Entscheidung?",mittel,basics,1.0
+23,1,"Was ist Working Capital?",mittel,basics,1.0
+24,1,"Was ist ein Vorteil von Leasing gegenüber Kauf?",mittel,praxis,1.0
+25,1,"Was sind Stakeholder?",mittel,basics,1.0
+26,1,"Was bedeutet ""Economies of Scale"" (Skaleneffekte)?",mittel,basics,1.0
+27,1,"Was bedeutet Outsourcing?",mittel,basics,1.0
+28,1,"Was ist Benchmarking?",mittel,basics,1.0
+29,1,"Wofür steht SWOT in der SWOT-Analyse?",mittel,basics,1.0
+30,1,"Was ist Supply Chain Management?",mittel,basics,1.0
+31,1,"Was bedeutet Just-in-Time (JIT) Produktion?",mittel,basics,1.0
+32,1,"Was beschreibt die Kapitalstruktur eines Unternehmens?",mittel,basics,1.0
+1801,18,"Gegeben ist die IP-Adresse 192.168.10.50/26. Berechne die folgenden Werte:",mittel,pruefung,1.0
+1802,18,"Gegeben ist die IP-Adresse 10.20.30.100/24. Berechne die folgenden Werte:",mittel,pruefung,1.0
+1803,18,"Gegeben ist die IP-Adresse 172.16.50.200/27. Berechne die folgenden Werte:",mittel,pruefung,1.0
+1804,18,"Gegeben ist die IP-Adresse 192.168.1.145/28. Berechne die folgenden Werte:",schwer,pruefung,1.0
+1805,18,"Gegeben ist die IP-Adresse 10.0.0.130/25. Berechne die folgenden Werte:",mittel,pruefung,1.0
+1806,18,"Gegeben ist die IP-Adresse 172.31.100.50/16. Berechne die folgenden Werte:",mittel,pruefung,1.0
+1807,18,"Gegeben ist die IP-Adresse 192.168.100.18/29. Berechne die folgenden Werte:",schwer,pruefung,1.0
+1808,18,"Gegeben ist die IP-Adresse 192.168.5.200/26. Berechne die folgenden Werte:",mittel,pruefung,1.0
+1809,18,"Gegeben ist die IP-Adresse 10.10.10.5/30. Berechne die folgenden Werte:",schwer,pruefung,1.0
+1810,18,"Gegeben ist die IP-Adresse 10.50.100.200/8. Berechne die folgenden Werte:",mittel,pruefung,1.0
+1811,18,"Welcher IP-Bereich ist für private Netzwerke reserviert (Klasse A)?",mittel,basics,1.0
+1812,18,"Was ist NAT (Network Address Translation)?",mittel,basics,1.0
+1813,18,"Wofür wird DHCP verwendet?",mittel,basics,1.0
+1814,18,"Was ist ein Default Gateway?",mittel,basics,1.0
+1815,18,"Wie viele Bit hat eine IPv6-Adresse?",mittel,basics,1.0
+1816,18,"Welche IP-Adresse ist die Loopback-Adresse?",mittel,basics,1.0
+1817,18,"Welche Standard-Subnetzmaske hat Netzklasse B?",mittel,basics,1.0
+1818,18,"Was ist eine Broadcast-Adresse?",mittel,basics,1.0
+1819,18,"Wofür wird ARP (Address Resolution Protocol) verwendet?",mittel,basics,1.0
+1820,18,"Gegeben: 192.168.10.0/26. Berechne Netzadresse, Broadcast, Subnetzmaske und nutz...",mittel,pruefung,1.0
+1821,18,"Gegeben: 10.50.100.32/28. Berechne Netzadresse, Broadcast, Subnetzmaske und nutz...",schwer,pruefung,1.0
+1822,18,"Gegeben: 172.16.0.8/30. Berechne Netzadresse, Broadcast, Subnetzmaske und nutzba...",schwer,pruefung,1.0
+1823,18,"Gegeben: 172.20.0.0/16. Berechne Netzadresse, Broadcast, Subnetzmaske und nutzba...",mittel,pruefung,1.0
+1824,18,"Gegeben: 192.168.50.128/27. Berechne Netzadresse, Broadcast, Subnetzmaske und nu...",mittel,pruefung,1.0
+1825,18,"Gegeben: 10.10.10.0/25. Berechne Netzadresse, Broadcast, Subnetzmaske und nutzba...",mittel,pruefung,1.0
+1826,18,"Gegeben: 192.168.1.200/29. Berechne Netzadresse, Broadcast, Subnetzmaske und nut...",schwer,pruefung,1.0
+1827,18,"Gegeben: 10.0.0.0/8. Berechne Netzadresse, Broadcast, Subnetzmaske und nutzbare ...",mittel,pruefung,1.0
+1828,18,"Erkläre Schritt für Schritt, wie du bei einer Subnetting-Aufgabe vorgehst.",mittel,pruefung,1.0
+1829,18,"Beschreibe den DHCP-Prozess (DORA) - wie erhält ein Client seine IP-Adresse?",mittel,praxis,1.0
+1830,18,"Erkläre die wichtigsten Unterschiede zwischen IPv4 und IPv6. Warum war IPv6 notw...",mittel,praxis,1.0
+2001,20,"Gegeben sind 4 Festplatten mit je 2 TB in einem RAID 0 Verbund.
+
+Berechne:",mittel,pruefung,1.0
+2002,20,"Gegeben sind 2 Festplatten mit je 4 TB in einem RAID 1 Verbund.
+
+Berechne:",mittel,pruefung,1.0
+2003,20,"Gegeben sind 5 Festplatten mit je 3 TB in einem RAID 5 Verbund.
+
+Berechne:",mittel,pruefung,1.0
+2004,20,"Gegeben sind 6 Festplatten mit je 2 TB in einem RAID 6 Verbund.
+
+Berechne:",mittel,pruefung,1.0
+2005,20,"Gegeben sind 4 Festplatten mit je 4 TB in einem RAID 10 Verbund.
+
+Berechne:",schwer,pruefung,1.0
+2006,20,"Gegeben sind 4 Festplatten mit je 1 TB in einem RAID 5 Verbund.
+
+Berechne:",mittel,pruefung,1.0
+2007,20,"Gegeben sind 6 Festplatten mit je 500 GB in einem RAID 0 Verbund.
+
+Berechne (i...",mittel,pruefung,1.0
+2008,20,"Gegeben sind 8 Festplatten mit je 4 TB in einem RAID 6 Verbund.
+
+Berechne:",schwer,pruefung,1.0
+2009,20,"Gegeben sind 8 Festplatten mit je 2 TB in einem RAID 10 Verbund.
+
+Berechne:",schwer,pruefung,1.0
+2010,20,"Gegeben sind 7 Festplatten mit je 6 TB in einem RAID 5 Verbund.
+
+Berechne:",mittel,pruefung,1.0
+2101,21,"Welcher Dienst nutzt standardmäßig Port 80?",einfach,basics,1.0
+2102,21,"Welcher Dienst nutzt standardmäßig Port 443?",einfach,basics,1.0
+2103,21,"Welcher Dienst nutzt standardmäßig Port 22?",einfach,basics,1.0
+2104,21,"Welcher Dienst nutzt standardmäßig Port 25?",einfach,basics,1.0
+2105,21,"Welcher Dienst nutzt standardmäßig Port 21?",einfach,basics,1.0
+2106,21,"Wofür wird ein DNS A-Record verwendet?",mittel,basics,1.0
+2107,21,"Wofür wird ein DNS MX-Record verwendet?",mittel,basics,1.0
+2108,21,"Wofür wird ein DNS CNAME-Record verwendet?",mittel,basics,1.0
+2109,21,"Welcher Dienst nutzt standardmäßig Port 3306?",mittel,basics,1.0
+2110,21,"Wofür wird ein DNS AAAA-Record verwendet?",mittel,basics,1.0
+2201,22,"Welche Verschlüsselungsart verwendet einen einzigen Schlüssel?",mittel,basics,1.0
+2202,22,"Was ist der Hauptvorteil eines VPN?",einfach,basics,1.0
+2203,22,"Was ist die Hauptaufgabe einer Firewall?",einfach,basics,1.0
+2204,22,"Wofür wird eine Hash-Funktion in der IT-Sicherheit verwendet?",mittel,basics,1.0
+2205,22,"Welcher Port wird standardmäßig für HTTPS verwendet?",einfach,basics,1.0
+2206,22,"Was sind typische Faktoren bei der Zwei-Faktor-Authentifizierung?",mittel,basics,1.0
+2207,22,"Was macht ein Passwort sicher?",einfach,basics,1.0
+2208,22,"Was unterscheidet einen Wurm von einem Virus?",mittel,praxis,1.0
+2209,22,"Erkläre den Unterschied zwischen symmetrischer und asymmetrischer Verschlüsselun...",mittel,praxis,1.0
+2210,22,"Was ist Social Engineering? Nenne zwei konkrete Angriffsmethoden.",mittel,praxis,1.0
+2211,22,"Was ist eine SQL-Injection?",mittel,basics,1.0
+2212,22,"Was ist Cross-Site Scripting (XSS)?",mittel,basics,1.0
+2213,22,"Was ist ein DDoS-Angriff?",mittel,basics,1.0
+2214,22,"Was ist ein Man-in-the-Middle (MITM) Angriff?",mittel,basics,1.0
+2215,22,"Was ist Ransomware?",mittel,basics,1.0
+2216,22,"Was ist ein Brute-Force-Angriff?",mittel,basics,1.0
+2217,22,"Wofür wird OAuth verwendet?",schwer,basics,1.0
+2218,22,"Wofür wird LDAP verwendet?",schwer,basics,1.0
+2219,22,"Was ist ein digitales Zertifikat?",mittel,basics,1.0
+2220,22,"Welcher Port sollte aus Sicherheitsgründen NICHT öffentlich erreichbar sein?",mittel,praxis,1.0
+2221,22,"Was ist Patch Management?",mittel,basics,1.0
+2222,22,"Was ist eine Zero-Day-Schwachstelle?",schwer,basics,1.0
+2223,22,"Was ist der Unterschied zwischen IDS und IPS?",schwer,praxis,1.0
+2224,22,"Welche drei Faktoren gibt es bei Multi-Faktor-Authentifizierung?",mittel,praxis,1.0
+2225,22,"Was ist ein Honeypot in der IT-Sicherheit?",schwer,basics,1.0
+2226,22,"Erkläre die CIA-Triade der IT-Sicherheit. Was bedeuten Confidentiality, Integrit...",mittel,pruefung,1.0
+2227,22,"Was bedeutet ""Defense in Depth"" (Verteidigung in der Tiefe) und nenne drei Bei...",mittel,praxis,1.0
+2228,22,"Beschreibe die Phasen eines Incident Response Prozesses bei einem Sicherheitsvor...",schwer,pruefung,1.0
+2229,22,"Erkläre wie Public Key Infrastructure (PKI) funktioniert und welche Rolle Certif...",schwer,pruefung,1.0
+2230,22,"Was ist Penetration Testing und was ist der Unterschied zu Vulnerability Scannin...",mittel,praxis,1.0
+2231,22,"Erkläre den Unterschied zwischen ""Encryption at Rest"" und ""Encryption in Tran...",mittel,praxis,1.0
+2232,22,"Was ist ein SIEM-System und wofür wird es verwendet?",schwer,basics,1.0
+2301,23,"Auf welcher OSI-Schicht arbeitet HTTP?",mittel,basics,1.0
+2302,23,"Auf welcher OSI-Schicht arbeitet ein Router?",mittel,basics,1.0
+2303,23,"Auf welcher OSI-Schicht arbeitet ein Switch?",mittel,basics,1.0
+2304,23,"Auf welcher OSI-Schicht arbeiten TCP und UDP?",mittel,basics,1.0
+2305,23,"Wie heißt die PDU (Protocol Data Unit) auf Schicht 2?",mittel,basics,1.0
+2306,23,"Auf welcher OSI-Schicht werden IP-Adressen verwendet?",mittel,basics,1.0
+2307,23,"Welches Gerät arbeitet auf Schicht 1 (Bitübertragungsschicht)?",mittel,basics,1.0
+2308,23,"SSL/TLS (verwendet bei HTTPS) arbeitet hauptsächlich auf welcher OSI-Schicht?",schwer,basics,1.0
+2309,23,"Nenne alle 7 Schichten des OSI-Modells in der richtigen Reihenfolge (von Schicht...",mittel,basics,1.0
+2310,23,"Erkläre den Unterschied zwischen einem Switch und einem Router. Auf welcher OSI-...",mittel,praxis,1.0
+2311,23,"Auf welcher OSI-Schicht arbeitet FTP (File Transfer Protocol)?",mittel,basics,1.0
+2312,23,"Auf welcher OSI-Schicht werden MAC-Adressen verwendet?",mittel,basics,1.0
+2313,23,"Was ist der Unterschied zwischen einem Segment und einem Paket?",schwer,praxis,1.0
+2314,23,"Was kann ein Layer-3-Switch im Gegensatz zu einem normalen Switch?",mittel,praxis,1.0
+2315,23,"Auf welcher OSI-Schicht arbeitet SMTP (E-Mail-Versand)?",mittel,basics,1.0
+2316,23,"Auf welcher OSI-Schicht wird eine Collision Domain getrennt?",schwer,basics,1.0
+2317,23,"Auf welcher OSI-Schicht arbeitet ICMP (ping, traceroute)?",mittel,basics,1.0
+2318,23,"Auf welcher OSI-Schicht arbeitet ein Repeater?",mittel,basics,1.0
+2319,23,"Auf welcher OSI-Schicht arbeitet DNS?",mittel,basics,1.0
+2320,23,"Was passiert bei der Encapsulation im OSI-Modell?",schwer,basics,1.0
+2321,23,"Erkläre die Hauptaufgaben der Netzwerkschicht (Layer 3). Welche Protokolle und G...",mittel,praxis,1.0
+2322,23,"Erkläre den Unterschied zwischen Layer 2 (Sicherungsschicht) und Layer 3 (Netzwe...",schwer,praxis,1.0
+2323,23,"Du kannst eine Webseite nicht erreichen. Beschreibe wie du systematisch nach OSI...",schwer,pruefung,1.0
+2324,23,"Erkläre den Unterschied zwischen TCP und UDP (beide Layer 4). Nenne jeweils 2 An...",mittel,praxis,1.0
+2325,23,"Welche Aufgaben hat die Darstellungsschicht (Layer 6)? Nenne konkrete Beispiele.",mittel,praxis,1.0
+2401,24,"Was kennzeichnet ein Vollbackup?",mittel,basics,1.0
+2402,24,"Was sichert ein differenzielles Backup?",mittel,basics,1.0
+2403,24,"Was sichert ein inkrementelles Backup?",mittel,basics,1.0
+2404,24,"Was bedeutet die 3-2-1 Backup-Regel?",mittel,basics,1.0
+2405,24,"Was benötigt man zur Wiederherstellung bei differenziellem Backup?",schwer,praxis,1.0
+2406,24,"Berechne den Speicherbedarf: Montag Vollbackup 100GB. Dienstag bis Freitag tägli...",schwer,pruefung,1.0
+2407,24,"Wofür steht GFS im Backup-Kontext?",schwer,basics,1.0
+2408,24,"Was bedeutet RPO (Recovery Point Objective)?",schwer,basics,1.0
+2409,24,"Erkläre den Unterschied zwischen Vollbackup, differenziellem Backup und inkremen...",mittel,praxis,1.0
+2410,24,"Erkläre die 3-2-1 Backup-Regel und warum sie wichtig ist.",mittel,pruefung,1.0
+2411,24,"Ein Unternehmen hat RPO = 4 Stunden. Was bedeutet das?",mittel,praxis,1.0
+2412,24,"Was bedeutet RTO (Recovery Time Objective)?",mittel,basics,1.0
+2413,24,"Was bedeutet ""Father"" im Grandfather-Father-Son Backup-Schema?",schwer,basics,1.0
+2414,24,"Welches Backup-Medium bietet die höchste Speicherkapazität?",mittel,praxis,1.0
+2415,24,"Warum ist ein Offsite-Backup wichtig?",mittel,praxis,1.0
+2416,24,"Warum sollten Backups regelmäßig getestet werden?",mittel,praxis,1.0
+2417,24,"Was ist ein Snapshot im Backup-Kontext?",mittel,basics,1.0
+2418,24,"Was ist ein Backup-Fenster?",mittel,basics,1.0
+2419,24,"Ein E-Commerce-Shop verarbeitet 50.000€ Umsatz/Stunde. Jede Stunde Ausfall koste...",schwer,pruefung,1.0
+2420,24,"Entwickle eine Backup-Strategie für ein mittelständisches Unternehmen (100 Mitar...",schwer,pruefung,1.0
+2421,24,"Was ist ein Immutable Backup und warum ist es gegen Ransomware wichtig?",mittel,basics,1.0
+2422,24,"Erkläre den Unterschied zwischen Backup und Archivierung. Wann nutzt man was?",mittel,praxis,1.0
+2501,25,"Rechne die Binärzahl 1010 in eine Dezimalzahl um.",mittel,praxis,1.0
+2502,25,"Rechne die Binärzahl 11001100 in eine Dezimalzahl um.",mittel,praxis,1.0
+2503,25,"Rechne die Dezimalzahl 25 in eine Binärzahl um.",mittel,praxis,1.0
+2504,25,"Rechne die Hexadezimalzahl 1F in eine Dezimalzahl um.",mittel,pruefung,1.0
+2505,25,"Rechne die Dezimalzahl 255 in eine Hexadezimalzahl um.",mittel,pruefung,1.0
+2506,25,"Welche Binärzahl entspricht der Hexadezimalzahl A?",mittel,pruefung,1.0
+2507,25,"Welche Dezimalzahl entspricht dem Binärwert 11111111 (ein Oktett einer Subnetzma...",mittel,pruefung,1.0
+2508,25,"Was ist das Ergebnis der AND-Verknüpfung: 1010 AND 1100?",schwer,pruefung,1.0
+2509,25,"Erkläre den Aufbau des Binärsystems und warum es in der Informatik verwendet wir...",mittel,pruefung,1.0
+2510,25,"Erkläre warum Hexadezimal in der Informatik häufig verwendet wird und nenne zwei...",mittel,pruefung,1.0
+2601,26,"Welche SQL-Anweisung gibt alle Spalten der Tabelle ""kunden"" aus?",mittel,praxis,1.0
+2602,26,"Wie filtert man in SQL Datensätze nach einer Bedingung?",mittel,praxis,1.0
+2603,26,"Was ist ein Primärschlüssel (PRIMARY KEY) in einer Datenbank?",mittel,basics,1.0
+2604,26,"Was ist ein Fremdschlüssel (FOREIGN KEY)?",mittel,basics,1.0
+2605,26,"Was macht ein INNER JOIN in SQL?",mittel,praxis,1.0
+2606,26,"Wofür wird GROUP BY in SQL verwendet?",mittel,praxis,1.0
+2608,26,"Wie sortiert man in SQL eine Ergebnismenge absteigend nach dem Feld ""preis""?",mittel,praxis,1.0
+2609,26,"Erkläre den Unterschied zwischen INNER JOIN, LEFT JOIN und RIGHT JOIN in SQL.",schwer,praxis,1.0
+2610,26,"Was ist Datenbankennormalisierung und warum ist sie wichtig? Erkläre kurz die er...",schwer,pruefung,1.0
+2611,26,"Welche SQL-Anweisung ändert bestehende Datensätze in einer Tabelle?",mittel,praxis,1.0
+2612,26,"Welche SQL-Anweisung löscht Datensätze aus einer Tabelle?",mittel,praxis,1.0
+2613,26,"Welche SQL-Funktion zählt die Anzahl der Datensätze?",mittel,praxis,1.0
+2614,26,"Was bewirkt DISTINCT in einer SQL-Abfrage?",mittel,basics,1.0
+2615,26,"Was ist der Unterschied zwischen INNER JOIN und LEFT JOIN?",schwer,praxis,1.0
+2616,26,"Was bewirkt ein UNIQUE Constraint?",mittel,basics,1.0
+2617,26,"Wie prüft man in SQL ob ein Wert NULL ist?",mittel,praxis,1.0
+2618,26,"Welche SQL-Funktion berechnet den Durchschnitt?",mittel,praxis,1.0
+2619,26,"Wofür wird ein Index in einer Datenbank verwendet?",mittel,basics,1.0
+2620,26,"Was ist der Unterschied zwischen WHERE und HAVING?",schwer,praxis,1.0
+2621,26,"Was bewirkt LIMIT in SQL?",mittel,basics,1.0
+2622,26,"Was bewirkt ON DELETE CASCADE bei einem Foreign Key?",schwer,praxis,1.0
+2623,26,"Was gibt diese Abfrage zurück: SELECT MAX(gehalt) FROM mitarbeiter",mittel,basics,1.0
+2624,26,"Was findet: SELECT * FROM kunden WHERE name LIKE 'M%'",mittel,basics,1.0
+2625,26,"Was bedeutet: WHERE preis BETWEEN 10 AND 50",mittel,basics,1.0
+2626,26,"Was bewirkt: WHERE stadt IN ('Berlin', 'Hamburg', 'München')",mittel,basics,1.0
+2627,26,"Wofür wird AS in SQL verwendet?",mittel,basics,1.0
+2628,26,"Erkläre was eine Transaktion ist und was ACID bedeutet.",schwer,praxis,1.0
+2629,26,"Was ist eine Subquery (Unterabfrage) in SQL? Gib ein Beispiel.",mittel,basics,1.0
+2630,26,"Was ist ein ER-Modell (Entity-Relationship) und welche Elemente enthält es?",mittel,basics,1.0
+2701,27,"Was kennzeichnet das Wasserfallmodell in der Softwareentwicklung?",mittel,basics,1.0
+2702,27,"Was ist der Hauptunterschied zwischen Agile und Wasserfallmodell?",mittel,praxis,1.0
+2703,27,"Was ist ein Sprint in Scrum?",mittel,basics,1.0
+2704,27,"Was ist der Unterschied zwischen Lastenheft und Pflichtenheft?",mittel,praxis,1.0
+2705,27,"Welche drei Hauptrollen gibt es in Scrum?",mittel,basics,1.0
+2706,27,"Wofür wird ein Gantt-Diagramm verwendet?",mittel,basics,1.0
+2707,27,"Was ist ein Meilenstein im Projektmanagement?",mittel,basics,1.0
+2708,27,"Was ist der kritische Pfad in der Netzplantechnik?",schwer,basics,1.0
+2710,27,"Beschreibe den Ablauf eines Scrum-Sprints. Welche Meetings/Events gibt es und wa...",schwer,praxis,1.0
+2711,27,"Was kennzeichnet das V-Modell in der Softwareentwicklung?",mittel,basics,1.0
+2712,27,"Was ist das Hauptprinzip von Kanban?",mittel,basics,1.0
+2713,27,"Was ist ein Product Backlog in Scrum?",mittel,basics,1.0
+2714,27,"Was ist das typische Format einer User Story?",mittel,basics,1.0
+2715,27,"Was ist die ""Definition of Done"" in Scrum?",mittel,basics,1.0
+2716,27,"Was ist Velocity in Scrum?",schwer,basics,1.0
+2717,27,"Was zeigt ein Burndown Chart?",mittel,basics,1.0
+2718,27,"Was ist ein Stakeholder im Projektmanagement?",mittel,basics,1.0
+2719,27,"Was bedeutet Timeboxing in Scrum?",mittel,basics,1.0
+2720,27,"Was ist ein MVP (Minimum Viable Product)?",mittel,basics,1.0
+2721,27,"Vergleiche Scrum und Kanban. Wann würdest du welche Methode einsetzen?",schwer,praxis,1.0
+2722,27,"Beschreibe die 5 klassischen Projektphasen im Projektmanagement.",mittel,praxis,1.0
+2723,27,"Erkläre den Risikomanagement-Prozess im Projektmanagement.",schwer,pruefung,1.0
+2724,27,"Beschreibe alle Scrum Events innerhalb eines Sprints und deren Zweck.",schwer,praxis,1.0
+2725,27,"Was sind Story Points und wie werden sie geschätzt? Warum nicht in Stunden schät...",schwer,praxis,1.0
+110001,9001,"Welches Dokument bildet die Grundlage für jede Buchung im Rahmen der ordnungsgem...",einfach,basics,1.0
+110002,9001,"Was beschreibt den Unterschied zwischen Inventur und Inventar am besten?",einfach,praxis,1.0
+110003,9001,"Was ist das Grundbuch (Journal) in der doppelten Buchführung?",einfach,basics,1.0
+110004,9001,"Welche Kontenart nimmt bei einer Buchung auf der HABEN-Seite zu?",einfach,praxis,1.0
+110005,9001,"Welcher Grundsatz gehört zu den Grundsätzen ordnungsmäßiger Buchführung (GoB)?",einfach,basics,1.0
+110006,9001,"Welche Gleichung beschreibt die Bilanz korrekt?",einfach,basics,1.0
+110007,9001,"Wo wird eine Rückstellung in der Bilanz typischerweise ausgewiesen?",einfach,basics,1.0
+110008,9001,"Wie wirken planmäßige Abschreibungen in Bilanz und GuV?",einfach,praxis,1.0
+110009,9001,"Welches Prinzip verhindert die Ausweisung unrealisierter Gewinne?",einfach,basics,1.0
+110010,9001,"Wo werden Umsatzerlöse grundsätzlich ausgewiesen?",einfach,basics,1.0
+110011,9001,"Wie berechnet sich der Deckungsbeitrag je Stück?",mittel,pruefung,1.0
+110012,9001,"Wofür steht die Kostenartenrechnung primär?",mittel,basics,1.0
+110013,9001,"Wann ist der Break-even-Punkt erreicht?",mittel,praxis,1.0
+110014,9001,"Was beschreibt die Zuschlagskalkulation im Handel am ehesten?",mittel,basics,1.0
+110015,9001,"Welche Aussage zu fixen und variablen Kosten ist korrekt?",mittel,basics,1.0
+110016,9001,"Wie hoch ist der reguläre Umsatzsteuersatz in Deutschland (Normalsatz)?",mittel,basics,1.0
+110017,9001,"Was ist die Vorsteuer?",mittel,basics,1.0
+110018,9001,"Worauf bezieht sich die Körperschaftsteuer?",mittel,basics,1.0
+110019,9001,"Woraus ergibt sich die Gewerbesteuerbelastung?",mittel,praxis,1.0
+110020,9001,"Wie wirkt ein steuerbarer, steuerpflichtiger und nicht steuerbefreiter Umsatz in...",mittel,pruefung,1.0
+110101,9001,"Wie ist ein Cloud-Abonnement (z. B. IaaS/SaaS) in der IT-Kostenlogik typischerwe...",schwer,praxis,1.0
+110102,9001,"Welche Bestandteile gehören typischerweise in die TCO-Betrachtung eines On-Premi...",schwer,praxis,1.0
+110103,9001,"Eine Firma kauft ein Notebook für 2.400 €. Der erwartete jährliche Nettonutzen (...",schwer,pruefung,1.0
+110104,9001,"Ein Admin kostet das Unternehmen 60.000 € Gehalt p. a.; Gemeinkosten/Overhead 20...",schwer,pruefung,1.0
+110105,9001,"Wann spricht eher „Buy“ (Standardsoftware/SaaS) statt „Make“ (Eigenentwicklung)?",schwer,praxis,1.0
+120001,9002,"Ab wann ist eine natürliche Person rechtsfähig?",einfach,basics,1.0
+120002,9002,"Wann kommt ein Kaufvertrag zustande?",einfach,basics,1.0
+120003,9002,"Welche Aussage trifft auf „Nichtigkeit“ vs. „Anfechtbarkeit“ zu?",einfach,praxis,1.0
+120004,9002,"Worin besteht der Unterschied zwischen Besitz und Eigentum?",einfach,praxis,1.0
+120005,9002,"Welche Aussage zur beschränkten Geschäftsfähigkeit ist korrekt?",einfach,basics,1.0
+120006,9002,"Was verlangt das Kündigungsschutzgesetz (KSchG) für eine ordentliche Kündigung i...",einfach,praxis,1.0
+120007,9002,"Wofür dient eine Abmahnung im Arbeitsrecht?",einfach,basics,1.0
+120008,9002,"Welche Wirkung hat ein Tarifvertrag grundsätzlich für tarifgebundene Parteien?",einfach,praxis,1.0
+120009,9002,"In welchem Bereich hat der Betriebsrat zwingende Mitbestimmung nach § 87 BetrVG?",einfach,praxis,1.0
+120010,9002,"Welche Form ist für die Befristung eines Arbeitsvertrags erforderlich?",einfach,basics,1.0
+120011,9002,"Welche Zweige gehören zur deutschen Sozialversicherung (klassische „vier plus ei...",mittel,basics,1.0
+120012,9002,"Nach welchem Prinzip werden Leistungen der gesetzlichen Renten- und Krankenversi...",mittel,basics,1.0
+120013,9002,"Wer trägt die Beiträge zur gesetzlichen Unfallversicherung (Berufsgenossenschaft...",mittel,basics,1.0
+120014,9002,"Welche Aussage zur Entgeltabrechnung ist korrekt?",mittel,basics,1.0
+120015,9002,"Was unterscheidet gesetzliche von privaten Sozialversicherungen im Grundprinzip?",mittel,praxis,1.0
+120016,9002,"Welche Haftung gilt grundsätzlich bei der GmbH?",mittel,basics,1.0
+120017,9002,"Was umfasst die Prokura im Handelsrecht?",mittel,basics,1.0
+120018,9002,"Welche Aussage zu Kaufmannsarten ist korrekt?",mittel,basics,1.0
+120019,9002,"Wann kommt der Schuldner ohne Mahnung in Verzug?",mittel,praxis,1.0
+120020,9002,"Wozu dient der Eigentumsvorbehalt im Kaufvertrag?",mittel,basics,1.0
+120021,9002,"Eine App verarbeitet Kundendaten, um den vertraglich geschuldeten Service bereit...",schwer,basics,1.0
+120022,9002,"Wann liegt „Auftragsverarbeitung“ vor und was ist zwingend zu tun?",schwer,praxis,1.0
+120023,9002,"Welche Maßnahme ist ein geeignetes Beispiel für technische und organisatorische ...",schwer,praxis,1.0
+120024,9002,"Welche Aussage zu Open-Source-Lizenzen ist korrekt?",schwer,basics,1.0
+120025,9002,"Was sollte ein Service-Level-Agreement (SLA) mindestens regeln?",schwer,praxis,1.0
+130001,9003,"Was kennzeichnet einen Primärschlüssel in einer relationalen Tabelle?",einfach,basics,1.0
+130002,9003,"Bei einer 1:n-Beziehung – auf welcher Seite liegt der Fremdschlüssel typischerwe...",einfach,praxis,1.0
+130003,9003,"Welches Ziel verfolgt die Normalisierung von Datenbanken hauptsächlich?",einfach,basics,1.0
+130004,9003,"Wofür steht „referentielle Integrität“ bei Fremdschlüsseln?",einfach,basics,1.0
+130005,9003,"Was ist der Unterschied zwischen Kandidatenschlüssel und Primärschlüssel?",einfach,praxis,1.0
+130006,9003,"Welche SQL-Klausel filtert Zeilen anhand einer Bedingung?",einfach,praxis,1.0
+130007,9003,"Womit sortierst du eine Ergebnismenge in SQL?",einfach,praxis,1.0
+130008,9003,"Welche Anweisung fügt neue Zeilen in eine Tabelle ein?",einfach,praxis,1.0
+130009,9003,"Welche Bedingung findet Zeichenketten per Mustervergleich (z. B. beginnt mit „A“...",einfach,praxis,1.0
+130010,9003,"Was liefert COUNT(*) in einer SELECT-Abfrage?",einfach,basics,1.0
+130011,9003,"Worin unterscheidet sich INNER JOIN von LEFT JOIN?",mittel,praxis,1.0
+130012,9003,"Wofür wird HAVING im Unterschied zu WHERE verwendet?",mittel,praxis,1.0
+130013,9003,"Welche Aussage zu Aggregatfunktionen ist korrekt?",mittel,basics,1.0
+130014,9003,"Wofür eignet sich eine Subquery in der WHERE-Klausel (IN)?",mittel,praxis,1.0
+130015,9003,"Worin besteht ein typischer Unterschied zwischen DISTINCT und GROUP BY?",mittel,praxis,1.0
+130016,9003,"Welche Bedingung gehört zur 1. Normalform (1NF)?",mittel,pruefung,1.0
+130017,9003,"Wann ist eine Tabelle in der 2. Normalform (2NF)?",mittel,pruefung,1.0
+130018,9003,"Was verlangt die 3. Normalform (3NF)?",mittel,pruefung,1.0
+130019,9003,"Wie wird eine m:n-Beziehung relational abgebildet?",mittel,praxis,1.0
+130020,9003,"Welche Aussage zu Constraints ist korrekt?",mittel,basics,1.0
+130021,9003,"Wofür steht „Isolation“ bei ACID-Transaktionen?",schwer,basics,1.0
+130022,9003,"Wann ist ein Index typischerweise besonders sinnvoll?",schwer,praxis,1.0
+130023,9003,"Welche Abfragen profitieren typischerweise von einem B-Tree-Index?",schwer,praxis,1.0
+130024,9003,"Welches Phänomen verhindert die Isolationsstufe READ COMMITTED in der Regel?",schwer,praxis,1.0
+130025,9003,"Wozu dient EXPLAIN (ANALYZE) in SQL-Datenbanken?",schwer,praxis,1.0
+140001,9004,"Welche Adresse arbeitet auf Schicht 2 (Data Link) und identifiziert Geräte im lo...",einfach,basics,1.0
+140002,9004,"Worin unterscheidet sich ein Hub von einem Switch?",einfach,praxis,1.0
+140003,9004,"Welches Protokoll nutzt „ping“, um Erreichbarkeit zu prüfen?",einfach,basics,1.0
+140004,9004,"Was bedeutet „Vollduplex“ auf einem Switch-Port?",einfach,basics,1.0
+140005,9004,"Welche Aussage beschreibt die Beziehung von OSI- und TCP/IP-Modell richtig?",einfach,praxis,1.0
+140006,9004,"Welche Angabe ist ein privater IPv4-Adressbereich gemäß RFC 1918?",einfach,basics,1.0
+140007,9004,"Welche Subnetzmaske entspricht einem /24-Netz?",einfach,basics,1.0
+140008,9004,"Wozu dient das „Default Gateway“ in einem IPv4-Netz?",einfach,basics,1.0
+140009,9004,"Wie viele nutzbare Hostadressen hat ein IPv4-/30-Netz?",einfach,pruefung,1.0
+140010,9004,"Welche Aussage zu IPv6 ist korrekt?",einfach,basics,1.0
+140011,9004,"Wozu dienen VLANs in einem Layer-2-Netz?",mittel,basics,1.0
+140012,9004,"Was transportiert ein 802.1Q-Trunk zwischen Switches?",mittel,basics,1.0
+140013,9004,"Wozu dient das Spanning Tree Protocol (STP)?",mittel,basics,1.0
+140014,9004,"Was ermöglicht „Port Security“ an Switch-Ports?",mittel,basics,1.0
+140015,9004,"Wie kommunizieren Hosts in unterschiedlichen VLANs miteinander?",mittel,praxis,1.0
+140016,9004,"Welche Aussage beschreibt den Unterschied zwischen TCP und UDP korrekt?",mittel,praxis,1.0
+140017,9004,"Welche Route bezeichnet man als „Default-Route“ in IPv4?",mittel,basics,1.0
+140018,9004,"Wozu wird Network Address Translation (NAT) hauptsächlich eingesetzt?",mittel,basics,1.0
+140019,9004,"Welche Aufgabe hat DHCP in einem IP-Netz?",mittel,basics,1.0
+140020,9004,"Wofür wird DNS in Netzwerken benötigt?",mittel,basics,1.0
+140021,9004,"Was kennzeichnet eine zustandsbehaftete (stateful) Firewall?",schwer,basics,1.0
+140022,9004,"Welches bekannte Port/Protokoll-Paar ist korrekt zugeordnet?",schwer,praxis,1.0
+140023,9004,"Welcher Wireshark-Display-Filter zeigt nur TCP-Pakete auf Port 80?",schwer,praxis,1.0
+140024,9004,"Welche Maßnahme hilft typischerweise gegen VLAN-Hopping-Angriffe?",schwer,praxis,1.0
+140025,9004,"Auf welchem Mechanismus basiert „traceroute“ typischerweise?",schwer,praxis,1.0
+150001,9005,"Welche Aufgabe hat der Kernel in einem Betriebssystem?",einfach,basics,1.0
+150002,9005,"Was kennzeichnet einen absoluten Pfad in Linux?",einfach,basics,1.0
+150003,9005,"Welches Kommando zeigt das aktuelle Arbeitsverzeichnis?",einfach,basics,1.0
+150004,9005,"Wo liegen unter Linux typischerweise die Home-Verzeichnisse der Nutzer?",einfach,basics,1.0
+150005,9005,"Was zeigt „ls -l“ zusätzlich gegenüber „ls“?",einfach,basics,1.0
+150006,9005,"Wozu dient der Pipe-Operator „|“ in der Shell?",einfach,praxis,1.0
+150007,9005,"Was bewirkt der Umleitungs-Operator „>“?",einfach,praxis,1.0
+150008,9005,"Welches Tool durchsucht Text nach Mustern (Regex)?",einfach,praxis,1.0
+150009,9005,"Welcher Paketmanager wird typischerweise unter Debian/Ubuntu verwendet?",einfach,basics,1.0
+150010,9005,"Mit welchem Befehl zeigt man die ersten Zeilen einer Datei an?",einfach,basics,1.0
+150011,9005,"Welche Rechte setzt „chmod 640 datei“?",mittel,basics,1.0
+150012,9005,"Worin besteht der Unterschied zwischen Hardlink und symbolischem Link?",mittel,praxis,1.0
+150013,9005,"Wie ändert man den Besitzer eines Verzeichnisses samt aller Unterelemente?",mittel,praxis,1.0
+150014,9005,"Welche find-Syntax findet *.log Dateien unter /var/log (nicht rekursiv beschränk...",mittel,praxis,1.0
+150015,9005,"Wofür steht die „umask“?",mittel,basics,1.0
+150016,9005,"Welches Tool zeigt laufende Prozesse interaktiv inkl. CPU/RAM-Nutzung?",mittel,basics,1.0
+150017,9005,"Welches Signal bittet einen Prozess um geordnetes Beenden?",mittel,basics,1.0
+150018,9005,"Welches Werkzeug steuert Dienste unter systemd (Start/Stop/Enable)?",mittel,basics,1.0
+150019,9005,"Wie ruft man Systemd-Journal-Logs eines Dienstes ab?",mittel,basics,1.0
+150020,9005,"Welcher Mechanismus plant wiederkehrende Tasks (z. B. täglich 03:00 Uhr)?",mittel,basics,1.0
+150021,9005,"Welche Praxis ist für Administrationsaufgaben am sichersten?",schwer,praxis,1.0
+150022,9005,"Welche SSH-Authentifizierung ist empfehlenswert?",schwer,praxis,1.0
+150023,9005,"Was bewirkt das setuid-Bit bei ausführbaren Dateien?",schwer,basics,1.0
+150024,9005,"Welches Ziel verfolgen SELinux und AppArmor?",schwer,praxis,1.0
+150025,9005,"Wozu dient die Shebang-Zeile (z. B. „#!/bin/bash“) am Anfang eines Scripts?",schwer,basics,1.0
+160001,9006,"Welche Hauptaufgabe hat die CPU in einem Computersystem?",einfach,basics,1.0
+160002,9006,"Welcher Speicher ist nicht flüchtig (behält Daten ohne Strom)?",einfach,basics,1.0
+160003,9006,"Welcher Anschluss wird typischerweise für schnelle externe Massenspeicher genutz...",einfach,basics,1.0
+160004,9006,"Was kennzeichnet eine aktive Kühlung im PC?",einfach,basics,1.0
+160005,9006,"Was ist ein gängiger Mainboard-Formfaktor im Desktop-Bereich?",einfach,basics,1.0
+160006,9006,"Welcher RAID-Level spiegelt Daten zur Erhöhung der Ausfallsicherheit?",einfach,praxis,1.0
+160007,9006,"Welches Dateisystem ist unter Linux verbreitet und journaled?",einfach,basics,1.0
+160008,9006,"Welche Aussage zu SSDs trifft zu?",einfach,basics,1.0
+160009,9006,"Welche maximale Dateigröße unterstützt FAT32?",einfach,basics,1.0
+160010,9006,"Worin unterscheidet sich NVMe typischerweise von SATA-SSDs?",einfach,praxis,1.0
+160011,9006,"Was bewirkt Dual-Channel-RAM-Betrieb?",mittel,praxis,1.0
+160012,9006,"Wofür steht die CAS-Latenz (CL) bei RAM?",mittel,basics,1.0
+160013,9006,"Wozu dient „virtueller Speicher“ (Swap/Pagefile)?",mittel,basics,1.0
+160014,9006,"Welche Aussage zu 32-Bit vs. 64-Bit-Systemen ist korrekt?",mittel,praxis,1.0
+160015,9006,"Welche Maßnahme steigert typischerweise Multi-Thread-Performance am ehesten?",mittel,praxis,1.0
+160016,9006,"Worin unterscheiden sich Typ-1- und Typ-2-Hypervisor?",mittel,praxis,1.0
+160017,9006,"Wozu dienen Snapshots in VMs?",mittel,basics,1.0
+160018,9006,"Was unterscheidet Container typischerweise von VMs?",mittel,praxis,1.0
+160019,9006,"Welches Angebot ist ein Beispiel für IaaS (Infrastructure as a Service)?",mittel,basics,1.0
+160020,9006,"Was beschreibt „horizontale Skalierung“ im Vergleich zu „vertikaler Skalierung“?",mittel,praxis,1.0
+160021,9006,"Welches Ziel verfolgt UEFI Secure Boot?",schwer,basics,1.0
+160022,9006,"Wofür wird ein TPM (Trusted Platform Module) typischerweise genutzt?",schwer,basics,1.0
+160023,9006,"SMART meldet viele „Reallocated Sectors“. Was ist die richtige Reaktion?",schwer,praxis,1.0
+160024,9006,"Was bedeutet die 3-2-1-Backup-Regel?",schwer,basics,1.0
+160025,9006,"Welche Maßnahme schützt Daten auf einem verlorenen/gestohlenen Laptop am zuverlä...",schwer,praxis,1.0
+170001,9007,"Was beschreibt am besten, was eine Variable in Programmiersprachen ist?",einfach,basics,1.0
+170002,9007,"Welche Aussage zu Datentypen ist korrekt?",einfach,basics,1.0
+170003,9007,"Wozu dienen Kommentare im Code?",einfach,basics,1.0
+170004,9007,"Was bewirkt eine Typumwandlung (Casting/Conversion)?",einfach,basics,1.0
+170005,9007,"Welche Aussage zu Standard-Ein-/Ausgabe (stdin/stdout) trifft zu?",einfach,basics,1.0
+170006,9007,"Wozu dient eine if/else-Struktur?",einfach,basics,1.0
+170007,9007,"Welche Aussage zu Schleifen ist korrekt?",einfach,basics,1.0
+170008,9007,"Welche Struktur speichert geordnete Elemente und ist über Indizes zugreifbar?",einfach,basics,1.0
+170009,9007,"Welche Struktur ordnet Schlüsseln Werte zu (Key→Value)?",einfach,basics,1.0
+170010,9007,"Was ist der Unterschied zwischen break und continue in Schleifen?",einfach,praxis,1.0
+170011,9007,"Wofür steht „Kapselung“ (Encapsulation) in der OOP?",mittel,basics,1.0
+170012,9007,"Was beschreibt Polymorphie in der OOP am besten?",mittel,basics,1.0
+170013,9007,"Wozu dient ein Konstruktor in Klassen?",mittel,basics,1.0
+170014,9007,"Welche Aussage zu Exceptions (Ausnahmen) ist korrekt?",mittel,basics,1.0
+170015,9007,"Was unterscheidet üblicherweise ein Interface von einer abstrakten Klasse?",mittel,praxis,1.0
+170016,9007,"Was ist der Unterschied zwischen git commit und git push?",mittel,praxis,1.0
+170017,9007,"Wozu dienen Branches in Git?",mittel,basics,1.0
+170018,9007,"Wozu dient eine .gitignore-Datei?",mittel,basics,1.0
+170019,9007,"Was kennzeichnet gute Unit-Tests?",mittel,praxis,1.0
+170020,9007,"Wozu dient eine CI/CD-Pipeline?",mittel,praxis,1.0
+170021,9007,"Welche Zeitkomplexität hat die binäre Suche in einer sortierten Liste?",schwer,pruefung,1.0
+170022,9007,"Welches Sortierverfahren gilt (in typischer Implementierung) als stabil?",schwer,pruefung,1.0
+170023,9007,"Welche Maßnahme schützt am zuverlässigsten gegen SQL-Injection?",schwer,praxis,1.0
+170024,9007,"Worin unterscheidet sich kryptografisches Hashing von Verschlüsselung?",schwer,praxis,1.0
+170025,9007,"Was ist eine Race Condition und wie verhindert man sie typischerweise?",schwer,praxis,1.0
+180001,9008,"Wofür steht die CIA-Triade in der Informationssicherheit?",einfach,basics,1.0
+180002,9008,"Welche Aussage beschreibt „Schwachstelle“ korrekt?",einfach,basics,1.0
+180003,9008,"Warum sind regelmäßige Sicherheitsupdates wichtig?",einfach,praxis,1.0
+180004,9008,"Was kennzeichnet Ransomware?",einfach,basics,1.0
+180005,9008,"Welche Aussage beschreibt ein starkes Passwort am besten?",einfach,basics,1.0
+180006,9008,"Wozu dient eine Netzwerk-Firewall grundsätzlich?",einfach,basics,1.0
+180007,9008,"Wofür steht das „S“ in HTTPS und was bedeutet es technisch?",einfach,basics,1.0
+180008,9008,"Was ist der Hauptzweck eines VPN?",einfach,basics,1.0
+180009,9008,"Woran erkennst du oft Phishing in E-Mails/Links?",einfach,praxis,1.0
+180010,9008,"Was bedeutet ein „offener Port“ auf einem Server?",einfach,basics,1.0
+180011,9008,"Warum erhöht Multi-Faktor-Authentifizierung (MFA) die Sicherheit deutlich?",mittel,praxis,1.0
+180012,9008,"Worin unterscheidet sich kryptografisches Hashing von Verschlüsselung im Sicherh...",mittel,praxis,1.0
+180013,9008,"Wozu dient ein Salt bei der Passwortspeicherung?",mittel,praxis,1.0
+180014,9008,"Was bestätigt ein digitales Zertifikat (X.509) grundsätzlich?",mittel,basics,1.0
+180015,9008,"Welche Ziele erreicht der TLS-Handschlag typischerweise vor dem Datentransfer?",mittel,praxis,1.0
+180016,9008,"Was bedeutet das Prinzip „Least Privilege“ im Betrieb?",mittel,basics,1.0
+180017,9008,"Warum hilft Netzwerksegmentierung bei der Sicherheitsarchitektur?",mittel,praxis,1.0
+180018,9008,"Welche Strategie beschreibt die 3-2-1-Regel bei Backups?",mittel,praxis,1.0
+180019,9008,"Warum ist zentrales Logging/Monitoring (z. B. SIEM) sicherheitsrelevant?",mittel,praxis,1.0
+180020,9008,"Welche Erstmaßnahme ist bei Malware-Verdacht auf einem Arbeitsplatz-PC typischer...",mittel,praxis,1.0
+180021,9008,"Welche Maßnahme schützt am zuverlässigsten gegen SQL-Injection?",schwer,praxis,1.0
+180022,9008,"Wie beugst du Cross-Site Scripting (XSS) typischerweise vor?",schwer,praxis,1.0
+180023,9008,"Welche Maßnahme schützt zuverlässig gegen CSRF?",schwer,praxis,1.0
+180024,9008,"Wofür wird HSTS (Strict-Transport-Security) eingesetzt?",schwer,basics,1.0
+180025,9008,"Was beschreibt das Zero-Trust-Prinzip am treffendsten?",schwer,basics,1.0
+190001,9009,"Wozu dienen semantische HTML-Tags wie <header>, <main>, <nav>, <footer>?",einfach,basics,1.0
+190002,9009,"Welche Bestandteile umfasst das CSS-Box-Modell?",einfach,basics,1.0
+190003,9009,"Welche Regel gewinnt typischerweise bei CSS-Konflikten (gleicher Ursprung)?",einfach,praxis,1.0
+190004,9009,"Welche Aussage zu GET vs. POST trifft zu?",einfach,praxis,1.0
+190005,9009,"Welche Statuscode-Klassen stehen grob wofür (2xx/4xx/5xx)?",einfach,basics,1.0
+190006,9009,"Was unterscheidet „let“ von „const“ in modernem JavaScript?",einfach,basics,1.0
+190007,9009,"Wie wählst du das erste Element, das zu einem CSS-Selektor passt?",einfach,praxis,1.0
+190008,9009,"Was beschreibt „Event-Bubbling“ im DOM?",einfach,basics,1.0
+190009,9009,"Wofür dienen JSON.parse und JSON.stringify?",einfach,basics,1.0
+190010,9009,"Welche Aussage zu fetch und Promises ist korrekt?",einfach,praxis,1.0
+190011,9009,"Welches Prinzip gehört zu REST-Architekturen?",mittel,basics,1.0
+190012,9009,"Welches Mapping von CRUD auf HTTP-Methoden ist üblich?",mittel,praxis,1.0
+190013,9009,"Welche Methode ist beim Aktualisieren einer Ressource typischerweise idempotent?",mittel,praxis,1.0
+190014,9009,"Welcher Statuscode ist beim erfolgreichen Anlegen einer Ressource per POST korre...",mittel,praxis,1.0
+190015,9009,"Welcher Content-Type ist für JSON-APIs korrekt?",mittel,basics,1.0
+190016,9009,"Wozu dient eine CI/CD-Pipeline im Web-Projekt?",mittel,basics,1.0
+190017,9009,"Was ist der Unterschied zwischen Docker-Image und Container?",mittel,praxis,1.0
+190018,9009,"Wie sollten Konfiguration/Secrets für verschiedene Umgebungen verwaltet werden?",mittel,pruefung,1.0
+190019,9009,"Wozu dient ein Reverse Proxy (z. B. Nginx) vor einer Web-App?",mittel,praxis,1.0
+190020,9009,"Was beschreibt Blue-Green-Deployment?",mittel,praxis,1.0
+190021,9009,"Wofür ist CORS (Cross-Origin Resource Sharing) da?",schwer,basics,1.0
+190022,9009,"Welche Kombination schützt zuverlässig gegen CSRF in Web-Apps?",schwer,praxis,1.0
+190023,9009,"Wofür setzt man Content-Security-Policy (CSP) ein?",schwer,basics,1.0
+190024,9009,"Welche Header/Mechanismen steuern typischerweise Browser-/Proxy-Caching?",schwer,praxis,1.0
+190025,9009,"Welche Maßnahme verbessert Web-Performance typischerweise spürbar?",schwer,praxis,1.0
+200001,9010,"Welche Zuordnung von Cloud-Modell zu Beispiel passt am besten?",einfach,praxis,1.0
+200002,9010,"Was beschreibt das Shared-Responsibility-Modell korrekt (IaaS)?",einfach,praxis,1.0
+200003,9010,"Was ist eine Availability Zone (AZ) typischerweise?",einfach,basics,1.0
+200004,9010,"Welche Aussage zur Cloud-Abrechnung passt?",einfach,praxis,1.0
+200005,9010,"Was bedeutet „Lift & Shift“ bei Cloud-Migrationen?",einfach,basics,1.0
+200006,9010,"Wozu dient eine CI/CD-Pipeline im DevOps-Kontext?",einfach,basics,1.0
+200007,9010,"Was unterscheidet Branches von Tags in Git?",einfach,praxis,1.0
+200008,9010,"Warum sind Einrückungen in YAML wichtig (z. B. für Pipeline-Definitionen)?",einfach,basics,1.0
+200009,9010,"Was ist ein „Build-Artefakt“ in CI/CD?",einfach,basics,1.0
+200010,9010,"Worin besteht die Grundidee von GitOps?",einfach,basics,1.0
+200011,9010,"Was ist ein Pod in Kubernetes?",mittel,basics,1.0
+200012,9010,"Wozu dient ein Service in Kubernetes?",mittel,basics,1.0
+200013,9010,"Welche Eigenschaft hat ein Deployment in Kubernetes typischerweise?",mittel,basics,1.0
+200014,9010,"Wofür wird ein Ingress (Controller) verwendet?",mittel,basics,1.0
+200015,9010,"Was unterscheidet Container-Image und Container?",mittel,praxis,1.0
+200016,9010,"Wozu dient „terraform plan“ im Vergleich zu „apply“?",mittel,praxis,1.0
+200017,9010,"Warum ist der Terraform-State wichtig und oft remote gespeichert?",mittel,praxis,1.0
+200018,9010,"Welche Aussage trifft deklarativ (Terraform) vs. imperativ (z. B. ad-hoc Skripte...",mittel,praxis,1.0
+200019,9010,"Welche Zuordnung passt für SLI, SLO und SLA?",mittel,praxis,1.0
+200020,9010,"Was ist der Unterschied zwischen Logs, Metrics und Traces (Observability)?",mittel,praxis,1.0
+200021,9010,"Wie erreicht man Hochverfügbarkeit in der Cloud typischerweise am zuverlässigste...",schwer,praxis,1.0
+200022,9010,"Worin unterscheidet sich horizontale von vertikaler Skalierung?",schwer,praxis,1.0
+200023,9010,"Was unterscheidet Blue/Green-Deployment von Canary-Releases?",schwer,praxis,1.0
+200024,9010,"Welche Maßnahme reduziert Cloud-Kosten typischerweise effektiv?",schwer,praxis,1.0
+200025,9010,"Wozu dient ein „Error Budget“ im SRE-Ansatz?",schwer,praxis,1.0
+210001,9011,"Worin besteht der Unterschied zwischen Datenstruktur und Algorithmus?",einfach,praxis,1.0
+210002,9011,"Welche Struktur erlaubt typischerweise random access in O(1)?",einfach,praxis,1.0
+210003,9011,"Welches Prinzip beschreibt einen Stack am besten?",einfach,basics,1.0
+210004,9011,"Welche Aussage beschreibt eine Queue korrekt?",einfach,basics,1.0
+210005,9011,"Was beschreibt die Big-O-Notation grob?",einfach,basics,1.0
+210006,9011,"Wie teuer ist das Einfügen am Anfang einer einfach verketteten Liste?",einfach,praxis,1.0
+210007,9011,"Wie teuer ist lineare Suche in einer unsortierten einfach verketteten Liste im W...",einfach,praxis,1.0
+210008,9011,"Was zeichnet eine Deque (Double-Ended Queue) aus?",einfach,basics,1.0
+210009,9011,"Welche Struktur bietet typischerweise schnelleren Indexzugriff?",einfach,praxis,1.0
+210010,9011,"Wofür wird ein Ringpuffer (circular buffer) häufig genutzt?",einfach,praxis,1.0
+210011,9011,"Welche Eigenschaft hat ein binärer Suchbaum (BST)?",mittel,basics,1.0
+210012,9011,"Welche Reihenfolge liefert eine Inorder-Traversierung eines BST typischerweise?",mittel,basics,1.0
+210013,9011,"Was kennzeichnet einen Max-Heap?",mittel,basics,1.0
+210014,9011,"Welche Ordnung hat die Höhe eines gut balancierten binären Baums mit n Knoten?",mittel,praxis,1.0
+210015,9011,"Warum nutzen Datenbanken oft B-Bäume/B+-Bäume für Indexe?",mittel,praxis,1.0
+210016,9011,"Welche Aussage zu BFS im ungewichteten Graph ist korrekt?",mittel,praxis,1.0
+210017,9011,"Worauf ist Dijkstras Algorithmus angewiesen, damit er korrekte kürzeste Wege lie...",mittel,praxis,1.0
+210018,9011,"Welche durchschnittliche Zeitkomplexität hat QuickSort?",mittel,praxis,1.0
+210019,9011,"Welche Aussage zu MergeSort ist korrekt?",mittel,praxis,1.0
+210020,9011,"Welche Aussage zu Hash-Tabellen (mit gutem Hash/Load-Factor) trifft typischerwei...",mittel,praxis,1.0
+210021,9011,"Welches Beispiel illustriert amortisierte O(1)-Kosten gut?",schwer,praxis,1.0
+210022,9011,"Was kennzeichnet Dynamic Programming (DP)?",schwer,praxis,1.0
+210023,9011,"Worin unterscheidet sich Greedy typischerweise von DP?",schwer,praxis,1.0
+210024,9011,"Welche Aussage zu NP-vollständig trifft zu (Entscheidungsprobleme)?",schwer,pruefung,1.0
+210025,9011,"Welches Beispiel beschreibt einen Space-Time-Tradeoff?",schwer,pruefung,1.0
+210240,null,"Was ist Google Cloud Platform?",mittel,basics,1.0
+210241,null,"Was ist Google Compute Engine?",mittel,basics,1.0
+210242,null,"Was ist Google App Engine?",mittel,basics,1.0
+210243,null,"Was ist Google Kubernetes Engine?",mittel,basics,1.0
+210244,null,"Was ist Cloud Functions?",mittel,basics,1.0
+210245,null,"Was ist Cloud Run?",mittel,basics,1.0
+210246,null,"Was ist Google Cloud Storage?",mittel,basics,1.0
+210247,null,"Was sind Storage Classes?",mittel,basics,1.0
+210248,null,"Was ist Cloud SQL?",mittel,basics,1.0
+210249,null,"Was ist Cloud Spanner?",mittel,basics,1.0
+210250,null,"Was ist BigQuery?",mittel,basics,1.0
+210251,null,"Was ist Firestore?",mittel,basics,1.0
+210252,null,"Was ist Cloud Bigtable?",schwer,basics,1.0
+210253,null,"Was ist VPC (Virtual Private Cloud)?",mittel,basics,1.0
+210254,null,"Was ist Cloud Load Balancing?",mittel,basics,1.0
+210255,null,"Was ist Cloud CDN?",mittel,basics,1.0
+210256,null,"Was ist Cloud Interconnect?",schwer,basics,1.0
+210257,null,"Was ist Cloud VPN?",mittel,basics,1.0
+210258,null,"Was ist IAM (Identity and Access Management)?",mittel,basics,1.0
+210259,null,"Was sind Service Accounts?",mittel,basics,1.0
+210260,null,"Was ist Cloud Identity?",mittel,basics,1.0
+210261,null,"Was ist Cloud KMS?",mittel,basics,1.0
+210262,null,"Was ist Security Command Center?",mittel,basics,1.0
+210263,null,"Was ist Cloud Armor?",mittel,basics,1.0
+210264,null,"Was ist Binary Authorization?",schwer,basics,1.0
+210265,null,"Was ist Cloud Monitoring?",mittel,basics,1.0
+210266,null,"Was ist Cloud Logging?",mittel,basics,1.0
+210267,null,"Was ist Cloud Trace?",mittel,basics,1.0
+210268,null,"Was ist Cloud Debugger?",mittel,basics,1.0
+210269,null,"Was ist Cloud Profiler?",schwer,basics,1.0
+210270,null,"Was ist der Google Cloud Pricing Calculator?",mittel,basics,1.0
+210271,null,"Was sind Committed Use Discounts?",mittel,basics,1.0
+210272,null,"Was sind Sustained Use Discounts?",mittel,basics,1.0
+210273,null,"Was sind Preemptible VMs?",mittel,basics,1.0
+210274,null,"Was ist Cloud Billing?",mittel,basics,1.0
+210275,null,"Was sind Cost Management Best Practices?",mittel,basics,1.0
+210276,null,"Was ist eine GCP Region?",mittel,basics,1.0
+210277,null,"Was ist eine Zone?",mittel,basics,1.0
+210278,null,"Was ist Multi-Region?",mittel,basics,1.0
+210279,null,"Was ist der Unterschied zwischen Region und Multi-Region?",mittel,praxis,1.0
+210280,null,"Was ist Cloud Deployment Manager?",mittel,basics,1.0
+210281,null,"Was ist Terraform mit GCP?",mittel,basics,1.0
+210282,null,"Was ist Anthos?",schwer,basics,1.0
+210283,null,"Was ist Hybrid Cloud?",mittel,basics,1.0
+210284,null,"Was ist Multi-Cloud?",mittel,basics,1.0
+210285,null,"Was ist AI Platform?",mittel,basics,1.0
+210286,null,"Was ist AutoML?",mittel,basics,1.0
+210287,null,"Was ist Vertex AI?",schwer,basics,1.0
+210288,null,"Was ist Cloud Pub/Sub?",mittel,basics,1.0
+210289,null,"Was ist Dataflow?",schwer,basics,1.0
+210290,null,"Welches AWS-Service ermöglicht die automatische Skalierung von EC2-Instanzen?",mittel,praxis,1.0
+210291,null,"Was ist der Hauptvorteil von AWS Lambda?",mittel,basics,1.0
+210292,null,"Welches Service bietet verwaltete NoSQL-Datenbanken?",mittel,praxis,1.0
+210293,null,"Was beschreibt das AWS Shared Responsibility Model?",mittel,basics,1.0
+210294,null,"Welches Tool hilft bei der Kostenkontrolle in AWS?",mittel,praxis,1.0
+210295,null,"Was ist Amazon CloudFront?",mittel,basics,1.0
+210296,null,"Welches Service ermöglicht sichere VPN-Verbindungen zu AWS?",mittel,praxis,1.0
+210297,null,"Was ist der Unterschied zwischen S3 Standard und S3 Glacier?",mittel,praxis,1.0
+210298,null,"Welches AWS-Service bietet Überwachung und Logging?",mittel,basics,1.0
+210299,null,"Was ist eine Availability Zone?",mittel,basics,1.0
+210300,null,"Welches Service ermöglicht DNS-Verwaltung?",mittel,basics,1.0
+210301,null,"Was ist Amazon RDS?",mittel,basics,1.0
+210302,null,"Welches Prinzip beschreibt ""Pay-as-you-go""?",mittel,basics,1.0
+210303,null,"Was ist AWS IAM?",mittel,basics,1.0
+210304,null,"Welches Service bietet E-Mail-Versand?",mittel,basics,1.0
+210305,null,"Was ist der Hauptvorteil von Cloud Computing?",mittel,basics,1.0
+210306,null,"Was bedeutet ""Elasticity"" in der Cloud?",mittel,basics,1.0
+210307,null,"Welches AWS-Service bietet virtuelle Windows/Linux Desktops?",mittel,praxis,1.0
+210308,null,"Was ist horizontale Skalierung?",mittel,basics,1.0
+210309,null,"Welche Region sollte man wählen?",mittel,praxis,1.0
+210310,null,"Was ist eine AWS Region?",mittel,basics,1.0
+210311,null,"Was beschreibt Private Cloud?",mittel,basics,1.0
+210312,null,"Was bedeutet High Availability?",mittel,basics,1.0
+210313,null,"Welcher Service ermöglicht Hybrid Cloud?",mittel,praxis,1.0
+210314,null,"Was ist Fault Tolerance?",mittel,basics,1.0
+210315,null,"Welches Sicherheitsprinzip beschreibt ""Least Privilege""?",mittel,basics,1.0
+210316,null,"Was ist AWS KMS?",mittel,basics,1.0
+210317,null,"Welches Tool prüft automatisch Security Best Practices?",mittel,praxis,1.0
+210318,null,"Was ist AWS Shield?",mittel,basics,1.0
+210319,null,"Was ist MFA (Multi-Factor Authentication)?",mittel,basics,1.0
+210320,null,"Welches Compliance-Programm gilt für Gesundheitsdaten (USA)?",schwer,basics,1.0
+210321,null,"Was ist AWS Artifact?",mittel,basics,1.0
+210322,null,"Was ist AWS Config?",mittel,basics,1.0
+210323,null,"Was ist Encryption at Rest?",mittel,basics,1.0
+210324,null,"Welches Service verwaltet SSL/TLS-Zertifikate?",mittel,praxis,1.0
+210325,null,"Was ist AWS GuardDuty?",schwer,basics,1.0
+210326,null,"Wer ist für physische Server-Sicherheit verantwortlich?",mittel,praxis,1.0
+210327,null,"Was ist eine Security Group in AWS?",mittel,basics,1.0
+210328,null,"Was ist eine NACL (Network Access Control List)?",mittel,basics,1.0
+210329,null,"Welches Service bietet Container-Orchestrierung?",mittel,basics,1.0
+210330,null,"Was ist AWS Elastic Beanstalk?",mittel,basics,1.0
+210331,null,"Welches Service bietet Message Queuing?",mittel,basics,1.0
+210332,null,"Was ist Amazon SNS?",mittel,basics,1.0
+210333,null,"Welcher Speicher ist am schnellsten für EC2?",mittel,praxis,1.0
+210334,null,"Was ist Amazon EBS?",mittel,basics,1.0
+210335,null,"Welches Database-Service ist serverless?",mittel,praxis,1.0
+210336,null,"Was ist AWS Step Functions?",schwer,basics,1.0
+210337,null,"Welches Service ermöglicht API-Management?",mittel,basics,1.0
+210338,null,"Was ist Amazon Cognito?",mittel,basics,1.0
+210339,null,"Welches Service bietet Machine Learning ohne Code?",mittel,basics,1.0
+210340,null,"Was ist AWS Glue?",schwer,basics,1.0
+210341,null,"Welcher Service eignet sich für Data Warehousing?",mittel,basics,1.0
+210342,null,"Was ist Amazon Kinesis?",schwer,basics,1.0
+210343,null,"Was ist AWS CloudFormation?",mittel,basics,1.0
+210344,null,"Was ermöglicht Infrastructure as Code?",mittel,basics,1.0
+210345,null,"Was ist Amazon Lightsail?",mittel,basics,1.0
+210346,null,"Was ist AWS Fargate?",mittel,basics,1.0
+210347,null,"Welches Preismodell bietet die größten Rabatte?",mittel,praxis,1.0
+210348,null,"Was sind Reserved Instances?",mittel,basics,1.0
+210349,null,"Was ist der Unterschied zwischen On-Demand und Spot Instances?",mittel,praxis,1.0
+210350,null,"Welches Tool erstellt automatische Kostenalarme?",mittel,praxis,1.0
+210351,null,"Wie lange gilt der AWS Free Tier für EC2 t2.micro?",mittel,basics,1.0
+210352,null,"Was ist AWS Budgets?",mittel,basics,1.0
+210353,null,"Welcher Support-Plan bietet 24/7 Telefonsupport?",mittel,praxis,1.0
+210354,null,"Was ist AWS Trusted Advisor?",mittel,basics,1.0
+210355,null,"Was bietet AWS Personal Health Dashboard?",mittel,basics,1.0
+210356,null,"Was ist SAP ERP?",mittel,basics,1.0
+210357,null,"Welches Modul behandelt die Finanzbuchhaltung?",mittel,praxis,1.0
+210358,null,"Was bedeutet R/3?",mittel,basics,1.0
+210359,null,"Was ist SAP S/4HANA?",mittel,basics,1.0
+210360,null,"Welches Modul verwaltet Materialwirtschaft?",mittel,praxis,1.0
+210361,null,"Was ist die Transaktion SE11?",mittel,basics,1.0
+210362,null,"Welches Modul behandelt Vertrieb?",mittel,basics,1.0
+210363,null,"Was ist ein Mandant in SAP?",mittel,basics,1.0
+210364,null,"Was ist SAP HANA?",mittel,basics,1.0
+210365,null,"Welche Programmiersprache nutzt SAP?",mittel,basics,1.0
+210366,null,"Was ist ein Buchungskreis?",mittel,basics,1.0
+210367,null,"Welches Modul behandelt Controlling?",mittel,basics,1.0
+210368,null,"Was ist eine Kostenstelle?",mittel,basics,1.0
+210369,null,"Was ist SAP Fiori?",mittel,basics,1.0
+210370,null,"Welches Tool dient zur Datenanalyse?",mittel,basics,1.0
+210371,null,"Was ist ein Werk in SAP?",mittel,basics,1.0
+210372,null,"Welches Modul behandelt Personalwesen?",mittel,basics,1.0
+210373,null,"Was ist eine Organisationseinheit?",mittel,basics,1.0
+210374,null,"Was ist ein Beleg in SAP?",mittel,basics,1.0
+210375,null,"Welche Transaktion zeigt Stammdaten an?",mittel,basics,1.0
+210376,null,"Was ist SAP GUI?",mittel,basics,1.0
+210377,null,"Was ist ein Kontenplan?",mittel,basics,1.0
+210378,null,"Welches Modul behandelt Einkauf?",mittel,basics,1.0
+210379,null,"Was ist eine Bestellanforderung?",mittel,basics,1.0
+210380,null,"Was ist ein Lieferant in SAP?",mittel,basics,1.0
+210381,null,"Welches Modul behandelt Produktionsplanung?",mittel,basics,1.0
+210382,null,"Was ist ein Arbeitsplan?",mittel,basics,1.0
+210383,null,"Was ist eine Stückliste (BOM)?",mittel,basics,1.0
+210384,null,"Was ist MRP (Material Requirements Planning)?",mittel,basics,1.0
+210385,null,"Welches Modul behandelt Lagerverwaltung?",mittel,praxis,1.0
+210386,null,"Was ist ein Lagerort?",mittel,basics,1.0
+210387,null,"Was ist Bestandsführung?",mittel,basics,1.0
+210388,null,"Was ist eine Warenbewegung?",mittel,basics,1.0
+210389,null,"Welche Transaktion erstellt Materialstamm?",mittel,praxis,1.0
+210390,null,"Was ist ein Kundenauftrag?",mittel,basics,1.0
+210391,null,"Was ist Fakturierung?",mittel,basics,1.0
+210392,null,"Was ist ein Kreditor?",mittel,basics,1.0
+210393,null,"Was ist ein Debitor?",mittel,basics,1.0
+210394,null,"Was ist Kontenabstimmung?",mittel,basics,1.0
+210395,null,"Was ist der Unterschied zwischen Kostenstelle und Kostenträger?",mittel,praxis,1.0
+210396,null,"Was ist ein Kostenträger?",mittel,basics,1.0
+210397,null,"Was ist Gemeinkostenzuschlag?",schwer,basics,1.0
+210398,null,"Was ist Produktkalkulation?",mittel,basics,1.0
+210399,null,"Was ist ein Profitcenter?",mittel,basics,1.0
+210400,null,"Was ist interne Auftragsverwaltung?",mittel,basics,1.0
+210401,null,"Was ist Ergebnisrechnung (CO-PA)?",schwer,basics,1.0
+210402,null,"Was ist SAP BW (Business Warehouse)?",mittel,basics,1.0
+210403,null,"Was ist SAP BI (Business Intelligence)?",mittel,basics,1.0
+210404,null,"Was ist ein Data Warehouse?",mittel,basics,1.0
+210405,null,"Was ist ein InfoCube?",schwer,basics,1.0
+210406,null,"Was ist ein Query in SAP?",mittel,basics,1.0
+210407,null,"Was ist SAP Solution Manager?",mittel,basics,1.0
+210408,null,"Was ist Change Management in SAP?",mittel,basics,1.0
+210409,null,"Was ist Transport Management?",mittel,basics,1.0
+210410,null,"Was ist ein Customizing-Request?",schwer,basics,1.0
+210411,null,"Was ist Basis-Administration?",mittel,basics,1.0
+210412,null,"Was ist ein Hintergrund-Job?",mittel,basics,1.0
+210413,null,"Was ist Batch-Input?",schwer,basics,1.0
+210414,null,"Was ist LSMW (Legacy System Migration Workbench)?",schwer,basics,1.0
+210415,null,"Was ist SAP NetWeaver?",mittel,basics,1.0
+210416,null,"Was ist ein RFC (Remote Function Call)?",schwer,basics,1.0
+210417,null,"Was ist eine BAPI?",schwer,basics,1.0
+210418,null,"Was ist ein IDoc?",mittel,basics,1.0
+210419,null,"Was ist ALE (Application Link Enabling)?",schwer,basics,1.0
+210420,null,"Was ist EDI (Electronic Data Interchange)?",mittel,basics,1.0
+210421,null,"Was ist SAP PI/PO (Process Integration)?",schwer,basics,1.0
+210422,null,"Was ist Master Data Management (MDM)?",mittel,basics,1.0
+210423,null,"Was ist Archivierung in SAP?",mittel,basics,1.0
+210424,null,"Was ist Reorganisation?",schwer,basics,1.0
+210425,null,"Was ist ein Berechtigungskonzept?",mittel,basics,1.0
+210426,null,"Was ist ein Berechtigungsobjekt?",mittel,basics,1.0
+210427,null,"Was ist eine Rolle in SAP?",mittel,basics,1.0
+210428,null,"Was ist die Transaktion SU01?",mittel,basics,1.0
+210429,null,"Was ist der Profil-Generator?",mittel,basics,1.0
+210430,null,"Was ist SAP GRC (Governance, Risk, Compliance)?",schwer,basics,1.0
+210431,null,"Was ist Segregation of Duties (SoD)?",schwer,basics,1.0
+210432,null,"Was ist SAP Cloud Platform?",mittel,basics,1.0
+210433,null,"Was ist SAP Ariba?",mittel,basics,1.0
+210434,null,"Was ist SAP SuccessFactors?",mittel,basics,1.0
+210435,null,"Was ist SAP C/4HANA?",mittel,basics,1.0
+210486,null,"Was ist Microsoft Azure?",mittel,basics,1.0
+210487,null,"Was ist eine Azure Subscription?",mittel,basics,1.0
+210488,null,"Was ist Azure Resource Manager (ARM)?",mittel,basics,1.0
+210489,null,"Was sind Azure Resource Groups?",mittel,basics,1.0
+210490,null,"Was ist Azure Compute?",mittel,basics,1.0
+210491,null,"Was sind Azure Virtual Machines?",mittel,basics,1.0
+210492,null,"Was ist Azure App Service?",mittel,basics,1.0
+210493,null,"Was ist Azure Functions?",mittel,basics,1.0
+210494,null,"Was ist Azure Kubernetes Service (AKS)?",mittel,basics,1.0
+210495,null,"Was ist Azure Storage?",mittel,basics,1.0
+210496,null,"Was ist Azure Blob Storage?",mittel,basics,1.0
+210497,null,"Was ist Azure File Storage?",mittel,basics,1.0
+210498,null,"Was ist Azure Queue Storage?",mittel,basics,1.0
+210499,null,"Was ist Azure Table Storage?",mittel,basics,1.0
+210500,null,"Was ist Azure SQL Database?",mittel,basics,1.0
+210501,null,"Was ist Azure Cosmos DB?",mittel,basics,1.0
+210502,null,"Was ist Azure Virtual Network (VNet)?",mittel,basics,1.0
+210503,null,"Was ist Azure Load Balancer?",mittel,basics,1.0
+210504,null,"Was ist Azure VPN Gateway?",mittel,basics,1.0
+210505,null,"Was ist Azure ExpressRoute?",schwer,basics,1.0
+210506,null,"Was ist Azure Active Directory (Azure AD)?",mittel,basics,1.0
+210507,null,"Was ist Azure AD B2C?",mittel,basics,1.0
+210508,null,"Was ist Multi-Factor Authentication (MFA)?",mittel,basics,1.0
+210509,null,"Was ist Azure Key Vault?",mittel,basics,1.0
+210510,null,"Was ist Azure Security Center?",mittel,basics,1.0
+210511,null,"Was ist Azure DDoS Protection?",mittel,basics,1.0
+210512,null,"Was ist Azure Firewall?",mittel,basics,1.0
+210513,null,"Was ist Azure Monitor?",mittel,basics,1.0
+210514,null,"Was ist Azure Log Analytics?",mittel,basics,1.0
+210515,null,"Was ist Azure Application Insights?",mittel,basics,1.0
+210516,null,"Was ist Azure Advisor?",mittel,basics,1.0
+210517,null,"Was ist Azure Service Health?",mittel,basics,1.0
+210518,null,"Was ist Azure Cost Management?",mittel,basics,1.0
+210519,null,"Was ist der Azure Pricing Calculator?",mittel,basics,1.0
+210520,null,"Was ist Total Cost of Ownership (TCO)?",mittel,basics,1.0
+210521,null,"Was sind Azure Reservations?",mittel,basics,1.0
+210522,null,"Was ist Azure Hybrid Benefit?",mittel,basics,1.0
+210523,null,"Was ist das Pay-As-You-Go Modell?",mittel,basics,1.0
+210524,null,"Was ist eine Azure Region?",mittel,basics,1.0
+210525,null,"Was ist eine Availability Zone?",mittel,basics,1.0
+210526,null,"Was ist ein Region Pair?",mittel,basics,1.0
+210527,null,"Was ist Azure SLA (Service Level Agreement)?",mittel,basics,1.0
+210528,null,"Was bedeutet High Availability in Azure?",mittel,basics,1.0
+210529,null,"Was ist Azure Backup?",mittel,basics,1.0
+210530,null,"Was ist Azure Site Recovery?",mittel,basics,1.0
+210531,null,"Was ist das Shared Responsibility Model?",mittel,basics,1.0
+210532,null,"Was ist Azure Policy?",mittel,basics,1.0
+210533,null,"Was ist Azure Blueprints?",schwer,basics,1.0
+210534,null,"Was ist Azure RBAC (Role-Based Access Control)?",mittel,basics,1.0
+210535,null,"Was ist das Cloud Adoption Framework?",mittel,basics,1.0
+210596,9004,"Ein Unternehmen hat die IP-Adresse 192.168.10.0/26 zugewiesen. Wie viele nutzbar...",mittel,pruefung,1.0
+210597,9004,"Ein Netzwerk hat die IP-Adresse 192.168.1.0/24. Wie viele nutzbare Host-Adressen...",mittel,pruefung,1.0
+210598,9004,"Wie viele Subnetze kann man aus dem Netz 172.16.0.0/16 mit der Subnetzmaske /22 ...",mittel,pruefung,1.0
+210599,9004,"Ein Unternehmen benötigt 30 nutzbare Hosts pro Subnetz. Welche Subnetzmaske ist ...",schwer,pruefung,1.0
+210600,9004,"Eine Datei mit 500 MB soll über eine 100 Mbit/s Leitung übertragen werden. Wie v...",mittel,pruefung,1.0
+210601,9006,"Ein USB-Stick hat 64 GB Speicherplatz. Wie viele Dateien à 256 MB passen maximal...",mittel,pruefung,1.0
+210602,9006,"Ein Server hat 4 Festplatten mit je 2 TB in RAID 5. Wie viel nutzbarer Speicher ...",mittel,pruefung,1.0
+210603,9006,"Wandle die Binärzahl 11010110 in eine Dezimalzahl um.",mittel,praxis,1.0
+210604,9006,"Ein Computer hat 4 RAM-Module à 8 GB im Dual-Channel-Modus. Wie viel GB RAM insg...",mittel,basics,1.0
+210605,9001,"Ein Produkt kostet netto 850 EUR. Wie hoch ist der Bruttopreis mit 19% MwSt?",mittel,praxis,1.0
+210606,9001,"Eine Rechnung beträgt brutto 1.785 EUR (inkl. 19% MwSt). Wie viel EUR beträgt de...",mittel,praxis,1.0
+210607,9001,"Ein Laptop kostet 1.200 EUR. Bei 15% Rabatt, wie viel EUR zahlt der Kunde?",mittel,praxis,1.0
+210608,9001,"Ein Projekt dauert 40 Stunden bei einem Stundensatz von 85 EUR/h. Wie hoch ist d...",schwer,praxis,1.0
+210609,9001,"Fixkosten: 5.000 EUR, Variable Kosten pro Stück: 20 EUR, Verkaufspreis: 70 EUR. ...",mittel,pruefung,1.0
+210610,9001,"Eine IT-Investition kostet 60.000 EUR und spart jährlich 15.000 EUR. Nach wie vi...",schwer,pruefung,1.0
+210611,9007,"Ein Algorithmus mit O(n²) benötigt für n=100 Elemente 2 Sekunden. Wie viele Seku...",mittel,pruefung,1.0
+210612,9007,"Ein Integer-Array hat 500 Elemente. Jeder Integer benötigt 4 Bytes. Wie viel KB ...",mittel,praxis,1.0
+210613,9004,"TCP ist ein _____ Protokoll der _____ Schicht.",mittel,basics,1.0
+210614,9004,"Das _____ Modell besteht aus _____ Schichten.",mittel,basics,1.0
+210615,9004,"Ein _____ trennt Broadcast-Domänen, während ein _____ Collision-Domänen trennt.",mittel,praxis,1.0
+210616,9004,"Die Subnetzmaske 255.255.255.0 entspricht der CIDR-Notation _____.",mittel,basics,1.0
+210617,9003,"Ein _____ Schlüssel identifiziert eindeutig einen Datensatz, während ein _____ S...",mittel,basics,1.0
+210619,9008,"Die drei Schutzziele der IT-Sicherheit sind: _____, Integrität und _____.",mittel,basics,1.0
+210620,9008,"Eine _____ verschlüsselt mit zwei verschiedenen Schlüsseln, während eine _____ d...",mittel,praxis,1.0
+210621,9002,"Die DSGVO steht für _____ und schützt _____.",einfach,basics,1.0
+210623,9003,"Die zweite Normalform verlangt, dass alle Attribute vom _____ abhängen, während ...",mittel,pruefung,1.0
+210624,9008,"Bei einem _____ Backup werden alle Dateien gesichert, während ein _____ Backup n...",mittel,praxis,1.0
+210625,9007,"Bei der _____ werden Daten und Methoden in einer Klasse zusammengefasst, während...",mittel,basics,1.0
+210626,9007,"Der Datentyp _____ speichert Ganzzahlen, während _____ Dezimalzahlen mit höherer...",mittel,basics,1.0
+210627,9007,"Eine _____ Schleife führt Code mindestens einmal aus, während eine _____ Schleif...",mittel,basics,1.0
+210628,9005,"Ein _____ ist ein laufendes Programm im Speicher, während ein _____ eine leichtg...",mittel,basics,1.0
+210629,9005,"Das Linux-Dateisystem _____ unterstützt Journaling, während _____ das Standard-D...",mittel,praxis,1.0
+210630,9006,"RAID _____ bietet nur Geschwindigkeit ohne Redundanz, während RAID _____ Daten s...",mittel,praxis,1.0
+210631,9006,"Die _____ bestimmt, wie viele Befehle pro Sekunde ein Prozessor ausführen kann, ...",mittel,praxis,1.0
+210632,9003,"Der SQL-Befehl _____ wird zum Einfügen von Daten verwendet, während _____ Daten ...",mittel,praxis,1.0
+210633,9003,"Eine Transaktion wird mit _____ abgeschlossen oder mit _____ rückgängig gemacht.",mittel,basics,1.0
+210634,15,"In der _____ Phase werden Anforderungen gesammelt, während in der _____ Phase da...",mittel,basics,1.0
+210635,15,"Bei _____ werden Anforderungen in kurzen Iterationen umgesetzt, während beim ___...",mittel,praxis,1.0
+210636,9004,"Die IP-Adresse 192.168.1.1 gehört zur Klasse _____ und ist eine _____ IP-Adresse...",mittel,basics,1.0
+210637,9004,"DNS löst _____ in _____ auf.",mittel,basics,1.0
+210638,9004,"DHCP vergibt automatisch _____ an Clients und nutzt das _____ Protokoll.",mittel,basics,1.0
+210639,9002,"Ein _____ verpflichtet zur Leistung eines Werkes, während ein _____ die Überlass...",mittel,basics,1.0
+210640,9004,"Bringe die Schichten des OSI-Modells in die richtige Reihenfolge (von unten nach...",mittel,praxis,1.0
+210665,9008,"Bringe die Phasen eines Penetration Tests in die richtige Reihenfolge:",mittel,praxis,1.0
+210666,9010,"Bringe die Phasen einer CI/CD Pipeline in die richtige Reihenfolge:",mittel,praxis,1.0
+210667,9008,"Bringe die Schritte des Zugriffsprozesses in die richtige Reihenfolge:",mittel,praxis,1.0
+210668,9008,"Bringe die Schritte der asymmetrischen Verschlüsselung in die richtige Reihenfol...",mittel,praxis,1.0
+210669,9005,"Bringe die Zustände im Lebenszyklus eines Prozesses in die richtige Reihenfolge:",mittel,praxis,1.0
+210670,9005,"Sortiere nach der logischen Reihenfolge, wie ein Deadlock entsteht:",schwer,pruefung,1.0
+210671,9004,"Bringe die Schritte des Email-Versands in die richtige Reihenfolge:",mittel,praxis,1.0
+210672,9004,"Bringe die Schritte des ARP (Address Resolution Protocol) in die richtige Reihen...",mittel,praxis,1.0
