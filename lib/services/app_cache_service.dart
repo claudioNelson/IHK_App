@@ -82,7 +82,11 @@ class AppCacheService {
 
   Future<void> _preloadModules() async {
     try {
-      final response = await supabase.from('module').select().order('id');
+      final response = await supabase
+          .from('module')
+          .select()
+          .neq('kategorie', 'kernthema')
+          .order('id');
       final alleFragen = await supabase.from('fragen').select('id, modul_id');
 
       final Map<int, int> fragenCount = {};

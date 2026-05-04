@@ -246,26 +246,6 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                       _loadCounts();
                     },
                   ),
-                  const SizedBox(height: 10),
-
-                  _buildCategoryRow(
-                    tag: 'ZT',
-                    tagColor: AppColors.awsOrange,
-                    title: 'Zertifikate',
-                    sub: 'AWS · Azure · GCP · SAP',
-                    count: '4',
-                    surface: surface,
-                    border: border,
-                    text: text,
-                    textMid: textMid,
-                    textDim: textDim,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const CertificateOverviewScreen(),
-                      ),
-                    ),
-                  ),
 
                   const SizedBox(height: 36),
 
