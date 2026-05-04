@@ -1,6 +1,7 @@
 // lib/screens/levels/level_pfad_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../services/app_cache_service.dart';
 import '../../services/level_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -23,6 +24,7 @@ class LevelPfadScreen extends StatefulWidget {
 
 class _LevelPfadScreenState extends State<LevelPfadScreen> {
   final _service = LevelService();
+  final _cache = AppCacheService();
   List<Level> _levels = [];
   bool _loading = true;
 
@@ -32,13 +34,27 @@ class _LevelPfadScreenState extends State<LevelPfadScreen> {
     _loadLevels();
   }
 
-  Future<void> _loadLevels() async {
+  Future<void> _loadLevels({bool forceRefresh = false}) async {
+    // Cache-Hit: sofort anzeigen
+    if (!forceRefresh && _cache.levelsForModulLoaded[widget.modulId] == true) {
+      final cached = _cache.cachedLevelsForModul[widget.modulId] ?? [];
+      setState(() {
+        _levels = _hydrateLevels(cached);
+        _loading = false;
+      });
+      return;
+    }
+
     setState(() => _loading = true);
     try {
-      final levels = await _service.getLevelsForModul(widget.modulId);
+      if (forceRefresh) {
+        _cache.levelsForModulLoaded[widget.modulId] = false;
+      }
+      await _cache.preloadLevelsForModul(widget.modulId);
       if (!mounted) return;
+      final cached = _cache.cachedLevelsForModul[widget.modulId] ?? [];
       setState(() {
-        _levels = levels;
+        _levels = _hydrateLevels(cached);
         _loading = false;
       });
     } catch (e) {
@@ -52,6 +68,18 @@ class _LevelPfadScreenState extends State<LevelPfadScreen> {
         ),
       );
     }
+  }
+
+  /// Wandelt rohe Level-Maps aus dem Cache in Level-Objekte
+  List<Level> _hydrateLevels(List<Map<String, dynamic>> raw) {
+    return raw
+        .map(
+          (row) => Level.fromMap(
+            row,
+            progressRow: row['_progress'] as Map<String, dynamic>?,
+          ),
+        )
+        .toList();
   }
 
   Future<void> _openLevel(Level level) async {
@@ -72,8 +100,9 @@ class _LevelPfadScreenState extends State<LevelPfadScreen> {
             LevelPlayScreen(level: level, modulName: widget.modulName),
       ),
     );
-    // Nach Rückkehr: Progress neu laden
-    _loadLevels();
+    // Nach Rückkehr: Cache invalidieren + neu laden
+    _cache.invalidateLevelModul(widget.modulId);
+    _loadLevels(forceRefresh: true);
   }
 
   void _snack(String msg) {
@@ -144,7 +173,7 @@ class _LevelPfadScreenState extends State<LevelPfadScreen> {
                 ? _buildEmpty(textMid, textDim)
                 : RefreshIndicator(
                     color: AppColors.accent,
-                    onRefresh: _loadLevels,
+                    onRefresh: () => _loadLevels(forceRefresh: true),
                     child: _buildList(surface, border, text, textMid, textDim),
                   ),
           ),

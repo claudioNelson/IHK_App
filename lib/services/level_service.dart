@@ -90,8 +90,13 @@ class Level {
 }
 
 /// Service für Level-Daten und Progress-Tracking
+/// Service für Level-Daten und Progress-Tracking
 class LevelService {
   final SupabaseClient _supabase = Supabase.instance.client;
+
+  /// 🚧 DEV-FLAG: Schwellen ignorieren — jedes Level wird als "geschafft"
+  /// gewertet, egal welcher Score. Vor Release auf `false` setzen!
+  static const bool kDevSkipThresholds = false;
 
   /// Alle Levels eines Moduls inkl. User-Progress laden
   Future<List<Level>> getLevelsForModul(int modulId) async {
@@ -148,8 +153,18 @@ class LevelService {
 
     final list = List<Map<String, dynamic>>.from(res as List);
 
+    // Bei Praxis/Pruefung: nur die echten FRAGEN mischen, Lehr-Karten
+    // bleiben an ihrer Position (reihenfolge=0 = am Anfang).
     if (tier != LevelTier.basics) {
-      list.shuffle();
+      final lehrKarten = list
+          .where((f) => f['frage_typ'] == 'lehr_karte')
+          .toList();
+      final fragen = list.where((f) => f['frage_typ'] != 'lehr_karte').toList();
+      fragen.shuffle();
+      list
+        ..clear()
+        ..addAll(lehrKarten)
+        ..addAll(fragen);
     }
     for (final f in list) {
       if (f['antworten'] != null) {
@@ -184,6 +199,9 @@ class LevelService {
         .eq('level_id', levelId)
         .maybeSingle();
 
+    // DEV-Flag: Schwelle künstlich auf 0 setzen
+    final effectiveSchwelle = kDevSkipThresholds ? 0 : schwelle;
+
     if (existing == null) {
       // Erster Versuch
       final inserted = await _supabase
@@ -194,7 +212,7 @@ class LevelService {
             'best_score': score,
             'sterne': sterne,
             'attempts': 1,
-            'first_completed_at': score >= schwelle ? now : null,
+            'first_completed_at': score >= effectiveSchwelle ? now : null,
             'last_attempt_at': now,
           })
           .select()
@@ -209,7 +227,7 @@ class LevelService {
 
       final firstCompletedAt = existing['first_completed_at'];
       final newFirstCompleted =
-          firstCompletedAt ?? (score >= schwelle ? now : null);
+          firstCompletedAt ?? (score >= effectiveSchwelle ? now : null);
 
       final updated = await _supabase
           .from('level_progress')
@@ -239,7 +257,9 @@ class LevelService {
 
   /// Strikt linear: Level X freigeschaltet wenn Level X-1 completed.
   /// Level 1 ist immer frei.
+  /// Im Dev-Modus (kDevSkipThresholds): alles immer frei.
   static bool isUnlocked(Level level, List<Level> allLevels) {
+    if (kDevSkipThresholds) return true;
     if (level.nummer == 1) return true;
     final previous = allLevels.where((l) => l.nummer == level.nummer - 1);
     if (previous.isEmpty) return true; // kein Vorgänger gefunden → frei

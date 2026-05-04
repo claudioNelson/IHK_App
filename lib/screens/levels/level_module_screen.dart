@@ -1,7 +1,7 @@
 // lib/screens/levels/level_module_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/app_cache_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
@@ -15,7 +15,7 @@ class LevelModuleScreen extends StatefulWidget {
 }
 
 class _LevelModuleScreenState extends State<LevelModuleScreen> {
-  final _supabase = Supabase.instance.client;
+  final _cache = AppCacheService();
   List<Map<String, dynamic>> _module = [];
   bool _loading = true;
 
@@ -25,93 +25,25 @@ class _LevelModuleScreenState extends State<LevelModuleScreen> {
     _loadModule();
   }
 
-  Future<void> _loadModule() async {
+  Future<void> _loadModule({bool forceRefresh = false}) async {
+    // Sofort aus Cache anzeigen, falls vorhanden
+    if (!forceRefresh && _cache.levelModuleLoaded) {
+      setState(() {
+        _module = List<Map<String, dynamic>>.from(_cache.cachedLevelModule);
+        _loading = false;
+      });
+      return;
+    }
+
     setState(() => _loading = true);
     try {
-      // 1. Distinct modul_ids aus levels-Tabelle
-      final levelRes = await _supabase.from('levels').select('modul_id, tier');
-
-      final modulCounts = <int, Map<String, int>>{};
-      for (final row in levelRes as List) {
-        final mid = row['modul_id'] as int;
-        final tier = row['tier'] as String? ?? 'basics';
-        modulCounts.putIfAbsent(mid, () => {'total': 0, 'basics': 0});
-        modulCounts[mid]!['total'] = modulCounts[mid]!['total']! + 1;
-        if (tier == 'basics') {
-          modulCounts[mid]!['basics'] = modulCounts[mid]!['basics']! + 1;
-        }
+      if (forceRefresh) {
+        _cache.levelModuleLoaded = false;
       }
-
-      if (modulCounts.isEmpty) {
-        if (!mounted) return;
-        setState(() {
-          _module = [];
-          _loading = false;
-        });
-        return;
-      }
-
-      // 2. Modul-Namen laden
-      final ids = modulCounts.keys.toList();
-      final modulRes = await _supabase
-          .from('module')
-          .select('id, name')
-          .filter('id', 'in', '(${ids.join(',')})');
-
-      // 3. User-Progress laden (für Completed-Counter)
-      final userId = _supabase.auth.currentUser?.id;
-      Map<int, int> completedPerModul = {};
-      if (userId != null) {
-        // level_ids holen
-        final allLevels = await _supabase
-            .from('levels')
-            .select('id, modul_id, schwelle')
-            .filter('modul_id', 'in', '(${ids.join(',')})');
-
-        final levelToModul = <int, int>{};
-        final levelToSchwelle = <int, int>{};
-        for (final l in allLevels as List) {
-          levelToModul[l['id'] as int] = l['modul_id'] as int;
-          levelToSchwelle[l['id'] as int] = l['schwelle'] as int;
-        }
-
-        if (levelToModul.isNotEmpty) {
-          final progressRes = await _supabase
-              .from('level_progress')
-              .select('level_id, best_score')
-              .eq('user_id', userId)
-              .filter('level_id', 'in', '(${levelToModul.keys.join(',')})');
-
-          for (final p in progressRes as List) {
-            final lid = p['level_id'] as int;
-            final score = p['best_score'] as int;
-            final schwelle = levelToSchwelle[lid] ?? 100;
-            if (score >= schwelle) {
-              final mid = levelToModul[lid]!;
-              completedPerModul[mid] = (completedPerModul[mid] ?? 0) + 1;
-            }
-          }
-        }
-      }
-
-      // 4. Mergen
-      final list = <Map<String, dynamic>>[];
-      for (final m in modulRes as List) {
-        final id = m['id'] as int;
-        final counts = modulCounts[id]!;
-        list.add({
-          'id': id,
-          'name': m['name'] as String,
-          'total_levels': counts['total']!,
-          'basics_levels': counts['basics']!,
-          'completed': completedPerModul[id] ?? 0,
-        });
-      }
-      list.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
-
+      await _cache.preloadLevelModule();
       if (!mounted) return;
       setState(() {
-        _module = list;
+        _module = List<Map<String, dynamic>>.from(_cache.cachedLevelModule);
         _loading = false;
       });
     } catch (e) {
@@ -134,7 +66,8 @@ class _LevelModuleScreenState extends State<LevelModuleScreen> {
         builder: (_) => LevelPfadScreen(modulId: m['id'], modulName: m['name']),
       ),
     );
-    _loadModule();
+    // Force-Refresh nach Rückkehr — Progress könnte sich geändert haben
+    _loadModule(forceRefresh: true);
   }
 
   @override
@@ -186,7 +119,7 @@ class _LevelModuleScreenState extends State<LevelModuleScreen> {
                 ? _buildEmpty(textMid, textDim)
                 : RefreshIndicator(
                     color: AppColors.accent,
-                    onRefresh: _loadModule,
+                    onRefresh: () => _loadModule(forceRefresh: true),
                     child: _buildList(surface, border, text, textMid, textDim),
                   ),
           ),

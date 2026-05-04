@@ -49,6 +49,15 @@ class AppCacheService {
   Map<int, Map<String, dynamic>> cachedKernthemenProgress = {};
   bool kernthemenLoaded = false;
 
+  // LEVELS CACHE
+  /// Modul-Liste: [{id, name, total_levels, basics_levels, completed}, ...]
+  List<Map<String, dynamic>> cachedLevelModule = [];
+  bool levelModuleLoaded = false;
+
+  /// Pro Modul: alle Level-Rohdaten (so wie aus DB) gemerged mit Progress
+  Map<int, List<Map<String, dynamic>>> cachedLevelsForModul = {};
+  Map<int, bool> levelsForModulLoaded = {};
+
   // ADA CHAT CACHE
   Map<String, List<ChatMessageCache>> cachedAdaChats = {};
   DateTime? lastAdaChatClear;
@@ -64,6 +73,7 @@ class AppCacheService {
         _preloadMatches(userId),
         _preloadProfile(userId),
         preloadKernthemen(),
+        preloadLevelModule(),
       ]);
     } catch (e) {
       print('❌ Fehler beim Vorladen: $e');
@@ -329,6 +339,159 @@ class AppCacheService {
     } catch (e) {
       print('❌ Fehler Kernthemen: $e');
     }
+  }
+
+  // ========== LEVELS CACHE ==========
+
+  /// Modul-Liste für den Level-Bereich (Übersicht).
+  /// Liste der Module, die mind. 1 Level haben — inkl. Progress.
+  Future<void> preloadLevelModule() async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      print('📖 Lade Level-Module...');
+
+      // 1. Distinct modul_ids aus levels-Tabelle + Tier-Counts
+      final levelRes = await _client
+          .from('levels')
+          .select('id, modul_id, tier, schwelle');
+
+      final modulCounts = <int, Map<String, int>>{};
+      final levelToModul = <int, int>{};
+      final levelToSchwelle = <int, int>{};
+
+      for (final row in levelRes as List) {
+        final mid = row['modul_id'] as int;
+        final tier = row['tier'] as String? ?? 'basics';
+        final lid = row['id'] as int;
+        final schwelle = row['schwelle'] as int;
+        levelToModul[lid] = mid;
+        levelToSchwelle[lid] = schwelle;
+        modulCounts.putIfAbsent(mid, () => {'total': 0, 'basics': 0});
+        modulCounts[mid]!['total'] = modulCounts[mid]!['total']! + 1;
+        if (tier == 'basics') {
+          modulCounts[mid]!['basics'] = modulCounts[mid]!['basics']! + 1;
+        }
+      }
+
+      if (modulCounts.isEmpty) {
+        cachedLevelModule = [];
+        levelModuleLoaded = true;
+        return;
+      }
+
+      // 2. Modul-Namen
+      final ids = modulCounts.keys.toList();
+      final modulRes = await _client
+          .from('module')
+          .select('id, name')
+          .filter('id', 'in', '(${ids.join(',')})');
+
+      // 3. Completed-Counter pro Modul
+      final completedPerModul = <int, int>{};
+      if (levelToModul.isNotEmpty) {
+        final progressRes = await _client
+            .from('level_progress')
+            .select('level_id, best_score')
+            .eq('user_id', userId)
+            .filter('level_id', 'in', '(${levelToModul.keys.join(',')})');
+
+        for (final p in progressRes as List) {
+          final lid = p['level_id'] as int;
+          final score = p['best_score'] as int;
+          final schwelle = levelToSchwelle[lid] ?? 100;
+          if (score >= schwelle) {
+            final mid = levelToModul[lid]!;
+            completedPerModul[mid] = (completedPerModul[mid] ?? 0) + 1;
+          }
+        }
+      }
+
+      // 4. Mergen
+      final list = <Map<String, dynamic>>[];
+      for (final m in modulRes as List) {
+        final id = m['id'] as int;
+        final counts = modulCounts[id]!;
+        list.add({
+          'id': id,
+          'name': m['name'] as String,
+          'total_levels': counts['total']!,
+          'basics_levels': counts['basics']!,
+          'completed': completedPerModul[id] ?? 0,
+        });
+      }
+      list.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+
+      cachedLevelModule = list;
+      levelModuleLoaded = true;
+
+      print('✅ Level-Module geladen: ${list.length}');
+    } catch (e) {
+      print('❌ Fehler Level-Module: $e');
+    }
+  }
+
+  /// Levels eines bestimmten Moduls inkl. Progress laden.
+  Future<void> preloadLevelsForModul(int modulId) async {
+    if (levelsForModulLoaded[modulId] == true) return;
+
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      print('📖 Lade Levels für Modul $modulId...');
+
+      // 1. Levels
+      final levelsRes = await _client
+          .from('levels')
+          .select()
+          .eq('modul_id', modulId)
+          .order('nummer');
+
+      final levelRows = List<Map<String, dynamic>>.from(levelsRes as List);
+      if (levelRows.isEmpty) {
+        cachedLevelsForModul[modulId] = [];
+        levelsForModulLoaded[modulId] = true;
+        return;
+      }
+
+      // 2. User-Progress
+      final levelIds = levelRows.map((l) => l['id']).toList();
+      final progressRes = await _client
+          .from('level_progress')
+          .select()
+          .eq('user_id', userId)
+          .filter('level_id', 'in', '(${levelIds.join(',')})');
+
+      final progressMap = <int, Map<String, dynamic>>{};
+      for (final row in progressRes as List) {
+        progressMap[row['level_id'] as int] = row as Map<String, dynamic>;
+      }
+
+      // 3. Merge: Progress in jede Level-Row mergen
+      for (final row in levelRows) {
+        final lid = row['id'] as int;
+        if (progressMap.containsKey(lid)) {
+          row['_progress'] = progressMap[lid];
+        }
+      }
+
+      cachedLevelsForModul[modulId] = levelRows;
+      levelsForModulLoaded[modulId] = true;
+
+      print('✅ Levels für Modul $modulId: ${levelRows.length}');
+    } catch (e) {
+      print('❌ Fehler Levels für Modul $modulId: $e');
+    }
+  }
+
+  /// Cache invalidieren (z.B. nach Level abschließen)
+  void invalidateLevelModul(int modulId) {
+    levelsForModulLoaded[modulId] = false;
+    cachedLevelsForModul.remove(modulId);
+    levelModuleLoaded = false;
+    cachedLevelModule = [];
   }
 }
 

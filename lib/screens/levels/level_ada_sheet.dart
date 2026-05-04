@@ -57,12 +57,14 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
   @override
   void initState() {
     super.initState();
-    // Welcome-Message
+    // Welcome-Message — zeigt User dass Ada den Kontext kennt
+    final preview = _shortenContext(widget.contextText);
     _messages.add(
       _ChatMsg(
         text:
-            'Hi! Ich bin Ada 👋  Ich erkläre dir das Konzept gern '
-            'nochmal — frag einfach.',
+            'Hi! 👋 Ich bin Ada und sehe gerade:\n\n'
+            '"$preview"\n\n'
+            'Was möchtest du dazu wissen?',
         isUser: false,
       ),
     );
@@ -73,6 +75,14 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
         _sendMessage(widget.initialPrompt!);
       });
     }
+  }
+
+  /// Kürzt Kontext-Text auf max. ~120 Zeichen, damit Welcome-Message
+  /// nicht halbe Seite einnimmt
+  String _shortenContext(String text) {
+    final clean = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (clean.length <= 120) return clean;
+    return '${clean.substring(0, 117)}...';
   }
 
   @override

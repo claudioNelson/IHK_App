@@ -8,6 +8,7 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import 'level_result_screen.dart';
 import 'level_ada_sheet.dart';
+import '../../widgets/levels/lehr_karte_renderer.dart';
 
 class LevelPlayScreen extends StatefulWidget {
   final Level level;
@@ -258,12 +259,23 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
                         ),
                         if (!_loading && _fragen.isNotEmpty)
                           Text(
-                            'FRAGE ${(_currentIndex + 1).toString().padLeft(2, '0')} / ${_fragen.length.toString().padLeft(2, '0')}',
+                            _buildHeaderLabel(),
                             style: AppTextStyles.monoSmall(textDim),
                           ),
                       ],
                     ),
                   ),
+                  // Ada-Quick-Access (immer verfügbar während Frage/Karte)
+                  if (!_loading && _fragen.isNotEmpty)
+                    IconButton(
+                      onPressed: () => _openAdaForCurrent(),
+                      tooltip: 'Frag Ada',
+                      icon: Icon(
+                        Icons.psychology_rounded,
+                        color: AppColors.accent,
+                        size: 22,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -432,6 +444,34 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
           if (_hasAnswered && frageTyp != 'lehr_karte') ...[
             const SizedBox(height: 12),
             _buildExplanation(q, surface, border, text, textMid),
+
+            // Bei FALSCHER Antwort: prominenter Ada-Button davor
+            if (!_wasCorrect) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: OutlinedButton.icon(
+                  onPressed: () => _openAdaForCurrent(
+                    initialPrompt:
+                        'Ich habe diese Frage falsch beantwortet. '
+                        'Erkläre mir bitte, warum die richtige Antwort '
+                        'richtig ist und meine falsch — mit einem '
+                        'einfachen Beispiel.',
+                  ),
+                  icon: const Icon(Icons.psychology_rounded, size: 16),
+                  label: const Text('Lass dir das von Ada erklären'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    side: BorderSide(color: AppColors.accent.withOpacity(0.4)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
@@ -464,6 +504,61 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
         ],
       ),
     );
+  }
+
+  /// Öffnet Ada mit Kontext zur aktuell sichtbaren Frage/Karte
+  void _openAdaForCurrent({String? initialPrompt}) {
+    if (_fragen.isEmpty || _currentIndex >= _fragen.length) return;
+    final q = _fragen[_currentIndex];
+    final frageText = q['frage'] as String? ?? '';
+    final erklaerung = q['erklaerung'] as String? ?? '';
+    // Kontext: bei Lehr-Karten = Erklärung, bei Fragen = Frage + (falls
+    // schon beantwortet) Erklärung
+    final contextText = q['frage_typ'] == 'lehr_karte'
+        ? erklaerung
+        : (_hasAnswered && erklaerung.isNotEmpty
+              ? '$frageText\n\n$erklaerung'
+              : frageText);
+
+    LevelAdaSheet.show(
+      context,
+      contextText: contextText,
+      topic: '${widget.modulName} · ${widget.level.titel}',
+      initialPrompt: initialPrompt,
+    );
+  }
+
+  /// Header-Label: bei Lehr-Karten "KONZEPT", bei Fragen "FRAGE X / Y"
+  /// wobei nur echte (bewertbare) Fragen gezählt werden, nicht die Karten.
+  String _buildHeaderLabel() {
+    final q = _fragen[_currentIndex];
+    final frageTyp = q['frage_typ'] as String? ?? 'multiple_choice';
+
+    if (frageTyp == 'lehr_karte') {
+      // Wievielte Lehr-Karte ist das?
+      var lehrCount = 0;
+      var current = 0;
+      for (var i = 0; i <= _currentIndex; i++) {
+        if (_fragen[i]['frage_typ'] == 'lehr_karte') {
+          lehrCount++;
+          if (i == _currentIndex) current = lehrCount;
+        }
+      }
+      final totalLehr = _fragen
+          .where((f) => f['frage_typ'] == 'lehr_karte')
+          .length;
+      return 'KONZEPT ${current.toString().padLeft(2, '0')} / ${totalLehr.toString().padLeft(2, '0')}';
+    }
+
+    // Bei echten Fragen: nur Fragen (ohne Lehr-Karten) zählen
+    var fragenBisHier = 0;
+    for (var i = 0; i <= _currentIndex; i++) {
+      if (_fragen[i]['frage_typ'] != 'lehr_karte') fragenBisHier++;
+    }
+    final totalFragen = _fragen
+        .where((f) => f['frage_typ'] != 'lehr_karte')
+        .length;
+    return 'FRAGE ${fragenBisHier.toString().padLeft(2, '0')} / ${totalFragen.toString().padLeft(2, '0')}';
   }
 
   String _typeLabel(String typ) {
@@ -852,51 +947,31 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
     Color bg,
   ) {
     final inhalt = q['erklaerung'] as String? ?? '';
+    final calcData = q['calculation_data'] as Map<String, dynamic>?;
+    final blocks = calcData?['blocks'] as List<dynamic>?;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Inhalt-Box
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: border),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: const [0.0, 0.015, 0.015, 1.0],
-              colors: [
-                AppColors.accentCyan,
-                AppColors.accentCyan,
-                surface,
-                surface,
-              ],
+        // Header-Pill (außerhalb der Box, schlanker)
+        Row(
+          children: [
+            Icon(
+              Icons.lightbulb_outline_rounded,
+              color: AppColors.accentCyan,
+              size: 16,
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.lightbulb_outline_rounded,
-                    color: AppColors.accentCyan,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'LERN-MOMENT',
-                    style: AppTextStyles.monoLabel(AppColors.accentCyan),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(inhalt, style: AppTextStyles.bodyLarge(text)),
-            ],
-          ),
+            const SizedBox(width: 8),
+            Text(
+              'LERN-MOMENT',
+              style: AppTextStyles.monoLabel(AppColors.accentCyan),
+            ),
+          ],
         ),
+        const SizedBox(height: 14),
+
+        // Block-basierter Inhalt (oder Fallback auf Plain-Text)
+        LehrKarteRenderer(blocks: blocks, fallbackText: inhalt),
         const SizedBox(height: 16),
 
         // Ada-Buttons (Frag Ada / Anders erklärt)
