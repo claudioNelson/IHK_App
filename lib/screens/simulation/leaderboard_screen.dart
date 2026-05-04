@@ -309,7 +309,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             child: _podiumCard(
               player: p2,
               rank: 2,
-              height: 140,
+              height: 160,
               surface: surface,
               border: border,
               text: text,
@@ -325,7 +325,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             child: _podiumCard(
               player: p1,
               rank: 1,
-              height: 180,
+              height: 210,
               surface: surface,
               border: border,
               text: text,
@@ -342,7 +342,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             child: _podiumCard(
               player: p3,
               rank: 3,
-              height: 120,
+              height: 140,
               surface: surface,
               border: border,
               text: text,
@@ -423,9 +423,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               Text(
                 username.isNotEmpty ? username[0].toUpperCase() : '?',
                 style: AppTextStyles.instrumentSerif(
-                  size: 52,
+                  size: 44,
                   color: tierColor,
                   letterSpacing: -2,
+                  height: 1,
                 ),
               ),
             // Bottom: Name + ELO + Tier

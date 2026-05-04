@@ -221,7 +221,7 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
                         crossAxisCount: isWide ? 3 : 2,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        childAspectRatio: 0.72,
+                        childAspectRatio: isWide ? 0.78 : 0.62,
                       ),
                       itemCount: certificates.length,
                       itemBuilder: (context, index) => _buildCertCard(
@@ -294,26 +294,27 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
             children: [
               // Top: Icon + Vendor Tag
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       color: accentColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(icon, color: accentColor, size: 18),
+                    child: Icon(icon, color: accentColor, size: 16),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
+                      horizontal: 6,
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
@@ -334,7 +335,7 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
                 ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
               // Vendor Full Name (klein)
               Text(
@@ -344,67 +345,90 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
 
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
 
-              // Cert Name (Serif)
-              Text(
-                cert['name'] ?? '',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.instrumentSerif(
-                  size: 17,
-                  color: text,
-                  letterSpacing: -0.4,
+              // Cert Name (Serif) — flexibel, nimmt verfügbaren Platz
+              Expanded(
+                child: Text(
+                  cert['name'] ?? '',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.instrumentSerif(
+                    size: 16,
+                    color: text,
+                    letterSpacing: -0.4,
+                    height: 1.2,
+                  ),
                 ),
               ),
 
-              const Spacer(),
+              const SizedBox(height: 8),
 
-              // Stats Row: Fragen + Lernzeit
-              Row(
+              // Stats: Fragen + Zeit + Difficulty (alle in Wrap, umbricht automatisch)
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Icon(Icons.help_outline_rounded, size: 11, color: textMid),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$anzahlFragen FRAGEN',
-                    style: AppTextStyles.monoSmall(textMid),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.help_outline_rounded,
+                        size: 10,
+                        color: textMid,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        '$anzahlFragen',
+                        style: AppTextStyles.monoSmall(textMid),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Icon(Icons.access_time_rounded, size: 11, color: textMid),
-                  const SizedBox(width: 4),
-                  Text(time, style: AppTextStyles.monoSmall(textMid)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.access_time_rounded, size: 10, color: textMid),
+                      const SizedBox(width: 3),
+                      Text(time, style: AppTextStyles.monoSmall(textMid)),
+                    ],
+                  ),
                 ],
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
 
               // Difficulty Badge + Arrow
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: difficultyColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(
-                        color: difficultyColor.withOpacity(0.25),
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
                       ),
-                    ),
-                    child: Text(
-                      difficulty,
-                      style: AppTextStyles.mono(
-                        size: 9,
-                        color: difficultyColor,
-                        weight: FontWeight.w700,
-                        letterSpacing: 0.8,
+                      decoration: BoxDecoration(
+                        color: difficultyColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(
+                          color: difficultyColor.withOpacity(0.25),
+                        ),
+                      ),
+                      child: Text(
+                        difficulty,
+                        style: AppTextStyles.mono(
+                          size: 9,
+                          color: difficultyColor,
+                          weight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
-                  Icon(Icons.arrow_forward_rounded, size: 14, color: textMid),
+                  const SizedBox(width: 4),
+                  Icon(Icons.arrow_forward_rounded, size: 12, color: textMid),
                 ],
               ),
             ],
