@@ -10,6 +10,7 @@ import 'review_screen.dart';
 import 'core_topics_screen.dart';
 import 'flashcard_screen.dart';
 import '../zertifikate/certificate_overview_screen.dart';
+import '../levels/level_module_screen.dart';
 
 class LearningHubScreen extends StatefulWidget {
   const LearningHubScreen({super.key});
@@ -59,8 +60,18 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   String _getDateLabel() {
     final now = DateTime.now();
     const months = [
-      'JAN', 'FEB', 'MÄR', 'APR', 'MAI', 'JUN',
-      'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEZ'
+      'JAN',
+      'FEB',
+      'MÄR',
+      'APR',
+      'MAI',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OKT',
+      'NOV',
+      'DEZ',
     ];
     const weekdays = ['MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'SO'];
     final wd = weekdays[now.weekday - 1];
@@ -90,9 +101,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           ),
           slivers: [
             // ─── HEADER ────────────────────────────────────
-            SliverToBoxAdapter(
-              child: _buildHeader(text, textMid, textDim),
-            ),
+            SliverToBoxAdapter(child: _buildHeader(text, textMid, textDim)),
 
             // ─── CONTENT ───────────────────────────────────
             SliverPadding(
@@ -117,8 +126,8 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                           sub: _loading
                               ? '…'
                               : _dueCount > 0
-                                  ? '$_dueCount fällig'
-                                  : 'Alles erledigt',
+                              ? '$_dueCount fällig'
+                              : 'Alles erledigt',
                           accent: _dueCount > 0,
                           surface: surface,
                           border: border,
@@ -147,8 +156,8 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                           sub: _loading
                               ? '…'
                               : _flashcardCount > 0
-                                  ? '$_flashcardCount Karten'
-                                  : 'Noch leer',
+                              ? '$_flashcardCount Karten'
+                              : 'Noch leer',
                           accent: _flashcardCount > 0,
                           surface: surface,
                           border: border,
@@ -196,6 +205,29 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   const SizedBox(height: 10),
 
                   _buildCategoryRow(
+                    tag: 'LV',
+                    tagColor: AppColors.accent,
+                    title: 'Levels',
+                    sub: 'Schritt-für-Schritt-Pfade · NEU',
+                    count: '1',
+                    surface: surface,
+                    border: border,
+                    text: text,
+                    textMid: textMid,
+                    textDim: textDim,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LevelModuleScreen(),
+                        ),
+                      );
+                      _loadCounts();
+                    },
+                  ),
+                  const SizedBox(height: 10),
+
+                  _buildCategoryRow(
                     tag: 'MO',
                     tagColor: AppColors.accent,
                     title: 'Module',
@@ -209,9 +241,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     onTap: () async {
                       await Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => const ModulListe(),
-                        ),
+                        MaterialPageRoute(builder: (_) => const ModulListe()),
                       );
                       _loadCounts();
                     },
@@ -285,10 +315,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  _getDateLabel(),
-                  style: AppTextStyles.monoLabel(textDim),
-                ),
+                Text(_getDateLabel(), style: AppTextStyles.monoLabel(textDim)),
               ],
             ),
             const SizedBox(height: 16),
@@ -317,23 +344,20 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   Widget _buildSectionLabel(String label, Color color) {
     return Row(
       children: [
-        Container(
-          width: 16,
-          height: 1,
-          color: AppColors.accent,
-        ),
+        Container(width: 16, height: 1, color: AppColors.accent),
         const SizedBox(width: 10),
-        Text(
-          label,
-          style: AppTextStyles.monoLabel(AppColors.accent),
-        ),
+        Text(label, style: AppTextStyles.monoLabel(AppColors.accent)),
       ],
     );
   }
 
   // ─── DUE STRIPE (Hero für fällige Wiederholungen) ───
   Widget _buildDueStripe(
-      Color surface, Color border, Color text, Color textMid) {
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+  ) {
     return GestureDetector(
       onTap: () async {
         await Navigator.push(
@@ -353,10 +377,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              AppColors.accent.withOpacity(0.08),
-              surface,
-            ],
+            colors: [AppColors.accent.withOpacity(0.08), surface],
           ),
         ),
         child: Row(
@@ -391,7 +412,9 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.warning.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(4),
@@ -486,24 +509,13 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   ),
                 ),
                 if (onTap != null)
-                  Icon(
-                    Icons.arrow_outward_rounded,
-                    color: textMid,
-                    size: 16,
-                  )
+                  Icon(Icons.arrow_outward_rounded, color: textMid, size: 16)
                 else
-                  Icon(
-                    Icons.check_rounded,
-                    color: AppColors.success,
-                    size: 16,
-                  ),
+                  Icon(Icons.check_rounded, color: AppColors.success, size: 16),
               ],
             ),
             const SizedBox(height: 20),
-            Text(
-              label,
-              style: AppTextStyles.h3(text),
-            ),
+            Text(label, style: AppTextStyles.h3(text)),
             const SizedBox(height: 4),
             Text(
               sub,
@@ -549,9 +561,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               decoration: BoxDecoration(
                 color: tagColor.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: tagColor.withOpacity(0.3),
-                ),
+                border: Border.all(color: tagColor.withOpacity(0.3)),
               ),
               child: Center(
                 child: Text(
@@ -570,15 +580,9 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: AppTextStyles.h3(text),
-                  ),
+                  Text(title, style: AppTextStyles.h3(text)),
                   const SizedBox(height: 2),
-                  Text(
-                    sub,
-                    style: AppTextStyles.bodySmall(textMid),
-                  ),
+                  Text(sub, style: AppTextStyles.bodySmall(textMid)),
                 ],
               ),
             ),
@@ -617,9 +621,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => const CertificateOverviewScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const CertificateOverviewScreen()),
       ),
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -645,11 +647,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.arrow_outward_rounded,
-                  color: textMid,
-                  size: 18,
-                ),
+                Icon(Icons.arrow_outward_rounded, color: textMid, size: 18),
               ],
             ),
             const SizedBox(height: 16),
@@ -659,15 +657,13 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               children: certs.map((c) {
                 return Expanded(
                   child: Container(
-                    margin: EdgeInsets.only(
-                      right: c == certs.last ? 0 : 8,
-                    ),
+                    margin: EdgeInsets.only(right: c == certs.last ? 0 : 8),
                     padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 10),
+                      vertical: 14,
+                      horizontal: 10,
+                    ),
                     decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: c.color, width: 2),
-                      ),
+                      border: Border(top: BorderSide(color: c.color, width: 2)),
                       color: c.color.withOpacity(0.05),
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(8),
