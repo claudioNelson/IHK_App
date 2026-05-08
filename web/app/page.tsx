@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function LandingPage() {
@@ -525,6 +525,47 @@ export default function LandingPage() {
         }
         .panel-body { padding: 32px; }
 
+        /* LERNPFAD-PANEL */
+        .pfad-list { display: flex; flex-direction: column; gap: 8px; }
+        .pfad-row {
+          display: flex; align-items: center; gap: 14px;
+          padding: 12px 14px;
+          border: 1px solid ${t.border};
+          border-radius: 10px;
+          background: ${t.bg};
+        }
+        .pfad-num {
+          width: 36px; height: 36px;
+          flex-shrink: 0;
+          border-radius: 8px;
+          background: ${t.accentSoft};
+          color: ${t.accent};
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 12px; font-weight: 700;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .pfad-num.done { background: #10B98120; color: #10B981; }
+        .pfad-num.locked { background: ${t.border}; color: ${t.textDim}; }
+        .pfad-info { flex: 1; min-width: 0; }
+        .pfad-title {
+          font-size: 14px; font-weight: 600;
+          color: ${t.text};
+          margin-bottom: 2px;
+          letter-spacing: -0.2px;
+        }
+        .pfad-meta {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px;
+          color: ${t.textDim};
+          letter-spacing: 1px;
+        }
+        .pfad-stars {
+          display: flex; gap: 2px;
+          font-size: 12px;
+          color: ${t.textDim};
+        }
+        .pfad-stars .filled { color: #F59E0B; }
+
         /* Exam simulation panel */
         .exam-timer {
           display: flex; justify-content: space-between; align-items: center;
@@ -621,38 +662,6 @@ export default function LandingPage() {
           transition: opacity 0.2s;
         }
         .chart-bar:hover { opacity: 1; }
-
-        /* Spaced rep panel */
-        .card-stack {
-          position: relative;
-          height: 280px;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .rep-card {
-          position: absolute;
-          width: 70%; max-width: 380px;
-          padding: 32px;
-          border-radius: 16px;
-          border: 1px solid ${t.border};
-          background: ${t.bg};
-          box-shadow: 0 10px 30px ${isDark ? "rgba(0,0,0,0.4)" : "rgba(10,10,15,0.08)"};
-        }
-        .rep-card:nth-child(1) { transform: rotate(-4deg) translateX(-30px); opacity: 0.6; }
-        .rep-card:nth-child(2) { transform: rotate(2deg) translateX(15px); opacity: 0.8; }
-        .rep-card:nth-child(3) { transform: rotate(0); z-index: 2; }
-        .rep-card-front {
-          font-size: 18px; font-weight: 500;
-          line-height: 1.5;
-          color: ${t.text};
-          margin-bottom: 16px;
-        }
-        .rep-card-hint {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: ${t.textDim};
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-        }
 
         /* ADA SECTION */
         .ada-section {
@@ -963,12 +972,12 @@ export default function LandingPage() {
         /* PRICING */
         .pricing-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr 1fr 1fr;
           gap: 20px;
-          max-width: 900px;
+          max-width: 1100px;
           margin: 60px auto 0;
         }
-        @media (max-width: 700px) { .pricing-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { .pricing-grid { grid-template-columns: 1fr; } }
         .plan {
           padding: 36px;
           border: 1px solid ${t.border};
@@ -979,6 +988,9 @@ export default function LandingPage() {
         .plan.pro {
           border-color: ${t.accent};
           background: linear-gradient(180deg, ${t.accentSoft} 0%, ${t.surface} 30%);
+        }
+        .plan.lifetime {
+          border-color: ${t.accent2};
         }
         .plan-badge {
           position: absolute;
@@ -991,6 +1003,10 @@ export default function LandingPage() {
           color: white;
           border-radius: 100px;
           text-transform: uppercase;
+        }
+        .plan.lifetime .plan-badge {
+          background: ${t.accent2};
+          color: ${t.bg};
         }
         .plan-name {
           font-family: 'Instrument Serif', serif;
@@ -1208,16 +1224,16 @@ export default function LandingPage() {
         <div>
           <div className="eyebrow">
             <span className="eyebrow-dot" />
-            Live · AP1 & AP2 · 600+ Fragen
+            Live · AP1 & AP2 · 937 Fragen · 3 Lernpfade
           </div>
           <h1 className="hero-title">
             Prüfungsangst war<br />
             gestern — heute <em>übst du smart.</em>
           </h1>
           <p className="hero-sub">
-            Lernarena ist die Prüfungsvorbereitung für Fachinformatiker. Echte
-            IHK-Simulation, ein KI-Tutor der erklärt statt vorbetet, und ein
-            System das sich merkt wo du hängst.
+            Lernarena ist die Prüfungsvorbereitung für Fachinformatiker. Strukturierte
+            Lernpfade Schritt für Schritt, echte IHK-Simulation, und ein KI-Tutor
+            der erklärt statt vorbetet.
           </p>
           <div className="hero-actions">
             <Link href="/register" className="btn-primary">
@@ -1229,7 +1245,7 @@ export default function LandingPage() {
           </div>
           <div className="hero-meta">
             <span><span className="check">✓</span> Keine Kreditkarte</span>
-            <span><span className="check">✓</span> 14 Tage Premium-Test</span>
+            <span><span className="check">✓</span> Free-Tier dauerhaft</span>
             <span><span className="check">✓</span> Web & Mobile</span>
           </div>
         </div>
@@ -1313,18 +1329,18 @@ export default function LandingPage() {
             {[
               {
                 num: "01",
+                title: "Strukturierte Lernpfade",
+                desc: "Mimo-Style. Konzept-für-Konzept aufbauend. Kein Frage-Brainstorming.",
+              },
+              {
+                num: "02",
                 title: "Echte Prüfungssimulation",
                 desc: "Timer, Fragenübersicht, Flagging — so wie am Prüfungstag.",
               },
               {
-                num: "02",
-                title: "Spaced Repetition",
-                desc: "Das System merkt sich was du vergisst und bringt es wieder.",
-              },
-              {
                 num: "03",
                 title: "Fortschritts-Tracking",
-                desc: "Modul-Quoten, Schwachstellen, Verlauf. Datengetrieben.",
+                desc: "Modul-Quoten, Schwachstellen, ELO-Rang. Datengetrieben.",
               },
             ].map((tab, i) => (
               <button
@@ -1341,6 +1357,80 @@ export default function LandingPage() {
 
           <div className="showcase-panel">
             {activeDemo === 0 && (
+              <>
+                <div className="panel-header">
+                  <span>NETZWERKE & SUBNETTING · 11 LEVELS</span>
+                  <span>BASICS</span>
+                </div>
+                <div className="panel-body">
+                  <div className="pfad-list">
+                    <div className="pfad-row">
+                      <div className="pfad-num done">01</div>
+                      <div className="pfad-info">
+                        <div className="pfad-title">Was ist ein Netzwerk?</div>
+                        <div className="pfad-meta">5 FRAGEN · BASICS</div>
+                      </div>
+                      <div className="pfad-stars">
+                        <span className="filled">★</span>
+                        <span className="filled">★</span>
+                        <span className="filled">★</span>
+                      </div>
+                    </div>
+                    <div className="pfad-row">
+                      <div className="pfad-num done">02</div>
+                      <div className="pfad-info">
+                        <div className="pfad-title">IP-Adressen</div>
+                        <div className="pfad-meta">5 FRAGEN · BASICS</div>
+                      </div>
+                      <div className="pfad-stars">
+                        <span className="filled">★</span>
+                        <span className="filled">★</span>
+                        <span className="filled">★</span>
+                      </div>
+                    </div>
+                    <div className="pfad-row">
+                      <div className="pfad-num done">03</div>
+                      <div className="pfad-info">
+                        <div className="pfad-title">Subnetzmaske &amp; CIDR</div>
+                        <div className="pfad-meta">5 FRAGEN · BASICS</div>
+                      </div>
+                      <div className="pfad-stars">
+                        <span className="filled">★</span>
+                        <span className="filled">★</span>
+                        <span>★</span>
+                      </div>
+                    </div>
+                    <div className="pfad-row" style={{ background: t.accentSoft, borderColor: `${t.accent}50` }}>
+                      <div className="pfad-num">04</div>
+                      <div className="pfad-info">
+                        <div className="pfad-title">Private vs. öffentliche IPs</div>
+                        <div className="pfad-meta">4 FRAGEN · BASICS · AKTUELL</div>
+                      </div>
+                      <div className="pfad-stars">
+                        <span>★</span>
+                        <span>★</span>
+                        <span>★</span>
+                      </div>
+                    </div>
+                    <div className="pfad-row">
+                      <div className="pfad-num locked">🔒</div>
+                      <div className="pfad-info">
+                        <div className="pfad-title">Subnetting Teil 1</div>
+                        <div className="pfad-meta">8 FRAGEN · PRAXIS · PREMIUM</div>
+                      </div>
+                    </div>
+                    <div className="pfad-row">
+                      <div className="pfad-num locked">🔒</div>
+                      <div className="pfad-info">
+                        <div className="pfad-title">Subnetting Teil 2</div>
+                        <div className="pfad-meta">7 FRAGEN · PRAXIS · PREMIUM</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+            {activeDemo === 1 && (
               <>
                 <div className="panel-header">
                   <span>AP2 · ANWENDUNGSENTWICKLUNG · FRÜHJAHR 2024</span>
@@ -1362,7 +1452,6 @@ export default function LandingPage() {
                   </div>
                   <div className="q-nav">
                     {Array.from({ length: 50 }).map((_, i) => {
-                      const states = ["done", "done", "done", "done", "current", "", "flagged", "", "done", "done"];
                       const state = i < 34 ? "done" : i === 34 ? "current" : i === 38 || i === 42 ? "flagged" : "";
                       return (
                         <div key={i} className={`q-dot ${state}`}>
@@ -1370,54 +1459,6 @@ export default function LandingPage() {
                         </div>
                       );
                     })}
-                  </div>
-                </div>
-              </>
-            )}
-            {activeDemo === 1 && (
-              <>
-                <div className="panel-header">
-                  <span>DAILY REVIEW · 12 KARTEN FÄLLIG</span>
-                  <span>SM-2 ALGORITHM</span>
-                </div>
-                <div className="panel-body">
-                  <div className="card-stack">
-                    <div className="rep-card">
-                      <div className="rep-card-hint">↻ IN 4 TAGEN</div>
-                      <div className="rep-card-front">Was ist der Port von HTTPS?</div>
-                    </div>
-                    <div className="rep-card">
-                      <div className="rep-card-hint">↻ IN 1 TAG</div>
-                      <div className="rep-card-front">OSI-Schicht von TCP?</div>
-                    </div>
-                    <div className="rep-card">
-                      <div className="rep-card-hint">↻ HEUTE · ZUM 3. MAL</div>
-                      <div className="rep-card-front">
-                        Welche Normalform eliminiert transitive Abhängigkeiten?
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: t.textMid }}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: t.textDim }}>
-                      WIE GUT WUSSTEST DU&apos;S?
-                    </span>
-                    <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 10, flexWrap: "wrap" }}>
-                      {["Nochmal", "Schwer", "Gut", "Einfach"].map((label, i) => (
-                        <span
-                          key={i}
-                          style={{
-                            padding: "6px 12px",
-                            fontSize: 12,
-                            border: `1px solid ${t.border}`,
-                            borderRadius: 8,
-                            color: t.textMid,
-                            fontFamily: "'JetBrains Mono', monospace",
-                          }}
-                        >
-                          {label}
-                        </span>
-                      ))}
-                    </div>
                   </div>
                 </div>
               </>
@@ -1474,7 +1515,8 @@ export default function LandingPage() {
             <p className="section-desc">
               Benannt nach Ada Lovelace. Ein Sprachmodell mit Prüfungswissen,
               das auf deinem Level antwortet — und nachfragt, wenn du eine
-              falsche Annahme triffst.
+              falsche Annahme triffst. Direkt verfügbar in jedem Level, jeder
+              Frage und jedem Match.
             </p>
             <div className="ada-quote">
               &ldquo;The more I study, the more insatiable do I feel my
@@ -1530,7 +1572,7 @@ export default function LandingPage() {
         <div className="section-head">
           <div className="section-label">Zertifikate</div>
           <h2 className="section-title">
-            Nach der IHK ist vor der <em>Cloud.</em>
+            IHK geschafft. <em>Was kommt danach?</em>
           </h2>
           <p className="section-desc">
             Vier Cloud-Zertifizierungen — in zwei Modi: erst in Ruhe verstehen,
@@ -1582,44 +1624,78 @@ export default function LandingPage() {
         <div className="modes-wrap">
           <div className="modes-head">
             <div className="section-label" style={{ marginBottom: 10 }}>
-              Zwei Modi
+              Lernformate
             </div>
             <h3 className="modes-title">
-              Erst <em>verstehen.</em> Dann <em>prüfen.</em>
+              Vier Wege, <em>ein Ziel.</em>
             </h3>
           </div>
           <div className="modes-grid">
+            <div className="mode-card featured">
+              <div className="mode-head">
+                <div className="mode-icon" style={{ background: t.accent, color: "white" }}>
+                  ↗
+                </div>
+                <div>
+                  <div className="mode-name">Lernpfade</div>
+                  <div className="mode-sub">Schritt für Schritt</div>
+                </div>
+              </div>
+              <ul className="mode-list">
+                <li>3 Pfade: SQL · Netzwerke · IT-Sicherheit</li>
+                <li>33 Levels mit Lehr-Karten und Beispielen</li>
+                <li>Ideal um Themen aufbauend zu lernen</li>
+              </ul>
+            </div>
+
             <div className="mode-card">
               <div className="mode-head">
                 <div className="mode-icon" style={{ background: t.accentSoft, color: t.accent }}>
                   ✎
                 </div>
                 <div>
-                  <div className="mode-name">Übungsmodus</div>
-                  <div className="mode-sub">Im Learning Hub</div>
+                  <div className="mode-name">Klassische Module</div>
+                  <div className="mode-sub">Frei nach Thema</div>
                 </div>
               </div>
               <ul className="mode-list">
+                <li>17 Module · alle Prüfungsbereiche</li>
                 <li>Erklärungen zu jeder Antwort</li>
-                <li>Kein Zeitdruck</li>
-                <li>Ideal zum Lernen</li>
+                <li>Kein Zeitdruck — Gold zum Lernen</li>
               </ul>
             </div>
 
-            <div className="mode-card featured">
+            <div className="mode-card">
               <div className="mode-head">
-                <div className="mode-icon" style={{ background: `${t.accent}`, color: "white" }}>
+                <div className="mode-icon" style={{ background: t.accentSoft, color: t.accent }}>
                   ⏱
                 </div>
                 <div>
                   <div className="mode-name">Prüfungssimulation</div>
-                  <div className="mode-sub">Echte Prüfungsbedingungen</div>
+                  <div className="mode-sub">Echte Bedingungen</div>
                 </div>
               </div>
               <ul className="mode-list">
                 <li>Timer wie in der echten Prüfung</li>
-                <li>Keine Erklärungen</li>
+                <li>Original IHK-Aufgaben (AE & SI)</li>
                 <li>Scored & bewertet</li>
+              </ul>
+            </div>
+
+            <div className="mode-card">
+              <div className="mode-head">
+                <div className="mode-icon" style={{ background: t.accentSoft, color: t.accent }}>
+                  ⚔
+                </div>
+                <div>
+                  <div className="mode-name">Async-Match</div>
+                  <div className="mode-sub">1v1 Multiplayer</div>
+                </div>
+              </div>
+              <ul className="mode-list">
+                <li>Duelliere dich mit anderen Lernern</li>
+                <li>ELO-Rangliste &amp; Badges</li>
+                <li>Üben mit Spaß-Faktor</li>
               </ul>
             </div>
           </div>
@@ -1627,8 +1703,8 @@ export default function LandingPage() {
           <div className="mode-tip">
             <span className="mode-tip-label">Tipp</span>
             <span className="mode-tip-text">
-              Starte mit dem Übungsmodus um die Konzepte zu verstehen, dann
-              teste dich mit der Prüfungssimulation.
+              Starte mit den Lernpfaden um die Konzepte zu verstehen, festige im
+              Match-Modus und teste dich am Ende mit der Prüfungssimulation.
             </span>
           </div>
         </div>
@@ -1642,8 +1718,8 @@ export default function LandingPage() {
             Fair. Transparent. <em>Kein Kleingedrucktes.</em>
           </h2>
           <p className="section-desc">
-            Kostenlos anfangen. Upgraden, wenn&apos;s ernst wird. Kündigen,
-            wenn du bestanden hast.
+            Kostenlos anfangen. Upgraden, wenn&apos;s ernst wird. Lifetime
+            kaufen, wenn du dich nicht festlegen willst.
           </p>
         </div>
 
@@ -1660,10 +1736,10 @@ export default function LandingPage() {
               Kostenlos starten
             </Link>
             <ul className="plan-features">
-              <li className="plan-feature">20 Fragen pro Lernmodul</li>
-              <li className="plan-feature">3 Multiplayer-Matches pro Tag</li>
-              <li className="plan-feature">KI-Erklärungen bei Fehlern</li>
-              <li className="plan-feature off">Alle 600+ Fragen</li>
+              <li className="plan-feature">Basics-Levels aller Lernpfade</li>
+              <li className="plan-feature">3 Async-Matches pro Tag</li>
+              <li className="plan-feature">Ada-Erklärungen bei Fehlern</li>
+              <li className="plan-feature off">Praxis &amp; Prüfungs-Levels</li>
               <li className="plan-feature off">Prüfungssimulation</li>
               <li className="plan-feature off">Cloud-Zertifikate</li>
             </ul>
@@ -1677,17 +1753,39 @@ export default function LandingPage() {
               <span className="plan-amount">9,99€</span>
               <span className="plan-period">/ Monat</span>
             </div>
-            <div className="plan-note">Oder 89€/Jahr · 25% sparen</div>
+            <div className="plan-note">Oder 59€/Jahr · 50% sparen</div>
             <Link href="/register?plan=premium" className="plan-cta primary">
-              14 Tage gratis testen
+              Premium starten
             </Link>
             <ul className="plan-features">
-              <li className="plan-feature">Alle 600+ Prüfungsfragen</li>
-              <li className="plan-feature">Unbegrenzte Matches & Ada-Chats</li>
-              <li className="plan-feature">Echte Prüfungssimulation</li>
-              <li className="plan-feature">Alle 7 Cloud-Zertifikate</li>
-              <li className="plan-feature">Sync auf allen Geräten</li>
+              <li className="plan-feature">Alle 937 Prüfungsfragen</li>
+              <li className="plan-feature">Alle 33 Levels (Basics, Praxis, Prüfung)</li>
+              <li className="plan-feature">Echte IHK-Prüfungssimulation</li>
+              <li className="plan-feature">Alle 4 Cloud-Zertifikate</li>
+              <li className="plan-feature">Unbegrenzt Ada &amp; Matches</li>
               <li className="plan-feature">Jederzeit kündbar</li>
+            </ul>
+          </div>
+
+          <div className="plan lifetime">
+            <div className="plan-badge">Best Value</div>
+            <div className="plan-name">Lifetime</div>
+            <div className="plan-tag">Für Sammler</div>
+            <div className="plan-price">
+              <span className="plan-amount">99€</span>
+              <span className="plan-period">/ einmalig</span>
+            </div>
+            <div className="plan-note">Einmal zahlen, für immer nutzen</div>
+            <Link href="/register?plan=lifetime" className="plan-cta outline">
+              Lifetime kaufen
+            </Link>
+            <ul className="plan-features">
+              <li className="plan-feature">Alles aus Premium</li>
+              <li className="plan-feature">Auch alle zukünftigen Lernpfade</li>
+              <li className="plan-feature">Alle zukünftigen Features</li>
+              <li className="plan-feature">Keine Verlängerungen</li>
+              <li className="plan-feature">Bezahlt nach 10 Monaten</li>
+              <li className="plan-feature">Beste Wahl ab AP1+AP2</li>
             </ul>
           </div>
         </div>
@@ -1705,8 +1803,8 @@ export default function LandingPage() {
             kein <em>Zufall.</em>
           </h2>
           <p className="final-cta-sub">
-            Sondern das Ergebnis von gezielter Vorbereitung. 600+ Fragen, ein
-            Tutor der erklärt, ein System das dich nicht vergessen lässt.
+            Sondern das Ergebnis von gezielter Vorbereitung. 937 Fragen, drei
+            Lernpfade, ein Tutor der erklärt, ein System das dich nicht vergessen lässt.
           </p>
           <div className="hero-actions" style={{ justifyContent: "center", marginBottom: 0 }}>
             <Link href="/register" className="btn-primary">
