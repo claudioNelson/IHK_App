@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/login", "/register", "/admin/"],
+      disallow: ["/api/", "/admin/"],
     },
     sitemap: "https://lernarena.app/sitemap.xml",
   };
