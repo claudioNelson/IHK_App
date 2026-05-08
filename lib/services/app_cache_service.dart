@@ -451,7 +451,7 @@ class AppCacheService {
           .from('levels')
           .select()
           .eq('modul_id', modulId)
-          .order('nummer');
+          .order('nummer', ascending: true);
 
       final levelRows = List<Map<String, dynamic>>.from(levelsRes as List);
       if (levelRows.isEmpty) {

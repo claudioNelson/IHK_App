@@ -100,12 +100,12 @@ class LevelService {
 
   /// Alle Levels eines Moduls inkl. User-Progress laden
   Future<List<Level>> getLevelsForModul(int modulId) async {
-    // 1. Levels laden
+    // 1. Levels
     final levelsRes = await _supabase
         .from('levels')
         .select()
         .eq('modul_id', modulId)
-        .order('nummer');
+        .order('nummer', ascending: true);
 
     final levelRows = List<Map<String, dynamic>>.from(levelsRes as List);
     if (levelRows.isEmpty) return [];
