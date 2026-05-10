@@ -1,4 +1,4 @@
-package com.example.ihk_app
+package app.lernarena
 
 import io.flutter.embedding.android.FlutterActivity
 
