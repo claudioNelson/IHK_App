@@ -9,6 +9,7 @@ import { Exam } from "@/data/exam-types";
 import SubmitExam from "@/app/components/SubmitExam";
 import ExamResult from "@/app/components/ExamResult";
 import ExamIntro from "@/app/components/ExamIntro";
+import DecisionMatrix from "@/app/components/DecisionMatrix";
 
 interface ExamContentProps { exam: Exam; }
 
@@ -135,7 +136,7 @@ export default function ExamContent({ exam }: ExamContentProps) {
         .nav-btn.danger:hover { background: ${t.dangerSoft}; border-color: ${t.danger}40; }
 
         /* BODY */
-        .body { max-width: 820px; margin: 0 auto; padding: 24px 20px 120px; }
+        .body { max-width: 1000px; margin: 0 auto; padding: 24px 20px 120px; }
 
         /* HEADER CARD */
         .header-card {
@@ -324,8 +325,9 @@ export default function ExamContent({ exam }: ExamContentProps) {
           border-radius: 14px;
           padding: 26px;
           margin-bottom: 14px;
-          scroll-margin-top: 200px;
+          scroll-margin-top: 260px;
         }
+
         .section-title {
           font-size: 16px; font-weight: 600;
           color: ${t.text};
@@ -398,8 +400,8 @@ export default function ExamContent({ exam }: ExamContentProps) {
           padding: 16px;
           font-size: 13px;
           color: ${t.text};
-          line-height: 1.75;
-          white-space: pre;
+          line-height: 1.5;
+          white-space: pre-wrap;
           overflow-x: auto;
           margin-bottom: 14px;
           font-family: 'JetBrains Mono', monospace;
@@ -591,6 +593,13 @@ export default function ExamContent({ exam }: ExamContentProps) {
                       <DiagramTool onSave={data => updateAnswer(q.id, data)} />
                     ) : q.type === "fillBlanks" ? (
                       <FillBlanksSQL questionId={q.id} />
+                    ) : q.type === "decisionMatrix" && q.matrix ? (
+                      <DecisionMatrix
+                        questionId={q.id}
+                        matrix={q.matrix}
+                        value={answers[q.id] || ""}
+                        onChange={val => updateAnswer(q.id, val)}
+                      />
                     ) : (
                       <textarea
                         className="answer-ta"

@@ -63,10 +63,14 @@ export interface Question {
 
     // Optionale Felder
     hint?: string;
-    image?: string;                  // Pfad zu /public/images/...
-    options?: QuestionOption[];      // Nur für multipleChoice
-    expectedAnswer?: string;         // Musterlösung (für KI-Korrektur)
-    tags?: string[];                 // z.B. ["sql", "join", "aggregat"]
+    image?: string;
+    options?: QuestionOption[];
+    expectedAnswer?: string;
+    tags?: string[];
+    
+
+    // Für type: "decisionMatrix"
+    matrix?: DecisionMatrix;
 }
 
 // ============================================
@@ -105,6 +109,22 @@ export interface Exam {
     tags?: string[];                 // z.B. ["oop", "sql", "uml"]
     sectionsToChoose?: number;       // z.B. 4 (von 5 wählen)
     publishedAt?: string;            // ISO-Datum, falls relevant
+}
+
+// ============================================
+// ENTSCHEIDUNGSMATRIX (für type: "decisionMatrix")
+// ============================================
+export interface MatrixRow {
+    id: string;                  // eindeutige ID, z.B. "backup"
+    label: string;               // Anzeige-Text: "Tägliches Backup der Patientendaten"
+    example?: boolean;           // Zeile als Beispiel markieren (vorausgefüllt)
+    exampleColumn?: string;      // welche Spalte ist beim Beispiel angekreuzt
+    exampleReason?: string;      // Beispiel-Begründung
+}
+
+export interface DecisionMatrix {
+    columns: string[];           // ["Vertraulichkeit", "Integrität", "Verfügbarkeit"]
+    rows: MatrixRow[];
 }
 
 // ============================================

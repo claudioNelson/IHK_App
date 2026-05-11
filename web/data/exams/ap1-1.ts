@@ -393,41 +393,47 @@ AUFGABE:
                     id: "ap1-1-a4-a",
                     title: "a) Schutzziele zuordnen (6 Punkte)",
                     description: `Die drei klassischen Schutzziele der Informationssicherheit lauten:
-- **Vertraulichkeit** (Daten sind nur für Berechtigte zugänglich)
-- **Integrität** (Daten sind unverfälscht)
-- **Verfügbarkeit** (Daten sind bei Bedarf erreichbar)
 
-Ordnen Sie jeder der folgenden Sicherheitsmaßnahmen das primär unterstützte Schutzziel zu und begründen Sie kurz Ihre Wahl.
+- Vertraulichkeit — Daten sind nur für Berechtigte zugänglich
+- Integrität — Daten sind unverfälscht
+- Verfügbarkeit — Daten sind bei Bedarf erreichbar
 
-┌────────────────────────────────────────────┬──────────────┬───────────┬────────────────┐
-│ Sicherheitsmaßnahme                        │ Vertraulich- │ Integri-  │ Verfügbar-     │
-│                                            │ keit         │ tät       │ keit           │
-├────────────────────────────────────────────┼──────────────┼───────────┼────────────────┤
-│ Beispiel: Sichere Passwörter wählen        │      X       │           │                │
-│ → Begründung: Schutz vor unbefugtem Zugriff auf Konten                                  │
-├────────────────────────────────────────────┼──────────────┼───────────┼────────────────┤
-│ 1) Tägliches Backup der Patientendaten     │              │           │                │
-│ → Begründung:                                                                           │
-├────────────────────────────────────────────┼──────────────┼───────────┼────────────────┤
-│ 2) Festplattenverschlüsselung der Praxis-  │              │           │                │
-│    PCs                                                                                  │
-│ → Begründung:                                                                           │
-├────────────────────────────────────────────┼──────────────┼───────────┼────────────────┤
-│ 3) Digitale Signatur auf Arztbriefen       │              │           │                │
-│ → Begründung:                                                                           │
-├────────────────────────────────────────────┼──────────────┼───────────┼────────────────┤
-│ 4) Redundante Internet-Anbindung           │              │           │                │
-│ → Begründung:                                                                           │
-├────────────────────────────────────────────┼──────────────┼───────────┼────────────────┤
-│ 5) Prüfsummen-Check bei Software-Updates   │              │           │                │
-│ → Begründung:                                                                           │
-└────────────────────────────────────────────┴──────────────┴───────────┴────────────────┘
-
-AUFGABE:
-Setzen Sie in jeder Zeile **ein Kreuz** und schreiben Sie zu jedem Kreuz eine kurze Begründung.`,
+Ordnen Sie jeder der folgenden Sicherheitsmaßnahmen das primär unterstützte Schutzziel zu. Setzen Sie pro Zeile ein Häkchen und begründen Sie kurz Ihre Wahl.`,
                     type: "decisionMatrix",
                     points: 6,
-                    hint: "Backup → Daten sind wieder verfügbar nach Verlust. Verschlüsselung → Schutz vor Mitlesen. Signatur → Nachweis, dass nicht geändert wurde. Redundanz → Ausfallsicherheit. Prüfsumme → Erkennt Manipulation.",
+                    matrix: {
+                        columns: ["Vertraulichkeit", "Integrität", "Verfügbarkeit"],
+                        rows: [
+                            {
+                                id: "passwoerter",
+                                label: "Sichere Passwörter wählen",
+                                example: true,
+                                exampleColumn: "Vertraulichkeit",
+                                exampleReason: "Schutz vor unbefugtem Zugriff auf Benutzerkonten und ihre Daten.",
+                            },
+                            {
+                                id: "backup",
+                                label: "Tägliches Backup der Patientendaten",
+                            },
+                            {
+                                id: "festplatten-verschluesselung",
+                                label: "Festplattenverschlüsselung der Praxis-PCs",
+                            },
+                            {
+                                id: "digitale-signatur",
+                                label: "Digitale Signatur auf Arztbriefen",
+                            },
+                            {
+                                id: "redundante-internet",
+                                label: "Redundante Internet-Anbindung",
+                            },
+                            {
+                                id: "pruefsumme-update",
+                                label: "Prüfsummen-Check bei Software-Updates",
+                            },
+                        ],
+                    },
+                    hint: "Backup → Daten wieder verfügbar nach Verlust. Verschlüsselung → Schutz vor Mitlesen. Signatur → Nachweis, dass nicht geändert wurde. Redundanz → Ausfallsicherheit. Prüfsumme → Erkennt Manipulation.",
                     tags: ["datenschutz", "it-sicherheit", "schutzziele"],
                 },
                 {
