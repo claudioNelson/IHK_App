@@ -89,27 +89,47 @@ ABLAUF DER VORGÄNGE:
                 │                                          │
                 └──→ E ──→ H ─────────────────────────────┘
 
-AUFBAU EINER VORGANGSBOX:
-
-┌─────┬───────┬─────┐
-│ FAZ │ Dauer │ FEZ │     FAZ = Frühester Anfangszeitpunkt
-├─────┼───────┼─────┤     FEZ = Frühestes Ende
-│     │   X   │     │     X   = Vorgangsname
-├─────┼───────┼─────┤     SAZ = Spätester Anfang
-│ SAZ │  GP   │ SEZ │     SEZ = Spätestes Ende
-└─────┴───────┴─────┘     GP  = Gesamtpuffer (= SAZ - FAZ)
+LEGENDE der Spalten:
+- FAZ = Frühester Anfangszeitpunkt
+- FEZ = Frühestes Ende (= FAZ + Dauer)
+- SAZ = Spätester Anfang (Rückwärtsrechnung)
+- SEZ = Spätestes Ende (Rückwärtsrechnung)
+- GP  = Gesamtpuffer (= SAZ − FAZ)
 
 AUFGABE:
-Tragen Sie für JEDEN Vorgang (A bis J) die Werte FAZ, FEZ, SAZ, SEZ und GP ein.
+Tragen Sie für jeden Vorgang die Werte FAZ, FEZ, SAZ, SEZ und GP in die Tabelle ein.
 
-Format pro Vorgang:
-A: FAZ=__, FEZ=__, SAZ=__, SEZ=__, GP=__
-B: FAZ=__, FEZ=__, SAZ=__, SEZ=__, GP=__
-...
-
-Hinweis: Beginnen Sie bei A mit FAZ=0 und rechnen Sie sich vorwärts durch (FEZ = FAZ + Dauer). Anschließend ermitteln Sie SEZ und SAZ durch Rückwärtsrechnung vom letzten Vorgang.`,
+Hinweis: Beginnen Sie bei A mit FAZ = 0 und rechnen Sie sich vorwärts durch (FEZ = FAZ + Dauer). Anschließend ermitteln Sie SEZ und SAZ durch Rückwärtsrechnung vom letzten Vorgang.`,
                     type: "tableInput",
                     points: 14,
+                    table: {
+                        rowHeaderLabel: "Vorgang",
+                        columns: [
+                            { key: "faz", label: "FAZ", placeholder: "0", width: "70px" },
+                            { key: "fez", label: "FEZ", placeholder: "0", width: "70px" },
+                            { key: "saz", label: "SAZ", placeholder: "0", width: "70px" },
+                            { key: "sez", label: "SEZ", placeholder: "0", width: "70px" },
+                            { key: "gp",  label: "GP",  placeholder: "0", width: "70px" },
+                        ],
+                        rows: [
+                            {
+                                id: "vorgang-a",
+                                label: "A",
+                                sublabel: "Ist-Analyse · Dauer 3",
+                                example: true,
+                                values: { faz: "0", fez: "3", saz: "0", sez: "3", gp: "0" },
+                            },
+                            { id: "vorgang-b", label: "B", sublabel: "Soll-Konzept · Dauer 5" },
+                            { id: "vorgang-c", label: "C", sublabel: "Beschaffung · Dauer 4" },
+                            { id: "vorgang-d", label: "D", sublabel: "Verkabelung · Dauer 6" },
+                            { id: "vorgang-e", label: "E", sublabel: "Datensicherung · Dauer 3" },
+                            { id: "vorgang-f", label: "F", sublabel: "Server · Dauer 4" },
+                            { id: "vorgang-g", label: "G", sublabel: "Arbeitsplätze · Dauer 5" },
+                            { id: "vorgang-h", label: "H", sublabel: "Abbau · Dauer 2" },
+                            { id: "vorgang-i", label: "I", sublabel: "Funktionstest · Dauer 2" },
+                            { id: "vorgang-j", label: "J", sublabel: "Schulung · Dauer 3" },
+                        ],
+                    },
                     hint: "Vorwärtsrechnung für FAZ/FEZ, Rückwärtsrechnung für SAZ/SEZ. Bei Vorgängen mit mehreren Vorgängern gilt: FAZ = maximaler FEZ der Vorgänger.",
                     tags: ["projektmanagement", "netzplan"],
                 },

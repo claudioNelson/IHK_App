@@ -67,10 +67,13 @@ export interface Question {
     options?: QuestionOption[];
     expectedAnswer?: string;
     tags?: string[];
-    
+
 
     // Für type: "decisionMatrix"
     matrix?: DecisionMatrix;
+    // Für type: "tableInput"
+    table?: TableInputData;
+    
 }
 
 // ============================================
@@ -125,6 +128,30 @@ export interface MatrixRow {
 export interface DecisionMatrix {
     columns: string[];           // ["Vertraulichkeit", "Integrität", "Verfügbarkeit"]
     rows: MatrixRow[];
+}
+
+// ============================================
+// TABELLEN-EINGABE (für type: "tableInput")
+// ============================================
+export interface TableColumn {
+    key: string;                 // eindeutige Spalten-ID, z.B. "faz", "fez"
+    label: string;               // Anzeige-Text in der Tabellen-Kopfzeile, z.B. "FAZ"
+    placeholder?: string;        // optional: Hint im leeren Input-Feld, z.B. "0"
+    width?: string;              // optional: CSS width, z.B. "60px"
+}
+
+export interface TableRow {
+    id: string;                  // eindeutige ID, z.B. "vorgang-a"
+    label: string;               // Anzeige-Text der Zeile, z.B. "A"
+    sublabel?: string;           // optional: kleinere Zusatzinfo, z.B. "Ist-Analyse"
+    example?: boolean;           // Beispiel-Zeile (vorausgefüllt, nicht editierbar)
+    values?: Record<string, string>;  // bei example: vorausgefüllte Werte pro Spalte
+}
+
+export interface TableInputData {
+    columns: TableColumn[];      // Spalten-Definition
+    rows: TableRow[];            // Zeilen-Definition
+    rowHeaderLabel?: string;     // Beschriftung der ersten Spalte, z.B. "Vorgang"
 }
 
 // ============================================
