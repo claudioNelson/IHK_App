@@ -16,11 +16,12 @@ class AuthService {
   }) async {
     try {
       print('📝 Starte Registrierung für: $email');
-      
+
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
         data: {'username': username},
+        emailRedirectTo: 'https://lernarena.app/auth/callback',
       );
 
       if (response.user != null) {
@@ -42,7 +43,7 @@ class AuthService {
   }) async {
     try {
       print('🔐 Login Versuch für: $email');
-      
+
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
@@ -64,11 +65,11 @@ class AuthService {
     try {
       print('👋 Logout...');
       await _supabase.auth.signOut();
-      
+
       // Lokale Daten löschen
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      
+
       print('✅ Logout erfolgreich');
     } catch (e) {
       print('❌ Logout fehlgeschlagen: $e');
@@ -79,8 +80,10 @@ class AuthService {
   // Passwort zurücksetzen
   Future<void> resetPassword(String email) async {
     try {
-      await _supabase.auth.resetPasswordForEmail(email);
-      print('✅ Passwort-Reset Email gesendet an: $email');
+      await _supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'https://lernarena.app/auth/callback',
+      );
     } catch (e) {
       print('❌ Passwort-Reset fehlgeschlagen: $e');
       rethrow;
@@ -114,7 +117,7 @@ class AuthService {
       final response = await _supabase.auth.updateUser(
         UserAttributes(data: updates),
       );
-      
+
       print('✅ Profil aktualisiert');
       return response;
     } catch (e) {
@@ -160,8 +163,10 @@ class AuthService {
 
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        print('📖 Lade Profil (Versuch $attempt/$maxRetries) für: ${currentUser!.id}');
-        
+        print(
+          '📖 Lade Profil (Versuch $attempt/$maxRetries) für: ${currentUser!.id}',
+        );
+
         // Bei erstem Versuch kurz warten (für Trigger)
         if (attempt == 1) {
           await Future.delayed(const Duration(milliseconds: 500));
@@ -185,12 +190,12 @@ class AuthService {
         }
       } catch (e) {
         print('❌ Fehler beim Profil laden (Versuch $attempt): $e');
-        
+
         if (attempt == maxRetries) {
           // Letzter Versuch fehlgeschlagen -> Fallback
           break;
         }
-        
+
         await Future.delayed(Duration(seconds: attempt));
       }
     }
@@ -218,13 +223,13 @@ class AuthService {
       return true;
     } catch (e) {
       final errorMessage = e.toString().toLowerCase();
-      
+
       // Wenn "invalid" oder "credentials" -> User existiert
-      if (errorMessage.contains('invalid') || 
+      if (errorMessage.contains('invalid') ||
           errorMessage.contains('credentials')) {
         return true;
       }
-      
+
       // Wenn "not found" oder "user not found" -> existiert nicht
       return false;
     }
@@ -249,19 +254,16 @@ class AuthService {
 
     try {
       print('🗑️ Lösche Account: ${currentUser!.id}');
-      
+
       // Erst Profil löschen
-      await _supabase
-          .from('profiles')
-          .delete()
-          .eq('id', currentUser!.id);
+      await _supabase.from('profiles').delete().eq('id', currentUser!.id);
 
       // Dann User (falls Admin-Rechte vorhanden)
       // Sonst muss das über Supabase Dashboard gemacht werden
-      
+
       // Logout
       await signOut();
-      
+
       print('✅ Account gelöscht');
     } catch (e) {
       print('❌ Account-Löschung fehlgeschlagen: $e');

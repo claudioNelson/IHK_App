@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_provider.dart';
 import 'services/subscription_service.dart';
+import 'services/deep_link_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,6 +82,10 @@ class _AppInitializerState extends State<AppInitializer> {
       );
 
       print('✅ Supabase initialisiert');
+
+      // Deep Links aktivieren (für Email-Bestätigungs-Links)
+      await DeepLinkService().initialize();
+      print('✅ Deep Link Service aktiv');
 
       // Auf Auth-Änderungen reagieren (Login/Logout)
       Supabase.instance.client.auth.onAuthStateChange.listen((data) {
