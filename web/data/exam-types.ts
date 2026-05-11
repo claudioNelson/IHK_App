@@ -31,13 +31,16 @@ export type Season = "Sommer" | "Winter";
 // FRAGE-TYPEN
 // ============================================
 export type QuestionType =
-    | "info"              // Nur Anzeige (z.B. DB-Schema, Ausgangssituation)
+    | "info"              // Nur Anzeige (z.B. DB-Schema)
     | "freeText"          // Freitext-Antwort
-    | "code"              // Code/SQL/Pseudocode
+    | "code"              // Code/SQL/Pseudocode SCHREIBEN
+    | "codeCorrection"    // Fehler im Code finden & korrigieren
     | "diagram"           // Diagramm zeichnen
-    | "multipleChoice"    // Single-Choice mit Optionen
-    | "fillBlanks"        // Lücken füllen
-    | "calculation";      // Rechenaufgabe (AP1)
+    | "multipleChoice"    // Single-/Multi-Choice
+    | "fillBlanks"        // Lücken in Text/Code füllen
+    | "tableInput"        // Tabellenzellen ausfüllen (z.B. Netzplan, Berechnungen)
+    | "decisionMatrix"    // Matrix: Kreuze + optionale Begründung
+    | "calculation";      // Rechenaufgabe mit Lösungsweg
 
 // ============================================
 // AUSWAHL-OPTIONEN (für multipleChoice)
