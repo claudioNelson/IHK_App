@@ -109,7 +109,7 @@ Hinweis: Beginnen Sie bei A mit FAZ = 0 und rechnen Sie sich vorwärts durch (FE
                             { key: "fez", label: "FEZ", placeholder: "0", width: "70px" },
                             { key: "saz", label: "SAZ", placeholder: "0", width: "70px" },
                             { key: "sez", label: "SEZ", placeholder: "0", width: "70px" },
-                            { key: "gp",  label: "GP",  placeholder: "0", width: "70px" },
+                            { key: "gp", label: "GP", placeholder: "0", width: "70px" },
                         ],
                         rows: [
                             {
@@ -174,17 +174,6 @@ BETRIEBSDATEN:
 - 22 Arbeitstage pro Monat
 - Strompreis: 0,32 EUR pro kWh
 
-VERGLEICH DER NETZTEILE:
-
-┌────────────────────────────────────────────────────────┬───────┬───────┐
-│                                                        │ PC-1  │ PC-2  │
-├────────────────────────────────────────────────────────┼───────┼───────┤
-│ Wirkungsgrad des Netzteils bei 70 W in Prozent         │ 50 %  │ 80 %  │
-│ Durchschnittliche Leistung der PC-Komponenten          │ 70 W  │ 70 W  │
-│ Vom Netzteil bezogene Leistung aus dem Stromnetz       │  ?    │  ?    │
-│ Energiekosten pro Monat in EUR                         │  ?    │  ?    │
-└────────────────────────────────────────────────────────┴───────┴───────┘
-
 FORMEL AUS DEM NETZTEIL-DATENBLATT (englisch):
 Efficiency = Useful power output / Total power input
 
@@ -193,9 +182,42 @@ Berechnen Sie für beide PC-Varianten:
 1) Die vom Netzteil aus dem Stromnetz bezogene Leistung (in Watt)
 2) Die monatlichen Energiekosten in EUR
 
-Der Rechenweg ist anzugeben.`,
-                    type: "calculation",
+Tragen Sie die berechneten Werte in die letzte Zeile der Tabelle ein. Die ersten beiden Zeilen sind als Ausgangsdaten vorgegeben.`,
+                    type: "tableInput",
                     points: 6,
+                    table: {
+                        rowHeaderLabel: "Größe",
+                        columns: [
+                            { key: "pc1", label: "PC-1", placeholder: "?", width: "90px" },
+                            { key: "pc2", label: "PC-2", placeholder: "?", width: "90px" },
+                        ],
+                        rows: [
+                            {
+                                id: "wirkungsgrad",
+                                label: "Wirkungsgrad",
+                                sublabel: "bei 70 W in %",
+                                example: true,
+                                values: { pc1: "50 %", pc2: "80 %" },
+                            },
+                            {
+                                id: "leistung-pc",
+                                label: "Leistung PC",
+                                sublabel: "Komponenten in W",
+                                example: true,
+                                values: { pc1: "70 W", pc2: "70 W" },
+                            },
+                            {
+                                id: "leistung-netzteil",
+                                label: "Leistung Netzteil",
+                                sublabel: "aus Stromnetz in W",
+                            },
+                            {
+                                id: "energiekosten",
+                                label: "Energiekosten",
+                                sublabel: "pro Monat in EUR",
+                            },
+                        ],
+                    },
                     hint: "Aus Efficiency = Useful / Total folgt: Total = Useful / Efficiency. Dann: kWh = Watt × Stunden / 1000.",
                     tags: ["energieeffizienz", "berechnung"],
                 },
@@ -468,38 +490,54 @@ Nennen Sie je eine konkrete Maßnahme, mit der die folgenden Anforderungen umges
                     title: "c) Schutzbedarf begründen (6 Punkte)",
                     description: `Im Rahmen einer Schutzbedarfsanalyse wurde der Schutzbedarf verschiedener IT-Anwendungen der Zahnarztpraxis bereits zugeordnet.
 
-Folgende Kategorien werden verwendet:
+KATEGORIEN:
+- Niedrig / mittel — Die Schadensauswirkungen sind begrenzt und überschaubar
+- Hoch — Die Schadensauswirkungen können beträchtlich sein
+- Sehr hoch — Schadensauswirkungen können existenziell bedrohliche oder katastrophale Ausmaße erreichen
 
-┌──────────────────┬──────────────────────────────────────────────────────────────┐
-│ Kategorie        │ Beschreibung                                                 │
-├──────────────────┼──────────────────────────────────────────────────────────────┤
-│ Niedrig / mittel │ Die Schadensauswirkungen sind begrenzt und überschaubar      │
-│ Hoch             │ Die Schadensauswirkungen können beträchtlich sein            │
-│ Sehr hoch        │ Schadensauswirkungen können existenziell bedrohliche oder    │
-│                  │ katastrophale Ausmaße erreichen                              │
-└──────────────────┴──────────────────────────────────────────────────────────────┘
-
-Fügen Sie für jede IT-Anwendung eine **passende Begründung** für den angegebenen Schutzbedarf hinzu:
-
-┌────────────────────────────────────┬────────────────┬──────────┬─────────────────────┐
-│ IT-Anwendung                       │ Schutzziel     │ Kategorie│ Begründung          │
-├────────────────────────────────────┼────────────────┼──────────┼─────────────────────┤
-│ Beispiel: Online-Terminvergabe     │ Verfügbarkeit  │ Hoch     │ Ausfall führt zu    │
-│                                    │                │          │ Buchungsstau und    │
-│                                    │                │          │ Patientenverlust    │
-├────────────────────────────────────┼────────────────┼──────────┼─────────────────────┤
-│ 1) E-Rezept-System                 │ Integrität     │ Sehr hoch│                     │
-├────────────────────────────────────┼────────────────┼──────────┼─────────────────────┤
-│ 2) Praxis-Buchhaltung              │ Vertraulichkeit│ Hoch     │                     │
-├────────────────────────────────────┼────────────────┼──────────┼─────────────────────┤
-│ 3) Patientenakten (digital)        │ Vertraulichkeit│ Sehr hoch│                     │
-├────────────────────────────────────┼────────────────┼──────────┼─────────────────────┤
-│ 4) Internes Wiki / Anleitungen     │ Integrität     │ Niedrig  │                     │
-└────────────────────────────────────┴────────────────┴──────────┴─────────────────────┘
-
-Schreiben Sie zu jeder der vier Zeilen eine kurze, treffende Begründung (1-2 Sätze).`,
-                    type: "freeText",
+AUFGABE:
+Schreiben Sie zu jeder Zeile eine kurze, treffende Begründung für den angegebenen Schutzbedarf (1-2 Sätze).`,
+                    type: "tableInput",
                     points: 6,
+                    table: {
+                        rowHeaderLabel: "IT-Anwendung",
+                        columns: [
+                            { key: "schutzziel", label: "Schutzziel", readonly: true, align: "center", width: "140px" },
+                            { key: "kategorie", label: "Kategorie", readonly: true, align: "center", width: "110px" },
+                            { key: "begruendung", label: "Begründung", align: "left", belowRow: true },],
+                        rows: [
+                            {
+                                id: "online-termin",
+                                label: "Online-Terminvergabe",
+                                example: true,
+                                values: {
+                                    schutzziel: "Verfügbarkeit",
+                                    kategorie: "Hoch",
+                                    begruendung: "Ein Ausfall führt zu Buchungsstau und kann zu Patientenverlust führen.",
+                                },
+                            },
+                            {
+                                id: "e-rezept",
+                                label: "E-Rezept-System",
+                                values: { schutzziel: "Integrität", kategorie: "Sehr hoch" },
+                            },
+                            {
+                                id: "buchhaltung",
+                                label: "Praxis-Buchhaltung",
+                                values: { schutzziel: "Vertraulichkeit", kategorie: "Hoch" },
+                            },
+                            {
+                                id: "patientenakten",
+                                label: "Patientenakten (digital)",
+                                values: { schutzziel: "Vertraulichkeit", kategorie: "Sehr hoch" },
+                            },
+                            {
+                                id: "wiki",
+                                label: "Internes Wiki / Anleitungen",
+                                values: { schutzziel: "Integrität", kategorie: "Niedrig" },
+                            },
+                        ],
+                    },
                     hint: "Denken Sie an: Folgen einer Manipulation (Integrität), Folgen einer Offenlegung (Vertraulichkeit), gesetzliche Vorgaben (Patientenakten = §203 StGB).",
                     tags: ["datenschutz", "schutzbedarfsanalyse"],
                 },

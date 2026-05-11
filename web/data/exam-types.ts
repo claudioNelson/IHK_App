@@ -71,7 +71,7 @@ export interface Question {
 
     // Für type: "decisionMatrix"
     matrix?: DecisionMatrix;
-    
+
     // Für type: "tableInput"
     table?: TableInputData;
 
@@ -148,10 +148,13 @@ export interface DecisionMatrix {
 // TABELLEN-EINGABE (für type: "tableInput")
 // ============================================
 export interface TableColumn {
-    key: string;                 // eindeutige Spalten-ID, z.B. "faz", "fez"
-    label: string;               // Anzeige-Text in der Tabellen-Kopfzeile, z.B. "FAZ"
-    placeholder?: string;        // optional: Hint im leeren Input-Feld, z.B. "0"
-    width?: string;              // optional: CSS width, z.B. "60px"
+    key: string;
+    label: string;
+    placeholder?: string;
+    width?: string;
+    readonly?: boolean;
+    align?: "left" | "center" | "right";
+    belowRow?: boolean;          // Spalte als Textarea unter der Zeile anzeigen
 }
 
 export interface TableRow {

@@ -33,12 +33,16 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
         onChange(JSON.stringify(next));
     };
 
-    const getCellValue = (row: TableRow, columnKey: string): string => {
-        // Beispiel-Zeile: aus row.values lesen
+    const getCellValue = (row: TableRow, columnKey: string, isReadonlyCol: boolean): string => {
+        // Beispiel-Zeile: alle Werte aus row.values
         if (row.example && row.values) {
             return row.values[columnKey] || "";
         }
-        // Sonst: aus User-Antwort lesen
+        // Readonly-Spalten: aus row.values lesen (auch bei normalen Zeilen)
+        if (isReadonlyCol && row.values) {
+            return row.values[columnKey] || "";
+        }
+        // Editierbare Zellen: aus User-Antwort lesen
         return parsed[row.id]?.[columnKey] || "";
     };
 
@@ -102,6 +106,25 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                     font-family: 'JetBrains Mono', monospace;
                     font-size: 13px;
                 }
+
+                /* Readonly-Spalten: statisches Display */
+                .ti-readonly {
+                    padding: 10px 14px !important;
+                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-size: 13px;
+                    color: #0A0A0F;
+                    line-height: 1.5;
+                    font-weight: 500;
+                }
+
+                /* Text-Ausrichtungen */
+                .ti-align-left { text-align: left; }
+                .ti-align-center { text-align: center; }
+                .ti-align-right { text-align: right; }
+
+                .ti-table thead th.ti-align-left { text-align: left; }
+                .ti-table thead th.ti-align-right { text-align: right; }
+
                 .ti-row td.ti-row-label .sublabel {
                     display: block;
                     font-family: 'Inter Tight', system-ui, sans-serif;
@@ -162,6 +185,57 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                     box-shadow: none;
                 }
 
+                /* Below-Row: Textareas unter der Hauptzeile */
+                .ti-below-row td {
+                    padding: 0 14px 14px !important;
+                    text-align: left;
+                    background: transparent;
+                }
+                .ti-below-row.example td {
+                    background: rgba(124,109,255,0.04);
+                }
+                .ti-below-label {
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: #7C6DFF;
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 6px;
+                    display: block;
+                }
+                .ti-below-textarea {
+                    width: 100%;
+                    min-height: 70px;
+                    padding: 10px 12px;
+                    background: #FAFAF9;
+                    border: 1px solid rgba(10,10,15,0.08);
+                    border-radius: 8px;
+                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-size: 13px;
+                    color: #0A0A0F;
+                    line-height: 1.5;
+                    resize: vertical;
+                    outline: none;
+                    transition: border-color 0.15s, box-shadow 0.15s;
+                }
+                .ti-below-textarea::placeholder { color: #8A8A92; }
+                .ti-below-textarea:focus {
+                    border-color: #7C6DFF;
+                    box-shadow: 0 0 0 3px rgba(124,109,255,0.08);
+                    background: #FFFFFF;
+                }
+                .ti-below-example {
+                    font-size: 13px;
+                    color: #55555F;
+                    line-height: 1.5;
+                    padding: 10px 12px;
+                    background: rgba(124,109,255,0.04);
+                    border: 1px dashed rgba(124,109,255,0.30);
+                    border-radius: 8px;
+                    font-style: italic;
+                }
+
                 @media (max-width: 700px) {
                     .ti-table th, .ti-row td { padding: 6px; font-size: 11px; }
                     .ti-input { width: 48px; padding: 6px 8px; font-size: 12px; }
@@ -176,36 +250,87 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                             <th className="ti-row-header">
                                 {table.rowHeaderLabel || ""}
                             </th>
-                            {table.columns.map((col: TableColumn) => (
-                                <th key={col.key} style={col.width ? { width: col.width } : undefined}>
+                            {table.columns.filter(c => !c.belowRow).map((col: TableColumn) => (
+                                <th
+                                    key={col.key}
+                                    className={`ti-align-${col.align || "center"}`}
+                                    style={col.width ? { width: col.width } : undefined}
+                                >
                                     {col.label}
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
-                        {table.rows.map((row: TableRow) => (
-                            <tr key={row.id} className={`ti-row ${row.example ? "example" : ""}`}>
-                                <td className="ti-row-label">
-                                    {row.example && <span className="ti-example-tag">Beispiel</span>}
-                                    {row.label}
-                                    {row.sublabel && <span className="sublabel">{row.sublabel}</span>}
-                                </td>
-                                {table.columns.map((col: TableColumn) => (
-                                    <td key={col.key}>
-                                        <input
-                                            type="text"
-                                            className={`ti-input ${row.example ? "example-value" : ""}`}
-                                            value={getCellValue(row, col.key)}
-                                            placeholder={row.example ? "" : (col.placeholder || "")}
-                                            onChange={(e) => !row.example && updateCell(row.id, col.key, e.target.value)}
-                                            readOnly={row.example}
-                                            aria-label={`${row.label} - ${col.label}`}
-                                        />
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
+                        {table.rows.map((row: TableRow) => {
+                            const inlineCols = table.columns.filter(c => !c.belowRow);
+                            const belowRowCols = table.columns.filter(c => c.belowRow);
+                            const colSpan = inlineCols.length + 1;
+
+                            return (
+                                <React.Fragment key={row.id}>
+                                    <tr className={`ti-row ${row.example ? "example" : ""}`}>
+                                        <td className="ti-row-label">
+                                            {row.example && <span className="ti-example-tag">Beispiel</span>}
+                                            {row.label}
+                                            {row.sublabel && <span className="sublabel">{row.sublabel}</span>}
+                                        </td>
+                                        {inlineCols.map((col: TableColumn) => {
+                                            const cellValue = getCellValue(row, col.key, !!col.readonly);
+                                            const isReadonly = col.readonly || row.example;
+                                            const align = col.align || "center";
+
+                                            if (col.readonly) {
+                                                return (
+                                                    <td key={col.key} className={`ti-readonly ti-align-${align}`}>
+                                                        {cellValue || "—"}
+                                                    </td>
+                                                );
+                                            }
+
+                                            return (
+                                                <td key={col.key} className={`ti-align-${align}`}>
+                                                    <input
+                                                        type="text"
+                                                        className={`ti-input ${row.example ? "example-value" : ""}`}
+                                                        value={cellValue}
+                                                        placeholder={row.example ? "" : (col.placeholder || "")}
+                                                        onChange={(e) => !isReadonly && updateCell(row.id, col.key, e.target.value)}
+                                                        readOnly={isReadonly}
+                                                        aria-label={`${row.label} - ${col.label}`}
+                                                    />
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+
+                                    {/* Below-Row Spalten als Textareas drunter */}
+                                    {belowRowCols.map((col: TableColumn) => {
+                                        const cellValue = getCellValue(row, col.key, !!col.readonly);
+                                        const isReadonly = col.readonly || row.example;
+                                        return (
+                                            <tr key={`${row.id}-${col.key}-below`} className={`ti-below-row ${row.example ? "example" : ""}`}>
+                                                <td colSpan={colSpan}>
+                                                    <span className="ti-below-label">{col.label}</span>
+                                                    {row.example ? (
+                                                        <div className="ti-below-example">{cellValue || "—"}</div>
+                                                    ) : (
+                                                        <textarea
+                                                            className="ti-below-textarea"
+                                                            value={cellValue}
+                                                            placeholder={col.placeholder || "Antwort hier eingeben…"}
+                                                            onChange={(e) => !isReadonly && updateCell(row.id, col.key, e.target.value)}
+                                                            readOnly={isReadonly}
+                                                            aria-label={`${row.label} - ${col.label}`}
+                                                        />
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </React.Fragment>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
