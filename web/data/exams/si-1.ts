@@ -8,6 +8,9 @@ export const si1: Exam = {
     company: "MediTech Solutions GmbH",
     duration: 90,
     totalPoints: 100,
+    level: "ap2",
+    fachrichtung: "si",
+    sectionsToChoose: 4,
     scenario: `Sie sind Mitarbeiter/-in der MediTech Solutions GmbH in Hannover, einem mittelständischen Unternehmen für Medizintechnik-Software.
 
 Das Unternehmen ist in ein neues Bürogebäude umgezogen und Sie sollen die IT-Infrastruktur aufbauen und optimieren.

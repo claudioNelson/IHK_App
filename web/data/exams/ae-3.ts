@@ -8,6 +8,9 @@ export const ae3: Exam = {
     company: "RadMobil GmbH",
     duration: 90,
     totalPoints: 100,
+    level: "ap2",
+    fachrichtung: "ae",
+    sectionsToChoose: 4,
     scenario: `Sie arbeiten in der CodeWorks GmbH, die Softwarelösungen für Handel und Dienstleistungen zur Verfügung stellt und verwaltet.
 
 Die Firma RadMobil GmbH betreibt einen E-Scooter-Verleih mit Werkstatt.

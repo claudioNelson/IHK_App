@@ -8,6 +8,9 @@ export const ae2: Exam = {
     company: "SecureID GmbH",
     duration: 90,
     totalPoints: 100,
+    level: "ap2",
+    fachrichtung: "ae",
+    sectionsToChoose: 4,
     scenario: `Sie sind Mitarbeiter/-in der SecureID GmbH, Darmstadt, einem Softwaredienstleister im Bereich biometrische Sicherheitssysteme. Die SecureID GmbH erstellt Software zur Erfassung und Auswertung verschiedener biometrischer Daten.
 
 Sie sollen vier der folgenden fünf Aufgaben erledigen:

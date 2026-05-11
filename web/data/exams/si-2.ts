@@ -8,6 +8,9 @@ export const si2: Exam = {
     company: "DataCenter Solutions AG",
     duration: 90,
     totalPoints: 100,
+    level: "ap2",
+    fachrichtung: "si",
+    sectionsToChoose: 4,
     scenario: `Sie sind Mitarbeiter/-in in der IT-Abteilung der DataCenter Solutions AG, einem mittelständischen Rechenzentrumsdienstleister.
 
 Im Rahmen der Weiterentwicklung der IT-Infrastruktur sind Sie an verschiedenen Maßnahmen beteiligt.

@@ -3,6 +3,7 @@ import { ae2 } from "./ae-2";
 import { ae3 } from "./ae-3";
 import { si1 } from "./si-1";
 import { si2 } from "./si-2";
+import { ap1_1 } from "./ap1-1";
 import { Exam } from "../exam-types";
 
 export const exams: Record<string, Exam> = {
@@ -11,6 +12,7 @@ export const exams: Record<string, Exam> = {
     "ae-3": ae3,
     "si-1": si1,
     "si-2": si2,
+    "ap1-1": ap1_1,
 };
 
-export const examList: Exam[] = [ae1, ae2, ae3, si1, si2];
+export const examList: Exam[] = [ae1, ae2, ae3, si1, si2, ap1_1];

@@ -40,13 +40,13 @@ export default function ExamContent({ exam }: ExamContentProps) {
   const clearAll = () => {
     if (!confirm("Alle Antworten löschen?")) return;
     setAnswers({}); setCompleted({});
-    ['answers','completed'].forEach(k => localStorage.removeItem(`exam-${exam.id}-${k}`));
+    ['answers', 'completed'].forEach(k => localStorage.removeItem(`exam-${exam.id}-${k}`));
   };
   const handleSubmit = () => { setSubmitted(true); localStorage.setItem(`exam-${exam.id}-submitted`, 'true'); };
   const handleReset = () => {
     if (!confirm("Prüfung zurücksetzen?")) return;
     setAnswers({}); setCompleted({}); setSubmitted(false);
-    ['answers','completed','submitted'].forEach(k => localStorage.removeItem(`exam-${exam.id}-${k}`));
+    ['answers', 'completed', 'submitted'].forEach(k => localStorage.removeItem(`exam-${exam.id}-${k}`));
   };
 
   const allQ = exam.sections.flatMap(s => s.questions);
@@ -54,272 +54,556 @@ export default function ExamContent({ exam }: ExamContentProps) {
   const totalQ = allQ.length;
   const pct = totalQ > 0 ? (doneCount / totalQ) * 100 : 0;
 
-  if (!loaded) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Plus Jakarta Sans',sans-serif",background:"#F4F4F8",color:"#374151"}}>Lädt...</div>;
+  // Light-Theme-Farben (immer hell für Fokus)
+  const t = {
+    bg: "#FAFAF9",
+    bgMuted: "#F4F4F1",
+    surface: "#FFFFFF",
+    surfaceElev: "#FFFFFF",
+    border: "rgba(10,10,15,0.08)",
+    borderStrong: "rgba(10,10,15,0.12)",
+    text: "#0A0A0F",
+    textMid: "#55555F",
+    textDim: "#8A8A92",
+    accent: "#7C6DFF",
+    accentSoft: "rgba(124,109,255,0.08)",
+    accent2: "#22D3EE",
+    success: "#10B981",
+    successSoft: "rgba(16,185,129,0.08)",
+    warn: "#D97706",
+    warnSoft: "rgba(217,119,6,0.08)",
+    danger: "#EF4444",
+    dangerSoft: "rgba(239,68,68,0.08)",
+  };
+
+  if (!loaded) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter Tight', sans-serif", background: t.bg, color: t.textMid }}>
+        Lädt…
+      </div>
+    );
+  }
   if (!started) return <ExamIntro exam={exam} onStart={handleStart} />;
   if (submitted) return <ExamResult exam={exam} completed={completed} answers={answers} onReset={handleReset} />;
 
   return (
-    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",background:"#F4F4F8",color:"#111827",minHeight:"100vh"}}>
+    <div style={{ fontFamily: "'Inter Tight', system-ui, sans-serif", background: t.bg, color: t.text, minHeight: "100vh" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-        * { box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         /* NAV */
-        .xnav {
+        .nav {
           position: sticky; top: 0; z-index: 50;
-          background: #4F46E5;
-          padding: 0 32px; height: 56px;
+          backdrop-filter: blur(12px);
+          background: rgba(250,250,249,0.85);
+          border-bottom: 1px solid ${t.border};
+        }
+        .nav-inner {
+          max-width: 1200px; margin: 0 auto;
+          padding: 14px 32px;
           display: flex; align-items: center; gap: 12px;
         }
-        .xnav-logo {
-          font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 900;
-          color: #fff; text-decoration: none; margin-right: auto; letter-spacing: -0.5px;
+        .logo {
+          font-family: 'Instrument Serif', serif;
+          font-size: 24px; font-style: italic;
+          letter-spacing: -0.5px;
+          color: ${t.text};
+          text-decoration: none;
+          display: flex; align-items: center; gap: 2px;
+          margin-right: auto;
         }
-        .xnav-back {
-          display: flex; align-items: center; gap: 6px;
-          color: rgba(255,255,255,0.85); text-decoration: none;
-          font-size: 13px; font-weight: 600;
+        .logo-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: ${t.accent};
+          margin-right: 4px;
+          box-shadow: 0 0 12px ${t.accent};
+        }
+        .nav-btn {
+          display: flex; align-items: center; gap: 8px;
+          color: ${t.textMid}; text-decoration: none;
+          font-size: 13px; font-weight: 500;
           padding: 7px 14px; border-radius: 8px;
-          background: rgba(255,255,255,0.15);
-          transition: background 0.2s;
+          border: 1px solid ${t.border};
+          background: ${t.surface};
+          cursor: pointer;
+          font-family: inherit;
+          transition: all 0.2s;
         }
-        .xnav-back:hover { background: rgba(255,255,255,0.25); color: #fff; }
-        .xnav-clear {
-          color: #FCA5A5; font-size: 13px; font-weight: 600;
-          background: rgba(239,68,68,0.2); border: none;
-          padding: 7px 14px; border-radius: 8px;
-          cursor: pointer; transition: background 0.2s;
-        }
-        .xnav-clear:hover { background: rgba(239,68,68,0.35); }
+        .nav-btn:hover { color: ${t.text}; border-color: ${t.borderStrong}; }
+        .nav-btn.danger { color: ${t.danger}; }
+        .nav-btn.danger:hover { background: ${t.dangerSoft}; border-color: ${t.danger}40; }
 
         /* BODY */
-        .xbody { max-width: 820px; margin: 0 auto; padding: 24px 20px 120px; }
+        .body { max-width: 820px; margin: 0 auto; padding: 24px 20px 120px; }
 
         /* HEADER CARD */
-        .xheader {
-          background: #fff; border-radius: 16px; padding: 22px 24px;
+        .header-card {
+          background: ${t.surface};
+          border: 1px solid ${t.border};
+          border-radius: 14px;
+          padding: 22px 24px;
           margin-bottom: 14px;
-          border-left: 4px solid #4F46E5;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          position: relative;
+          overflow: hidden;
         }
-        .xheader-title {
-          font-family: 'Nunito', sans-serif; font-size: 19px; font-weight: 900;
-          color: #111827; margin-bottom: 10px; letter-spacing: -0.3px;
+        .header-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, ${t.accent}, ${t.accent2});
         }
-        .xmeta { display: flex; gap: 8px; flex-wrap: wrap; }
-        .xchip {
-          background: #EEF2FF; color: #4338CA;
-          font-size: 12px; font-weight: 700;
-          padding: 4px 12px; border-radius: 20px;
+        .header-eyebrows {
+          display: flex; gap: 6px; flex-wrap: wrap;
+          margin-bottom: 10px;
+        }
+        .header-pill {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px; font-weight: 600;
+          padding: 4px 10px;
+          border-radius: 6px;
+          letter-spacing: 1px;
+          border: 1px solid ${t.border};
+          background: ${t.bgMuted};
+          color: ${t.textMid};
+        }
+        .header-pill.accent {
+          background: ${t.accentSoft};
+          color: ${t.accent};
+          border-color: ${t.accent}40;
+        }
+        .header-title {
+          font-size: 19px; font-weight: 600;
+          color: ${t.text};
+          letter-spacing: -0.5px;
+          line-height: 1.2;
+          margin-bottom: 4px;
+        }
+        .header-company {
+          font-family: 'JetBrains Mono', monospace;
+          color: ${t.textDim};
+          font-size: 11px;
+          letter-spacing: 1px;
+          text-transform: uppercase;
         }
 
         /* SCENARIO */
-        .xscenario {
-          background: #FFFBEB; border: 1px solid #FDE68A;
-          border-radius: 12px; padding: 16px; margin-bottom: 14px;
+        .scenario {
+          background: ${t.surface};
+          border: 1px solid ${t.border};
+          border-radius: 12px;
+          padding: 16px 20px;
+          margin-bottom: 14px;
         }
-        .xscenario summary {
-          font-size: 13px; font-weight: 700; color: #92400E;
-          cursor: pointer; display: flex; align-items: center; gap: 6px;
+        .scenario summary {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px; font-weight: 600;
+          color: ${t.textMid};
+          cursor: pointer;
+          display: flex; align-items: center; gap: 8px;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          list-style: none;
         }
-        .xscenario-text {
-          color: #78350F; font-size: 13px; line-height: 1.7;
-          white-space: pre-line; margin-top: 12px; padding-top: 12px;
-          border-top: 1px solid #FDE68A;
+        .scenario summary::-webkit-details-marker { display: none; }
+        .scenario summary::before {
+          content: '+';
+          font-family: 'Inter Tight', sans-serif;
+          width: 18px; height: 18px;
+          display: inline-flex; align-items: center; justify-content: center;
+          border: 1px solid ${t.border};
+          border-radius: 4px;
+          font-size: 13px;
+          color: ${t.accent};
+        }
+        .scenario[open] summary::before { content: '−'; }
+        .scenario-text {
+          color: ${t.textMid};
+          font-size: 14px;
+          line-height: 1.7;
+          white-space: pre-line;
+          margin-top: 14px;
+          padding-top: 14px;
+          border-top: 1px solid ${t.border};
         }
 
         /* STICKY BAR */
-        .xsticky { position: sticky; top: 56px; z-index: 40; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
-        .xtimer-wrap { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        .xnavbar {
-          background: #fff; border-radius: 12px; padding: 10px 16px;
-          display: flex; align-items: center; gap: 8px; overflow-x: auto;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        .sticky {
+          position: sticky; top: 56px; z-index: 40;
+          margin: 0 -20px 22px;
+          padding: 12px 20px 14px;
+          background: ${t.bg};
+          display: flex; flex-direction: column;
+          gap: 8px;
+          border-bottom: 1px solid ${t.border};
         }
-        .xnavlabel { font-size: 12px; font-weight: 600; color: #9CA3AF; white-space: nowrap; }
-        .xnavchip {
-          padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
-          text-decoration: none; white-space: nowrap; transition: all 0.2s;
+          
+        .sticky-card {
+          background: ${t.surface};
+          border: 1px solid ${t.border};
+          border-radius: 12px;
+          overflow: hidden;
+          backdrop-filter: blur(8px);
         }
-        .xnavchip.done { background: #DCFCE7; color: #15803D; }
-        .xnavchip.partial { background: #FEF3C7; color: #B45309; }
-        .xnavchip.none { background: #F3F4F6; color: #6B7280; }
-        .xnavchip:hover { background: #EEF2FF; color: #4F46E5; }
+        .navbar-inner {
+          padding: 10px 16px;
+          display: flex; align-items: center; gap: 8px;
+          overflow-x: auto;
+        }
+        .navbar-label {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px; font-weight: 600;
+          color: ${t.textDim};
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+        .navchip {
+          padding: 5px 12px;
+          border-radius: 6px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px; font-weight: 600;
+          letter-spacing: 0.5px;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: all 0.2s;
+          border: 1px solid ${t.border};
+        }
+        .navchip.done {
+          background: ${t.successSoft};
+          color: ${t.success};
+          border-color: ${t.success}40;
+        }
+        .navchip.partial {
+          background: ${t.warnSoft};
+          color: ${t.warn};
+          border-color: ${t.warn}40;
+        }
+        .navchip.none {
+          background: ${t.bgMuted};
+          color: ${t.textMid};
+        }
+        .navchip:hover { color: ${t.accent}; border-color: ${t.accent}40; }
 
-        .xprogress {
-          background: #fff; border-radius: 12px; padding: 12px 18px;
+        .progress-inner {
+          padding: 12px 18px;
           display: flex; align-items: center; gap: 14px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .xprog-label { font-size: 13px; font-weight: 600; color: #6B7280; white-space: nowrap; }
-        .xprog-track { flex: 1; height: 8px; background: #E5E7EB; border-radius: 4px; overflow: hidden; }
-        .xprog-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #4F46E5, #818CF8); transition: width 0.4s; }
-        .xprog-done { font-size: 12px; font-weight: 700; color: #15803D; white-space: nowrap; }
+        .prog-label {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px; font-weight: 600;
+          color: ${t.textMid};
+          letter-spacing: 0.5px;
+          white-space: nowrap;
+        }
+        .prog-track {
+          flex: 1; height: 6px;
+          background: ${t.bgMuted};
+          border-radius: 3px;
+          overflow: hidden;
+        }
+        .prog-fill {
+          height: 100%; border-radius: 3px;
+          background: linear-gradient(90deg, ${t.accent}, ${t.accent2});
+          transition: width 0.4s;
+        }
+        .prog-done {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px; font-weight: 700;
+          color: ${t.success};
+          letter-spacing: 1px;
+          white-space: nowrap;
+          text-transform: uppercase;
+        }
 
         /* SECTION CARD */
-        .xsection {
-          background: #fff; border-radius: 16px; padding: 24px;
-          margin-bottom: 14px; scroll-margin-top: 160px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        .section-card {
+          background: ${t.surface};
+          border: 1px solid ${t.border};
+          border-radius: 14px;
+          padding: 26px;
+          margin-bottom: 14px;
+          scroll-margin-top: 200px;
         }
-        .xsection-title {
-          font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 900;
-          color: #111827; margin-bottom: 20px; padding-bottom: 14px;
-          border-bottom: 2px solid #EEF2FF;
+        .section-title {
+          font-size: 16px; font-weight: 600;
+          color: ${t.text};
+          letter-spacing: -0.3px;
+          margin-bottom: 22px;
+          padding-bottom: 14px;
+          border-bottom: 1px solid ${t.border};
           display: flex; align-items: center; gap: 10px;
         }
-        .xsection-icon {
-          width: 28px; height: 28px; background: #4F46E5;
-          border-radius: 7px; display: flex; align-items: center;
-          justify-content: center; font-size: 12px; flex-shrink: 0;
+        .section-num {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px; font-weight: 700;
+          color: ${t.accent};
+          background: ${t.accentSoft};
+          border: 1px solid ${t.accent}40;
+          padding: 3px 8px;
+          border-radius: 5px;
+          letter-spacing: 0.5px;
         }
 
         /* QUESTION */
-        .xq { padding: 18px 0; border-top: 1px solid #F3F4F6; }
-        .xq:first-of-type { border-top: none; padding-top: 0; }
-        .xq.done { background: #F0FDF4; border-radius: 12px; padding: 16px; margin: 4px -12px; border-top: none; }
+        .q {
+          padding: 22px 0;
+          border-top: 1px solid ${t.border};
+        }
+        .q:first-of-type {
+          border-top: none;
+          padding-top: 0;
+        }
+        .q.done {
+          background: ${t.successSoft};
+          border: 1px solid ${t.success}40;
+          border-radius: 10px;
+          padding: 18px;
+          margin: 6px -12px;
+        }
+        .q.done + .q { border-top: 1px solid ${t.border}; }
 
-        .xq-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-        .xq-title { font-size: 14px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 8px; }
-        .xq-done-mark { color: #16A34A; }
-        .xq-pts { background: #4F46E5; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
-
-        .xq-desc {
-          background: #F8FAFC; border: 1px solid #E2E8F0;
-          border-radius: 10px; padding: 16px;
-          font-size: 13px; color: #1E293B; line-height: 1.75;
-          white-space: pre; overflow-x: auto; margin-bottom: 14px;
-          font-family: 'Courier New', Courier, monospace;
+        .q-header {
+          display: flex; align-items: flex-start; justify-content: space-between;
+          gap: 12px; margin-bottom: 12px;
+        }
+        .q-title {
+          font-size: 14px; font-weight: 600;
+          color: ${t.text};
+          line-height: 1.4;
+          display: flex; align-items: center; gap: 8px;
+        }
+        .q-done-mark {
+          color: ${t.success};
+          font-size: 13px;
+          flex-shrink: 0;
+        }
+        .q-pts {
+          font-family: 'JetBrains Mono', monospace;
+          background: ${t.accent};
+          color: #fff;
+          font-size: 10px; font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 6px;
+          white-space: nowrap;
+          flex-shrink: 0;
+          letter-spacing: 0.5px;
         }
 
-        .xhint {
-          background: #FFFBEB; border: 1px solid #FDE68A;
-          border-radius: 8px; padding: 10px 14px;
-          font-size: 13px; color: #92400E; margin-bottom: 12px; font-weight: 500;
+        .q-desc {
+          background: ${t.bgMuted};
+          border: 1px solid ${t.border};
+          border-radius: 10px;
+          padding: 16px;
+          font-size: 13px;
+          color: ${t.text};
+          line-height: 1.75;
+          white-space: pre;
+          overflow-x: auto;
+          margin-bottom: 14px;
+          font-family: 'JetBrains Mono', monospace;
         }
 
-        .xanswer-label { font-size: 11px; font-weight: 800; color: #4F46E5; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
-        .xanswer-ta {
-          width: 100%; height: 200px; padding: 14px 16px;
-          background: #fff; border: 2px solid #E5E7EB;
-          border-radius: 10px; color: #111827; font-size: 14px; line-height: 1.6;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          resize: vertical; outline: none; transition: border-color 0.2s;
+        .q-image {
+          margin-bottom: 14px;
+          border-radius: 10px;
+          max-width: 100%;
+          border: 1px solid ${t.border};
         }
-        .xanswer-ta::placeholder { color: #CBD5E1; }
-        .xanswer-ta:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
 
-        .xdone-row { margin-top: 10px; display: flex; justify-content: flex-end; }
-        .xdone-btn {
-          padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 700;
-          cursor: pointer; transition: all 0.2s; border: 2px solid;
-          font-family: 'Plus Jakarta Sans', sans-serif;
+        .hint {
+          background: ${t.warnSoft};
+          border: 1px solid ${t.warn}40;
+          border-radius: 8px;
+          padding: 10px 14px;
+          font-size: 13px;
+          color: ${t.warn};
+          margin-bottom: 14px;
+          display: flex; gap: 8px; align-items: flex-start;
         }
-        .xdone-btn.yes { background: #DCFCE7; color: #15803D; border-color: #86EFAC; }
-        .xdone-btn.yes:hover { background: #BBF7D0; }
-        .xdone-btn.no { background: #F8FAFC; color: #64748B; border-color: #E2E8F0; }
-        .xdone-btn.no:hover { background: #EEF2FF; color: #4F46E5; border-color: #C7D2FE; }
+        .hint-icon { flex-shrink: 0; }
+        .hint-text { color: ${t.text}; line-height: 1.5; }
+
+        .answer-label {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px; font-weight: 700;
+          color: ${t.accent};
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          margin-bottom: 8px;
+        }
+        .answer-ta {
+          width: 100%; min-height: 180px;
+          padding: 14px 16px;
+          background: ${t.surface};
+          border: 1px solid ${t.border};
+          border-radius: 10px;
+          color: ${t.text};
+          font-size: 14px;
+          line-height: 1.6;
+          font-family: 'Inter Tight', sans-serif;
+          resize: vertical;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .answer-ta::placeholder { color: ${t.textDim}; }
+        .answer-ta:focus {
+          border-color: ${t.accent};
+          box-shadow: 0 0 0 3px ${t.accentSoft};
+        }
+
+        .done-row {
+          margin-top: 12px;
+          display: flex; justify-content: flex-end;
+        }
+        .done-btn {
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-family: 'Inter Tight', sans-serif;
+          font-size: 13px; font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          border: 1px solid;
+        }
+        .done-btn.yes {
+          background: ${t.successSoft};
+          color: ${t.success};
+          border-color: ${t.success}40;
+        }
+        .done-btn.yes:hover {
+          background: ${t.success}20;
+        }
+        .done-btn.no {
+          background: ${t.surface};
+          color: ${t.textMid};
+          border-color: ${t.border};
+        }
+        .done-btn.no:hover {
+          color: ${t.accent};
+          border-color: ${t.accent}40;
+          background: ${t.accentSoft};
+        }
 
         @media (max-width: 768px) {
-          .xnav { padding: 0 16px; }
-          .xbody { padding: 16px 14px 80px; }
+          .nav-inner { padding: 12px 16px; }
+          .body { padding: 16px 14px 80px; }
+          .section-card { padding: 20px; }
+          .sticky { top: 56px; }
         }
       `}</style>
 
       {/* NAV */}
-      <nav className="xnav">
-        <Link href="/" className="xnav-logo">Lernarena</Link>
-        <Link href="/pruefungen" className="xnav-back">← Prüfungen</Link>
-        <button className="xnav-clear" onClick={clearAll}>🗑️ Löschen</button>
+      <nav className="nav">
+        <div className="nav-inner">
+          <Link href="/" className="logo">
+            <span className="logo-dot" />
+            Lernarena
+          </Link>
+          <Link href="/pruefungen" className="nav-btn">← Prüfungen</Link>
+          <button className="nav-btn danger" onClick={clearAll}>🗑 Löschen</button>
+        </div>
       </nav>
 
-      <div className="xbody">
+      <div className="body">
         {/* Header */}
-        <div className="xheader">
-          <div className="xheader-title">{exam.title}</div>
-          <div className="xmeta">
-            <span className="xchip">🏢 {exam.company}</span>
-            <span className="xchip">⏱ {exam.duration} Min</span>
-            <span className="xchip">📊 {exam.totalPoints} Punkte</span>
+        <div className="header-card">
+          <div className="header-eyebrows">
+            <span className="header-pill accent">{exam.level === "ap1" ? "AP1" : "AP2"}</span>
+            <span className="header-pill">{exam.season.toUpperCase()} {exam.year}</span>
+            <span className="header-pill">⏱ {exam.duration} MIN</span>
+            <span className="header-pill">📊 {exam.totalPoints} PKT</span>
           </div>
+          <div className="header-title">{exam.title}</div>
+          <div className="header-company">{exam.company}</div>
         </div>
 
-        {/* Szenario */}
+        {/* Szenario (einklappbar) */}
         {exam.scenario && (
-          <div className="xscenario">
-            <details>
-              <summary>📖 Ausgangssituation anzeigen</summary>
-              <p className="xscenario-text">{exam.scenario}</p>
-            </details>
-          </div>
+          <details className="scenario">
+            <summary>Ausgangssituation anzeigen</summary>
+            <div className="scenario-text">{exam.scenario}</div>
+          </details>
         )}
 
         {/* Sticky Bar */}
-        <div className="xsticky">
-          <div className="xtimer-wrap">
+        <div className="sticky">
+          <div className="sticky-card">
             <ExamTimer durationMinutes={exam.duration} onTimeUp={() => alert("Zeit abgelaufen!")} />
           </div>
-          <div className="xnavbar">
-            <span className="xnavlabel">Gehe zu:</span>
-            {exam.sections.map((s, i) => {
-              const done = s.questions.every(q => completed[q.id]);
-              const partial = s.questions.some(q => completed[q.id]);
-              return (
-                <a key={s.id} href={`#${s.id}`} className={`xnavchip ${done ? "done" : partial ? "partial" : "none"}`}>
-                  {done && "✓ "}HS{i + 1}
-                </a>
-              );
-            })}
-          </div>
-          <div className="xprogress">
-            <span className="xprog-label">📝 {doneCount} / {totalQ} erledigt</span>
-            <div className="xprog-track">
-              <div className="xprog-fill" style={{ width: `${pct}%` }} />
+          <div className="sticky-card">
+            <div className="navbar-inner">
+              <span className="navbar-label">Springen:</span>
+              {exam.sections.map((s, i) => {
+                const done = s.questions.every(q => completed[q.id]);
+                const partial = s.questions.some(q => completed[q.id]);
+                return (
+                  <a key={s.id} href={`#${s.id}`} className={`navchip ${done ? "done" : partial ? "partial" : "none"}`}>
+                    {done && "✓ "}AUFG {i + 1}
+                  </a>
+                );
+              })}
             </div>
-            {doneCount === totalQ && totalQ > 0 && <span className="xprog-done">✓ Vollständig</span>}
+          </div>
+          <div className="sticky-card">
+            <div className="progress-inner">
+              <span className="prog-label">{doneCount} / {totalQ} ERLEDIGT</span>
+              <div className="prog-track">
+                <div className="prog-fill" style={{ width: `${pct}%` }} />
+              </div>
+              {doneCount === totalQ && totalQ > 0 && <span className="prog-done">✓ KOMPLETT</span>}
+            </div>
           </div>
         </div>
 
         {/* Sections */}
-        {exam.sections.map(section => (
-          <div key={section.id} id={section.id} className="xsection">
-            <h2 className="xsection-title">
-              <span className="xsection-icon">📋</span>
+        {exam.sections.map((section, sIdx) => (
+          <div key={section.id} id={section.id} className="section-card">
+            <h2 className="section-title">
+              <span className="section-num">AUFG {sIdx + 1}</span>
               {section.title}
             </h2>
 
             {section.questions.map(q => (
-              <div key={q.id} className={`xq ${completed[q.id] ? "done" : ""}`}>
-                <div className="xq-header">
-                  <div className="xq-title">
-                    {completed[q.id] && <span className="xq-done-mark">✓</span>}
+              <div key={q.id} className={`q ${completed[q.id] ? "done" : ""}`}>
+                <div className="q-header">
+                  <div className="q-title">
+                    {completed[q.id] && <span className="q-done-mark">✓</span>}
                     {q.title}
                   </div>
-                  {q.type !== "info" && <span className="xq-pts">{q.points} Pkt</span>}
+                  {q.type !== "info" && <span className="q-pts">{q.points} PKT</span>}
                 </div>
 
-                <pre className="xq-desc">{q.description}</pre>
+                <pre className="q-desc">{q.description}</pre>
 
-                {q.image && <img src={q.image} alt="Grafik" style={{ marginBottom: 14, borderRadius: 10, maxWidth: "100%" }} />}
-                {q.hint && <div className="xhint">💡 {q.hint}</div>}
+                {q.image && <img src={q.image} alt="Grafik" className="q-image" />}
+                {q.hint && (
+                  <div className="hint">
+                    <span className="hint-icon">💡</span>
+                    <span className="hint-text">{q.hint}</span>
+                  </div>
+                )}
 
                 {q.type !== "info" && (
                   <>
-                    <div className="xanswer-label">Deine Antwort</div>
+                    <div className="answer-label">Deine Antwort</div>
                     {q.type === "diagram" ? (
                       <DiagramTool onSave={data => updateAnswer(q.id, data)} />
                     ) : q.type === "fillBlanks" ? (
                       <FillBlanksSQL questionId={q.id} />
                     ) : (
                       <textarea
-                        className="xanswer-ta"
-                        placeholder="Antwort hier eingeben..."
+                        className="answer-ta"
+                        placeholder="Antwort hier eingeben…"
                         value={answers[q.id] || ""}
                         onChange={e => updateAnswer(q.id, e.target.value)}
                       />
                     )}
-                    <div className="xdone-row">
-                      <button onClick={() => toggleCompleted(q.id)} className={`xdone-btn ${completed[q.id] ? "yes" : "no"}`}>
+                    <div className="done-row">
+                      <button
+                        onClick={() => toggleCompleted(q.id)}
+                        className={`done-btn ${completed[q.id] ? "yes" : "no"}`}
+                      >
                         {completed[q.id] ? "✓ Erledigt" : "Als erledigt markieren"}
                       </button>
                     </div>
