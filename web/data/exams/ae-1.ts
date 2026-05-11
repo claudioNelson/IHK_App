@@ -8,6 +8,9 @@ export const ae1: Exam = {
     company: "TransLogic GmbH",
     duration: 90,
     totalPoints: 100,
+    level: "ap2",
+    fachrichtung: "ae",
+    sectionsToChoose: 4,
     scenario: `Sie sind Mitarbeiter/-in der DevSoft AG und werden beauftragt, für die TransLogic GmbH verschiedene Softwarelösungen zu entwickeln.
 
 Die TransLogic GmbH ist ein Logistikunternehmen, das Frachttransporte zwischen verschiedenen Standorten durchführt.
