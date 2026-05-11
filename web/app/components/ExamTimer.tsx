@@ -40,44 +40,181 @@ export default function ExamTimer({ durationMinutes, onTimeUp }: ExamTimerProps)
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const getTimerColor = () => {
-    if (timeLeft <= 300) return "text-red-600 bg-red-50 border-red-200";
-    if (timeLeft <= 600) return "text-orange-600 bg-orange-50 border-orange-200";
-    return "text-green-700 bg-green-50 border-green-200";
+  // Farbe je nach Restzeit
+  const getStatus = () => {
+    if (timeLeft <= 0) return "expired";        // Rot, abgelaufen
+    if (timeLeft <= 300) return "critical";     // Rot, < 5 Min
+    if (timeLeft <= 600) return "warning";      // Orange, < 10 Min
+    return "normal";                            // Lila/normal
   };
 
+  const status = getStatus();
+
   return (
-    <div className={`flex items-center justify-between px-4 py-2 rounded-lg border ${getTimerColor()}`}>
-      <div className="flex items-center gap-3">
-        <span className="font-mono text-xl font-bold">
-          ⏱️ {formatTime(timeLeft)}
-        </span>
-        {timeLeft === 0 && (
-          <span className="text-red-600 font-medium text-sm">Zeit abgelaufen!</span>
+    <div className={`timer-bar timer-${status}`}>
+      <style>{`
+        .timer-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 18px;
+          font-family: 'Inter Tight', system-ui, sans-serif;
+          gap: 14px;
+        }
+
+        .timer-left {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .timer-label {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          color: #8A8A92;
+          white-space: nowrap;
+        }
+
+        .timer-value {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 22px;
+          font-weight: 600;
+          letter-spacing: -0.5px;
+          color: #0A0A0F;
+          line-height: 1;
+        }
+
+        .timer-warning-text {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          padding: 3px 8px;
+          border-radius: 5px;
+          background: rgba(124,109,255,0.10);
+          color: #7C6DFF;
+          border: 1px solid rgba(124,109,255,0.30);
+        }
+
+        /* Status-Varianten */
+        .timer-warning .timer-value { color: #D97706; }
+        .timer-warning .timer-warning-text {
+          background: rgba(217,119,6,0.10);
+          color: #D97706;
+          border-color: rgba(217,119,6,0.30);
+        }
+
+        .timer-critical .timer-value { color: #DC2626; }
+        .timer-critical .timer-warning-text {
+          background: rgba(220,38,38,0.10);
+          color: #DC2626;
+          border-color: rgba(220,38,38,0.30);
+          animation: pulse-critical 1s ease-in-out infinite;
+        }
+
+        .timer-expired .timer-value { color: #DC2626; }
+
+        @keyframes pulse-critical {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        /* Buttons */
+        .timer-actions {
+          display: flex;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+
+        .timer-btn {
+          font-family: 'Inter Tight', system-ui, sans-serif;
+          font-size: 12px;
+          font-weight: 600;
+          padding: 7px 12px;
+          border-radius: 7px;
+          border: 1px solid rgba(10,10,15,0.08);
+          background: #FFFFFF;
+          color: #55555F;
+          cursor: pointer;
+          transition: all 0.15s;
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+        }
+        .timer-btn:hover {
+          color: #0A0A0F;
+          border-color: rgba(10,10,15,0.16);
+          background: #F4F4F1;
+        }
+
+        .timer-btn.primary {
+          background: #7C6DFF;
+          border-color: #7C6DFF;
+          color: #FFFFFF;
+        }
+        .timer-btn.primary:hover {
+          background: #6856E6;
+          border-color: #6856E6;
+          color: #FFFFFF;
+        }
+
+        .timer-btn.icon {
+          padding: 7px 10px;
+        }
+
+        @media (max-width: 600px) {
+          .timer-bar { padding: 10px 14px; gap: 10px; }
+          .timer-value { font-size: 18px; }
+          .timer-label { display: none; }
+        }
+      `}</style>
+
+      <div className="timer-left">
+        <span className="timer-label">Verbleibend</span>
+        <span className="timer-value">{formatTime(timeLeft)}</span>
+        {status === "expired" && (
+          <span className="timer-warning-text">Zeit abgelaufen</span>
+        )}
+        {status === "critical" && timeLeft > 0 && (
+          <span className="timer-warning-text">Kritisch</span>
+        )}
+        {status === "warning" && (
+          <span className="timer-warning-text">Bald vorbei</span>
         )}
       </div>
 
-      <div className="flex gap-2">
+      <div className="timer-actions">
         {!hasStarted ? (
           <button
             onClick={() => { setIsRunning(true); setHasStarted(true); }}
-            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition"
+            className="timer-btn primary"
+            aria-label="Timer starten"
           >
-            ▶️ Start
+            ▶ Start
           </button>
         ) : (
           <>
             <button
               onClick={() => setIsRunning(!isRunning)}
-              className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 transition"
+              className="timer-btn icon"
+              aria-label={isRunning ? "Pause" : "Fortsetzen"}
+              title={isRunning ? "Pause" : "Fortsetzen"}
             >
-              {isRunning ? "⏸️" : "▶️"}
+              {isRunning ? "⏸" : "▶"}
             </button>
             <button
               onClick={() => { setTimeLeft(durationMinutes * 60); setIsRunning(false); setHasStarted(false); }}
-              className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 transition"
+              className="timer-btn icon"
+              aria-label="Timer zurücksetzen"
+              title="Zurücksetzen"
             >
-              🔄
+              ↻
             </button>
           </>
         )}
