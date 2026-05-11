@@ -252,45 +252,37 @@ Der Rechenweg ist anzugeben.`,
 
 Das Skript funktioniert nicht wie gewünscht: Obwohl das Laufwerk zu 95 % belegt ist (also nur noch 5 % frei), wird die Meldung "Genügend Speicherplatz verfügbar" ausgegeben.
 
-ERSTELLTES SKRIPT (mit zwei Fehlern):
+AUFGABE:
+Identifizieren Sie die zwei Fehler im Skript. Markiere die betroffenen Zeilen, gib die korrigierte Zeile an und begründe deine Korrektur.`,
+                    type: "codeCorrection",
+                    points: 8,
+                    codeCorrection: {
+                        language: "bash",
+                        expectedErrorCount: 2,
+                        code: `#!/bin/bash
+FREI_PROZENT=$(df /backup | tail -1 | awk '{print $5}' | tr -d '%')
 
-┌──────────────────────────────────────────────────────────────────────┐
-│ #!/bin/bash                                                          │
-│ FREI_PROZENT=$(df /backup | tail -1 | awk '{print $5}' | tr -d '%')  │
-│                                                                      │
-│ if [ "$FREI_PROZENT" -gt 20 ]                                        │
-│ then                                                                 │
-│     echo "Es sind weniger als 20% Speicherplatz frei."               │
-│ else                                                                 │
-│     echo "Genügend Speicherplatz verfügbar."                         │
-│ fi                                                                   │
-└──────────────────────────────────────────────────────────────────────┘
-
-MANUAL-AUSZUG zu df:
+if [ "$FREI_PROZENT" -gt 20 ]
+then
+    echo "Es sind weniger als 20% Speicherplatz frei."
+else
+    echo "Genügend Speicherplatz verfügbar."
+fi`,
+                        helpText: `MANUAL-AUSZUG zu df:
 - df zeigt Speicherplatz-Informationen
-- Spalte 5 ("$5") = "Use%" — der BELEGTE Anteil in Prozent (nicht der freie!)
-- Spalte 4 ("$4") = "Available" — verfügbarer Speicher in Blöcken
+- Spalte 5 ($5) = "Use%" — der BELEGTE Anteil in Prozent (nicht der freie!)
+- Spalte 4 ($4) = "Available" — verfügbarer Speicher in Blöcken
 - "tr -d '%'" entfernt das Prozentzeichen
 
 VERGLEICHS-OPERATOREN in Bash:
-| Operator | Bedeutung           |
-|----------|---------------------|
-| -eq      | gleich              |
-| -ne      | ungleich            |
-| -gt      | größer als          |
-| -ge      | größer oder gleich  |
-| -lt      | kleiner als         |
-| -le      | kleiner oder gleich |
-
-AUFGABE:
-Identifizieren Sie die **zwei Fehler** und geben Sie jeweils die korrigierte Zeile an.
-
-Format Ihrer Antwort:
-Fehler 1: [Originalzeile] → korrigiert zu: [neue Zeile] (Begründung)
-Fehler 2: [Originalzeile] → korrigiert zu: [neue Zeile] (Begründung)`,
-                    type: "codeCorrection",
-                    points: 8,
-                    hint: "Lesen Sie den Manual-Auszug genau: Welche Spalte enthält den belegten Anteil, welche den freien? Und was soll mit -gt verglichen werden, wenn nur 5% FREI sind?",
+  -eq   gleich
+  -ne   ungleich
+  -gt   größer als
+  -ge   größer oder gleich
+  -lt   kleiner als
+  -le   kleiner oder gleich`,
+                    },
+                    hint: "Lies den Manual-Auszug genau: Welche Spalte enthält den belegten Anteil, welche den freien? Und welcher Vergleichs-Operator passt, wenn nur 5 % frei sind und du eine Warnung ausgeben willst?",
                     tags: ["scripting", "bash", "debugging", "linux"],
                 },
             ],

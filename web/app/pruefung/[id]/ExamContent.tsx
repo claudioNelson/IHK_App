@@ -11,6 +11,7 @@ import ExamResult from "@/app/components/ExamResult";
 import ExamIntro from "@/app/components/ExamIntro";
 import DecisionMatrix from "@/app/components/DecisionMatrix";
 import TableInput from "@/app/components/TableInput";
+import CodeCorrection from "@/app/components/CodeCorrection";
 
 interface ExamContentProps { exam: Exam; }
 
@@ -605,6 +606,13 @@ export default function ExamContent({ exam }: ExamContentProps) {
                       <TableInput
                         questionId={q.id}
                         table={q.table}
+                        value={answers[q.id] || ""}
+                        onChange={val => updateAnswer(q.id, val)}
+                      />
+                    ) : q.type === "codeCorrection" && q.codeCorrection ? (
+                      <CodeCorrection
+                        questionId={q.id}
+                        data={q.codeCorrection}
                         value={answers[q.id] || ""}
                         onChange={val => updateAnswer(q.id, val)}
                       />

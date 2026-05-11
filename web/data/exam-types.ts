@@ -71,10 +71,24 @@ export interface Question {
 
     // Für type: "decisionMatrix"
     matrix?: DecisionMatrix;
+    
     // Für type: "tableInput"
     table?: TableInputData;
+
+    // Für type: "codeCorrection"
+    codeCorrection?: CodeCorrectionData;
     
 }
+// ============================================
+// CODE-KORREKTUR (für type: "codeCorrection")
+// ============================================
+export interface CodeCorrectionData {
+    code: string;                // Der zu korrigierende Code (mehrzeilig)
+    language?: string;           // z.B. "bash", "powershell" (für Syntax-Hervorhebung später)
+    expectedErrorCount?: number; // Wie viele Fehler erwartet werden (z.B. 2)
+    helpText?: string;           // Optional: Erläuterung (z.B. Manual-Auszug zu df)
+}
+
 
 // ============================================
 // HANDLUNGSSCHRITT / ABSCHNITT
