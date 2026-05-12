@@ -2,9 +2,9 @@ import { Exam } from "../exam-types";
 
 export const ap1_1: Exam = {
     id: "ap1-1",
-    title: "AP1 Übungsprüfung 1 - Frühjahr 2024 (Stil)",
-    year: 2024,
-    season: "Sommer",
+    title: "AP1 Übungsprüfung 1 - Herbst 2021",
+    year: 2021,
+    season: "Herbst",
     company: "Zahnarztpraxis Dr. Berger",
     duration: 90,
     totalPoints: 100,

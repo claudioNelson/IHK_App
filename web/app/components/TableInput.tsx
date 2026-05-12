@@ -34,15 +34,19 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
     };
 
     const getCellValue = (row: TableRow, columnKey: string, isReadonlyCol: boolean): string => {
-        // Beispiel-Zeile: alle Werte aus row.values
+        // 1. Beispiel-Zeile: alle Werte aus row.values
         if (row.example && row.values) {
             return row.values[columnKey] || "";
         }
-        // Readonly-Spalten: aus row.values lesen (auch bei normalen Zeilen)
+        // 2. Readonly-Spalten: aus row.values lesen
         if (isReadonlyCol && row.values) {
             return row.values[columnKey] || "";
         }
-        // Editierbare Zellen: aus User-Antwort lesen
+        // 3. Vorausgefüllte Zelle: row.values hat Wert für diese Spalte
+        if (row.values && row.values[columnKey] !== undefined && row.values[columnKey] !== "") {
+            return row.values[columnKey];
+        }
+        // 4. Sonst: User-Antwort
         return parsed[row.id]?.[columnKey] || "";
     };
 
@@ -165,6 +169,19 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                     outline: none;
                     transition: border-color 0.15s, box-shadow 0.15s;
                 }
+
+                /* Breite Inputs für Text-Spalten (align: left) */
+                .ti-align-left .ti-input {
+                    width: 100%;
+                    min-width: 150px;
+                    text-align: left;
+                }
+                .ti-align-left .ti-prefilled {
+                    width: 100%;
+                    min-width: 150px;
+                    text-align: left;
+                }
+
                 .ti-input::placeholder {
                     color: #C0C0C8;
                     font-weight: 400;
@@ -236,6 +253,21 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                     font-style: italic;
                 }
 
+                /* Vorausgefüllte Zellen (statisch, ähnlich Beispiel-Tag) */
+                .ti-prefilled {
+                    display: inline-block;
+                    width: 60px;
+                    padding: 8px 10px;
+                    background: rgba(124,109,255,0.06);
+                    border: 1px solid rgba(124,109,255,0.20);
+                    border-radius: 6px;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 13px;
+                    color: #7C6DFF;
+                    text-align: center;
+                    font-weight: 600;
+                }
+
                 @media (max-width: 700px) {
                     .ti-table th, .ti-row td { padding: 6px; font-size: 11px; }
                     .ti-input { width: 48px; padding: 6px 8px; font-size: 12px; }
@@ -284,6 +316,17 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                                                 return (
                                                     <td key={col.key} className={`ti-readonly ti-align-${align}`}>
                                                         {cellValue || "—"}
+                                                    </td>
+                                                );
+                                            }
+
+                                            // Vorausgefüllte Zelle (Wert in row.values, aber keine example-Row)
+                                            const isPrefilled = !row.example && row.values && row.values[col.key] !== undefined && row.values[col.key] !== "";
+
+                                            if (isPrefilled) {
+                                                return (
+                                                    <td key={col.key} className={`ti-align-${align}`}>
+                                                        <div className="ti-prefilled">{cellValue}</div>
                                                     </td>
                                                 );
                                             }

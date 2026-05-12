@@ -25,7 +25,7 @@ export type Difficulty = "leicht" | "mittel" | "schwer";
 // ============================================
 // PRÜFUNGS-SAISON (statt freier String)
 // ============================================
-export type Season = "Sommer" | "Winter";
+export type Season = "Sommer" | "Winter" | "Herbst";
 
 // ============================================
 // FRAGE-TYPEN
