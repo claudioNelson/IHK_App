@@ -620,73 +620,21 @@ Erläutern Sie Herrn Sander **drei weitere organisatorische oder technische Empf
                     tags: ["malware", "it-sicherheit", "praevention"],
                 },
                 {
-                    id: "ap1-2-a4-test-er",
-                    title: "TEST) ER-Diagramm zeichnen",
-                    description: `Test-Aufgabe für den ER-Modus.
+                    id: "ap1-2-a4-f",
+                    title: "f) Übertragungsdauer berechnen (6 Punkte)",
+                    description: `Berechnen Sie zur Verdeutlichung des Zeitaufwands für Herrn Sander die **Übertragungsdauer**, wenn er Daten mit einem Umfang von **2 GiB** aufgrund des Ergebnisses des Speedtests abspeichern möchte.
 
-Skizzieren Sie ein einfaches ER-Diagramm:
-1. Entity "Kunde" mit Attributen kundenID (PK), name, email
-2. Entity "Bestellung" mit Attributen bestellID (PK), datum, betrag
-3. Relationship "tätigt" zwischen Kunde und Bestellung
-4. Kardinalität: 1:n (ein Kunde hat viele Bestellungen)
+ERGEBNIS DES SPEEDTESTS:
+- Download: 92,40 Mbps
+- Upload: 38,16 Mbps
 
-Tipp: Für einen Primärschlüssel im Edit-Modal als Beschreibung "pk" eintragen.`,
-                    type: "diagram",
-                    points: 0,
-                    diagram: {
-                        mode: "er",
-                        hintText: "Entity = Rechteck · Beziehung = Raute · Attribut = Oval · Kardinalität = 1:n-Label",
-                    },
-                    tags: ["test", "diagramm", "er"],
-                },
-                {
-                    id: "ap1-2-a4-test-table",
-                    title: "TEST) DB-Tabellen zeichnen (Normalformen)",
-                    description: `Test-Aufgabe für den Tabellen-Modus.
+**Runden Sie das Ergebnis auf volle Sekunden auf** und stellen Sie das Ergebnis in **Minuten und Sekunden** dar.
 
-Skizzieren Sie die folgenden DB-Tabellen:
-
-Tabelle "kunde":
-- kundenID (PK)
-- name
-- email
-
-Tabelle "bestellung":
-- bestellID (PK)
-- datum
-- betrag
-- kundenID (FK)
-
-Tipp: Im Edit-Modal "(PK)" oder "(FK)" hinter dem Spaltennamen einfügen.`,
-                    type: "diagram",
-                    points: 0,
-                    diagram: {
-                        mode: "table",
-                        hintText: "Tabelle hinzufügen → Doppelklick → Spalten eintragen, je eine pro Zeile",
-                    },
-                    tags: ["test", "diagramm", "table"],
-                },
-                {
-                    id: "ap1-2-a4-test-network",
-                    title: "TEST) Netzwerk-Diagramm zeichnen",
-                    description: `Test-Aufgabe für den Netzwerk-Modus.
-
-Skizzieren Sie eine typische DMZ-Architektur:
-
-1. Internet (außen)
-2. Perimeter-Firewall
-3. DMZ-Zone mit Web-Server
-4. Interne Firewall
-5. LAN-Zone mit DB-Server
-
-Verbinden Sie alle Komponenten in der richtigen Reihenfolge.`,
-                    type: "diagram",
-                    points: 0,
-                    diagram: {
-                        mode: "network",
-                        hintText: "Internet → Firewall → DMZ-Zone → Firewall → LAN-Zone. Server in die Zonen platzieren.",
-                    },
-                    tags: ["test", "diagramm", "network"],
+Der Rechenweg ist mit anzugeben.`,
+                    type: "calculation",
+                    points: 6,
+                    hint: "Achtung: Beim Speichern auf den Server geht es um UPLOAD! Umrechnung: 1 GiB = 1024 MiB = 8.589.934.592 Bit. Zeit = Bits / (Mbps × 1.000.000). Dann in Minuten + Sekunden umrechnen.",
+                    tags: ["netzwerk", "berechnung", "uebertragung", "speedtest"],
                 },
             ],
         },
