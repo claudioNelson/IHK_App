@@ -20,6 +20,33 @@ import { DIAGRAM_MODES, getNodesForMode } from "./modes";
 import EditModal from "./EditModal";
 import ClassNode from "./nodes/ClassNode";
 
+import {
+    StartNode,
+    EndNode,
+    ActionNode,
+    DecisionNode,
+    ForkNode,
+    JoinNode,
+    NoteNode,
+    InterfaceNode,
+} from "./nodes/ActivityNodes";
+
+import {
+    EntityNode,
+    RelationshipNode,
+    AttributeNode,
+    CardinalityNode,
+} from "./nodes/ERNodes";
+
+import TableNode from "./nodes/TableNode";
+
+import {
+    ServerNode,
+    FirewallNode,
+    ZoneNode,
+    InternetNode,
+} from "./nodes/NetworkNodes";
+
 interface DiagramToolProps {
     data: DiagramData;
     value: string;                       // serialisierter State
@@ -28,7 +55,29 @@ interface DiagramToolProps {
 
 // Aktuell nur ein Knoten-Typ registriert
 const nodeTypes: NodeTypes = {
+    // UML-Klasse
     class: ClassNode,
+    interface: InterfaceNode,
+    note: NoteNode,
+    // UML-Aktivität
+    start: StartNode,
+    end: EndNode,
+    action: ActionNode,
+    decision: DecisionNode,
+    fork: ForkNode,
+    join: JoinNode,
+    // ER-Diagramm
+    entity: EntityNode,
+    relationship: RelationshipNode,
+    attribute: AttributeNode,
+    cardinality: CardinalityNode,
+    // Tabellen
+    table: TableNode,
+    // Netzwerk
+    server: ServerNode,
+    firewall: FirewallNode,
+    zone: ZoneNode,
+    internet: InternetNode,
 };
 
 // ============================================
@@ -95,16 +144,14 @@ export default function DiagramTool({ data, value, onChange }: DiagramToolProps)
     );
 
     const handleEditSave = useCallback(
-        (label: string, attributes: string, methods: string) => {
+        (updates: { label: string; description?: string }) => {
             if (!editingNode) return;
-            const description = `${attributes}\n---\n${methods}`;
             const nextNodes = nodes.map((n) =>
                 n.id === editingNode.id
-                    ? { ...n, data: { ...n.data, label, description } }
+                    ? { ...n, data: { ...n.data, label: updates.label, description: updates.description || "" } }
                     : n
             );
             setNodes(nextNodes);
-            // persist DANACH aufrufen, nicht im setNodes-Callback!
             setTimeout(() => persist(nextNodes, edges), 0);
             setEditingNode(null);
         },

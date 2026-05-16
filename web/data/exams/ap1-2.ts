@@ -620,20 +620,73 @@ Erläutern Sie Herrn Sander **drei weitere organisatorische oder technische Empf
                     tags: ["malware", "it-sicherheit", "praevention"],
                 },
                 {
-                    id: "ap1-2-a4-test-diagram",
-                    title: "TEST) UML-Klasse zeichnen",
-                    description: `Test-Aufgabe für den neuen Diagramm-Editor.
+                    id: "ap1-2-a4-test-er",
+                    title: "TEST) ER-Diagramm zeichnen",
+                    description: `Test-Aufgabe für den ER-Modus.
 
-Erstellen Sie eine UML-Klasse "Workstation" mit:
-- Attributen: cpu, ram, gpu
-- Methoden: starten(), herunterfahren()`,
+Skizzieren Sie ein einfaches ER-Diagramm:
+1. Entity "Kunde" mit Attributen kundenID (PK), name, email
+2. Entity "Bestellung" mit Attributen bestellID (PK), datum, betrag
+3. Relationship "tätigt" zwischen Kunde und Bestellung
+4. Kardinalität: 1:n (ein Kunde hat viele Bestellungen)
+
+Tipp: Für einen Primärschlüssel im Edit-Modal als Beschreibung "pk" eintragen.`,
                     type: "diagram",
                     points: 0,
                     diagram: {
-                        mode: "uml-class",
-                        hintText: "Klicke auf das Klassen-Symbol oben, dann auf 'Hinzufügen'.",
+                        mode: "er",
+                        hintText: "Entity = Rechteck · Beziehung = Raute · Attribut = Oval · Kardinalität = 1:n-Label",
                     },
-                    tags: ["test", "diagramm"],
+                    tags: ["test", "diagramm", "er"],
+                },
+                {
+                    id: "ap1-2-a4-test-table",
+                    title: "TEST) DB-Tabellen zeichnen (Normalformen)",
+                    description: `Test-Aufgabe für den Tabellen-Modus.
+
+Skizzieren Sie die folgenden DB-Tabellen:
+
+Tabelle "kunde":
+- kundenID (PK)
+- name
+- email
+
+Tabelle "bestellung":
+- bestellID (PK)
+- datum
+- betrag
+- kundenID (FK)
+
+Tipp: Im Edit-Modal "(PK)" oder "(FK)" hinter dem Spaltennamen einfügen.`,
+                    type: "diagram",
+                    points: 0,
+                    diagram: {
+                        mode: "table",
+                        hintText: "Tabelle hinzufügen → Doppelklick → Spalten eintragen, je eine pro Zeile",
+                    },
+                    tags: ["test", "diagramm", "table"],
+                },
+                {
+                    id: "ap1-2-a4-test-network",
+                    title: "TEST) Netzwerk-Diagramm zeichnen",
+                    description: `Test-Aufgabe für den Netzwerk-Modus.
+
+Skizzieren Sie eine typische DMZ-Architektur:
+
+1. Internet (außen)
+2. Perimeter-Firewall
+3. DMZ-Zone mit Web-Server
+4. Interne Firewall
+5. LAN-Zone mit DB-Server
+
+Verbinden Sie alle Komponenten in der richtigen Reihenfolge.`,
+                    type: "diagram",
+                    points: 0,
+                    diagram: {
+                        mode: "network",
+                        hintText: "Internet → Firewall → DMZ-Zone → Firewall → LAN-Zone. Server in die Zonen platzieren.",
+                    },
+                    tags: ["test", "diagramm", "network"],
                 },
             ],
         },
