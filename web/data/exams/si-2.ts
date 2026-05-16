@@ -210,6 +210,7 @@ Zeichnen Sie die Nachrichten als Pfeile zwischen den Objektlebenslinien ein.`,
                     type: "diagram",
                     points: 10,
                     hint: "Welche Komponente prüft zuerst? In welcher Reihenfolge werden die Nachrichten weitergeleitet?",
+                    diagram: { mode: "uml-sequence" },
                 },
                 {
                     id: "hs3-b",

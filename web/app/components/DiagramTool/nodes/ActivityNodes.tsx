@@ -272,3 +272,51 @@ export function InterfaceNode({ data }: { data: InterfaceData }) {
         </div>
     );
 }
+
+// ============================================
+// STATE — Zustand für UML-Zustandsdiagramm (abgerundetes Rechteck, amber)
+// ============================================
+interface StateData { label: string; description?: string; }
+
+const AMBER = "#F59E0B";
+const AMBER_DARK = "#B45309";
+
+export function StateNode({ data }: { data: StateData }) {
+    return (
+        <div style={{
+            background: '#FFFFFF',
+            border: `1.5px solid ${AMBER}`,
+            borderRadius: 14,
+            minWidth: 140,
+            maxWidth: 220,
+            boxShadow: `0 4px 12px ${AMBER}25`,
+            fontFamily: "'Inter Tight', system-ui, sans-serif",
+            overflow: 'hidden',
+        }}>
+            <AllHandles color={AMBER} />
+            <div style={{
+                padding: '8px 14px',
+                background: `${AMBER}10`,
+                borderBottom: `1px solid ${AMBER}30`,
+                textAlign: 'center',
+                fontWeight: 600,
+                fontSize: 13,
+                color: AMBER_DARK,
+            }}>
+                {data.label || "Zustand"}
+            </div>
+            {data.description && (
+                <div style={{
+                    padding: '8px 12px',
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 11,
+                    color: '#0A0A0F',
+                    lineHeight: 1.5,
+                    whiteSpace: 'pre-wrap',
+                }}>
+                    {data.description}
+                </div>
+            )}
+        </div>
+    );
+}

@@ -93,6 +93,7 @@ aa) Assoziation`,
 - Auge hat 1 IrisBereich und 1 NetzhautBereich (Komposition)
 - IrisScan und NetzhautScan erben von Scan
 - berechneMerkmal() muss in IrisScan und NetzhautScan überschrieben werden`,
+                    diagram: { mode: "uml-class" },
                 },
             ],
         },
@@ -183,6 +184,7 @@ Wichtige Elemente:
 - Fork für Parallelisierung
 - Join für Synchronisation
 - Zwei Entscheidungen (Qualität, Treffer)`,
+                    diagram: { mode: "uml-activity" },
                 },
                 {
                     id: "hs3-b",

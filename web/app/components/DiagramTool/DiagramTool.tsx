@@ -29,6 +29,7 @@ import {
     JoinNode,
     NoteNode,
     InterfaceNode,
+    StateNode,
 } from "./nodes/ActivityNodes";
 
 import {
@@ -46,6 +47,9 @@ import {
     ZoneNode,
     InternetNode,
 } from "./nodes/NetworkNodes";
+
+import { LifelineNode, ActivationNode } from "./nodes/SequenceNodes";
+import SequenceMessageEdge from "./edges/SequenceMessageEdge";
 
 interface DiagramToolProps {
     data: DiagramData;
@@ -66,6 +70,8 @@ const nodeTypes: NodeTypes = {
     decision: DecisionNode,
     fork: ForkNode,
     join: JoinNode,
+    // UML-Zustand
+    state: StateNode,
     // ER-Diagramm
     entity: EntityNode,
     relationship: RelationshipNode,
@@ -78,6 +84,14 @@ const nodeTypes: NodeTypes = {
     firewall: FirewallNode,
     zone: ZoneNode,
     internet: InternetNode,
+    // UML-Sequenz
+    lifeline: LifelineNode,
+    activation: ActivationNode,
+};
+
+// Edge types (für Sequenzdiagramme)
+const edgeTypes = {
+    "seq-message": SequenceMessageEdge,
 };
 
 // ============================================
@@ -400,6 +414,7 @@ export default function DiagramTool({ data, value, onChange }: DiagramToolProps)
                     onConnect={onConnect}
                     onNodeDoubleClick={onNodeDoubleClick}
                     nodeTypes={nodeTypes}
+                    edgeTypes={edgeTypes}
                     fitView
                     snapToGrid
                     snapGrid={[15, 15]}

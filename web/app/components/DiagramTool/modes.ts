@@ -29,6 +29,8 @@ export const DIAGRAM_COLORS = {
     blue:       "#3B82F6",   // sapphire (frisch)
     slate:      "#475569",   // monochrom (DB)
     emerald:    "#10B981",   // smaragd (network)
+    amber:      "#F59E0B",   // amber (state)
+    rose:       "#E11D48",   // rose (sequence)
     bg:         "#FAFAF9",
     text:       "#0A0A0F",
     border:     "rgba(10,10,15,0.08)",
@@ -61,6 +63,28 @@ export const DIAGRAM_MODES: Record<DiagramMode, ModeConfig> = {
             { id: "fork",     label: "━",  name: "Fork",          description: "Parallelisierung" },
             { id: "join",     label: "═",  name: "Join",          description: "Synchronisation" },
             { id: "note",     label: "✎",  name: "Notiz",         description: "Erläuternde Notiz" },
+        ],
+    },
+    "uml-state": {
+        name: "UML-Zustandsdiagramm",
+        color: DIAGRAM_COLORS.amber,
+        description: "Zustände mit Übergängen (Start, Ende, Zustände)",
+        nodes: [
+            { id: "start",    label: "●",  name: "Start",        description: "Startpunkt" },
+            { id: "end",      label: "◉",  name: "Ende",         description: "Endpunkt" },
+            { id: "state",    label: "▭",  name: "Zustand",      description: "Zustand (z.B. nichtLadend)" },
+            { id: "decision", label: "◇",  name: "Verzweigung",  description: "Bedingte Verzweigung" },
+            { id: "note",     label: "✎",  name: "Notiz",        description: "Erläuternde Notiz" },
+        ],
+    },
+    "uml-sequence": {
+        name: "UML-Sequenzdiagramm",
+        color: DIAGRAM_COLORS.rose,
+        description: "Lifelines mit Nachrichten zwischen Objekten",
+        nodes: [
+            { id: "lifeline",   label: "│",  name: "Lifeline",   description: "Objekt mit vertikaler Lebenslinie" },
+            { id: "activation", label: "▮",  name: "Aktivierung", description: "Aktivierungsbalken auf der Lifeline" },
+            { id: "note",       label: "✎",  name: "Notiz",      description: "Erläuternde Notiz" },
         ],
     },
     "er": {

@@ -233,6 +233,7 @@ Hinweis: Notation für UML-Zustandsdiagramm siehe Belegsatz.`,
                     type: "diagram",
                     points: 16,
                     hint: "Identifizieren Sie die drei Zustände und die Bedingungen für die Übergänge.",
+                    diagram: { mode: "uml-state" },
                 },
                 {
                     id: "hs3-ba",
@@ -377,6 +378,7 @@ NORMALFORMEN-DEFINITIONEN:
                     type: "diagram",
                     points: 9,
                     hint: "Atomare Werte: Jede Zelle enthält nur einen Wert. Welche Spalten haben mehrere Werte?",
+                    diagram: { mode: "table" },
                 },
                 {
                     id: "hs4-b",
@@ -389,6 +391,7 @@ NORMALFORMEN-DEFINITIONEN:
                     type: "diagram",
                     points: 11,
                     hint: "Welche Attribute hängen nur von einem Teil des Schlüssels ab?",
+                    diagram: { mode: "table" },
                 },
                 {
                     id: "hs4-c",
@@ -401,6 +404,7 @@ NORMALFORMEN-DEFINITIONEN:
                     type: "diagram",
                     points: 5,
                     hint: "Gibt es Attribute, die von anderen Nicht-Schlüssel-Attributen abhängen?",
+                    diagram: { mode: "table" },
                 },
             ],
         },

@@ -87,12 +87,14 @@ export interface Question {
 // DIAGRAMM-TOOL (für type: "diagram")
 // ============================================
 export type DiagramMode = 
-    | "uml-class"      // Klassendiagramm
-    | "uml-activity"   // Aktivitätsdiagramm
-    | "er"             // ER-Diagramm
-    | "table"          // Tabellen für Normalformen
-    | "network"        // Netzwerk mit DMZ etc.
-    | "free";          // Alle Modi erlaubt
+    | "uml-class"       // Klassendiagramm
+    | "uml-activity"    // Aktivitätsdiagramm
+    | "uml-state"       // Zustandsdiagramm
+    | "uml-sequence"    // Sequenzdiagramm
+    | "er"              // ER-Diagramm
+    | "table"           // Tabellen für Normalformen
+    | "network"         // Netzwerk mit DMZ etc.
+    | "free";           // Alle Modi erlaubt
 
 export interface DiagramData {
     mode: DiagramMode;
