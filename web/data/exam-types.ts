@@ -25,7 +25,7 @@ export type Difficulty = "leicht" | "mittel" | "schwer";
 // ============================================
 // PRÜFUNGS-SAISON (statt freier String)
 // ============================================
-export type Season = "Sommer" | "Winter" | "Herbst";
+export type Season = "Sommer" | "Winter" | "Herbst" | "Frühjahr";
 
 // ============================================
 // FRAGE-TYPEN
@@ -77,8 +77,29 @@ export interface Question {
 
     // Für type: "codeCorrection"
     codeCorrection?: CodeCorrectionData;
+
+    // Für type: "diagram"
+    diagram?: DiagramData;
     
 }
+
+// ============================================
+// DIAGRAMM-TOOL (für type: "diagram")
+// ============================================
+export type DiagramMode = 
+    | "uml-class"      // Klassendiagramm
+    | "uml-activity"   // Aktivitätsdiagramm
+    | "er"             // ER-Diagramm
+    | "table"          // Tabellen für Normalformen
+    | "network"        // Netzwerk mit DMZ etc.
+    | "free";          // Alle Modi erlaubt
+
+export interface DiagramData {
+    mode: DiagramMode;
+    allowImageUpload?: boolean;   // optional: zusätzlich Bild hochladen
+    hintText?: string;            // optional: Hilfetext im Editor
+}
+
 // ============================================
 // CODE-KORREKTUR (für type: "codeCorrection")
 // ============================================

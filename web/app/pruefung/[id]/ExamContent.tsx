@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import DiagramTool from "@/app/components/DiagramTool";
+import DiagramTool from "@/app/components/DiagramTool/DiagramTool";
 import FillBlanksSQL from "@/app/components/FillBlanksSQL";
 import ExamTimer from "@/app/components/ExamTimer";
 import { Exam } from "@/data/exam-types";
@@ -591,8 +591,12 @@ export default function ExamContent({ exam }: ExamContentProps) {
                 {q.type !== "info" && (
                   <>
                     <div className="answer-label">Deine Antwort</div>
-                    {q.type === "diagram" ? (
-                      <DiagramTool onSave={data => updateAnswer(q.id, data)} />
+                    {q.type === "diagram" && q.diagram ? (
+                      <DiagramTool
+                        data={q.diagram}
+                        value={answers[q.id] || ""}
+                        onChange={val => updateAnswer(q.id, val)}
+                      />
                     ) : q.type === "fillBlanks" ? (
                       <FillBlanksSQL questionId={q.id} />
                     ) : q.type === "decisionMatrix" && q.matrix ? (

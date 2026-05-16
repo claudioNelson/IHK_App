@@ -620,21 +620,20 @@ Erläutern Sie Herrn Sander **drei weitere organisatorische oder technische Empf
                     tags: ["malware", "it-sicherheit", "praevention"],
                 },
                 {
-                    id: "ap1-2-a4-f",
-                    title: "f) Übertragungsdauer berechnen (6 Punkte)",
-                    description: `Berechnen Sie zur Verdeutlichung des Zeitaufwands für Herrn Sander die **Übertragungsdauer**, wenn er Daten mit einem Umfang von **2 GiB** aufgrund des Ergebnisses des Speedtests abspeichern möchte.
+                    id: "ap1-2-a4-test-diagram",
+                    title: "TEST) UML-Klasse zeichnen",
+                    description: `Test-Aufgabe für den neuen Diagramm-Editor.
 
-ERGEBNIS DES SPEEDTESTS:
-- Download: 92,40 Mbps
-- Upload: 38,16 Mbps
-
-**Runden Sie das Ergebnis auf volle Sekunden auf** und stellen Sie das Ergebnis in **Minuten und Sekunden** dar.
-
-Der Rechenweg ist mit anzugeben.`,
-                    type: "calculation",
-                    points: 6,
-                    hint: "Achtung: Beim Speichern auf den Server geht es um UPLOAD! Umrechnung: 1 GiB = 1024 MiB = 8.589.934.592 Bit. Zeit = Bits / (Mbps × 1.000.000). Dann in Minuten + Sekunden umrechnen.",
-                    tags: ["netzwerk", "berechnung", "uebertragung", "speedtest"],
+Erstellen Sie eine UML-Klasse "Workstation" mit:
+- Attributen: cpu, ram, gpu
+- Methoden: starten(), herunterfahren()`,
+                    type: "diagram",
+                    points: 0,
+                    diagram: {
+                        mode: "uml-class",
+                        hintText: "Klicke auf das Klassen-Symbol oben, dann auf 'Hinzufügen'.",
+                    },
+                    tags: ["test", "diagramm"],
                 },
             ],
         },

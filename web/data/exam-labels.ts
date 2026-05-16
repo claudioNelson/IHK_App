@@ -54,7 +54,9 @@ export const difficultyColors: Record<Difficulty, string> = {
 // SAISON → Anzeige-Text
 // ============================================
 export const seasonLabels: Record<Season, string> = {
+    Frühjahr: "Frühjahr",
     Sommer: "Sommer",
+    Herbst: "Herbst",
     Winter: "Winter",
 };
 
