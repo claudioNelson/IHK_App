@@ -34,52 +34,10 @@ Sie sollen vier der folgenden fünf Handlungsschritte bearbeiten:
                     title: "Ausgangssituation - Netzwerkplanung",
                     description: `Für das neue Gebäude soll das Netzwerk in verschiedene Segmente aufgeteilt werden.
 
-NETZWERK-TOPOLOGIE:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-                        ┌──────────┐
-                        │ Internet │
-                        └────┬─────┘
-                             │
-                        ┌────┴──────┐
-                        │  Firewall │  10.20.1.1
-                        └─┬───────┬─┘
-                          │       │
-                  LAN-IF  │       │  DMZ-IF
-              10.20.1.0/30│       │10.20.2.0/29
-                          │       │
-                          │       └──► Webserver (10.20.2.2)
-                          │
-                  ┌───────┴────────┐
-                  │  Core-Switch   │
-                  └─┬─┬─┬─┬────────┘
-                    │ │ │ │  Trunk-Uplinks (802.1Q)
-                ┌───┘ │ │ └────┐
-                │     │ │      │
-            ┌───┴──┐  │ │  ┌───┴──┐
-            │ AP-1 │  │ │  │ AP-2 │   Access-Switches
-            └───┬──┘  │ │  └───┬──┘
-                │     │ │      │
-              VLAN10  │ │    VLAN40
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-VLAN-STRUKTUR:
-| VLAN | Bezeichnung   | Subnetz           | Hinweis                    |
-|------|---------------|-------------------|----------------------------|
-| 10   | Büro          | 10.10.10.0/24     | Mitarbeiter-Arbeitsplätze  |
-| 20   | Entwicklung   | 10.10.20.0/24     | Entwicklerteam             |
-| 30   | Server        | 10.10.30.0/27     | DHCP-Server, AD, RADIUS    |
-| 40   | WLAN/Gäste    | 10.10.40.0/24     | Drahtloszugang             |
-
-DMZ + WAN:
-| Segment | Subnetz       | Hinweis                              |
-|---------|---------------|--------------------------------------|
-| LAN     | 10.20.1.0/30  | Verbindung Core-Switch ↔ Firewall    |
-| DMZ     | 10.20.2.0/29  | Webserver, von extern erreichbar     |
-| WAN     | 0.0.0.0/0     | Internet via Default-Route           |`,
+Die geplante VLAN-Struktur und der Netzwerkaufbau sind im folgenden Diagramm dargestellt:`,
                     type: "info",
                     points: 0,
+                    image: "/images/si1-netzwerk.png",
                 },
                 {
                     id: "hs1-a",

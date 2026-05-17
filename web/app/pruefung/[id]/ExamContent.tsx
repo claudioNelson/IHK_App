@@ -9,6 +9,7 @@ import { Exam } from "@/data/exam-types";
 import SubmitExam from "@/app/components/SubmitExam";
 import ExamResult from "@/app/components/ExamResult";
 import ExamIntro from "@/app/components/ExamIntro";
+import ImageLightbox from "@/app/components/ImageLightbox";
 import DecisionMatrix from "@/app/components/DecisionMatrix";
 import TableInput from "@/app/components/TableInput";
 import CodeCorrection from "@/app/components/CodeCorrection";
@@ -21,6 +22,7 @@ export default function ExamContent({ exam }: ExamContentProps) {
   const [loaded, setLoaded] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [started, setStarted] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
     const s = (k: string) => localStorage.getItem(`exam-${exam.id}-${k}`);
@@ -413,7 +415,17 @@ export default function ExamContent({ exam }: ExamContentProps) {
           margin-bottom: 14px;
           border-radius: 10px;
           max-width: 100%;
+          max-height: 500px;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          display: block;
           border: 1px solid ${t.border};
+          cursor: zoom-in;
+          transition: opacity 0.15s;
+        }
+        .q-image:hover {
+          opacity: 0.85;
         }
 
         .hint {
@@ -580,7 +592,14 @@ export default function ExamContent({ exam }: ExamContentProps) {
 
                 <pre className="q-desc">{q.description}</pre>
 
-                {q.image && <img src={q.image} alt="Grafik" className="q-image" />}
+                {q.image && (
+                  <img
+                    src={q.image}
+                    alt="Grafik"
+                    className="q-image"
+                    onClick={() => setLightboxSrc(q.image!)}
+                  />
+                )}
                 {q.hint && (
                   <div className="hint">
                     <span className="hint-icon">💡</span>
@@ -649,6 +668,14 @@ export default function ExamContent({ exam }: ExamContentProps) {
 
         <SubmitExam sections={exam.sections} completed={completed} onSubmit={handleSubmit} />
       </div>
+
+      {lightboxSrc && (
+        <ImageLightbox
+          src={lightboxSrc}
+          alt="Aufgaben-Grafik"
+          onClose={() => setLightboxSrc(null)}
+        />
+      )}
     </div>
   );
 }
