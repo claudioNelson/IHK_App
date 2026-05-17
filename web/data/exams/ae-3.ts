@@ -10,6 +10,8 @@ export const ae3: Exam = {
     totalPoints: 100,
     level: "ap2",
     fachrichtung: "ae",
+    difficulty: "schwer",
+    tags: ["projektmanagement", "uml-zustand", "state-pattern", "normalisierung", "sql"],
     sectionsToChoose: 4,
     scenario: `Sie arbeiten in der CodeWorks GmbH, die Softwarelösungen für Handel und Dienstleistungen zur Verfügung stellt und verwaltet.
 
@@ -38,6 +40,7 @@ Nennen Sie zwei Methoden, die Sie für eine Anforderungsanalyse anwenden können
                     type: "freeText",
                     points: 2,
                     hint: "Wie können Sie Informationen von Stakeholdern sammeln?",
+                    tags: ["projektmanagement", "anforderungsanalyse"],
                 },
                 {
                     id: "hs1-ab",
@@ -46,23 +49,31 @@ Nennen Sie zwei Methoden, die Sie für eine Anforderungsanalyse anwenden können
                     type: "freeText",
                     points: 4,
                     hint: "Unterscheiden Sie funktionale und nicht-funktionale Anforderungen.",
+                    tags: ["projektmanagement", "anforderungen", "funktional"],
                 },
                 {
                     id: "hs1-ba",
                     title: "Aufgabe b-a) Kick-off-Sitzung: Sach- und Beziehungsebene (8 Punkte)",
                     description: `Der Projektleiter Ihres Teams hat Ihnen mitgeteilt, dass das Projekt "Abrechnungssoftware" mit einer Kick-off-Sitzung begonnen wird.
 
-Nennen Sie jeweils vier auf der Sachebene und der Beziehungsebene liegende Aufgabenstellungen dieser Kick-off-Sitzung.
-
-| Sachebene | Beziehungsebene |
-|-----------|-----------------|
-|           |                 |
-|           |                 |
-|           |                 |
-|           |                 |`,
-                    type: "freeText",
+Nennen Sie jeweils vier auf der Sachebene und der Beziehungsebene liegende Aufgabenstellungen dieser Kick-off-Sitzung.`,
+                    type: "tableInput",
                     points: 8,
+                    table: {
+                        rowHeaderLabel: "Nr.",
+                        columns: [
+                            { key: "sach", label: "Sachebene", placeholder: "z.B. Projektziel festlegen", align: "left" },
+                            { key: "bez",  label: "Beziehungsebene", placeholder: "z.B. Kennenlernen im Team", align: "left" },
+                        ],
+                        rows: [
+                            { id: "row-1", label: "1" },
+                            { id: "row-2", label: "2" },
+                            { id: "row-3", label: "3" },
+                            { id: "row-4", label: "4" },
+                        ],
+                    },
                     hint: "Sachebene = Was wird besprochen? Beziehungsebene = Wie arbeiten wir zusammen?",
+                    tags: ["projektmanagement", "kommunikation", "kick-off"],
                 },
                 {
                     id: "hs1-bb",
@@ -71,42 +82,55 @@ Nennen Sie jeweils vier auf der Sachebene und der Beziehungsebene liegende Aufga
                     type: "freeText",
                     points: 3,
                     hint: "Welche Rechte braucht ein Projektleiter, um Entscheidungen durchzusetzen?",
+                    tags: ["projektmanagement", "projektleitung", "befugnisse"],
                 },
                 {
                     id: "hs1-ca",
                     title: "Aufgabe c-a) Nutzwertanalyse erweitern (6 Punkte)",
                     description: `Ihr Projektteam ist mit der Auswahl weiterer Softwarekomponenten beauftragt. Nach einer umfangreichen Marktanalyse haben Sie Ihre Auswahl auf zwei Softwarelösungen begrenzt. Um eine endgültige Entscheidung zu treffen, sollen Sie die Alternativen in einer Nutzwertanalyse vergleichen.
 
-Ergänzen Sie die Nutzwertanalyse um weitere fünf Kriterien mit sinnvoller Gewichtung. Vervollständigen Sie die Tabelle mit sinnvollen Beispielwerten für die Anbieter A und B. Entscheiden Sie anhand Ihrer Daten, welcher Anbieter den Zuschlag erhalten soll.
-
-VORGEGEBENES KRITERIUM:
-- Image des Softwareanbieters
-  - Gewichtung: 25
-  - Anbieter A: Erfüllung 1, Nutzwert 25
-  - Anbieter B: Erfüllung 3, Nutzwert 75
-
-IHRE KRITERIEN (5 weitere ergänzen):
-- Kriterium 2: _______________
-  - Gewichtung: ___
-  - Anbieter A: Erfüllung ___, Nutzwert ___
-  - Anbieter B: Erfüllung ___, Nutzwert ___
-
-- Kriterium 3: _______________
-- Kriterium 4: _______________
-- Kriterium 5: _______________
-- Kriterium 6: _______________
-
-SUMME Gewichtungen: 100
-SUMME Nutzwert Anbieter A: ___
-SUMME Nutzwert Anbieter B: ___
-
-Zuschlag erhält: _______________
+Ergänzen Sie die Nutzwertanalyse um weitere fünf Kriterien mit sinnvoller Gewichtung. Tragen Sie für jeden Anbieter den Erfüllungsgrad und den daraus berechneten Nutzwert ein.
 
 Formel: Nutzwert (N) = Gewichtung (G) × Erfüllung (E)
-Erfüllungsgrad: 1 = schlecht, 2 = mittel, 3 = gut`,
-                    type: "freeText",
+Erfüllungsgrad: 1 = schlecht, 2 = mittel, 3 = gut
+Summe der Gewichtungen muss 100 ergeben.`,
+                    type: "tableInput",
                     points: 6,
+                    table: {
+                        rowHeaderLabel: "Kriterium",
+                        columns: [
+                            { key: "g",   label: "G",     placeholder: "Gew.", align: "center", width: "70px" },
+                            { key: "e-a", label: "E (A)", placeholder: "1-3",  align: "center", width: "75px" },
+                            { key: "n-a", label: "N (A)", placeholder: "G×E",  align: "center", width: "75px" },
+                            { key: "e-b", label: "E (B)", placeholder: "1-3",  align: "center", width: "75px" },
+                            { key: "n-b", label: "N (B)", placeholder: "G×E",  align: "center", width: "75px" },
+                        ],
+                        rows: [
+                            {
+                                id: "k1",
+                                label: "Image des Softwareanbieters",
+                                values: { g: "25", "e-a": "1", "n-a": "25", "e-b": "3", "n-b": "75" },
+                            },
+                            { id: "k2", label: "Kriterium 2" },
+                            { id: "k3", label: "Kriterium 3" },
+                            { id: "k4", label: "Kriterium 4" },
+                            { id: "k5", label: "Kriterium 5" },
+                            { id: "k6", label: "Kriterium 6" },
+                            {
+                                id: "summe",
+                                label: "Σ Summe",
+                                sublabel: "Σ G muss 100 ergeben",
+                                values: { g: "100" },
+                            },
+                            {
+                                id: "zuschlag",
+                                label: "Zuschlag erhält",
+                                sublabel: "Anbieter A oder B?",
+                            },
+                        ],
+                    },
                     hint: "Welche Kriterien sind bei Softwareauswahl wichtig? Die Gewichtungen müssen 100 ergeben.",
+                    tags: ["projektmanagement", "nutzwertanalyse", "entscheidung"],
                 },
                 {
                     id: "hs1-cb",
@@ -115,6 +139,7 @@ Erfüllungsgrad: 1 = schlecht, 2 = mittel, 3 = gut`,
                     type: "freeText",
                     points: 2,
                     hint: "Wie objektiv sind die Bewertungen in einer Nutzwertanalyse?",
+                    tags: ["projektmanagement", "nutzwertanalyse", "kritik"],
                 },
             ],
         },
@@ -192,6 +217,7 @@ Funktionssignatur:
                     type: "code",
                     points: 25,
                     hint: "Durchlaufen Sie jeden Tag des Monats und prüfen Sie, wie viele Buchungen vorliegen.",
+                    tags: ["algorithmen", "pseudocode", "schleife", "zeiterfassung"],
                 },
             ],
         },
@@ -234,6 +260,7 @@ Hinweis: Notation für UML-Zustandsdiagramm siehe Belegsatz.`,
                     points: 16,
                     hint: "Identifizieren Sie die drei Zustände und die Bedingungen für die Übergänge.",
                     diagram: { mode: "uml-state" },
+                    tags: ["uml-zustand", "ladevorgang", "zustandsübergänge"],
                 },
                 {
                     id: "hs3-ba",
@@ -311,6 +338,7 @@ Formulieren Sie die entsprechende Anweisung:
                     type: "code",
                     points: 2,
                     hint: "Wie greifen Sie auf das Singleton-Objekt der Klasse NichtLadend zu?",
+                    tags: ["oop", "state-pattern", "singleton", "konstruktor"],
                 },
                 {
                     id: "hs3-bb",
@@ -323,6 +351,7 @@ Formulieren Sie die Kontrollstruktur mit entsprechender Anweisung.
                     type: "code",
                     points: 3,
                     hint: "Welche Bedingung prüft den Ladestand? Wie setzen Sie den neuen Zustand?",
+                    tags: ["oop", "state-pattern", "methode", "kontrollstruktur"],
                 },
                 {
                     id: "hs3-bc",
@@ -331,6 +360,7 @@ Formulieren Sie die Kontrollstruktur mit entsprechender Anweisung.
                     type: "freeText",
                     points: 4,
                     hint: "Welchen Typ hat die Variable 'zustand'? Welche konkreten Objekte kann sie referenzieren?",
+                    tags: ["oop", "polymorphie", "theorie", "state-pattern"],
                 },
             ],
         },
@@ -379,6 +409,7 @@ NORMALFORMEN-DEFINITIONEN:
                     points: 9,
                     hint: "Atomare Werte: Jede Zelle enthält nur einen Wert. Welche Spalten haben mehrere Werte?",
                     diagram: { mode: "table" },
+                    tags: ["normalisierung", "1nf", "primärschlüssel"],
                 },
                 {
                     id: "hs4-b",
@@ -392,6 +423,7 @@ NORMALFORMEN-DEFINITIONEN:
                     points: 11,
                     hint: "Welche Attribute hängen nur von einem Teil des Schlüssels ab?",
                     diagram: { mode: "table" },
+                    tags: ["normalisierung", "2nf", "primärschlüssel", "abhängigkeiten"],
                 },
                 {
                     id: "hs4-c",
@@ -405,6 +437,7 @@ NORMALFORMEN-DEFINITIONEN:
                     points: 5,
                     hint: "Gibt es Attribute, die von anderen Nicht-Schlüssel-Attributen abhängen?",
                     diagram: { mode: "table" },
+                    tags: ["normalisierung", "3nf", "transitive-abhängigkeit"],
                 },
             ],
         },
@@ -451,6 +484,7 @@ DATENBANKSCHEMA:
                     type: "code",
                     points: 2,
                     hint: "Welche Datentypen sind für ID und Beschreibung sinnvoll?",
+                    tags: ["sql", "create-table", "ddl"],
                 },
                 {
                     id: "hs5-ab",
@@ -459,6 +493,7 @@ DATENBANKSCHEMA:
                     type: "code",
                     points: 3,
                     hint: "Welche Attribute übernehmen Sie aus Buchung? Wie definieren Sie den Fremdschlüssel?",
+                    tags: ["sql", "create-table", "ddl", "fremdschlüssel"],
                 },
                 {
                     id: "hs5-b",
@@ -474,6 +509,7 @@ ERWARTETE AUSGABE:
                     type: "code",
                     points: 5,
                     hint: "Welche Tabellen müssen Sie verbinden? Wie filtern Sie nach Anzahl?",
+                    tags: ["sql", "count", "group-by", "having"],
                 },
                 {
                     id: "hs5-c",
@@ -489,6 +525,7 @@ ERWARTETE AUSGABE:
                     type: "code",
                     points: 5,
                     hint: "Wie berechnen Sie Tage × Preis? Welche JOINs sind nötig?",
+                    tags: ["sql", "sum", "join", "order-by"],
                 },
                 {
                     id: "hs5-d",
@@ -503,6 +540,7 @@ ERWARTETE AUSGABE:
                     type: "code",
                     points: 5,
                     hint: "Verwenden Sie eine Unterabfrage, um den Preis des Cruisers zu ermitteln.",
+                    tags: ["sql", "subquery", "where"],
                 },
                 {
                     id: "hs5-e",
@@ -518,6 +556,7 @@ ERWARTETE AUSGABE:
                     type: "code",
                     points: 5,
                     hint: "Wie extrahieren Sie den Monat? Wie berechnen Sie den prozentualen Anteil?",
+                    tags: ["sql", "month", "group-by", "prozent"],
                 },
             ],
         },

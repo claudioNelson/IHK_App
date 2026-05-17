@@ -10,6 +10,8 @@ export const ae2: Exam = {
     totalPoints: 100,
     level: "ap2",
     fachrichtung: "ae",
+    difficulty: "mittel",
+    tags: ["uml-klasse", "uml-aktivität", "normalisierung", "sql", "algorithmen"],
     sectionsToChoose: 4,
     scenario: `Sie sind Mitarbeiter/-in der SecureID GmbH, Darmstadt, einem Softwaredienstleister im Bereich biometrische Sicherheitssysteme. Die SecureID GmbH erstellt Software zur Erfassung und Auswertung verschiedener biometrischer Daten.
 
@@ -61,6 +63,7 @@ aa) Assoziation`,
                     type: "freeText",
                     points: 2,
                     hint: `Assoziation: Eine allgemeine Beziehung zwischen zwei Klassen. Objekte der einen Klasse kennen Objekte der anderen Klasse.`,
+                    tags: ["uml-klasse", "theorie", "assoziation"],
                 },
                 {
                     id: "hs1-ab",
@@ -69,6 +72,7 @@ aa) Assoziation`,
                     type: "freeText",
                     points: 2,
                     hint: `Vererbung: Eine Klasse übernimmt Attribute und Methoden von einer anderen Klasse. "ist-ein"-Beziehung.`,
+                    tags: ["uml-klasse", "theorie", "vererbung", "oop"],
                 },
                 {
                     id: "hs1-ac",
@@ -77,6 +81,7 @@ aa) Assoziation`,
                     type: "freeText",
                     points: 2,
                     hint: `Komposition: Starke "Teil-von"-Beziehung. Das Teil kann ohne das Ganze nicht existieren.`,
+                    tags: ["uml-klasse", "theorie", "komposition"],
                 },
                 {
                     id: "hs1-b",
@@ -94,6 +99,7 @@ aa) Assoziation`,
 - IrisScan und NetzhautScan erben von Scan
 - berechneMerkmal() muss in IrisScan und NetzhautScan überschrieben werden`,
                     diagram: { mode: "uml-class" },
+                    tags: ["uml-klasse", "vererbung", "komposition", "kardinalitäten"],
                 },
             ],
         },
@@ -151,6 +157,7 @@ AUFGABE:
    - auge != 0 UND idAuge != auge → löschen
 3. Bubble Sort nach score ABSTEIGEND
 4. Rückgabe: treffer`,
+                    tags: ["algorithmen", "pseudocode", "bubble-sort", "filterung"],
                 },
             ],
         },
@@ -185,6 +192,7 @@ Wichtige Elemente:
 - Join für Synchronisation
 - Zwei Entscheidungen (Qualität, Treffer)`,
                     diagram: { mode: "uml-activity" },
+                    tags: ["uml-aktivität", "fork-join", "swimlanes"],
                 },
                 {
                     id: "hs3-b",
@@ -206,6 +214,7 @@ Beispiel-Ausgabe: minimaler Score = 21`,
                     type: "code",
                     points: 5,
                     hint: "Initialisieren Sie minimum mit dem ersten Element und durchlaufen Sie dann das Array.",
+                    tags: ["algorithmen", "pseudocode", "minimum", "schleife"],
                 },
             ],
         },
@@ -244,7 +253,8 @@ Erstellen Sie ein relationales Datenmodell in der 3. Normalform.
 Hinweis: Adresse muss nicht normalisiert werden.`,
                     type: "diagram",
                     points: 25,
-                    hint: "Welche Daten wiederholen sich? Dokumente kommen mehrfach vor - wie lösen Sie das auf?"
+                    hint: "Welche Daten wiederholen sich? Dokumente kommen mehrfach vor - wie lösen Sie das auf?",
+                    tags: ["normalisierung", "3nf", "datenmodell"],
                 },
             ],
         },
@@ -291,7 +301,7 @@ Merkmal:
 |--------|---------------|
 | 1      | Iris-Scan     |
 | 2      | Fingerabdruck |`,
-                    type: "freeText",
+                    type: "info",
                     points: 0,
                     hint: "Datenbankschema für die folgenden SQL-Aufgaben.",
                 },
@@ -302,6 +312,7 @@ Merkmal:
                     type: "code",
                     points: 5,
                     hint: "Welche Tabellen müssen Sie JOINen? Wie sortieren Sie nach mehreren Spalten?",
+                    tags: ["sql", "join", "order-by"],
                 },
                 {
                     id: "hs5-b",
@@ -310,6 +321,7 @@ Merkmal:
                     type: "code",
                     points: 5,
                     hint: "Was ist der Unterschied zwischen LEFT JOIN und RIGHT JOIN?",
+                    tags: ["sql", "right-join", "join"],
                 },
                 {
                     id: "hs5-c",
@@ -324,6 +336,7 @@ Erwartete Ausgabe:
                     type: "code",
                     points: 6,
                     hint: "Welche Aggregatfunktion zählt Zeilen? Wie gruppieren Sie nach Merkmal?",
+                    tags: ["sql", "count", "group-by", "aggregation"],
                 },
                 {
                     id: "hs5-d",
@@ -332,6 +345,7 @@ Erwartete Ausgabe:
                     type: "code",
                     points: 6,
                     hint: "Wie filtern Sie nach einem bestimmten Namen? Welche Tabellen verknüpfen Person und Zugang?",
+                    tags: ["sql", "where", "join"],
                 },
                 {
                     id: "hs5-e",
@@ -340,6 +354,7 @@ Erwartete Ausgabe:
                     type: "code",
                     points: 3,
                     hint: "BETWEEN eignet sich gut für Bereichsabfragen.",
+                    tags: ["sql", "between", "where"],
                 },
             ],
         },

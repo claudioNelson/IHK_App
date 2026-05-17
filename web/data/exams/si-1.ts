@@ -10,6 +10,8 @@ export const si1: Exam = {
     totalPoints: 100,
     level: "ap2",
     fachrichtung: "si",
+    difficulty: "mittel",
+    tags: ["vlan", "routing", "wlan", "active-directory", "raid"],
     sectionsToChoose: 4,
     scenario: `Sie sind Mitarbeiter/-in der MediTech Solutions GmbH in Hannover, einem mittelständischen Unternehmen für Medizintechnik-Software.
 
@@ -30,12 +32,54 @@ Sie sollen vier der folgenden fünf Handlungsschritte bearbeiten:
                 {
                     id: "hs1-intro",
                     title: "Ausgangssituation - Netzwerkplanung",
-                    description: `Für das neue Gebäude soll das Netzwerk in verschiedene Segmente aufgeteilt werden. 
+                    description: `Für das neue Gebäude soll das Netzwerk in verschiedene Segmente aufgeteilt werden.
 
-Die geplante VLAN-Struktur und der Netzwerkaufbau sind im folgenden Diagramm dargestellt:`,
+NETZWERK-TOPOLOGIE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                        ┌──────────┐
+                        │ Internet │
+                        └────┬─────┘
+                             │
+                        ┌────┴──────┐
+                        │  Firewall │  10.20.1.1
+                        └─┬───────┬─┘
+                          │       │
+                  LAN-IF  │       │  DMZ-IF
+              10.20.1.0/30│       │10.20.2.0/29
+                          │       │
+                          │       └──► Webserver (10.20.2.2)
+                          │
+                  ┌───────┴────────┐
+                  │  Core-Switch   │
+                  └─┬─┬─┬─┬────────┘
+                    │ │ │ │  Trunk-Uplinks (802.1Q)
+                ┌───┘ │ │ └────┐
+                │     │ │      │
+            ┌───┴──┐  │ │  ┌───┴──┐
+            │ AP-1 │  │ │  │ AP-2 │   Access-Switches
+            └───┬──┘  │ │  └───┬──┘
+                │     │ │      │
+              VLAN10  │ │    VLAN40
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VLAN-STRUKTUR:
+| VLAN | Bezeichnung   | Subnetz           | Hinweis                    |
+|------|---------------|-------------------|----------------------------|
+| 10   | Büro          | 10.10.10.0/24     | Mitarbeiter-Arbeitsplätze  |
+| 20   | Entwicklung   | 10.10.20.0/24     | Entwicklerteam             |
+| 30   | Server        | 10.10.30.0/27     | DHCP-Server, AD, RADIUS    |
+| 40   | WLAN/Gäste    | 10.10.40.0/24     | Drahtloszugang             |
+
+DMZ + WAN:
+| Segment | Subnetz       | Hinweis                              |
+|---------|---------------|--------------------------------------|
+| LAN     | 10.20.1.0/30  | Verbindung Core-Switch ↔ Firewall    |
+| DMZ     | 10.20.2.0/29  | Webserver, von extern erreichbar     |
+| WAN     | 0.0.0.0/0     | Internet via Default-Route           |`,
                     type: "info",
                     points: 0,
-                    image: "/images/si1-netzwerk.png",
                 },
                 {
                     id: "hs1-a",
@@ -48,6 +92,7 @@ Geben Sie den Rechenweg an.`,
                     type: "freeText",
                     points: 3,
                     hint: "Wie viele Bits bleiben für den Hostanteil? Welche Adressen sind reserviert?",
+                    tags: ["subnetting", "ip", "berechnung"],
                 },
                 {
                     id: "hs1-b",
@@ -58,6 +103,7 @@ Erklären Sie, warum das Tagging auf den Uplink-Verbindungen notwendig ist und w
                     type: "freeText",
                     points: 4,
                     hint: "Was passiert, wenn Frames aus verschiedenen VLANs über eine gemeinsame Leitung transportiert werden?",
+                    tags: ["vlan", "trunk", "802.1q"],
                 },
                 {
                     id: "hs1-ca",
@@ -73,6 +119,7 @@ Erklären Sie die Ursache für die angezeigte IP-Adresse.`,
                     type: "freeText",
                     points: 2,
                     hint: "Was bedeutet eine 169.254.x.x Adresse? Was passiert mit Broadcasts an VLAN-Grenzen?",
+                    tags: ["dhcp", "vlan", "apipa", "diagnose"],
                 },
                 {
                     id: "hs1-cb",
@@ -81,6 +128,7 @@ Erklären Sie die Ursache für die angezeigte IP-Adresse.`,
                     type: "freeText",
                     points: 2,
                     hint: "Wie können Broadcasts über VLAN-Grenzen hinweg weitergeleitet werden?",
+                    tags: ["dhcp", "vlan", "relay"],
                 },
                 {
                     id: "hs1-da",
@@ -102,6 +150,7 @@ Ergänzen Sie die Default-Route mit:
                     type: "freeText",
                     points: 3,
                     hint: "Welche Route fängt alle Pakete auf, die nicht explizit geroutet werden können?",
+                    tags: ["routing", "default-route", "internet"],
                 },
                 {
                     id: "hs1-db",
@@ -120,6 +169,7 @@ Analysieren Sie das Problem und beschreiben Sie die Lösung.`,
                     type: "freeText",
                     points: 4,
                     hint: "Vergleichen Sie die vorhandenen Routen mit allen VLANs. Kann die Antwort zurück zum Absender finden?",
+                    tags: ["routing", "dmz", "diagnose"],
                 },
                 {
                     id: "hs1-e",
@@ -140,6 +190,7 @@ Erläutern Sie jede Regel (1-5 und 99) mit eigenen Worten. Nennen Sie bei den Re
                     type: "freeText",
                     points: 7,
                     hint: "Welche Dienste nutzen diese Standard-Ports? Was bedeutet die letzte Regel für nicht aufgeführte Verbindungen?",
+                    tags: ["firewall", "ports", "protokolle"],
                 },
             ],
         },
@@ -157,6 +208,7 @@ Erklären Sie den Unterschied zwischen dem Infrastruktur-Modus und dem Ad-hoc-Mo
                     type: "freeText",
                     points: 3,
                     hint: "Welche Rolle spielt der Access Point bei den beiden Modi?",
+                    tags: ["wlan", "infrastruktur", "ad-hoc", "theorie"],
                 },
                 {
                     id: "hs2-b",
@@ -167,6 +219,7 @@ RADIUS implementiert das AAA-Prinzip. Nennen Sie die drei Komponenten, für die 
                     type: "freeText",
                     points: 3,
                     hint: "AAA beschreibt drei zentrale Sicherheitsfunktionen: Wer bist du? Was darfst du? Was hast du getan?",
+                    tags: ["radius", "aaa", "authentifizierung", "wlan"],
                 },
                 {
                     id: "hs2-c",
@@ -177,6 +230,7 @@ Bewerten Sie diesen Vorschlag und begründen Sie Ihre Einschätzung.`,
                     type: "freeText",
                     points: 3,
                     hint: "Wird die SSID wirklich komplett versteckt? Was passiert bei der Verbindungsaufnahme?",
+                    tags: ["wlan", "ssid", "sicherheit"],
                 },
                 {
                     id: "hs2-d",
@@ -203,6 +257,7 @@ Verfügbare Geräte:
                     type: "freeText",
                     points: 7,
                     hint: "Welches Gerät möchte Zugang, welches kontrolliert und welches entscheidet? Welches Protokoll wird zwischen AP und RADIUS verwendet?",
+                    tags: ["802.1x", "radius", "authentifizierung", "wlan"],
                 },
                 {
                     id: "hs2-ea",
@@ -213,6 +268,7 @@ Nennen Sie vier mögliche Ursachen, die den WLAN-Empfang negativ beeinflussen k�
                     type: "freeText",
                     points: 4,
                     hint: "Denken Sie an bauliche, elektronische und funktechnische Störquellen.",
+                    tags: ["wlan", "störquellen", "empfang"],
                 },
                 {
                     id: "hs2-eb",
@@ -221,6 +277,7 @@ Nennen Sie vier mögliche Ursachen, die den WLAN-Empfang negativ beeinflussen k�
                     type: "freeText",
                     points: 3,
                     hint: "Welche Hardware-Lösungen und Konfigurationsänderungen könnten helfen?",
+                    tags: ["wlan", "optimierung", "empfang"],
                 },
                 {
                     id: "hs2-ec",
@@ -234,6 +291,7 @@ Beschreiben Sie, wo Sie einen WLAN-Repeater oder zusätzlichen Access Point posi
                     type: "freeText",
                     points: 2,
                     hint: "Ein Repeater benötigt selbst ein gutes Signal. Wo ist der beste Kompromiss?",
+                    tags: ["wlan", "repeater", "topologie"],
                 },
             ],
         },
@@ -279,6 +337,7 @@ Berücksichtigen Sie:
                     type: "code",
                     points: 14,
                     hint: "Verwenden Sie eine Schleife über alle Zeilen. Was passiert bei Namenskollisionen (z.B. zwei Max Müller)?",
+                    tags: ["active-directory", "scripting", "pseudocode", "automatisierung"],
                 },
                 {
                     id: "hs3-b",
@@ -287,6 +346,7 @@ Berücksichtigen Sie:
                     type: "freeText",
                     points: 4,
                     hint: "Denken Sie an Kompatibilität, internationale Tastaturen und technische Standards.",
+                    tags: ["active-directory", "benutzernamen", "umlaute"],
                 },
                 {
                     id: "hs3-c",
@@ -297,6 +357,7 @@ Erläutern Sie vier Vorteile dieser Gruppenstruktur für die Administration.`,
                     type: "freeText",
                     points: 4,
                     hint: "Vergleichen Sie: Rechte pro Benutzer vs. Rechte pro Gruppe. Was passiert bei Abteilungswechsel?",
+                    tags: ["active-directory", "sicherheitsgruppen", "berechtigungen"],
                 },
                 {
                     id: "hs3-d",
@@ -307,6 +368,7 @@ Nennen Sie drei sinnvolle Regeln für sichere Passwörter und begründen Sie die
                     type: "freeText",
                     points: 3,
                     hint: "Welche Faktoren machen ein Passwort schwer zu erraten oder zu knacken?",
+                    tags: ["active-directory", "passwort", "sicherheit", "richtlinien"],
                 },
             ],
         },
@@ -342,6 +404,7 @@ Personell: Security-Awareness-Training
                     type: "freeText",
                     points: 8,
                     hint: "Überlegen Sie für jede Kategorie: Welche anderen Bedrohungen gibt es und wie schützt man sich davor?",
+                    tags: ["it-sicherheit", "schutzmaßnahmen", "kategorien"],
                 },
                 {
                     id: "hs4-b",
@@ -352,6 +415,7 @@ Nennen Sie fünf Aspekte, die Sie bei Planung und Durchführung berücksichtigen
                     type: "freeText",
                     points: 5,
                     hint: "Denken Sie an Zielgruppe, Inhalte, Format, Materialien und Erfolgskontrolle.",
+                    tags: ["datenschutz", "dsgvo", "schulung"],
                 },
                 {
                     id: "hs4-c",
@@ -370,6 +434,7 @@ Hinweis: Rechnen Sie mit 1 VA = 1 W. Geben Sie den Rechenweg an.`,
                     type: "freeText",
                     points: 6,
                     hint: "Berechnen Sie zuerst die Gesamtkapazität in Wh, dann den Energiebedarf für den Shutdown.",
+                    tags: ["usv", "berechnung", "stromversorgung"],
                 },
                 {
                     id: "hs4-da",
@@ -380,6 +445,7 @@ Erklären Sie, warum Snapshots allein keine vollwertige Backup-Strategie darstel
                     type: "freeText",
                     points: 2,
                     hint: "Wo wird ein Snapshot gespeichert? Was passiert bei einem Hardware-Defekt des Storage-Systems?",
+                    tags: ["backup", "snapshot", "datensicherung"],
                 },
                 {
                     id: "hs4-db",
@@ -390,6 +456,7 @@ Erläutern Sie die Vorteile dieser kombinierten Strategie.`,
                     type: "freeText",
                     points: 4,
                     hint: "Welche Vorteile bietet der Snapshot während des Backups? Was erreicht man durch die räumliche Trennung?",
+                    tags: ["backup", "snapshot", "strategie", "datensicherung"],
                 },
             ],
         },
@@ -421,6 +488,7 @@ Der Rechenweg ist anzugeben.`,
                     type: "freeText",
                     points: 4,
                     hint: "Wie viel Prozent der Bruttokapazität steht bei RAID-10 als Nettokapazität zur Verfügung?",
+                    tags: ["raid", "raid-10", "berechnung", "kosten"],
                 },
                 {
                     id: "hs5-ab",
@@ -434,6 +502,7 @@ Der Rechenweg ist anzugeben.`,
                     type: "freeText",
                     points: 4,
                     hint: "Bei RAID-6 gehen zwei Festplatten für Parität verloren. Wie groß muss jede Festplatte sein?",
+                    tags: ["raid", "raid-6", "berechnung", "kosten"],
                 },
                 {
                     id: "hs5-b",
@@ -444,6 +513,7 @@ Nennen Sie zwei technische Maßnahmen, um den Energieverbrauch des NAS-Systems z
                     type: "freeText",
                     points: 4,
                     hint: "Was verbraucht bei einem NAS am meisten Strom? Wie kann man das bei seltenen Zugriffen optimieren?",
+                    tags: ["nas", "energieeffizienz", "storage"],
                 },
                 {
                     id: "hs5-c",
@@ -454,6 +524,7 @@ Erklären Sie das Prinzip der Datendeduplizierung und nennen Sie einen typischen
                     type: "freeText",
                     points: 5,
                     hint: "Wie werden identische Datenblöcke erkannt? Bei welchen Daten gibt es viele Duplikate?",
+                    tags: ["storage", "deduplizierung", "optimierung"],
                 },
                 {
                     id: "hs5-d",
@@ -478,6 +549,7 @@ Verwenden Sie diese vordefinierten Anweisungen:
                     type: "code",
                     points: 8,
                     hint: "Nutzen Sie verschachtelte Wenn-Dann-Bedingungen basierend auf dem Belegungswert.",
+                    tags: ["algorithmen", "pseudocode", "storage", "automatisierung"],
                 },
             ],
         },
