@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import DiagramTool from "@/app/components/DiagramTool/DiagramTool";
-import FillBlanksSQL from "@/app/components/FillBlanksSQL";
+import FillBlanks from "@/app/components/FillBlanks";
 import ExamTimer from "@/app/components/ExamTimer";
 import { Exam } from "@/data/exam-types";
 import SubmitExam from "@/app/components/SubmitExam";
@@ -597,8 +597,12 @@ export default function ExamContent({ exam }: ExamContentProps) {
                         value={answers[q.id] || ""}
                         onChange={val => updateAnswer(q.id, val)}
                       />
-                    ) : q.type === "fillBlanks" ? (
-                      <FillBlanksSQL questionId={q.id} />
+                    ) : q.type === "fillBlanks" && q.fillBlanks ? (
+                      <FillBlanks
+                        data={q.fillBlanks}
+                        value={answers[q.id] || ""}
+                        onChange={val => updateAnswer(q.id, val)}
+                      />
                     ) : q.type === "decisionMatrix" && q.matrix ? (
                       <DecisionMatrix
                         questionId={q.id}

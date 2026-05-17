@@ -399,6 +399,25 @@ Hinweise:
 - NOT EXISTS ist erfüllt, wenn die Unterabfrage KEINE Zeilen zurückgibt`,
                     type: "fillBlanks",
                     points: 7,
+                    fillBlanks: {
+                        language: "sql",
+                        template: `SELECT {{sel}}
+FROM {{fromTable}}
+WHERE Fahrzeug_Ladeplan.Fahrzeug_ID = 14
+  AND NOT EXISTS (
+      SELECT *
+      FROM {{innerFrom}}
+      WHERE {{where1}} = 521
+        AND {{where2}} = Fahrzeug_Ladeplan.Platz
+  )`,
+                        slots: [
+                            { name: "sel",        placeholder: "Spalte(n)",         width: "180px" },
+                            { name: "fromTable",  placeholder: "Tabelle",           width: "200px" },
+                            { name: "innerFrom",  placeholder: "Tabelle",           width: "180px" },
+                            { name: "where1",     placeholder: "Spalte",            width: "220px" },
+                            { name: "where2",     placeholder: "Spalte",            width: "180px" },
+                        ],
+                    },
                     hint: "NOT EXISTS prüft, ob die Unterabfrage keine Ergebnisse liefert. Welche Bedingung verknüpft die beiden Tabellen?",
                     tags: ["sql", "not-exists", "subquery"],
                 },

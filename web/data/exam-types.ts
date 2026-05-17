@@ -80,6 +80,9 @@ export interface Question {
 
     // Für type: "diagram"
     diagram?: DiagramData;
+
+    // Für type: "fillBlanks"
+    fillBlanks?: FillBlanksData;
     
 }
 
@@ -100,6 +103,23 @@ export interface DiagramData {
     mode: DiagramMode;
     allowImageUpload?: boolean;   // optional: zusätzlich Bild hochladen
     hintText?: string;            // optional: Hilfetext im Editor
+}
+
+// ============================================
+// LÜCKENTEXT (für type: "fillBlanks")
+// ============================================
+// Template mit {{slotName}} Markern. Whitespace/Newlines werden 1:1 gerendert
+// (monospace, ideal für Code/SQL/Pseudocode).
+export interface FillBlanksSlot {
+    name: string;            // muss zu einem {{name}} im Template passen
+    placeholder?: string;    // Anzeige wenn leer
+    width?: string;          // CSS width, z.B. "180px" oder "100%"
+}
+
+export interface FillBlanksData {
+    template: string;                // Code-Vorlage mit {{slotName}} Markern
+    slots: FillBlanksSlot[];         // Definition aller Lücken
+    language?: string;               // optional: "sql", "bash", ... (für späteres Highlighting)
 }
 
 // ============================================

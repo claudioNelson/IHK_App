@@ -12,6 +12,14 @@ export default function ExamTimer({ durationMinutes, onTimeUp }: ExamTimerProps)
   const [isRunning, setIsRunning] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
 
+  // Reset timeLeft wenn durationMinutes sich ändert (z.B. andere Prüfung)
+  // Nur wenn Timer noch nicht gestartet wurde, sonst würde laufender Timer überschrieben
+  useEffect(() => {
+    if (!hasStarted) {
+      setTimeLeft(durationMinutes * 60);
+    }
+  }, [durationMinutes, hasStarted]);
+
   useEffect(() => {
     if (!isRunning || timeLeft <= 0) return;
 
