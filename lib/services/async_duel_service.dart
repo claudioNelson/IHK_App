@@ -234,6 +234,27 @@ class AsyncDuelService {
     return scores;
   }
 
+  /// Lädt für mehrere Matches, wie viele Fragen ICH schon beantwortet habe.
+  /// Returns: { matchId: anzahlAntworten }
+  Future<Map<String, int>> getMyAnswerCounts(List<String> matchIds) async {
+    if (matchIds.isEmpty) return {};
+    final userId = c.auth.currentUser?.id;
+    if (userId == null) return {};
+
+    final result = await c
+        .from('match_answers')
+        .select('match_id')
+        .eq('user_id', userId)
+        .in_('match_id', matchIds);
+
+    final Map<String, int> counts = {};
+    for (final row in result) {
+      final mid = row['match_id'] as String;
+      counts[mid] = (counts[mid] ?? 0) + 1;
+    }
+    return counts;
+  }
+
   /// Lädt gemeinsame Matches mit einem Spieler
   Future<List<Map<String, dynamic>>> getMatchesWithPlayer(String oderId) async {
     final userId = c.auth.currentUser?.id;

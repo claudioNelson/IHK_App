@@ -2,10 +2,56 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LandingPage() {
   const [isDark, setIsDark] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
+
+  // Auth-State laden + auf Änderungen reagieren
+  useEffect(() => {
+    let mounted = true;
+
+    const loadUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!mounted) return;
+      if (user) {
+        const name = (user.user_metadata?.username as string) ?? user.email ?? "User";
+        setUsername(name);
+      } else {
+        setUsername(null);
+      }
+      setAuthLoaded(true);
+    };
+
+    loadUser();
+
+    // Auf Auth-Änderungen reagieren (Login/Logout in anderem Tab)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      if (session?.user) {
+        const name = (session.user.user_metadata?.username as string) ?? session.user.email ?? "User";
+        setUsername(name);
+      } else {
+        setUsername(null);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.refresh();
+  };
   const [activeDemo, setActiveDemo] = useState(0);
   const [adaInput, setAdaInput] = useState("");
   const [adaMessages, setAdaMessages] = useState([
@@ -1209,12 +1255,29 @@ export default function LandingPage() {
             >
               {isDark ? "☀" : "☾"}
             </button>
-            <Link href="/login" style={{ color: t.textMid, fontSize: 14, textDecoration: "none", fontWeight: 500 }}>
-              Login
-            </Link>
-            <Link href="/register" className="nav-cta">
-              Starten
-            </Link>
+            {authLoaded && (username ? (
+              <>
+                <span style={{ color: t.textMid, fontSize: 14, fontWeight: 500 }}>
+                  {username}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="nav-cta"
+                  style={{ cursor: "pointer", border: "none" }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" style={{ color: t.textMid, fontSize: 14, textDecoration: "none", fontWeight: 500 }}>
+                  Login
+                </Link>
+                <Link href="/signup" className="nav-cta">
+                  Starten
+                </Link>
+              </>
+            ))}
           </div>
         </div>
       </nav>

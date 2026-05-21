@@ -42,19 +42,54 @@ class DeepLinkService {
   }
 
   Future<void> _handleUri(Uri uri) async {
-    // Nur Links zu unserer Domain bearbeiten
-    if (uri.host != 'lernarena.app') {
-      print('⚠️ Fremde Domain ignoriert: ${uri.host}');
+    // Erlaubte Links:
+    // - https://lernarena.app/... (App Links - für später)
+    // - app.lernarena://...        (Custom Scheme - aktuell)
+    final isHttpsLink = uri.scheme == 'https' && uri.host == 'lernarena.app';
+    final isCustomScheme = uri.scheme == 'app.lernarena';
+
+    if (!isHttpsLink && !isCustomScheme) {
+      print('⚠️ Fremder Link ignoriert: $uri');
       return;
     }
 
-    // Supabase Auth-Links enthalten Token im Query oder im Fragment.
-    // Wir geben einfach den ganzen Link an Supabase weiter — die SDK parst selbst.
+    // Token aus URL extrahieren
+    final tokenHash = uri.queryParameters['token_hash'];
+    final type = uri.queryParameters['type'];
+
+    if (tokenHash == null || type == null) {
+      print('⚠️ Kein token_hash oder type in URL gefunden');
+      return;
+    }
+
+    print('🔑 Verifiziere Token (type: $type)');
+
     try {
-      await Supabase.instance.client.auth.getSessionFromUrl(uri);
-      print('✅ Session aus Link erstellt');
+      // OTP-Token verifizieren → erstellt Session automatisch
+      await Supabase.instance.client.auth.verifyOTP(
+        token: tokenHash,
+        type: _parseOtpType(type),
+      );
+      print('✅ Session erfolgreich erstellt - User ist eingeloggt!');
     } catch (e) {
-      print('❌ Session aus Link konnte nicht erstellt werden: $e');
+      print('❌ Verifizierung fehlgeschlagen: $e');
+    }
+  }
+
+  OtpType _parseOtpType(String type) {
+    switch (type) {
+      case 'signup':
+        return OtpType.signup;
+      case 'recovery':
+        return OtpType.recovery;
+      case 'email_change':
+        return OtpType.emailChange;
+      case 'invite':
+        return OtpType.invite;
+      case 'magiclink':
+        return OtpType.magiclink;
+      default:
+        return OtpType.signup;
     }
   }
 

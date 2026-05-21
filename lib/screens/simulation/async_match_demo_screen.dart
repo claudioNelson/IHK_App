@@ -27,6 +27,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   bool _historyExpanded = false;
   Map<String, Map<String, dynamic>> _matchScores = {};
   List<Map<String, dynamic>> _openMatches = [];
+  Map<String, int> _myAnswerCounts = {};
 
   String get _userId =>
       Supabase.instance.client.auth.currentUser?.id ?? 'local';
@@ -40,8 +41,23 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       _historyMatches = List.from(cacheService.cachedHistoryMatches);
       _myStats = cacheService.cachedMyStats;
       _matchScores = Map.from(cacheService.cachedMatchScores);
+      // Antwort-Counts sind nicht im Cache → einmalig nachladen
+      _loadAnswerCountsOnly();
     } else {
       _loadData();
+    }
+  }
+
+  /// Lädt nur die Antwort-Counts (für Badge-Anzeige), wenn Rest aus Cache kommt.
+  Future<void> _loadAnswerCountsOnly() async {
+    if (_activeMatches.isEmpty) return;
+    try {
+      final activeIds = _activeMatches.map((m) => m['id'] as String).toList();
+      final counts = await _svc.getMyAnswerCounts(activeIds);
+      if (!mounted) return;
+      setState(() => _myAnswerCounts = counts);
+    } catch (e) {
+      debugPrint('❌ Fehler beim Laden der Antwort-Counts: $e');
     }
   }
 
@@ -64,12 +80,15 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       }
       final historyIds = history.map((m) => m['id'] as String).toList();
       final scores = await _svc.getMatchScores(historyIds);
+      final activeIds = active.map((m) => m['id'] as String).toList();
+      final answerCounts = await _svc.getMyAnswerCounts(activeIds);
       if (!mounted) return;
       setState(() {
         _activeMatches = active;
         _historyMatches = history;
         _myStats = stats;
         _matchScores = scores;
+        _myAnswerCounts = answerCounts; // ← NEU
       });
     } catch (e) {
       debugPrint('❌ Fehler: $e');
@@ -938,9 +957,14 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   }) {
     final matchId = match['id'] as String;
     final status = match['status'] as String;
-    final questions = match['total_questions'] ?? 10;
+    final questions = (match['total_questions'] ?? 10) as int;
     final createdAt = match['created_at'] as String?;
     final canPlay = status == 'active' || status == 'open';
+
+    // Hinweis: noch nicht alle Fragen beantwortet
+    final myAnswers = _myAnswerCounts[matchId] ?? 0;
+    final remaining = questions - myAnswers;
+    final showRemainingBadge = !isHistory && remaining > 0 && myAnswers > 0;
 
     bool? didWin;
     int? myScore;
@@ -1024,6 +1048,32 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                               ],
                             ),
                           ),
+                        // NEU: Badge wenn noch Fragen offen
+                        if (showRemainingBadge) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: AppColors.warning.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Text(
+                              'NOCH $remaining ${remaining == 1 ? 'FRAGE' : 'FRAGEN'}',
+                              style: AppTextStyles.mono(
+                                size: 9,
+                                color: AppColors.warning,
+                                weight: FontWeight.w700,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 4),
