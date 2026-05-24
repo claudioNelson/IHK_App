@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useSubscription } from "@/lib/hooks/useSubscription";
 
 export default function LandingPage() {
   const [isDark, setIsDark] = useState(true);
@@ -12,6 +13,7 @@ export default function LandingPage() {
   const [authLoaded, setAuthLoaded] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+  const subscription = useSubscription();
 
   // Auth-State laden + auf Änderungen reagieren
   useEffect(() => {
@@ -1260,6 +1262,24 @@ export default function LandingPage() {
                 <span style={{ color: t.textMid, fontSize: 14, fontWeight: 500 }}>
                   {username}
                 </span>
+                {subscription.loaded && subscription.isPremium && (
+                  <span
+                    style={{
+                      background: "linear-gradient(135deg, #7C6DFF, #22D3EE)",
+                      color: "#FFFFFF",
+                      fontSize: 11,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontWeight: 600,
+                      padding: "3px 8px",
+                      borderRadius: 6,
+                      letterSpacing: 0.5,
+                      textTransform: "uppercase",
+                    }}
+                    title={subscription.expiryLabel}
+                  >
+                    Premium
+                  </span>
+                )}
                 <button
                   onClick={handleLogout}
                   className="nav-cta"

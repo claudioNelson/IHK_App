@@ -2,12 +2,35 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { examList } from "@/data/exams";
 import { Exam } from "@/data/exam-types";
+import { createClient } from "@/lib/supabase/client";
+import { useSubscription } from "@/lib/hooks/useSubscription";
 
 export default function PruefungenPage() {
   const [isDark, setIsDark] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoaded, setAuthLoaded] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
+  const subscription = useSubscription();
+
+  useEffect(() => {
+    const loadAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+      setAuthLoaded(true);
+    };
+    loadAuth();
+
+    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session?.user);
+    });
+
+    return () => authSub.unsubscribe();
+  }, [supabase]);
 
   useEffect(() => {
     setMounted(true);
@@ -41,6 +64,21 @@ export default function PruefungenPage() {
     grain: isDark
       ? "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E\")"
       : "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E\")",
+  };
+
+  // Access-Logik: Prüfung gesperrt wenn nicht eingeloggt ODER nicht Premium
+  const isLocked = !authLoaded || !isAuthenticated || !subscription.isPremium;
+  const handleExamClick = (examId: string) => {
+    if (!authLoaded) return; // noch lädt
+    if (!isAuthenticated) {
+      router.push(`/login?next=/pruefung/${examId}`);
+      return;
+    }
+    if (!subscription.isPremium) {
+      router.push(`/upgrade?next=/pruefung/${examId}`);
+      return;
+    }
+    router.push(`/pruefung/${examId}`);
   };
 
   if (!mounted) {
@@ -285,6 +323,52 @@ export default function PruefungenPage() {
         }
         .exam-card:hover::before { opacity: 1; }
 
+        .exam-card.locked {
+          cursor: pointer;
+        }
+        .exam-card.locked .exam-card-inner {
+          filter: blur(2px) opacity(0.55);
+          transition: filter 0.2s;
+          pointer-events: none;
+        }
+        .exam-card.locked:hover .exam-card-inner {
+          filter: blur(3px) opacity(0.4);
+        }
+        .lock-overlay {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          z-index: 2;
+          background: ${isDark ? "rgba(18,18,28,0.35)" : "rgba(255,255,255,0.35)"};
+          backdrop-filter: blur(1px);
+          border-radius: 14px;
+          transition: background 0.2s;
+        }
+        .exam-card.locked:hover .lock-overlay {
+          background: ${isDark ? "rgba(18,18,28,0.55)" : "rgba(255,255,255,0.55)"};
+        }
+        .lock-icon {
+          width: 44px; height: 44px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, ${t.accent}, ${t.accent2});
+          display: flex; align-items: center; justify-content: center;
+          color: #FFFFFF;
+          font-size: 20px;
+          box-shadow: 0 8px 24px ${t.accent}40;
+        }
+        .lock-label {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 1px;
+          color: ${t.text};
+          text-transform: uppercase;
+        }
+
         .exam-badges-row {
           display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
         }
@@ -446,7 +530,7 @@ export default function PruefungenPage() {
             </div>
             <div className="exams-grid">
               {ap1Exams.map((exam) => (
-                <ExamCard key={exam.id} exam={exam} theme={t} />
+                <ExamCard key={exam.id} exam={exam} theme={t} isLocked={isLocked} onClick={handleExamClick} />
               ))}
             </div>
           </>
@@ -474,7 +558,7 @@ export default function PruefungenPage() {
                 </div>
                 <div className="exams-grid">
                   {ap2AeExams.map((exam) => (
-                    <ExamCard key={exam.id} exam={exam} theme={t} />
+                    <ExamCard key={exam.id} exam={exam} theme={t} isLocked={isLocked} onClick={handleExamClick} />
                   ))}
                 </div>
               </>
@@ -491,7 +575,7 @@ export default function PruefungenPage() {
                 </div>
                 <div className="exams-grid">
                   {ap2SiExams.map((exam) => (
-                    <ExamCard key={exam.id} exam={exam} theme={t} />
+                    <ExamCard key={exam.id} exam={exam} theme={t} isLocked={isLocked} onClick={handleExamClick} />
                   ))}
                 </div>
               </>
@@ -515,10 +599,21 @@ export default function PruefungenPage() {
 // ============================================
 // EXAM CARD KOMPONENTE
 // ============================================
-function ExamCard({ exam, theme }: { exam: Exam; theme: { textMid: string } }) {
+function ExamCard({
+  exam,
+  theme,
+  isLocked,
+  onClick,
+}: {
+  exam: Exam;
+  theme: { textMid: string };
+  isLocked: boolean;
+  onClick: (id: string) => void;
+}) {
   const fach = exam.fachrichtung || "shared";
-  return (
-    <Link href={`/pruefung/${exam.id}`} className="exam-card">
+
+  const inner = (
+    <div className="exam-card-inner">
       <div className="exam-badges-row">
         <span className={`exam-badge fach ${fach}`}>
           {fach === "ae" ? "AE" : fach === "si" ? "SI" : "ALLE"}
@@ -539,6 +634,24 @@ function ExamCard({ exam, theme }: { exam: Exam; theme: { textMid: string } }) {
         </div>
         <span className="exam-arrow">→</span>
       </div>
+    </div>
+  );
+
+  if (isLocked) {
+    return (
+      <div className="exam-card locked" onClick={() => onClick(exam.id)} role="button" tabIndex={0}>
+        {inner}
+        <div className="lock-overlay">
+          <div className="lock-icon">🔒</div>
+          <div className="lock-label">Premium</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Link href={`/pruefung/${exam.id}`} className="exam-card">
+      {inner}
     </Link>
   );
 }
