@@ -14,14 +14,14 @@ const sections = [
         <p>Verantwortlicher im Sinne der DSGVO ist:</p>
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-1">
           {/* ⚠️ PLATZHALTER – nach Gewerbeanmeldung ausfüllen */}
-          <p className="font-medium">[Vor- und Nachname]</p>
-          <p>[Straße und Hausnummer]</p>
-          <p>[PLZ] [Stadt]</p>
+          <p className="font-medium">[Claudio Medeiros Magalhaes]</p>
+          <p>[Westfalenweg 3]</p>
+          <p>[49504] [Lotte]</p>
           <p>Deutschland</p>
           <p className="pt-1">
             E-Mail:{" "}
             <a href="mailto:[E-MAIL]" className="text-blue-700 hover:underline">
-              [E-MAIL@DOMAIN.DE]
+              [info@lernarena.app]
             </a>
           </p>
         </div>
@@ -240,7 +240,7 @@ const sections = [
           Zur Ausübung deiner Rechte wende dich per E-Mail an:{" "}
           <a href="mailto:[E-MAIL]" className="text-blue-700 hover:underline">
             {/* ⚠️ PLATZHALTER */}
-            [E-MAIL@DOMAIN.DE]
+            [info@lernarena.app]
           </a>
         </p>
         <p>

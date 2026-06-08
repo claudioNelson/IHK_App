@@ -37,9 +37,9 @@ export default function ImpressumPage() {
           </h2>
           <div className="text-gray-700 space-y-1">
             {/* ⚠️ PLATZHALTER – bitte nach Gewerbeanmeldung ausfüllen */}
-            <p className="font-medium">[Vor- und Nachname]</p>
-            <p>[Straße und Hausnummer]</p>
-            <p>[PLZ] [Stadt]</p>
+            <p className="font-medium">[Claudio Medeiros Maglahaes]</p>
+            <p>[Westfalenweg 3]</p>
+            <p>[49504] [LOtte]</p>
             <p>Deutschland</p>
           </div>
         </section>
@@ -52,10 +52,10 @@ export default function ImpressumPage() {
             <p>
               <span className="text-gray-500 w-32 inline-block">E-Mail:</span>
               <a
-                href="mailto:[E-MAIL@DOMAIN.DE]"
+                href="mailto:[info@lernarena.app]"
                 className="text-blue-700 hover:underline"
               >
-                [E-MAIL@DOMAIN.DE]
+                [info@lernarena.app]
               </a>
             </p>
           </div>
@@ -76,7 +76,7 @@ export default function ImpressumPage() {
               <span className="text-gray-500 w-48 inline-block">
                 Steuernummer:
               </span>
-              [STEUERNUMMER]
+              [70712895461]
             </p>
             {/*
               Sobald du eine Umsatzsteuer-ID hast (kommt per Post vom Bundeszentralamt),
