@@ -17,12 +17,12 @@ const sections = [
         </p>
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-1">
           {/* ⚠️ PLATZHALTER – nach Gewerbeanmeldung ausfüllen */}
-          <p className="font-medium">[Claudio Medeiros Magalhaes]</p>
-          <p>[Westfalenweg 3], [49504] [Lotte]</p>
+          <p className="font-medium">Claudio Medeiros Magalhaes</p>
+          <p>Westfalenweg 3, 49504 Lotte</p>
           <p>
             E-Mail:{" "}
             <a href="mailto:[E-MAIL]" className="text-blue-700 hover:underline">
-              [info@lernarena.app]
+              info@lernarena.app
             </a>
           </p>
           <p className="text-gray-500 text-xs pt-1">(nachfolgend „Anbieter")</p>
@@ -177,7 +177,7 @@ const sections = [
             Widerruf per E-Mail an:{" "}
             <a href="mailto:[E-MAIL]" className="text-blue-700 hover:underline">
               {/* ⚠️ PLATZHALTER */}
-              [info@lernarena.app]
+              info@lernarena.app
             </a>
           </p>
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-3">

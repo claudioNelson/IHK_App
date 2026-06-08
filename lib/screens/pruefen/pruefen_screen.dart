@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/ihk_exam_model.dart';
 import '../../data/exams/ae-1.dart';
 import '../../data/exams/ae-2.dart';
@@ -65,7 +66,8 @@ class _PruefenScreenState extends State<PruefenScreen>
       final data = await supabase
           .from('zertifikate')
           .select(
-              'id, name, anbieter, anzahl_fragen, pruefungsdauer, mindest_punktzahl')
+            'id, name, anbieter, anzahl_fragen, pruefungsdauer, mindest_punktzahl',
+          )
           .order('anbieter');
 
       final userId = supabase.auth.currentUser?.id;
@@ -148,11 +150,7 @@ class _PruefenScreenState extends State<PruefenScreen>
                 children: [
                   Row(
                     children: [
-                      Container(
-                        width: 16,
-                        height: 1,
-                        color: AppColors.accent,
-                      ),
+                      Container(width: 16, height: 1, color: AppColors.accent),
                       const SizedBox(width: 10),
                       Text(
                         'PRÜFEN',
@@ -270,12 +268,9 @@ class _PruefenScreenState extends State<PruefenScreen>
             ),
             const SizedBox(width: 6),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
-                color: isActive
-                    ? AppColors.accent
-                    : textDim.withOpacity(0.15),
+                color: isActive ? AppColors.accent : textDim.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -295,12 +290,44 @@ class _PruefenScreenState extends State<PruefenScreen>
   }
 
   // ─── IHK LIST ─────────────────────────────────────────
-  Widget _buildIhkList(Color surface, Color border, Color text, Color textMid,
-      Color textDim) {
+  Widget _buildIhkList(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
       physics: const BouncingScrollPhysics(),
       children: [
+        // Info-Box: Prüfungen laufen im Browser
+        Container(
+          padding: const EdgeInsets.all(14),
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: AppColors.accent.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.open_in_new_rounded,
+                color: AppColors.accent,
+                size: 16,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'IHK-Prüfungen bearbeitest du in der Web-Version. Diagramme, SQL und lange Texte gehen am Laptop einfach besser. Tippe auf eine Prüfung — sie öffnet sich im Browser.',
+                  style: AppTextStyles.bodySmall(text),
+                ),
+              ),
+            ],
+          ),
+        ),
         if (_aeExams.isNotEmpty) ...[
           _buildCategoryHeader(
             tag: 'AE',
@@ -312,16 +339,18 @@ class _PruefenScreenState extends State<PruefenScreen>
             text: text,
           ),
           const SizedBox(height: 12),
-          ..._aeExams.map((exam) => _buildIhkCard(
-                exam: exam,
-                category: 'AE',
-                categoryColor: const Color(0xFF60A5FA),
-                surface: surface,
-                border: border,
-                text: text,
-                textMid: textMid,
-                textDim: textDim,
-              )),
+          ..._aeExams.map(
+            (exam) => _buildIhkCard(
+              exam: exam,
+              category: 'AE',
+              categoryColor: const Color(0xFF60A5FA),
+              surface: surface,
+              border: border,
+              text: text,
+              textMid: textMid,
+              textDim: textDim,
+            ),
+          ),
           const SizedBox(height: 28),
         ],
         if (_siExams.isNotEmpty) ...[
@@ -335,24 +364,31 @@ class _PruefenScreenState extends State<PruefenScreen>
             text: text,
           ),
           const SizedBox(height: 12),
-          ..._siExams.map((exam) => _buildIhkCard(
-                exam: exam,
-                category: 'SI',
-                categoryColor: const Color(0xFF34D399),
-                surface: surface,
-                border: border,
-                text: text,
-                textMid: textMid,
-                textDim: textDim,
-              )),
+          ..._siExams.map(
+            (exam) => _buildIhkCard(
+              exam: exam,
+              category: 'SI',
+              categoryColor: const Color(0xFF34D399),
+              surface: surface,
+              border: border,
+              text: text,
+              textMid: textMid,
+              textDim: textDim,
+            ),
+          ),
         ],
       ],
     );
   }
 
   // ─── CERT LIST ────────────────────────────────────────
-  Widget _buildCertList(Color surface, Color border, Color text, Color textMid,
-      Color textDim) {
+  Widget _buildCertList(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
     if (_loadingCerts) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.accent),
@@ -381,7 +417,8 @@ class _PruefenScreenState extends State<PruefenScreen>
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
         physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics()),
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         children: [
           // Info-Box
           Container(
@@ -395,8 +432,11 @@ class _PruefenScreenState extends State<PruefenScreen>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline_rounded,
-                    color: AppColors.accent, size: 16),
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: AppColors.accent,
+                  size: 16,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -482,13 +522,17 @@ class _PruefenScreenState extends State<PruefenScreen>
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => IHKPruefungDetailScreen(exam: exam),
-            ),
-          );
+        onTap: () async {
+          final uri = Uri.parse('https://lernarena.app/pruefungen');
+          if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Link konnte nicht geöffnet werden'),
+                ),
+              );
+            }
+          }
         },
         child: Container(
           padding: const EdgeInsets.all(18),
@@ -506,7 +550,9 @@ class _PruefenScreenState extends State<PruefenScreen>
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: categoryColor.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(4),
@@ -521,8 +567,11 @@ class _PruefenScreenState extends State<PruefenScreen>
                       ),
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded,
-                      color: textDim, size: 12),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: textDim,
+                    size: 12,
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -543,40 +592,54 @@ class _PruefenScreenState extends State<PruefenScreen>
               const SizedBox(height: 14),
 
               // Info Row (Icon + Text statt abstrakte Zahlen)
-Row(
-  children: [
-    _infoItem(Icons.schedule_rounded, '${exam.duration} Minuten',
-        textMid, textDim),
-    const SizedBox(width: 20),
-    _infoItem(Icons.check_circle_outline_rounded,
-        '${exam.totalPoints} Punkte', textMid, textDim),
-    const Spacer(),
-    // Starten-CTA
-    Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.accent,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Starten',
-            style: AppTextStyles.interTight(
-              size: 12,
-              weight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 4),
-          const Icon(Icons.arrow_forward_rounded,
-              color: Colors.white, size: 12),
-        ],
-      ),
-    ),
-  ],
-),
+              Row(
+                children: [
+                  _infoItem(
+                    Icons.schedule_rounded,
+                    '${exam.duration} Minuten',
+                    textMid,
+                    textDim,
+                  ),
+                  const SizedBox(width: 20),
+                  _infoItem(
+                    Icons.check_circle_outline_rounded,
+                    '${exam.totalPoints} Punkte',
+                    textMid,
+                    textDim,
+                  ),
+                  const Spacer(),
+                  // Starten-CTA
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Starten',
+                          style: AppTextStyles.interTight(
+                            size: 12,
+                            weight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 12,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -584,8 +647,13 @@ Row(
     );
   }
 
-  Widget _statBlock(String label, String value, String unit, Color valueColor,
-      Color textDim) {
+  Widget _statBlock(
+    String label,
+    String value,
+    String unit,
+    Color valueColor,
+    Color textDim,
+  ) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -617,18 +685,15 @@ Row(
   }
 
   Widget _infoItem(IconData icon, String label, Color color, Color iconColor) {
-  return Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icon, size: 14, color: iconColor),
-      const SizedBox(width: 6),
-      Text(
-        label,
-        style: AppTextStyles.bodySmall(color),
-      ),
-    ],
-  );
-}
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: iconColor),
+        const SizedBox(width: 6),
+        Text(label, style: AppTextStyles.bodySmall(color)),
+      ],
+    );
+  }
 
   // ─── CERT CARD ────────────────────────────────────────
   Widget _buildCertCard({
@@ -670,21 +735,14 @@ Row(
             color: surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: passed
-                  ? AppColors.success.withOpacity(0.4)
-                  : border,
+              color: passed ? AppColors.success.withOpacity(0.4) : border,
             ),
             // Top-Accent-Line je Vendor
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               stops: const [0.0, 0.02, 0.02, 1.0],
-              colors: [
-                vendorColor,
-                vendorColor,
-                surface,
-                surface,
-              ],
+              colors: [vendorColor, vendorColor, surface, surface],
             ),
           ),
           child: Column(
@@ -696,7 +754,9 @@ Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: vendorColor.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(4),
@@ -714,7 +774,9 @@ Row(
                   if (passed)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.success.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(4),
@@ -722,8 +784,11 @@ Row(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.verified_rounded,
-                              size: 12, color: AppColors.success),
+                          Icon(
+                            Icons.verified_rounded,
+                            size: 12,
+                            color: AppColors.success,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'BESTANDEN',
@@ -738,8 +803,11 @@ Row(
                       ),
                     )
                   else
-                    Icon(Icons.arrow_forward_ios_rounded,
-                        color: textDim, size: 12),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: textDim,
+                      size: 12,
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -750,26 +818,41 @@ Row(
 
               // Stats
               // Info Row
-Row(
-  children: [
-    _infoItem(Icons.quiz_outlined,
-        '${cert['anzahl_fragen'] ?? 0} Fragen', textMid, textDim),
-    const SizedBox(width: 16),
-    _infoItem(Icons.schedule_rounded,
-        '${cert['pruefungsdauer'] ?? '–'} Min', textMid, textDim),
-    const SizedBox(width: 16),
-    _infoItem(Icons.flag_outlined,
-        'Min. ${cert['mindest_punktzahl'] ?? '–'}%', textMid, textDim),
-  ],
-),
+              Row(
+                children: [
+                  _infoItem(
+                    Icons.quiz_outlined,
+                    '${cert['anzahl_fragen'] ?? 0} Fragen',
+                    textMid,
+                    textDim,
+                  ),
+                  const SizedBox(width: 16),
+                  _infoItem(
+                    Icons.schedule_rounded,
+                    '${cert['pruefungsdauer'] ?? '–'} Min',
+                    textMid,
+                    textDim,
+                  ),
+                  const SizedBox(width: 16),
+                  _infoItem(
+                    Icons.flag_outlined,
+                    'Min. ${cert['mindest_punktzahl'] ?? '–'}%',
+                    textMid,
+                    textDim,
+                  ),
+                ],
+              ),
 
               // Best Score (wenn vorhanden)
               if (result != null) ...[
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Icon(Icons.trending_up_rounded,
-                        size: 14, color: AppColors.accentCyan),
+                    Icon(
+                      Icons.trending_up_rounded,
+                      size: 14,
+                      color: AppColors.accentCyan,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'Bester Versuch: ${result['best_score']}% · ${result['attempts']}x versucht',

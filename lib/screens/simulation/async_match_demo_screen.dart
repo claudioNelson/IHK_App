@@ -967,6 +967,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     final showRemainingBadge = !isHistory && remaining > 0 && myAnswers > 0;
 
     bool? didWin;
+    bool? isDraw;
     int? myScore;
     int? opponentScore;
 
@@ -977,11 +978,14 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       opponentScore = isPlayer1
           ? score['player2_score']
           : score['player1_score'];
+      isDraw = myScore == opponentScore;
       didWin = myScore! > opponentScore!;
     }
 
     final resultColor = isHistory
-        ? (didWin == true ? AppColors.success : AppColors.error)
+        ? (isDraw == true
+              ? AppColors.warning
+              : (didWin == true ? AppColors.success : AppColors.error))
         : AppColors.accent;
 
     return Padding(
@@ -1101,7 +1105,9 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        didWin ? 'SIEG' : 'NIEDERL.',
+                        isDraw == true
+                            ? 'REMIS'
+                            : (didWin ? 'SIEG' : 'NIEDERL.'),
                         style: AppTextStyles.mono(
                           size: 9,
                           color: resultColor,
