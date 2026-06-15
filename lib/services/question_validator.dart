@@ -5,6 +5,7 @@ import 'telegram_service.dart';
 /// Validiert Fragen-Daten und meldet Probleme automatisch an Admin via Telegram.
 ///
 /// Läuft beim Laden von Fragen und prüft auf häufige Fehler:
+/// - Unbekannte Fragentypen (Whitelist-Check)
 /// - Leere Fragen (keine Antworten)
 /// - Keine richtige Antwort markiert
 /// - Alle Antworten richtig markiert
@@ -17,6 +18,22 @@ class QuestionValidator {
 
   final _telegram = TelegramService();
   final Set<String> _reportedIssues = {};
+
+  /// WHITELIST: Alle Fragentypen, die irgendwo in der App gerendert werden.
+  /// Wenn ein neuer Typ hier nicht steht → es kommt ein Bug-Report.
+  /// Beim Hinzufügen eines neuen Fragentyps: HIER ergänzen!
+  static const Set<String> _knownTypes = {
+    'multiple_choice',
+    'dns_port_match',
+    'freitext_ada',
+    'binary_calculation',
+    'raid_calculation',
+    'network_calculation',
+    'er_to_tables',
+    'fill_blank',
+    'sequence',
+    'lehr_karte', // Theorie-Slide (Levels), wird im Practice-Screen aktuell nicht gerendert
+  };
 
   Future<void> validateQuestions({
     required List<dynamic> questions,
@@ -48,6 +65,24 @@ class QuestionValidator {
     final questionType = q['question_type'] as String? ?? 'multiple_choice';
     final antworten = (q['antworten'] as List?) ?? [];
     final calculationData = q['calculation_data'] as Map<String, dynamic>?;
+
+    // ─── 0. UNBEKANNTER TYP ──────────────────────────────────────
+    // Höchste Priorität: wenn der Typ nicht in der Whitelist steht,
+    // wird er irgendwo nicht gerendert → sofort melden.
+    if (!_knownTypes.contains(questionType)) {
+      await _report(
+        issueKey: 'unknown_type_${questionType}_$frageId',
+        title: '🆕 Unbekannter Fragentyp',
+        problem:
+            'Typ "$questionType" ist nicht in der App-Whitelist – Frage wird evtl. nicht angezeigt',
+        frageId: frageId,
+        frageText: frageText,
+        contextName: contextName,
+        contextType: contextType,
+        questionType: questionType,
+      );
+      // Trotzdem weiter prüfen, vielleicht ist auch sonst was kaputt.
+    }
 
     // ─── 1. LEERE FRAGE (Multiple Choice ohne Antworten) ─────────
     if (questionType == 'multiple_choice' && antworten.isEmpty) {
@@ -255,6 +290,8 @@ class QuestionValidator {
         return 'Reihenfolge-Frage';
       case 'fill_blank':
         return 'Lückentext-Frage';
+      case 'lehr_karte':
+        return 'Lehrkarte';
       default:
         return 'Frage';
     }

@@ -310,6 +310,8 @@ class AppCacheService {
   }
 
   // Lädt Kernthemen mit Progress
+  // Module mit Levels (= Lernpfade) werden ausgeschlossen,
+  // damit sie nicht doppelt im Kernthemen-Bereich auftauchen.
   Future<void> preloadKernthemen() async {
     try {
       final userId = _client.auth.currentUser?.id;
@@ -317,14 +319,26 @@ class AppCacheService {
 
       print('📖 Lade Kernthemen...');
 
-      // Module laden
-      final modules = await _client
+      // 1. Module-IDs ermitteln, die Lernpfade sind (= Levels haben)
+      final levelRes = await _client.from('levels').select('modul_id');
+      final lernpfadIds = <int>{};
+      for (final row in levelRes as List) {
+        lernpfadIds.add(row['modul_id'] as int);
+      }
+
+      // 2. Kernthema-Module laden
+      final allModules = await _client
           .from('module')
           .select('id, name, beschreibung')
           .eq('kategorie', 'kernthema')
           .order('id');
 
-      // Progress für alle Module laden
+      // 3. Lernpfade rausfiltern
+      final modules = (allModules as List)
+          .where((m) => !lernpfadIds.contains(m['id'] as int))
+          .toList();
+
+      // 4. Progress für die verbleibenden Module laden
       final progressMap = <int, Map<String, dynamic>>{};
       final progressSvc = ProgressService();
 
@@ -338,7 +352,9 @@ class AppCacheService {
       cachedKernthemenProgress = progressMap;
       kernthemenLoaded = true;
 
-      print('✅ Kernthemen geladen: ${modules.length}');
+      print(
+        '✅ Kernthemen geladen: ${modules.length} (Lernpfade ausgefiltert: ${lernpfadIds.length})',
+      );
       print('📊 Progress geladen für IDs: ${progressMap.keys.toList()}');
     } catch (e) {
       print('❌ Fehler Kernthemen: $e');

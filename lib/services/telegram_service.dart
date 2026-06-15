@@ -1,37 +1,28 @@
 // lib/services/telegram_service.dart
+//
+// Service zum Senden von Admin-Benachrichtigungen via Telegram Bot.
+// Ruft dafür die Supabase Edge Function 'report-bug' auf.
+// Token + Chat-ID liegen NICHT in der App, sondern als Supabase Secrets.
+
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Service zum Senden von Admin-Benachrichtigungen via Telegram Bot.
 class TelegramService {
   static final TelegramService _instance = TelegramService._internal();
   factory TelegramService() => _instance;
   TelegramService._internal();
 
-  String? get _botToken => dotenv.env['TELEGRAM_BOT_TOKEN'];
-  String? get _chatId => dotenv.env['TELEGRAM_ADMIN_CHAT_ID'];
-
-  bool get _isConfigured =>
-      _botToken != null &&
-      _botToken!.isNotEmpty &&
-      _chatId != null &&
-      _chatId!.isNotEmpty;
-
+  /// Speichert IDs bereits gemeldeter Probleme, um Spam zu vermeiden.
   final Set<int> _reportedQuestionIds = {};
 
+  /// Meldet eine leere Frage an den Admin.
+  /// Pro frageId wird maximal EIN Report gesendet.
   Future<void> reportEmptyQuestion({
     required int frageId,
     required String frageText,
     String? modulName,
     String? questionType,
   }) async {
-    if (!_isConfigured) {
-      debugPrint('⚠️ Telegram nicht konfiguriert (Token/ChatID fehlt)');
-      return;
-    }
-
     if (_reportedQuestionIds.contains(frageId)) return;
     _reportedQuestionIds.add(frageId);
 
@@ -44,52 +35,52 @@ class TelegramService {
         '''
 🚨 <b>Leere Frage gefunden</b>
 
-📝 <b>Frage ID:</b> <code>$frageId</code>
-📚 <b>Modul:</b> ${_escapeHtml(modulName ?? '-')}
 🏷️ <b>Type:</b> ${_escapeHtml(questionType ?? '-')}
+📚 <b>Modul:</b> ${_escapeHtml(modulName ?? '-')}
 
 <b>Frage:</b>
 ${_escapeHtml(frageText)}
 
 👤 <b>User:</b> ${_escapeHtml(userEmail)}
 🆔 <b>User ID:</b> <code>$userIdShort...</code>
-
 ⏰ ${DateTime.now().toString().substring(0, 16)}
 ''';
 
     await _sendMessage(message);
   }
 
+  /// Sendet eine beliebige Notification an den Admin.
   Future<bool> sendNotification(String message) async {
-    if (!_isConfigured) return false;
     return await _sendMessage(message);
   }
 
+  /// Interner Send-Aufruf via Edge Function.
   Future<bool> _sendMessage(String message) async {
     try {
-      final url = Uri.parse(
-        'https://api.telegram.org/bot$_botToken/sendMessage',
-      );
-      final response = await http.post(
-        url,
-        body: {'chat_id': _chatId!, 'text': message, 'parse_mode': 'HTML'},
+      final response = await Supabase.instance.client.functions.invoke(
+        'report-bug',
+        body: {'message': message},
       );
 
-      if (response.statusCode == 200) {
-        debugPrint('✅ Telegram Nachricht gesendet');
+      // Supabase liefert bei 2xx automatisch response.data, bei 4xx/5xx
+      // wirft es eine FunctionException (kommt unten im catch an).
+      if (response.status == 200) {
+        debugPrint('✅ Telegram Nachricht gesendet (via Edge Function)');
         return true;
       } else {
-        debugPrint('❌ Telegram Fehler: ${response.statusCode}');
-        debugPrint('   Body: ${response.body}');
+        debugPrint(
+          '⚠️ Edge Function antwortete unerwartet: ${response.status} – ${response.data}',
+        );
         return false;
       }
     } catch (e) {
-      debugPrint('❌ Telegram Exception: $e');
+      // Wir wollen NICHT, dass eine fehlgeschlagene Bug-Meldung die App crasht.
+      // Loggen, schlucken, weitermachen.
+      debugPrint('❌ Telegram (Edge Function) Fehler: $e');
       return false;
     }
   }
 
-  /// HTML Escape für Telegram (verhindert Tag-Probleme bei < > &)
   String _escapeHtml(String text) {
     return text
         .replaceAll('&', '&amp;')
