@@ -9,6 +9,7 @@ import '../../theme/theme_provider.dart';
 import 'level_result_screen.dart';
 import 'level_ada_sheet.dart';
 import '../../widgets/levels/lehr_karte_renderer.dart';
+import '../../widgets/fill_in_blank_widget.dart';
 
 class LevelPlayScreen extends StatefulWidget {
   final Level level;
@@ -159,6 +160,16 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
 
   void _playSound(bool isCorrect) {
     _soundService.playSound(isCorrect ? SoundType.correct : SoundType.wrong);
+  }
+
+  // Für Spezial-Widgets (fill_blank etc.), die ihren Submit selbst handhaben
+  void _handleSpecialAnswer(bool isCorrect) {
+    if (_hasAnswered) return;
+    setState(() {
+      _hasAnswered = true;
+      _wasCorrect = isCorrect;
+    });
+    _playSound(isCorrect);
   }
 
   void _onWeiter() {
@@ -415,19 +426,29 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          Text(
-            q['frage'] ?? '',
-            style: AppTextStyles.instrumentSerif(
-              size: 24,
-              color: text,
-              letterSpacing: -0.8,
+          if ((q['question_type'] as String?) != 'fill_blank') ...[
+            Text(
+              q['frage'] ?? '',
+              style: AppTextStyles.instrumentSerif(
+                size: 24,
+                color: text,
+                letterSpacing: -0.8,
+              ),
             ),
-          ),
-          const SizedBox(height: 28),
+            const SizedBox(height: 28),
+          ],
 
           // Antwort-UI je nach Typ
           if (frageTyp == 'lehr_karte')
             _buildLehrKarte(q, surface, border, text, textMid, textDim, bg)
+          else if ((q['question_type'] as String?) == 'fill_blank')
+            FillInTheBlankWidget(
+              key: ValueKey('fillblank_$_currentIndex'),
+              questionText: q['frage'] ?? '',
+              blankData: (q['calculation_data'] as Map<String, dynamic>?) ?? {},
+              onAnswerSubmitted: (isCorrect, _) =>
+                  _handleSpecialAnswer(isCorrect),
+            )
           else if (frageTyp == 'multiple_choice' || frageTyp == 'wahr_falsch')
             _buildMCAnswers(q, surface, border, text, textMid, textDim)
           else if (frageTyp == 'lueckentext')
@@ -443,7 +464,8 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
           // Erklärung — nur bei echten Fragen, nicht bei Lehr-Karten
           if (_hasAnswered && frageTyp != 'lehr_karte') ...[
             const SizedBox(height: 12),
-            _buildExplanation(q, surface, border, text, textMid),
+            if ((q['question_type'] as String?) != 'fill_blank')
+              _buildExplanation(q, surface, border, text, textMid),
 
             // Bei FALSCHER Antwort: prominenter Ada-Button davor
             if (!_wasCorrect) ...[
