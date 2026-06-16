@@ -96,7 +96,7 @@ class LevelService {
 
   /// 🚧 DEV-FLAG: Schwellen ignorieren — jedes Level wird als "geschafft"
   /// gewertet, egal welcher Score. Vor Release auf `false` setzen!
-  static const bool kDevSkipThresholds = true;
+  static const bool kDevSkipThresholds = false;
 
   /// Alle Levels eines Moduls inkl. User-Progress laden
   Future<List<Level>> getLevelsForModul(int modulId) async {
