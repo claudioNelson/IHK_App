@@ -5,6 +5,10 @@ export const metadata = {
   description: "Allgemeine Geschäftsbedingungen von Lernarena",
 };
 
+// Festes Datum der letzten inhaltlichen Änderung.
+// Bei jeder echten Überarbeitung der AGB manuell anpassen.
+const STAND = "18. Juni 2026";
+
 const sections = [
   {
     id: "geltungsbereich",
@@ -16,12 +20,14 @@ const sections = [
           Verträge zwischen
         </p>
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-1">
-          {/* ⚠️ PLATZHALTER – nach Gewerbeanmeldung ausfüllen */}
           <p className="font-medium">Claudio Medeiros Magalhaes</p>
           <p>Westfalenweg 3, 49504 Lotte</p>
           <p>
             E-Mail:{" "}
-            <a href="mailto:[E-MAIL]" className="text-blue-700 hover:underline">
+            <a
+              href="mailto:info@lernarena.app"
+              className="text-blue-700 hover:underline"
+            >
               info@lernarena.app
             </a>
           </p>
@@ -88,7 +94,7 @@ const sections = [
   },
   {
     id: "free-premium",
-    title: "4. Free-Tarif und Premium-Abonnement",
+    title: "4. Free-Tarif und Premium",
     content: (
       <div className="text-gray-700 text-sm leading-relaxed space-y-4">
         <div>
@@ -100,32 +106,34 @@ const sections = [
           </p>
         </div>
         <div>
-          <h3 className="font-semibold text-gray-800 mb-1">
-            4.2 Premium-Abonnement
-          </h3>
+          <h3 className="font-semibold text-gray-800 mb-1">4.2 Premium</h3>
           <p>
-            Das Premium-Abonnement bietet unbegrenzten Zugang zu allen
-            Funktionen. Es wird als Monats- oder Jahresabonnement angeboten:
+            Premium bietet unbegrenzten Zugang zu allen Funktionen und ist in
+            folgenden Varianten erhältlich:
           </p>
           <ul className="list-disc list-inside text-gray-600 space-y-1 mt-2">
             <li>Monatlich: 9,99 € / Monat</li>
-            <li>Jährlich: 89,00 € / Jahr (entspricht ca. 7,42 € / Monat)</li>
+            <li>Jährlich: 59,00 € / Jahr (entspricht ca. 4,92 € / Monat)</li>
+            <li>Lifetime: 99,00 € (einmalige Zahlung, unbegrenzte Laufzeit)</li>
           </ul>
           <p className="mt-2">
             Alle Preise sind Endpreise. Als Kleinunternehmer im Sinne von § 19
             UStG wird keine Umsatzsteuer berechnet.{" "}
             {/* ⚠️ HINWEIS: Sobald du umsatzsteuerpflichtig wirst (Umsatz > 22.000 €/Jahr),
-                muss dieser Satz angepasst und USt. ausgewiesen werden. */}
+                muss dieser Satz angepasst und USt. ausgewiesen werden.
+                Beachte zusätzlich: Bei Käufen über Apple App Store / Google Play
+                führen die Stores die USt. ggf. selbst ab – Formulierung dann prüfen. */}
           </p>
         </div>
         <div>
           <h3 className="font-semibold text-gray-800 mb-1">
-            4.3 Abonnementlaufzeit und Verlängerung
+            4.3 Laufzeit und Verlängerung
           </h3>
           <p>
-            Das Abonnement verlängert sich automatisch um die jeweilige
-            Laufzeit, wenn es nicht rechtzeitig vor Ablauf gekündigt wird (siehe
-            Abschnitt 6).
+            Das Monats- und das Jahresabonnement verlängern sich automatisch um
+            die jeweilige Laufzeit, wenn sie nicht rechtzeitig vor Ablauf
+            gekündigt werden (siehe Abschnitt 6). Der Lifetime-Zugang verlängert
+            sich nicht und wird nicht wiederkehrend abgerechnet.
           </p>
         </div>
       </div>
@@ -137,10 +145,10 @@ const sections = [
     content: (
       <div className="text-gray-700 text-sm leading-relaxed space-y-2">
         <p>
-          Die Abrechnung des Premium-Abonnements erfolgt über den jeweiligen
-          App Store (Apple App Store oder Google Play Store) bzw. über den auf
-          der Web-App angebotenen Zahlungsdienstleister. Es gelten die
-          Zahlungsbedingungen des jeweiligen Anbieters.
+          Die Abrechnung von Premium erfolgt über den jeweiligen App Store
+          (Apple App Store oder Google Play Store) bzw. über den auf der Web-App
+          angebotenen Zahlungsdienstleister. Es gelten die Zahlungsbedingungen
+          des jeweiligen Anbieters.
         </p>
         <p>
           Die Zahlung ist im Voraus fällig. Bei fehlgeschlagener Zahlung behält
@@ -158,10 +166,10 @@ const sections = [
         <div>
           <h3 className="font-semibold text-gray-800 mb-1">6.1 Kündigung</h3>
           <p>
-            Das Premium-Abonnement kann jederzeit zum Ende des laufenden
-            Abrechnungszeitraums gekündigt werden. Die Kündigung erfolgt über
-            die Einstellungen des jeweiligen App Stores oder per E-Mail an den
-            Anbieter.
+            Das Monats- und das Jahresabonnement können jederzeit zum Ende des
+            laufenden Abrechnungszeitraums gekündigt werden. Die Kündigung
+            erfolgt über die Einstellungen des jeweiligen App Stores oder per
+            E-Mail an den Anbieter.
           </p>
         </div>
         <div>
@@ -175,11 +183,17 @@ const sections = [
           </p>
           <p className="mt-2">
             Widerruf per E-Mail an:{" "}
-            <a href="mailto:[E-MAIL]" className="text-blue-700 hover:underline">
-              {/* ⚠️ PLATZHALTER */}
+            <a
+              href="mailto:info@lernarena.app"
+              className="text-blue-700 hover:underline"
+            >
               info@lernarena.app
             </a>
           </p>
+          {/* ⚠️ OFFEN (separat klären): Gesetzlich vorgeschriebenes
+              Muster-Widerrufsformular (Art. 246a § 1 Abs. 2 EGBGB) ergänzen.
+              Bei App-Store-Käufen wickelt i. d. R. Apple/Google die Erstattung ab,
+              nicht der Anbieter per E-Mail – Kanal differenzieren. */}
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-3">
             <p className="text-amber-800 font-semibold text-xs mb-1">
               Hinweis zum Erlöschen des Widerrufsrechts
@@ -257,6 +271,9 @@ const sections = [
     id: "aenderungen",
     title: "9. Änderungen der AGB",
     content: (
+      // ⚠️ OFFEN (separat klären): Die Zustimmungsfiktion ("gelten als akzeptiert")
+      // ist im B2C-Bereich seit dem BGH-Urteil XI ZR 26/20 (2021) rechtlich
+      // angreifbar. Vor Live-Gang anwaltlich prüfen lassen.
       <p className="text-gray-700 text-sm leading-relaxed">
         Der Anbieter behält sich vor, diese AGB mit einer Ankündigungsfrist von
         mindestens 4 Wochen zu ändern. Nutzer werden per E-Mail oder
@@ -282,14 +299,7 @@ const sections = [
           Sollten einzelne Bestimmungen dieser AGB unwirksam sein, bleibt die
           Wirksamkeit der übrigen Bestimmungen davon unberührt.
         </p>
-        <p>
-          Stand:{" "}
-          {new Date().toLocaleDateString("de-DE", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
-        </p>
+        <p>Stand: {STAND}</p>
       </div>
     ),
   },
@@ -317,14 +327,7 @@ export default function AGBPage() {
         <h1 className="text-4xl font-bold text-gray-900 mb-2">
           Allgemeine Geschäftsbedingungen
         </h1>
-        <p className="text-gray-500 mb-12">
-          Zuletzt aktualisiert:{" "}
-          {new Date().toLocaleDateString("de-DE", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
-        </p>
+        <p className="text-gray-500 mb-12">Zuletzt aktualisiert: {STAND}</p>
 
         {/* Table of contents */}
         <nav className="bg-white rounded-2xl p-6 border border-gray-200 mb-8">

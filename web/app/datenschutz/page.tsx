@@ -5,6 +5,10 @@ export const metadata = {
   description: "Datenschutzerklärung gemäß DSGVO für Lernarena",
 };
 
+// Festes Datum der letzten inhaltlichen Änderung.
+// Bei jeder echten Überarbeitung der Datenschutzerklärung manuell anpassen.
+const STAND = "18. Juni 2026";
+
 const sections = [
   {
     id: "verantwortlicher",
@@ -13,14 +17,16 @@ const sections = [
       <div className="text-gray-700 text-sm leading-relaxed space-y-2">
         <p>Verantwortlicher im Sinne der DSGVO ist:</p>
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-1">
-          {/* ⚠️ PLATZHALTER – nach Gewerbeanmeldung ausfüllen */}
           <p className="font-medium">Claudio Medeiros Magalhaes</p>
           <p>Westfalenweg 3</p>
           <p>49504 Lotte</p>
           <p>Deutschland</p>
           <p className="pt-1">
             E-Mail:{" "}
-            <a href="mailto:[E-MAIL]" className="text-blue-700 hover:underline">
+            <a
+              href="mailto:info@lernarena.app"
+              className="text-blue-700 hover:underline"
+            >
               info@lernarena.app
             </a>
           </p>
@@ -102,7 +108,7 @@ const sections = [
         <p>
           Es werden keine Tracking- oder Werbe-Cookies eingesetzt. Eine
           Einwilligung ist für technisch notwendige Cookies nicht erforderlich
-          (§ 25 Abs. 2 TTDSG).
+          (§ 25 Abs. 2 TDDDG).
         </p>
       </div>
     ),
@@ -238,8 +244,10 @@ const sections = [
         </ul>
         <p className="mt-2">
           Zur Ausübung deiner Rechte wende dich per E-Mail an:{" "}
-          <a href="mailto:[E-MAIL]" className="text-blue-700 hover:underline">
-            {/* ⚠️ PLATZHALTER */}
+          <a
+            href="mailto:info@lernarena.app"
+            className="text-blue-700 hover:underline"
+          >
             info@lernarena.app
           </a>
         </p>
@@ -274,7 +282,7 @@ const sections = [
         Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen,
         um sie an geänderte rechtliche Anforderungen oder Änderungen unserer
         Dienste anzupassen. Die jeweils aktuelle Version ist stets auf dieser
-        Seite abrufbar. Stand: {new Date().toLocaleDateString("de-DE", { month: "long", year: "numeric" })}.
+        Seite abrufbar. Stand: {STAND}.
       </p>
     ),
   },
@@ -303,12 +311,7 @@ export default function DatenschutzPage() {
           Datenschutzerklärung
         </h1>
         <p className="text-gray-500 mb-12">
-          Gemäß Art. 13, 14 DSGVO – zuletzt aktualisiert:{" "}
-          {new Date().toLocaleDateString("de-DE", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
+          Gemäß Art. 13, 14 DSGVO – zuletzt aktualisiert: {STAND}
         </p>
 
         {/* Table of contents */}

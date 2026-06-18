@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Impressum – Lernarena",
-  description: "Impressum und Anbieterkennzeichnung gemäß § 5 TMG",
+  description: "Impressum und Anbieterkennzeichnung gemäß § 5 DDG",
 };
 
 export default function ImpressumPage() {
@@ -27,7 +27,7 @@ export default function ImpressumPage() {
       <main className="container mx-auto px-6 py-16 max-w-3xl">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Impressum</h1>
         <p className="text-gray-500 mb-12">
-          Angaben gemäß § 5 TMG (Telemediengesetz)
+          Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz)
         </p>
 
         {/* Anbieter */}
@@ -36,8 +36,7 @@ export default function ImpressumPage() {
             Anbieter
           </h2>
           <div className="text-gray-700 space-y-1">
-            {/* ⚠️ PLATZHALTER – bitte nach Gewerbeanmeldung ausfüllen */}
-            <p className="font-medium">Claudio Medeiros Maglahaes</p>
+            <p className="font-medium">Claudio Medeiros Magalhaes</p>
             <p>Westfalenweg 3</p>
             <p>49504 Lotte</p>
             <p>Deutschland</p>
@@ -48,11 +47,10 @@ export default function ImpressumPage() {
         <section className="bg-white rounded-2xl p-8 border border-gray-200 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Kontakt</h2>
           <div className="text-gray-700 space-y-2">
-            {/* ⚠️ PLATZHALTER – E-Mail-Adresse eintragen */}
             <p>
               <span className="text-gray-500 w-32 inline-block">E-Mail:</span>
               <a
-                href="mailto:[info@lernarena.app]"
+                href="mailto:info@lernarena.app"
                 className="text-blue-700 hover:underline"
               >
                 info@lernarena.app
@@ -61,33 +59,28 @@ export default function ImpressumPage() {
           </div>
         </section>
 
-        {/* Steuer */}
+        {/*
+          Steuerliche Angaben:
+          § 5 DDG verlangt die Umsatzsteuer-ID (sofern vorhanden) – NICHT die Steuernummer.
+          Die Steuernummer gehört aus Datenschutz-/Missbrauchsgründen nicht ins Impressum
+          und wurde deshalb entfernt.
+          Sobald du eine USt-IdNr vom Bundeszentralamt für Steuern erhalten hast,
+          den folgenden Block einkommentieren und befüllen:
+
         <section className="bg-white rounded-2xl p-8 border border-gray-200 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Steuerliche Angaben
           </h2>
           <div className="text-gray-700 space-y-2">
-            {/*
-              ⚠️ PLATZHALTER – nach Anmeldung beim Finanzamt ausfüllen.
-              Wenn du (noch) keine USt-ID hast, nur Steuernummer angeben.
-              Format Steuernummer: z.B. 12/345/67890 (je nach Bundesland unterschiedlich)
-            */}
             <p>
               <span className="text-gray-500 w-48 inline-block">
-                Steuernummer:
+                Umsatzsteuer-ID:
               </span>
-              70712895461
-            </p>
-            {/*
-              Sobald du eine Umsatzsteuer-ID hast (kommt per Post vom Bundeszentralamt),
-              die Zeile unten einkommentieren und befüllen:
-            */}
-            {/* <p>
-              <span className="text-gray-500 w-48 inline-block">Umsatzsteuer-ID:</span>
               DE[NUMMER]
-            </p> */}
+            </p>
           </div>
         </section>
+        */}
 
         {/* Berufsbezeichnung */}
         <section className="bg-white rounded-2xl p-8 border border-gray-200 mb-6">
@@ -120,10 +113,16 @@ export default function ImpressumPage() {
               <h3 className="font-semibold text-gray-800 mb-1">
                 Haftung für Inhalte
               </h3>
+              {/*
+                Hinweis: Die Haftungsregeln für Diensteanbieter sind seit dem
+                EU Digital Services Act (DSA) teilweise überlagert. Die §§ 7–10 DDG
+                entsprechen den früheren §§ 7–10 TMG. Bei Gelegenheit über einen
+                aktuellen Impressums-Generator neu erzeugen lassen.
+              */}
               <p>
-                Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene
+                Als Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene
                 Inhalte auf diesen Seiten nach den allgemeinen Gesetzen
-                verantwortlich. Nach §§ 8 bis 10 TMG sind wir als
+                verantwortlich. Nach §§ 8 bis 10 DDG sind wir als
                 Diensteanbieter jedoch nicht verpflichtet, übermittelte oder
                 gespeicherte fremde Informationen zu überwachen oder nach
                 Umständen zu forschen, die auf eine rechtswidrige Tätigkeit
