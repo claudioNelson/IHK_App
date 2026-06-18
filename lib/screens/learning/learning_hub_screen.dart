@@ -232,7 +232,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     tag: 'MO',
                     tagColor: AppColors.accent,
                     title: 'Module',
-                    sub: 'Systematisch durcharbeiten',
+                    sub: 'Freies Üben',
                     count: '17',
                     surface: surface,
                     border: border,
