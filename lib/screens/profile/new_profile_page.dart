@@ -11,6 +11,7 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../auth/change_password_screen.dart';
 import '../../services/subscription_service.dart';
+import '../legal/legal_document_screen.dart';
 
 class NewProfilePage extends StatefulWidget {
   const NewProfilePage({super.key});
@@ -534,6 +535,13 @@ class _NewProfilePageState extends State<NewProfilePage> {
                   _sectionLabel('ACCOUNT', textDim),
                   const SizedBox(height: 12),
                   _buildAccountGroup(surface, border, text, textMid, textDim),
+
+                  const SizedBox(height: 32),
+
+                  // RECHTLICHES
+                  _sectionLabel('RECHTLICHES', textDim),
+                  const SizedBox(height: 12),
+                  _buildLegalGroup(surface, border, text, textMid, textDim),
 
                   const SizedBox(height: 32),
 
@@ -1111,6 +1119,71 @@ class _NewProfilePageState extends State<NewProfilePage> {
             subtitle: 'Lernfortschritt zurücksetzen',
             iconColor: AppColors.error,
             onTap: _clearLocalData,
+            text: text,
+            textMid: textMid,
+            textDim: textDim,
+          ),
+        ],
+      ),
+    );
+  }
+
+  //---RECHTLICHES------------------------------------------------------
+
+  Widget _buildLegalGroup(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        children: [
+          _actionTile(
+            icon: Icons.info_outline,
+            title: 'Impressum',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    const LegalDocumentScreen(doc: LegalDoc.impressum),
+              ),
+            ),
+            text: text,
+            textMid: textMid,
+            textDim: textDim,
+          ),
+          _divider(border),
+          _actionTile(
+            icon: Icons.privacy_tip_outlined,
+            title: 'Datenschutz',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    const LegalDocumentScreen(doc: LegalDoc.datenschutz),
+              ),
+            ),
+            text: text,
+            textMid: textMid,
+            textDim: textDim,
+          ),
+          _divider(border),
+          _actionTile(
+            icon: Icons.description_outlined,
+            title: 'AGB',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const LegalDocumentScreen(doc: LegalDoc.agb),
+              ),
+            ),
             text: text,
             textMid: textMid,
             textDim: textDim,

@@ -117,13 +117,25 @@ const sections = [
             <li>Lifetime: 99,00 € (einmalige Zahlung, unbegrenzte Laufzeit)</li>
           </ul>
           <p className="mt-2">
-            Alle Preise sind Endpreise. Als Kleinunternehmer im Sinne von § 19
-            UStG wird keine Umsatzsteuer berechnet.{" "}
-            {/* ⚠️ HINWEIS: Sobald du umsatzsteuerpflichtig wirst (Umsatz > 22.000 €/Jahr),
-                muss dieser Satz angepasst und USt. ausgewiesen werden.
-                Beachte zusätzlich: Bei Käufen über Apple App Store / Google Play
-                führen die Stores die USt. ggf. selbst ab – Formulierung dann prüfen. */}
+            Alle Preise sind Endpreise. Die Umsatzsteuer-Behandlung hängt vom
+            Kaufweg ab:
           </p>
+          <ul className="list-disc list-inside text-gray-600 space-y-1 mt-1">
+            <li>
+              <strong>Kauf über die Web-App (Zahlung via Stripe):</strong> Der
+              Anbieter ist Kleinunternehmer im Sinne von § 19 UStG; es wird
+              keine Umsatzsteuer ausgewiesen.
+            </li>
+            <li>
+              <strong>Kauf über Google Play:</strong> Die Zahlung wird über
+              Google Play abgewickelt. Eine etwaig anfallende Umsatzsteuer wird
+              von Google im Rahmen seines Bezahlsystems behandelt; es gelten die
+              im Google Play Store angezeigten Endpreise.
+            </li>
+          </ul>
+          {/* ⚠️ HINWEIS: Sobald du die Kleinunternehmer-Grenze (§ 19 UStG)
+              überschreitest, muss der Stripe-/Web-Teil angepasst und USt.
+              ausgewiesen werden. */}
         </div>
         <div>
           <h3 className="font-semibold text-gray-800 mb-1">
@@ -144,13 +156,19 @@ const sections = [
     title: "5. Zahlung",
     content: (
       <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+        <p>Der Kaufweg richtet sich nach der genutzten Plattform:</p>
+        <ul className="list-disc list-inside text-gray-600 space-y-1">
+          <li>
+            In der <strong>Android-App</strong> erfolgt die Abrechnung über
+            Google Play Billing.
+          </li>
+          <li>
+            In der <strong>Web-App</strong> erfolgt die Abrechnung über den
+            Zahlungsdienstleister Stripe.
+          </li>
+        </ul>
         <p>
-          Die Abrechnung von Premium erfolgt über den jeweiligen App Store
-          (Apple App Store oder Google Play Store) bzw. über den auf der Web-App
-          angebotenen Zahlungsdienstleister. Es gelten die Zahlungsbedingungen
-          des jeweiligen Anbieters.
-        </p>
-        <p>
+          Es gelten jeweils die Zahlungsbedingungen des genutzten Anbieters.
           Die Zahlung ist im Voraus fällig. Bei fehlgeschlagener Zahlung behält
           sich der Anbieter vor, den Zugang zu Premium-Funktionen zu
           unterbrechen.
@@ -167,9 +185,22 @@ const sections = [
           <h3 className="font-semibold text-gray-800 mb-1">6.1 Kündigung</h3>
           <p>
             Das Monats- und das Jahresabonnement können jederzeit zum Ende des
-            laufenden Abrechnungszeitraums gekündigt werden. Die Kündigung
-            erfolgt über die Einstellungen des jeweiligen App Stores oder per
-            E-Mail an den Anbieter.
+            laufenden Abrechnungszeitraums gekündigt werden. Der Kündigungsweg
+            richtet sich nach dem Kaufkanal:
+          </p>
+          <ul className="list-disc list-inside text-gray-600 space-y-1 mt-1">
+            <li>
+              Über Google Play gekaufte Abonnements werden über die
+              Abo-Einstellungen des Google-Play-Kontos gekündigt.
+            </li>
+            <li>
+              Über die Web-App (Stripe) gekaufte Abonnements werden per E-Mail
+              an den Anbieter oder über die Kontoeinstellungen gekündigt.
+            </li>
+          </ul>
+          <p className="mt-1">
+            Der Lifetime-Zugang ist kein Abonnement und muss nicht gekündigt
+            werden.
           </p>
         </div>
         <div>
@@ -179,37 +210,128 @@ const sections = [
           <p>
             Verbraucher haben das Recht, einen Vertrag innerhalb von{" "}
             <strong>14 Tagen</strong> ohne Angabe von Gründen zu widerrufen.
-            Die Widerrufsfrist beginnt mit dem Tag des Vertragsabschlusses.
+            Die Einzelheiten ergeben sich aus der nachstehenden
+            Widerrufsbelehrung (6.3).
           </p>
-          <p className="mt-2">
-            Widerruf per E-Mail an:{" "}
-            <a
-              href="mailto:info@lernarena.app"
-              className="text-blue-700 hover:underline"
-            >
-              info@lernarena.app
-            </a>
-          </p>
-          {/* ⚠️ OFFEN (separat klären): Gesetzlich vorgeschriebenes
-              Muster-Widerrufsformular (Art. 246a § 1 Abs. 2 EGBGB) ergänzen.
-              Bei App-Store-Käufen wickelt i. d. R. Apple/Google die Erstattung ab,
-              nicht der Anbieter per E-Mail – Kanal differenzieren. */}
+          <ul className="list-disc list-inside text-gray-600 space-y-1 mt-1">
+            <li>
+              Bei Kauf über die <strong>Web-App (Stripe)</strong> richtest du
+              den Widerruf direkt an den Anbieter (siehe Widerrufsbelehrung).
+            </li>
+            <li>
+              Bei Kauf über <strong>Google Play</strong> erfolgt die
+              Rückabwicklung über den Erstattungsprozess von Google Play; dein
+              gesetzliches Widerrufsrecht gegenüber dem Anbieter bleibt
+              unberührt.
+            </li>
+          </ul>
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-3">
             <p className="text-amber-800 font-semibold text-xs mb-1">
-              Hinweis zum Erlöschen des Widerrufsrechts
+              Hinweis zum vorzeitigen Erlöschen des Widerrufsrechts
             </p>
             <p className="text-amber-700 text-xs">
-              Das Widerrufsrecht erlischt vorzeitig, wenn der Nutzer
+              Bei digitalen Inhalten und sofort bereitgestellten digitalen
+              Leistungen erlischt das Widerrufsrecht, wenn der Nutzer
               ausdrücklich zugestimmt hat, dass mit der Ausführung des Vertrags
               vor Ablauf der Widerrufsfrist begonnen wird, und bestätigt hat,
-              dass er von seinem Widerrufsrecht Kenntnis genommen hat (§ 356
-              Abs. 5 BGB).
+              dass er mit Beginn der Ausführung sein Widerrufsrecht verliert
+              (§ 356 Abs. 5 BGB).
+            </p>
+          </div>
+          {/* ⚠️ TECHNISCHE PFLICHT (Dev-Task, nicht nur Text):
+              Das Erlöschen greift nur, wenn du beim Checkout die ausdrückliche
+              Zustimmung + Kenntnisnahme aktiv abfragst (Checkbox) UND dem Nutzer
+              danach eine Bestätigung auf dauerhaftem Datenträger (z. B. E-Mail)
+              schickst (§ 312f BGB). Ohne diese Umsetzung erlischt das
+              Widerrufsrecht NICHT.
+              ⚠️ Außerdem: Die Belehrungsvariante (digitale Inhalte vs.
+              Dienstleistung) sollte ein Anwalt für deinen konkreten Fall
+              bestätigen – Lernarena ist ein laufender digitaler Dienst. */}
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-800 mb-1">
+            6.3 Widerrufsbelehrung
+          </h3>
+          <div className="border border-gray-200 rounded-lg p-4 space-y-3 text-gray-700">
+            <p className="font-semibold">Widerrufsrecht</p>
+            <p>
+              Sie haben das Recht, binnen vierzehn Tagen ohne Angabe von Gründen
+              diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn
+              Tage ab dem Tag des Vertragsabschlusses.
+            </p>
+            <p>
+              Um Ihr Widerrufsrecht auszuüben, müssen Sie uns (Claudio Medeiros
+              Magalhaes, Westfalenweg 3, 49504 Lotte, E-Mail:
+              info@lernarena.app) mittels einer eindeutigen Erklärung (z. B. ein
+              mit der Post versandter Brief oder eine E-Mail) über Ihren
+              Entschluss, diesen Vertrag zu widerrufen, informieren. Sie können
+              dafür das nachstehende Muster-Widerrufsformular verwenden, das
+              jedoch nicht vorgeschrieben ist.
+            </p>
+            <p>
+              Zur Wahrung der Widerrufsfrist reicht es aus, dass Sie die
+              Mitteilung über die Ausübung des Widerrufsrechts vor Ablauf der
+              Widerrufsfrist absenden.
+            </p>
+            <p className="font-semibold">Folgen des Widerrufs</p>
+            <p>
+              Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle
+              Zahlungen, die wir von Ihnen erhalten haben, unverzüglich und
+              spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem
+              die Mitteilung über Ihren Widerruf dieses Vertrags bei uns
+              eingegangen ist. Für diese Rückzahlung verwenden wir dasselbe
+              Zahlungsmittel, das Sie bei der ursprünglichen Transaktion
+              eingesetzt haben, es sei denn, mit Ihnen wurde ausdrücklich etwas
+              anderes vereinbart; in keinem Fall werden Ihnen wegen dieser
+              Rückzahlung Entgelte berechnet.
+            </p>
+            <p>
+              Haben Sie verlangt, dass die Dienstleistungen während der
+              Widerrufsfrist beginnen sollen, so haben Sie uns einen
+              angemessenen Betrag zu zahlen, der dem Anteil der bis zu dem
+              Zeitpunkt, zu dem Sie uns von der Ausübung des Widerrufsrechts
+              hinsichtlich dieses Vertrags unterrichten, bereits erbrachten
+              Dienstleistungen im Vergleich zum Gesamtumfang der im Vertrag
+              vorgesehenen Dienstleistungen entspricht.
             </p>
           </div>
         </div>
         <div>
           <h3 className="font-semibold text-gray-800 mb-1">
-            6.3 Kontolöschung
+            6.4 Muster-Widerrufsformular
+          </h3>
+          <div className="border border-gray-200 rounded-lg p-4 space-y-2 text-gray-700">
+            <p className="italic text-gray-500">
+              (Wenn Sie den Vertrag widerrufen wollen, dann füllen Sie bitte
+              dieses Formular aus und senden Sie es zurück.)
+            </p>
+            <ul className="space-y-1">
+              <li>
+                – An Claudio Medeiros Magalhaes, Westfalenweg 3, 49504 Lotte,
+                E-Mail: info@lernarena.app:
+              </li>
+              <li>
+                – Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*)
+                abgeschlossenen Vertrag über die Erbringung der folgenden
+                Dienstleistung (*)
+              </li>
+              <li>– Bestellt am (*)</li>
+              <li>– Name des/der Verbraucher(s)</li>
+              <li>– Anschrift des/der Verbraucher(s)</li>
+              <li>
+                – Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf
+                Papier)
+              </li>
+              <li>– Datum</li>
+            </ul>
+            <p className="text-gray-500 text-xs">
+              (*) Unzutreffendes streichen.
+            </p>
+          </div>
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-800 mb-1">
+            6.5 Kontolöschung
           </h3>
           <p>
             Der Nutzer kann sein Konto jederzeit durch eine E-Mail an den
@@ -271,17 +393,52 @@ const sections = [
     id: "aenderungen",
     title: "9. Änderungen der AGB",
     content: (
-      // ⚠️ OFFEN (separat klären): Die Zustimmungsfiktion ("gelten als akzeptiert")
-      // ist im B2C-Bereich seit dem BGH-Urteil XI ZR 26/20 (2021) rechtlich
-      // angreifbar. Vor Live-Gang anwaltlich prüfen lassen.
-      <p className="text-gray-700 text-sm leading-relaxed">
-        Der Anbieter behält sich vor, diese AGB mit einer Ankündigungsfrist von
-        mindestens 4 Wochen zu ändern. Nutzer werden per E-Mail oder
-        In-App-Benachrichtigung informiert. Widerspricht der Nutzer nicht
-        innerhalb der Frist, gelten die neuen AGB als akzeptiert. Im
-        Widerspruchsfall hat der Nutzer das Recht, das Abonnement fristlos zu
-        kündigen.
-      </p>
+      <div className="text-gray-700 text-sm leading-relaxed space-y-4">
+        <div>
+          <h3 className="font-semibold text-gray-800 mb-1">
+            9.1 Geringfügige Änderungen
+          </h3>
+          <p>
+            Änderungen, die für den Nutzer lediglich vorteilhaft oder rechtlich
+            bzw. technisch unwesentlich sind (z. B. Anpassungen an eine
+            geänderte Gesetzeslage, redaktionelle Korrekturen oder die Ergänzung
+            neuer Funktionen ohne Einfluss auf bestehende Hauptleistungen oder
+            Preise), bietet der Anbieter dem Nutzer mindestens 6 Wochen vor dem
+            geplanten Inkrafttreten in Textform (z. B. per E-Mail oder
+            In-App-Benachrichtigung) an. Die Änderung gilt nur dann als
+            angenommen, wenn der Nutzer ihr nicht bis zum Inkrafttreten
+            widerspricht. Auf diese Bedeutung seines Schweigens sowie auf sein
+            Widerspruchs- und Kündigungsrecht weist der Anbieter im
+            Änderungsangebot gesondert hin. Widerspricht der Nutzer, kann jede
+            Partei den Vertrag zum Zeitpunkt des geplanten Inkrafttretens
+            kündigen.
+          </p>
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-800 mb-1">
+            9.2 Wesentliche Änderungen
+          </h3>
+          <p>
+            Wesentliche Änderungen – insbesondere Änderungen der Preise, des
+            Leistungsumfangs oder sonstiger vertraglicher Hauptpflichten –
+            bedürfen der ausdrücklichen Zustimmung des Nutzers. Bloßes Schweigen
+            gilt insoweit nicht als Zustimmung. Ohne ausdrückliche Zustimmung
+            gilt der Vertrag zu den bisherigen Bedingungen fort; der Anbieter
+            kann den Vertrag in diesem Fall zum nächsten zulässigen Zeitpunkt
+            kündigen.
+          </p>
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-800 mb-1">
+            9.3 Bereits bezahlte Leistungen
+          </h3>
+          <p>
+            Bereits abgeschlossene und vollständig bezahlte Leistungen,
+            insbesondere der Lifetime-Zugang, bleiben von Preisänderungen
+            unberührt.
+          </p>
+        </div>
+      </div>
     ),
   },
   {

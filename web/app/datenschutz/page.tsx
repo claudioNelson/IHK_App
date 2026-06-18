@@ -85,8 +85,10 @@ const sections = [
           </h3>
           <p>
             Deine Fragen an den KI-Tutor werden zur Verarbeitung an die
-            Groq-API weitergeleitet. Es werden keine personenbezogenen Daten
-            dauerhaft bei Groq gespeichert. Weitere Details siehe Abschnitt 6.
+            Groq-API weitergeleitet. Der Inhalt deiner Anfrage kann
+            personenbezogene Daten enthalten, sofern du solche eingibst. Wir
+            haben bei Groq die Zero-Data-Retention-Einstellung aktiviert, sodass
+            Inhalte nicht gespeichert werden. Weitere Details siehe Abschnitt 6.
           </p>
         </div>
       </div>
@@ -155,15 +157,21 @@ const sections = [
         </p>
         <p>
           Wenn du eine Frage an Ada stellst, wird der Inhalt deiner Anfrage zur
-          Verarbeitung an Groq übertragen. Wir übermitteln dabei keine
-          personenbezogenen Daten wie Namen oder E-Mail-Adresse. Groq
-          verarbeitet die Anfragen und speichert sie gemäß ihrer eigenen
-          Datenschutzrichtlinie nicht dauerhaft für Trainingszwecke.
+          Verarbeitung an Groq übertragen. Der Anfrageinhalt kann
+          personenbezogene Daten enthalten, sofern du diese eingibst; darüber
+          hinaus übermitteln wir keine Stammdaten wie Name oder E-Mail-Adresse.
+          Groq speichert Inputs und Outputs standardmäßig bis zu 30 Tage zur
+          Sicherstellung des Betriebs und zur Missbrauchskontrolle; wir haben
+          die Zero-Data-Retention-Einstellung aktiviert, sodass keine
+          Speicherung erfolgt. Groq nutzt die Daten nicht zum Training eigener
+          Modelle.
         </p>
         <p>
-          Die Übertragung in die USA erfolgt auf Grundlage von Art. 46 DSGVO
-          (Standardvertragsklauseln). Rechtsgrundlage für die Nutzung ist Art.
-          6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
+          Die Verarbeitung erfolgt im Auftrag auf Grundlage eines
+          Auftragsverarbeitungsvertrags (Data Processing Addendum, Art. 28
+          DSGVO). Die Übertragung in die USA erfolgt auf Grundlage der
+          Standardvertragsklauseln (Art. 46 DSGVO). Rechtsgrundlage für die
+          Nutzung ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
         </p>
         <p>
           Datenschutzerklärung von Groq:{" "}
