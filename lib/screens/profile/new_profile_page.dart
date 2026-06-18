@@ -40,7 +40,6 @@ class _NewProfilePageState extends State<NewProfilePage> {
   bool _loading = true;
   bool _notificationsEnabled = true;
   bool _soundsEnabled = true;
-  bool _moduleViewAsList = false;
 
   @override
   void initState() {
@@ -185,7 +184,6 @@ class _NewProfilePageState extends State<NewProfilePage> {
       setState(() {
         _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
         _soundsEnabled = _soundService.soundsEnabled;
-        _moduleViewAsList = prefs.getBool('module_view_as_list') ?? false;
       });
     } catch (_) {}
   }
@@ -202,13 +200,6 @@ class _NewProfilePageState extends State<NewProfilePage> {
     if (!mounted) return;
     setState(() => _soundsEnabled = value);
     if (value) _soundService.playSound(SoundType.correct);
-  }
-
-  Future<void> _toggleModuleView(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('module_view_as_list', value);
-    if (!mounted) return;
-    setState(() => _moduleViewAsList = value);
   }
 
   Future<void> _handleLogout() async {
@@ -1056,18 +1047,6 @@ class _NewProfilePageState extends State<NewProfilePage> {
             subtitle: 'Feedback bei Antworten',
             value: _soundsEnabled,
             onChanged: _toggleSounds,
-            text: text,
-            textMid: textMid,
-          ),
-          _divider(border),
-          _switchTile(
-            icon: _moduleViewAsList
-                ? Icons.view_list_outlined
-                : Icons.grid_view_outlined,
-            title: 'Modul-Ansicht',
-            subtitle: _moduleViewAsList ? 'Liste' : 'Raster',
-            value: _moduleViewAsList,
-            onChanged: _toggleModuleView,
             text: text,
             textMid: textMid,
           ),
