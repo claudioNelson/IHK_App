@@ -10,6 +10,7 @@ import 'level_result_screen.dart';
 import 'level_ada_sheet.dart';
 import '../../widgets/levels/lehr_karte_renderer.dart';
 import '../../widgets/fill_in_blank_widget.dart';
+import '../../services/spaced_repetition_service.dart';
 
 class LevelPlayScreen extends StatefulWidget {
   final Level level;
@@ -28,6 +29,7 @@ class LevelPlayScreen extends StatefulWidget {
 class _LevelPlayScreenState extends State<LevelPlayScreen> {
   final _service = LevelService();
   final _soundService = SoundService();
+  final _srs = SpacedRepetitionService();
 
   List<Map<String, dynamic>> _fragen = [];
   bool _loading = true;
@@ -106,6 +108,10 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
       _wasCorrect = isCorrect;
     });
     _playSound(isCorrect);
+    // Falsch beantwortete Fragen zur Wiederholung einplanen
+    if (!isCorrect) {
+      _srs.recordAnswer(frageId: q['id'] as int, isCorrect: false);
+    }
   }
 
   void _checkTextAnswer() {
@@ -122,6 +128,9 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
       _wasCorrect = isCorrect;
     });
     _playSound(isCorrect);
+    if (!isCorrect) {
+      _srs.recordAnswer(frageId: q['id'] as int, isCorrect: false);
+    }
   }
 
   bool _validateTextAnswer(Map<String, dynamic> calcData, String userInput) {
@@ -170,6 +179,10 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
       _wasCorrect = isCorrect;
     });
     _playSound(isCorrect);
+    if (!isCorrect) {
+      final q = _fragen[_currentIndex];
+      _srs.recordAnswer(frageId: q['id'] as int, isCorrect: false);
+    }
   }
 
   void _onWeiter() {
