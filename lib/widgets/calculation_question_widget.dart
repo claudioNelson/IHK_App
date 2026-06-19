@@ -29,7 +29,7 @@ class _CalculationQuestionWidgetState extends State<CalculationQuestionWidget> {
   bool _hasSubmitted = false;
 
   double get _correctAnswer =>
-      (widget.calculationData['correctAnswer'] as num).toDouble();
+      (widget.calculationData['correctAnswer'] as num?)?.toDouble() ?? 0.0;
 
   String get _unit => widget.calculationData['unit'] ?? '';
 
@@ -69,6 +69,12 @@ class _CalculationQuestionWidgetState extends State<CalculationQuestionWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.calculationData['correctAnswer'] is! num) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('Diese Frage konnte nicht geladen werden.'),
+      );
+    }
     final isDark = context.watch<ThemeProvider>().isDark;
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;

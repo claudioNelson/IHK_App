@@ -1,7 +1,7 @@
 import '../../models/ihk_exam_model.dart';
 
 final si1Exam = IHKExam(
-  id: 'ae-3',
+  id: 'si-1',
   title: 'AE Prüfung 3 - Winter 2019/20',
   year: 2019,
   season: 'Winter',

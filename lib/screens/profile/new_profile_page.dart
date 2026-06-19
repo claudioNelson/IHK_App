@@ -204,7 +204,6 @@ class _NewProfilePageState extends State<NewProfilePage> {
 
   Future<void> _handleLogout() async {
     final isDark = context.read<ThemeProvider>().isDark;
-    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final text = isDark ? AppColors.darkText : AppColors.lightText;
 

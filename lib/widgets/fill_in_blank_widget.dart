@@ -41,7 +41,8 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
   Set<String> get _allOptions {
     final options = <String>{};
     for (var blank in _blanks) {
-      final blankOptions = (blank['options'] as List).cast<String>();
+      final blankOptions =
+          (blank['options'] as List?)?.cast<String>() ?? const [];
       options.addAll(blankOptions);
     }
     return options;
@@ -95,6 +96,12 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (_blanks.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('Diese Frage konnte nicht geladen werden.'),
+      );
+    }
     final isDark = context.watch<ThemeProvider>().isDark;
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;

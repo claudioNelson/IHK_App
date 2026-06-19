@@ -32,6 +32,7 @@ class QuestionValidator {
     'er_to_tables',
     'fill_blank',
     'sequence',
+    'calculation',
     'lehr_karte', // Theorie-Slide (Levels), wird im Practice-Screen aktuell nicht gerendert
   };
 
@@ -142,6 +143,7 @@ class QuestionValidator {
       'er_to_tables',
       'fill_blank',
       'sequence',
+      'calculation',
     ].contains(questionType);
 
     if (needsCalcData && (calculationData == null || calculationData.isEmpty)) {
@@ -233,6 +235,12 @@ class QuestionValidator {
           missingFields.add('blanks');
         }
         break;
+
+      case 'calculation':
+        if (calculationData['correctAnswer'] is! num) {
+          missingFields.add('correctAnswer');
+        }
+        break;
     }
 
     if (missingFields.isNotEmpty) {
@@ -290,6 +298,8 @@ class QuestionValidator {
         return 'Reihenfolge-Frage';
       case 'fill_blank':
         return 'Lückentext-Frage';
+      case 'calculation':
+        return 'Rechen-Frage';
       case 'lehr_karte':
         return 'Lehrkarte';
       default:

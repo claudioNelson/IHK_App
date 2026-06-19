@@ -28,15 +28,15 @@ class _SequenceQuestionWidgetState extends State<SequenceQuestionWidget> {
   @override
   void initState() {
     super.initState();
-    final items = (widget.sequenceData['items'] as List).cast<String>();
-    selectedSlots = List<String?>.filled(items.length, null);
+    selectedSlots = List<String?>.filled(_availableItems.length, null);
   }
 
   List<String> get _availableItems =>
-      (widget.sequenceData['items'] as List).cast<String>();
+      (widget.sequenceData['items'] as List?)?.cast<String>() ?? const [];
 
   List<String> get _correctOrder =>
-      (widget.sequenceData['correctOrder'] as List).cast<String>();
+      (widget.sequenceData['correctOrder'] as List?)?.cast<String>() ??
+      const [];
 
   String get _explanation => widget.sequenceData['explanation'] ?? '';
 
@@ -90,6 +90,12 @@ class _SequenceQuestionWidgetState extends State<SequenceQuestionWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (_availableItems.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('Diese Frage konnte nicht geladen werden.'),
+      );
+    }
     final isDark = context.watch<ThemeProvider>().isDark;
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
