@@ -66,9 +66,24 @@ class AuthService {
       print('👋 Logout...');
       await _supabase.auth.signOut();
 
-      // Lokale Daten löschen
+      // Beim Logout nur nutzerspezifische Daten löschen –
+      // Geräteeinstellungen und Streak bleiben erhalten.
       final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
+      const keysToKeep = {
+        'hasSeenOnboarding',
+        'has_seen_srs_info',
+        'kernthemen_info_shown',
+        'module_view_as_list',
+        'notifications_enabled',
+        'sounds_enabled',
+        'streak_days',
+        'last_login_date',
+      };
+      for (final key in prefs.getKeys().toList()) {
+        if (!keysToKeep.contains(key)) {
+          await prefs.remove(key);
+        }
+      }
 
       print('✅ Logout erfolgreich');
     } catch (e) {

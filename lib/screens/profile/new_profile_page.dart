@@ -141,38 +141,58 @@ class _NewProfilePageState extends State<NewProfilePage> {
     }
   }
 
-  /// Berechnet Streak aus letztem Login-Tag in SharedPreferences
+  /// Berechnet den Streak anhand des letzten Login-Tags – pro Account in der DB
   Future<int> _calcStreak() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final lastLogin = prefs.getString('last_login_date');
-      int streak = prefs.getInt('streak_days') ?? 0;
-      final today = DateTime.now();
-      final todayStr = '${today.year}-${today.month}-${today.day}';
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return 0;
 
-      if (lastLogin == todayStr) {
-        return streak;
-      }
+      final row = await _supabase
+          .from('profiles')
+          .select('streak_days, last_login_date')
+          .eq('id', userId)
+          .maybeSingle();
+
+      int streak = (row?['streak_days'] as num?)?.toInt() ?? 0;
+      final lastLogin = row?['last_login_date'] as String?;
+
+      final today = DateTime.now();
+      final todayStr =
+          '${today.year.toString().padLeft(4, '0')}-'
+          '${today.month.toString().padLeft(2, '0')}-'
+          '${today.day.toString().padLeft(2, '0')}';
+
+      // Heute bereits gezählt -> unverändert zurück
+      if (lastLogin == todayStr) return streak;
 
       if (lastLogin != null) {
         final last = DateTime.tryParse(lastLogin);
         if (last != null) {
-          final diff = today.difference(last).inDays;
+          final lastDay = DateTime(last.year, last.month, last.day);
+          final todayDay = DateTime(today.year, today.month, today.day);
+          final diff = todayDay.difference(lastDay).inDays;
           if (diff == 1) {
-            streak += 1;
+            streak += 1; // gestern aktiv -> Streak +1
           } else if (diff > 1) {
-            streak = 1;
+            streak = 1; // Lücke -> zurück auf 1
           }
+          // diff <= 0 -> unverändert lassen
+        } else {
+          streak = 1;
         }
       } else {
-        streak = 1;
+        streak = 1; // erster Login
       }
 
-      await prefs.setString('last_login_date', todayStr);
-      await prefs.setInt('streak_days', streak);
+      await _supabase
+          .from('profiles')
+          .update({'streak_days': streak, 'last_login_date': todayStr})
+          .eq('id', userId);
+
       return streak;
-    } catch (_) {
-      return 0;
+    } catch (e) {
+      debugPrint('Streak-Berechnung fehlgeschlagen: $e');
+      return _streakDays; // letzter bekannter Wert statt 0
     }
   }
 
