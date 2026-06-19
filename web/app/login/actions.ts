@@ -61,7 +61,7 @@ export async function signup(formData: FormData) {
         redirect(`/signup?error=${encodeURIComponent("Das Passwort muss mindestens 6 Zeichen lang sein.")}`);
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -72,6 +72,14 @@ export async function signup(formData: FormData) {
 
     if (error) {
         redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+    }
+
+    // Bereits registrierte E-Mail: Supabase liefert einen User mit leerem
+    // identities-Array (kein Error, um E-Mail-Enumeration zu verhindern).
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+        redirect(
+            `/signup?error=${encodeURIComponent("Diese E-Mail-Adresse ist bereits registriert. Bitte melde dich an.")}`,
+        );
     }
 
     redirect("/signup?success=1");

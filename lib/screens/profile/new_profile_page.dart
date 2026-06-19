@@ -10,6 +10,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../auth/change_password_screen.dart';
+import '../auth/login_screen.dart';
 import '../../services/subscription_service.dart';
 import '../legal/legal_document_screen.dart';
 
@@ -256,6 +257,12 @@ class _NewProfilePageState extends State<NewProfilePage> {
     if (confirm == true) {
       try {
         await _authService.signOut();
+        SubscriptionService().clear();
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(

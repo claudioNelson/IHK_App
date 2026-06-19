@@ -61,12 +61,22 @@ class _RegisterScreenState extends State<RegisterScreen>
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      await _authService.signUp(
+      final response = await _authService.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         username: _usernameController.text.trim(),
       );
       if (!mounted) return;
+
+      // Bereits registrierte E-Mail: Supabase liefert einen User mit leerem
+      // identities-Array (kein Error, um E-Mail-Enumeration zu verhindern).
+      final identities = response.user?.identities;
+      if (identities != null && identities.isEmpty) {
+        _showError(
+          'Diese E-Mail-Adresse ist bereits registriert. Bitte melde dich an.',
+        );
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Row(
