@@ -33,6 +33,9 @@ class QuestionValidator {
     'fill_blank',
     'sequence',
     'calculation',
+    'wahr_falsch',
+    'lueckentext',
+    'sql_tippen',
     'lehr_karte', // Theorie-Slide (Levels), wird im Practice-Screen aktuell nicht gerendert
   };
 

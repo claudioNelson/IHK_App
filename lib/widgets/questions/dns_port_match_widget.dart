@@ -137,6 +137,12 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.correctAnswers['correct_answer'] is! String) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('Diese Frage konnte nicht geladen werden.'),
+      );
+    }
     final isDark = context.watch<ThemeProvider>().isDark;
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;

@@ -35,7 +35,9 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
   }
 
   void _initializeControllers() {
-    final tables = widget.correctAnswers['tables'] as Map<String, dynamic>;
+    final tablesRaw = widget.correctAnswers['tables'];
+    if (tablesRaw is! Map) return;
+    final tables = Map<String, dynamic>.from(tablesRaw);
     for (var tableName in tables.keys) {
       final tableData = tables[tableName] as Map<String, dynamic>;
       final columns = List<String>.from(tableData['columns'] as List);
@@ -94,6 +96,13 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final tablesData = widget.correctAnswers['tables'];
+    if (tablesData is! Map || tablesData.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('Diese Frage konnte nicht geladen werden.'),
+      );
+    }
     final isDark = context.watch<ThemeProvider>().isDark;
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
