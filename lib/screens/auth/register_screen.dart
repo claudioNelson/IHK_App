@@ -36,12 +36,14 @@ class _RegisterScreenState extends State<RegisterScreen>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     );
-    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+    _fadeAnim = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _slideAnim = Tween<Offset>(
-            begin: const Offset(0, 0.06), end: Offset.zero)
-        .animate(CurvedAnimation(
-            parent: _animController, curve: Curves.easeOut));
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
   }
 
@@ -72,23 +74,44 @@ class _RegisterScreenState extends State<RegisterScreen>
               Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
               SizedBox(width: 8),
               Expanded(
-                child: Text('Registrierung erfolgreich! Bitte E-Mail bestätigen.'),
+                child: Text(
+                  'Registrierung erfolgreich! Bitte E-Mail bestätigen.',
+                ),
               ),
             ],
           ),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           margin: const EdgeInsets.all(16),
         ),
       );
       Navigator.pop(context);
     } on AuthException catch (e) {
       if (!mounted) return;
-      _showError(e.message);
+      final msg = e.message.toLowerCase();
+      String errorMessage;
+      if (msg.contains('already registered') ||
+          msg.contains('already been registered') ||
+          msg.contains('user already exists')) {
+        errorMessage = 'Diese E-Mail-Adresse ist bereits registriert.';
+      } else if (msg.contains('rate limit') || msg.contains('too many')) {
+        errorMessage = 'Zu viele Versuche. Bitte versuche es später erneut.';
+      } else if (msg.contains('password')) {
+        errorMessage =
+            'Das Passwort erfüllt nicht die Anforderungen (mind. 6 Zeichen).';
+      } else if (msg.contains('invalid') && msg.contains('email')) {
+        errorMessage = 'Ungültige E-Mail-Adresse.';
+      } else {
+        errorMessage =
+            'Registrierung fehlgeschlagen. Bitte versuche es erneut.';
+      }
+      _showError(errorMessage);
     } catch (e) {
       if (!mounted) return;
-      _showError('Fehler: $e');
+      _showError('Registrierung fehlgeschlagen. Bitte versuche es erneut.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -99,8 +122,11 @@ class _RegisterScreenState extends State<RegisterScreen>
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error_outline_rounded,
-                color: Colors.white, size: 18),
+            const Icon(
+              Icons.error_outline_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             const SizedBox(width: 8),
             Expanded(child: Text(message)),
           ],
@@ -157,7 +183,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                     constraints: const BoxConstraints(maxWidth: 440),
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 28, vertical: 24),
+                        horizontal: 28,
+                        vertical: 24,
+                      ),
                       child: Form(
                         key: _formKey,
                         child: Column(
@@ -170,7 +198,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 onTap: () => Navigator.pop(context),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: surface,
                                     borderRadius: BorderRadius.circular(8),
@@ -179,12 +209,17 @@ class _RegisterScreenState extends State<RegisterScreen>
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.arrow_back,
-                                          color: textMid, size: 14),
+                                      Icon(
+                                        Icons.arrow_back,
+                                        color: textMid,
+                                        size: 14,
+                                      ),
                                       const SizedBox(width: 6),
                                       Text(
                                         'Zurück',
-                                        style: AppTextStyles.labelSmall(textMid),
+                                        style: AppTextStyles.labelSmall(
+                                          textMid,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -206,8 +241,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                                       color: AppColors.accent,
                                       boxShadow: [
                                         BoxShadow(
-                                          color:
-                                              AppColors.accent.withOpacity(0.6),
+                                          color: AppColors.accent.withOpacity(
+                                            0.6,
+                                          ),
                                           blurRadius: 16,
                                           spreadRadius: 1,
                                         ),
@@ -309,9 +345,10 @@ class _RegisterScreenState extends State<RegisterScreen>
                                           color: textDim,
                                           size: 18,
                                         ),
-                                        onPressed: () => setState(() =>
-                                            _obscurePassword =
-                                                !_obscurePassword),
+                                        onPressed: () => setState(
+                                          () => _obscurePassword =
+                                              !_obscurePassword,
+                                        ),
                                       ),
                                     ),
                                     validator: (v) {
@@ -344,9 +381,10 @@ class _RegisterScreenState extends State<RegisterScreen>
                                           color: textDim,
                                           size: 18,
                                         ),
-                                        onPressed: () => setState(() =>
-                                            _obscureConfirmPassword =
-                                                !_obscureConfirmPassword),
+                                        onPressed: () => setState(
+                                          () => _obscureConfirmPassword =
+                                              !_obscureConfirmPassword,
+                                        ),
                                       ),
                                     ),
                                     validator: (v) {
@@ -362,17 +400,19 @@ class _RegisterScreenState extends State<RegisterScreen>
                                   SizedBox(
                                     height: 48,
                                     child: ElevatedButton(
-                                      onPressed:
-                                          _isLoading ? null : _handleRegister,
+                                      onPressed: _isLoading
+                                          ? null
+                                          : _handleRegister,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: text,
                                         foregroundColor: bg,
-                                        disabledBackgroundColor:
-                                            text.withOpacity(0.5),
+                                        disabledBackgroundColor: text
+                                            .withOpacity(0.5),
                                         elevation: 0,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
                                       ),
                                       child: _isLoading
@@ -386,8 +426,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                                             )
                                           : Text(
                                               'Account erstellen  →',
-                                              style:
-                                                  AppTextStyles.labelLarge(bg),
+                                              style: AppTextStyles.labelLarge(
+                                                bg,
+                                              ),
                                             ),
                                     ),
                                   ),
@@ -411,7 +452,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                                   child: Text(
                                     'Anmelden →',
                                     style: AppTextStyles.labelMedium(
-                                        AppColors.accent),
+                                      AppColors.accent,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -472,8 +514,7 @@ class _RegisterScreenState extends State<RegisterScreen>
         borderSide: const BorderSide(color: AppColors.error, width: 1.5),
       ),
       errorStyle: const TextStyle(color: AppColors.error, fontSize: 12),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
     );
   }
 }

@@ -1927,7 +1927,7 @@ export default function LandingPage() {
             <ul>
               <li><Link href="/login">Login</Link></li>
               <li><Link href="/register">Registrieren</Link></li>
-              <li><a href="mailto:hallo@lernarena.app">Kontakt</a></li>
+              <li><a href="mailto:info@lernarena.app">Kontakt</a></li>
             </ul>
           </div>
           <div className="footer-col">
@@ -1936,6 +1936,7 @@ export default function LandingPage() {
               <li><Link href="/impressum">Impressum</Link></li>
               <li><Link href="/datenschutz">Datenschutz</Link></li>
               <li><Link href="/agb">AGB</Link></li>
+              <li><Link href="/account-loeschung">Account löschen</Link></li>
             </ul>
           </div>
         </div>
