@@ -39,9 +39,10 @@ class _LoginScreenState extends State<LoginScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
+    _fadeAnim = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 0.08),
       end: Offset.zero,
@@ -85,12 +86,12 @@ class _LoginScreenState extends State<LoginScreen>
           errorMessage = 'Bitte E-Mail bestätigen';
           break;
         default:
-          errorMessage = e.message;
+          errorMessage = 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
       }
       _showError(errorMessage);
     } catch (e) {
       if (!mounted) return;
-      _showError('Fehler: ${e.toString()}');
+      _showError('Anmeldung fehlgeschlagen. Bitte versuche es erneut.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -137,8 +138,9 @@ class _LoginScreenState extends State<LoginScreen>
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final borderStrong =
-        isDark ? AppColors.darkBorderStrong : AppColors.lightBorderStrong;
+    final borderStrong = isDark
+        ? AppColors.darkBorderStrong
+        : AppColors.lightBorderStrong;
     final text = isDark ? AppColors.darkText : AppColors.lightText;
     final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
     final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
@@ -173,9 +175,7 @@ class _LoginScreenState extends State<LoginScreen>
               child: IconButton(
                 onPressed: () => themeProvider.toggleTheme(),
                 icon: Icon(
-                  isDark
-                      ? Icons.wb_sunny_outlined
-                      : Icons.nightlight_outlined,
+                  isDark ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
                   color: textMid,
                   size: 20,
                 ),
@@ -200,7 +200,9 @@ class _LoginScreenState extends State<LoginScreen>
                     constraints: const BoxConstraints(maxWidth: 440),
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 28, vertical: 40),
+                        horizontal: 28,
+                        vertical: 40,
+                      ),
                       child: Form(
                         key: _formKey,
                         child: Column(
@@ -219,8 +221,9 @@ class _LoginScreenState extends State<LoginScreen>
                                       color: AppColors.accent,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: AppColors.accent
-                                              .withOpacity(0.6),
+                                          color: AppColors.accent.withOpacity(
+                                            0.6,
+                                          ),
                                           blurRadius: 16,
                                           spreadRadius: 1,
                                         ),
@@ -275,8 +278,9 @@ class _LoginScreenState extends State<LoginScreen>
                                     ),
                                     validator: _validateEmail,
                                     onFieldSubmitted: (_) {
-                                      FocusScope.of(context)
-                                          .requestFocus(_passwordFocusNode);
+                                      FocusScope.of(
+                                        context,
+                                      ).requestFocus(_passwordFocusNode);
                                     },
                                   ),
 
@@ -292,12 +296,12 @@ class _LoginScreenState extends State<LoginScreen>
                                         onPressed: _isLoading
                                             ? null
                                             : () => Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) =>
-                                                        const ForgotPasswordScreen(),
-                                                  ),
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      const ForgotPasswordScreen(),
                                                 ),
+                                              ),
                                         style: TextButton.styleFrom(
                                           padding: EdgeInsets.zero,
                                           minimumSize: Size.zero,
@@ -307,7 +311,8 @@ class _LoginScreenState extends State<LoginScreen>
                                         child: Text(
                                           'Vergessen?',
                                           style: AppTextStyles.labelSmall(
-                                              AppColors.accent),
+                                            AppColors.accent,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -346,16 +351,19 @@ class _LoginScreenState extends State<LoginScreen>
                                   SizedBox(
                                     height: 48,
                                     child: ElevatedButton(
-                                      onPressed: _isLoading ? null : _handleLogin,
+                                      onPressed: _isLoading
+                                          ? null
+                                          : _handleLogin,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: text,
                                         foregroundColor: bg,
-                                        disabledBackgroundColor:
-                                            text.withOpacity(0.5),
+                                        disabledBackgroundColor: text
+                                            .withOpacity(0.5),
                                         elevation: 0,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
                                       ),
                                       child: _isLoading
@@ -369,7 +377,9 @@ class _LoginScreenState extends State<LoginScreen>
                                             )
                                           : Text(
                                               'Anmelden  →',
-                                              style: AppTextStyles.labelLarge(bg),
+                                              style: AppTextStyles.labelLarge(
+                                                bg,
+                                              ),
                                             ),
                                     ),
                                   ),
@@ -385,7 +395,8 @@ class _LoginScreenState extends State<LoginScreen>
                                 Expanded(child: Divider(color: border)),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
+                                    horizontal: 16,
+                                  ),
                                   child: Text(
                                     'ODER',
                                     style: AppTextStyles.monoSmall(textDim),
@@ -404,12 +415,12 @@ class _LoginScreenState extends State<LoginScreen>
                                 onPressed: _isLoading
                                     ? null
                                     : () => Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const RegisterScreen(),
-                                          ),
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const RegisterScreen(),
                                         ),
+                                      ),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: text,
                                   side: BorderSide(color: borderStrong),
@@ -449,10 +460,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildLabel(String text, Color color) {
-    return Text(
-      text,
-      style: AppTextStyles.monoSmall(color),
-    );
+    return Text(text, style: AppTextStyles.monoSmall(color));
   }
 
   InputDecoration _inputDecoration({
@@ -491,8 +499,7 @@ class _LoginScreenState extends State<LoginScreen>
         borderSide: const BorderSide(color: AppColors.error, width: 1.5),
       ),
       errorStyle: const TextStyle(color: AppColors.error, fontSize: 12),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
     );
   }
 }
