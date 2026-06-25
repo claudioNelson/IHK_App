@@ -16,12 +16,40 @@ export default function UpdatePasswordPage() {
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
 
-    // Prüfen, ob eine (Recovery-)Session existiert
+    // Recovery-Session erkennen.
+    // Der Browser-Client verarbeitet das #access_token aus der URL leicht
+    // verzoegert. Deshalb hoeren wir auf onAuthStateChange (feuert bei
+    // PASSWORD_RECOVERY / SIGNED_IN) UND pruefen zusaetzlich getSession als
+    // Fallback. Ein kleines Timeout verhindert, dass wir zu frueh "ungueltig"
+    // anzeigen.
     useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => {
-            setSessionOk(!!data.session);
-            setReady(true);
+        let settled = false;
+
+        const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                settled = true;
+                setSessionOk(true);
+                setReady(true);
+            } else if (event === "PASSWORD_RECOVERY") {
+                settled = true;
+                setSessionOk(true);
+                setReady(true);
+            }
         });
+
+        // Fallback: nach kurzer Wartezeit selbst nachsehen
+        const timer = setTimeout(() => {
+            supabase.auth.getSession().then(({ data }) => {
+                if (settled) return;
+                setSessionOk(!!data.session);
+                setReady(true);
+            });
+        }, 800);
+
+        return () => {
+            sub.subscription.unsubscribe();
+            clearTimeout(timer);
+        };
     }, [supabase]);
 
     async function handleSubmit(e: React.FormEvent) {
@@ -64,13 +92,14 @@ export default function UpdatePasswordPage() {
                 .auth-btn:disabled { opacity:0.6; cursor:not-allowed; }
                 .auth-error { background:#FEE2E2; border:1px solid #FCA5A5; color:#991B1B; border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:16px; }
                 .auth-success { background:#DCFCE7; border:1px solid #86EFAC; color:#14532D; border-radius:8px; padding:14px; font-size:14px; margin-bottom:16px; line-height:1.5; }
+                .auth-muted { color:#55555F; font-size:13px; }
             `}</style>
 
             <div className="auth-card">
                 <h1 className="auth-title">Neues Passwort</h1>
                 <div className="auth-sub">Lernarena · Passwort zurücksetzen</div>
 
-                {!ready && <p>Lädt …</p>}
+                {!ready && <p className="auth-muted">Einen Moment …</p>}
 
                 {ready && !sessionOk && !done && (
                     <div className="auth-error">
