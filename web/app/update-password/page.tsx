@@ -16,40 +16,55 @@ export default function UpdatePasswordPage() {
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
 
-    // Recovery-Session erkennen.
-    // Der Browser-Client verarbeitet das #access_token aus der URL leicht
-    // verzoegert. Deshalb hoeren wir auf onAuthStateChange (feuert bei
-    // PASSWORD_RECOVERY / SIGNED_IN) UND pruefen zusaetzlich getSession als
-    // Fallback. Ein kleines Timeout verhindert, dass wir zu frueh "ungueltig"
-    // anzeigen.
+    // Recovery-Session herstellen.
+    // Wir lesen das Token SELBST aus dem URL-Fragment (#access_token=...)
+    // und setzen die Session aktiv per setSession(). Das ist unabhaengig
+    // davon, ob der Client die URL automatisch verarbeitet.
     useEffect(() => {
-        let settled = false;
+        async function init() {
+            try {
+                // 1) Vielleicht ist schon eine Session da
+                const existing = await supabase.auth.getSession();
+                if (existing.data.session) {
+                    setSessionOk(true);
+                    setReady(true);
+                    return;
+                }
 
-        const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-            if (session) {
-                settled = true;
-                setSessionOk(true);
+                // 2) Token aus dem #-Fragment auslesen
+                const hash = window.location.hash.startsWith("#")
+                    ? window.location.hash.substring(1)
+                    : window.location.hash;
+                const params = new URLSearchParams(hash);
+                const access_token = params.get("access_token");
+                const refresh_token = params.get("refresh_token");
+                const errorCode = params.get("error_code") || params.get("error");
+
+                if (errorCode) {
+                    setSessionOk(false);
+                    setReady(true);
+                    return;
+                }
+
+                if (access_token && refresh_token) {
+                    const { data, error } = await supabase.auth.setSession({
+                        access_token,
+                        refresh_token,
+                    });
+                    setSessionOk(!!data.session && !error);
+                    setReady(true);
+                    return;
+                }
+
+                // 3) Nichts gefunden
+                setSessionOk(false);
                 setReady(true);
-            } else if (event === "PASSWORD_RECOVERY") {
-                settled = true;
-                setSessionOk(true);
+            } catch {
+                setSessionOk(false);
                 setReady(true);
             }
-        });
-
-        // Fallback: nach kurzer Wartezeit selbst nachsehen
-        const timer = setTimeout(() => {
-            supabase.auth.getSession().then(({ data }) => {
-                if (settled) return;
-                setSessionOk(!!data.session);
-                setReady(true);
-            });
-        }, 800);
-
-        return () => {
-            sub.subscription.unsubscribe();
-            clearTimeout(timer);
-        };
+        }
+        init();
     }, [supabase]);
 
     async function handleSubmit(e: React.FormEvent) {
