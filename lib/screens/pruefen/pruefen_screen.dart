@@ -321,7 +321,7 @@ class _PruefenScreenState extends State<PruefenScreen>
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'IHK-Prüfungen bearbeitest du in der Web-Version. Diagramme, SQL und lange Texte gehen am Laptop einfach besser. Tippe auf eine Prüfung — sie öffnet sich im Browser.',
+                  'Bearbeite IHK-Prüfungen direkt hier unter realen Bedingungen. Diagramme zeichnest du auf Papier und lädst sie als Foto hoch — der KI-Tutor wertet sie aus. Tipp: Am Desktop (lernarena.app) ist das Erlebnis noch komfortabler.',
                   style: AppTextStyles.bodySmall(text),
                 ),
               ),
@@ -522,17 +522,13 @@ class _PruefenScreenState extends State<PruefenScreen>
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
-        onTap: () async {
-          final uri = Uri.parse('https://lernarena.app/pruefungen');
-          if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Link konnte nicht geöffnet werden'),
-                ),
-              );
-            }
-          }
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => IHKPruefungDetailScreen(exam: exam),
+            ),
+          );
         },
         child: Container(
           padding: const EdgeInsets.all(18),
