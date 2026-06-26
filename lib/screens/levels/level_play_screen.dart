@@ -237,7 +237,7 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
           level: widget.level,
           score: score,
           correctCount: _correctCount,
-          totalCount: _fragen.length,
+          totalCount: scorbareFragen,
           newSterne: progress?['sterne'] as int? ?? 0,
         ),
       ),
