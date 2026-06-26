@@ -85,7 +85,16 @@ export default function UpdatePasswordPage() {
         setLoading(false);
 
         if (error) {
-            setError(error.message);
+            const msg = error.message.toLowerCase();
+            if (msg.includes("different from the old")) {
+                setError("Das neue Passwort muss sich vom alten unterscheiden.");
+            } else if (msg.includes("at least") || msg.includes("password")) {
+                setError("Das Passwort erfüllt nicht die Anforderungen (mind. 6 Zeichen).");
+            } else if (msg.includes("session") || msg.includes("expired") || msg.includes("token")) {
+                setError("Deine Sitzung ist abgelaufen. Bitte fordere den Passwort-Reset erneut an.");
+            } else {
+                setError("Das Passwort konnte nicht geändert werden. Bitte versuche es erneut.");
+            }
             return;
         }
         setDone(true);
