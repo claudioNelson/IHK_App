@@ -10,29 +10,11 @@ export async function login(formData: FormData) {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    console.log("🔍 [LOGIN] Attempt:", {
-        email,
-        passwordLength: password?.length,
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-        anonKeyPrefix: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0, 20) + "...",
-    });
-
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-        console.error("❌ [LOGIN] Supabase error:", {
-            message: error.message,
-            status: error.status,
-            code: error.code,
-            name: error.name,
-        });
         redirect(`/login?error=${encodeURIComponent(error.message)}`);
     }
-
-    console.log("✅ [LOGIN] Success:", {
-        userId: data.user?.id,
-        email: data.user?.email,
-    });
 
     revalidatePath("/", "layout");
     redirect("/pruefungen");
