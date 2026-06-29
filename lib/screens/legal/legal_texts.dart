@@ -45,7 +45,7 @@ Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unt
 const String kDatenschutzMarkdown = r'''
 # Datenschutzerklärung
 
-Gemäß Art. 13, 14 DSGVO – Stand: 18. Juni 2026
+Gemäß Art. 13, 14 DSGVO – Stand: 28. Juni 2026
 
 ## 1. Verantwortlicher
 
@@ -116,7 +116,17 @@ Beim Aufruf der Website werden automatisch technische Daten (z. B. IP-Adresse, B
 
 Datenschutzerklärung von Vercel: [vercel.com/legal/privacy-policy](https://vercel.com/legal/privacy-policy)
 
-## 8. Deine Rechte
+## 8. Stripe (Zahlungsabwicklung)
+
+Für die Zahlungsabwicklung von Premium-Abonnements über die Web-App nutzen wir den Zahlungsdienstleister Stripe. Anbieter ist die Stripe Payments Europe, Ltd., The One Building, 1 Grand Canal Street Lower, Dublin 2, Irland.
+
+Wenn du ein Abonnement abschließt oder verwaltest, werden die im Bezahlvorgang eingegebenen Daten (z. B. Name, E-Mail-Adresse, Zahlungs- und Rechnungsdaten sowie technische Daten wie IP-Adresse) direkt von Stripe verarbeitet. Die vollständigen Kartendaten werden ausschließlich von Stripe verarbeitet und nicht an uns übertragen; wir erhalten lediglich eine Kundenkennung sowie Status- und Abrechnungsinformationen zur Verwaltung deines Abonnements.
+
+Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung). Die Verarbeitung erfolgt auf Grundlage eines Auftragsverarbeitungsvertrags (Art. 28 DSGVO); soweit Daten in Drittländer übermittelt werden, erfolgt dies auf Grundlage der EU-Standardvertragsklauseln (Art. 46 DSGVO).
+
+Datenschutzerklärung von Stripe: [stripe.com/de/privacy](https://stripe.com/de/privacy)
+
+## 9. Deine Rechte
 
 Du hast gemäß DSGVO folgende Rechte:
 
@@ -131,19 +141,19 @@ Zur Ausübung deiner Rechte wende dich per E-Mail an: info@lernarena.app
 
 Du hast außerdem das Recht, dich bei einer Datenschutzbehörde zu beschweren. In Deutschland ist dies der Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI) oder die zuständige Landesbehörde.
 
-## 9. Datenlöschung und Account-Löschung
+## 10. Datenlöschung und Account-Löschung
 
 Du kannst deinen Account und alle damit verbundenen Daten jederzeit löschen lassen, indem du uns per E-Mail kontaktierst. Daten werden gelöscht, sobald sie für den Zweck der Verarbeitung nicht mehr erforderlich sind und keine gesetzlichen Aufbewahrungspflichten entgegenstehen (z. B. steuerliche Aufbewahrungspflichten von 10 Jahren für Rechnungsdaten).
 
-## 10. Änderungen dieser Datenschutzerklärung
+## 11. Änderungen dieser Datenschutzerklärung
 
-Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen, um sie an geänderte rechtliche Anforderungen oder Änderungen unserer Dienste anzupassen. Die jeweils aktuelle Version ist stets in der App und auf unserer Website abrufbar. Stand: 18. Juni 2026.
+Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen, um sie an geänderte rechtliche Anforderungen oder Änderungen unserer Dienste anzupassen. Die jeweils aktuelle Version ist stets in der App und auf unserer Website abrufbar. Stand: 28. Juni 2026.
 ''';
 
 const String kAgbMarkdown = r'''
 # Allgemeine Geschäftsbedingungen
 
-Zuletzt aktualisiert: 18. Juni 2026
+Zuletzt aktualisiert: 28. Juni 2026
 
 ## 1. Geltungsbereich
 
@@ -189,8 +199,8 @@ Der Free-Tarif ist kostenlos und beinhaltet einen eingeschränkten Zugang zu den
 Premium bietet unbegrenzten Zugang zu allen Funktionen und ist in folgenden Varianten erhältlich:
 
 - Monatlich: 9,99 € / Monat
-- Jährlich: 59,00 € / Jahr (entspricht ca. 4,92 € / Monat)
-- Lifetime: 99,00 € (einmalige Zahlung, unbegrenzte Laufzeit)
+- Halbjährlich: 39,99 € / 6 Monate (entspricht ca. 6,67 € / Monat)
+- Jährlich: 69,99 € / Jahr (entspricht ca. 5,83 € / Monat)
 
 Alle Preise sind Endpreise. Die Umsatzsteuer-Behandlung hängt vom Kaufweg ab:
 
@@ -199,14 +209,14 @@ Alle Preise sind Endpreise. Die Umsatzsteuer-Behandlung hängt vom Kaufweg ab:
 
 ### 4.3 Laufzeit und Verlängerung
 
-Das Monats- und das Jahresabonnement verlängern sich automatisch um die jeweilige Laufzeit, wenn sie nicht rechtzeitig vor Ablauf gekündigt werden (siehe Abschnitt 6). Der Lifetime-Zugang verlängert sich nicht und wird nicht wiederkehrend abgerechnet.
+Alle Abonnements (monatlich, halbjährlich, jährlich) verlängern sich automatisch um die jeweilige Laufzeit, wenn sie nicht rechtzeitig vor Ablauf gekündigt werden (siehe Abschnitt 6).
 
 ## 5. Zahlung
 
 Der Kaufweg richtet sich nach der genutzten Plattform:
 
 - In der **Android-App** erfolgt die Abrechnung über Google Play Billing.
-- In der **Web-App** erfolgt die Abrechnung über den Zahlungsdienstleister Stripe.
+- In der **Web-App** erfolgt die Abrechnung über den Zahlungsdienstleister Stripe (Stripe Payments Europe, Ltd., Dublin, Irland). Es gelten ergänzend die Hinweise in der Datenschutzerklärung.
 
 Es gelten jeweils die Zahlungsbedingungen des genutzten Anbieters. Die Zahlung ist im Voraus fällig. Bei fehlgeschlagener Zahlung behält sich der Anbieter vor, den Zugang zu Premium-Funktionen zu unterbrechen.
 
@@ -214,12 +224,10 @@ Es gelten jeweils die Zahlungsbedingungen des genutzten Anbieters. Die Zahlung i
 
 ### 6.1 Kündigung
 
-Das Monats- und das Jahresabonnement können jederzeit zum Ende des laufenden Abrechnungszeitraums gekündigt werden. Der Kündigungsweg richtet sich nach dem Kaufkanal:
+Alle Abonnements können jederzeit zum Ende des laufenden Abrechnungszeitraums gekündigt werden. Der Kündigungsweg richtet sich nach dem Kaufkanal:
 
 - Über Google Play gekaufte Abonnements werden über die Abo-Einstellungen des Google-Play-Kontos gekündigt.
-- Über die Web-App (Stripe) gekaufte Abonnements werden per E-Mail an den Anbieter oder über die Kontoeinstellungen gekündigt.
-
-Der Lifetime-Zugang ist kein Abonnement und muss nicht gekündigt werden.
+- Über die Web-App (Stripe) gekaufte Abonnements können jederzeit selbst über die Abo-Verwaltung im eigenen Konto („Abo verwalten") gekündigt werden. Die Kündigung wird zum Ende des laufenden Abrechnungszeitraums wirksam.
 
 ### 6.2 Widerrufsrecht für Verbraucher
 
@@ -295,7 +303,7 @@ Wesentliche Änderungen – insbesondere Änderungen der Preise, des Leistungsum
 
 ### 9.3 Bereits bezahlte Leistungen
 
-Bereits abgeschlossene und vollständig bezahlte Leistungen, insbesondere der Lifetime-Zugang, bleiben von Preisänderungen unberührt.
+Bereits abgeschlossene und vollständig bezahlte Leistungen bleiben von Preisänderungen unberührt.
 
 ## 10. Schlussbestimmungen
 
@@ -303,5 +311,5 @@ Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrec
 
 Sollten einzelne Bestimmungen dieser AGB unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen davon unberührt.
 
-Stand: 18. Juni 2026
+Stand: 28. Juni 2026
 ''';

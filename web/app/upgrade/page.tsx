@@ -337,7 +337,7 @@ export default async function UpgradePage({
 </div>
 
                 <p className="up-coming">
-                    🚀 Zahlung wird in Kürze freigeschaltet. Stay tuned!
+                    🔒 Sichere Zahlung über Stripe · jederzeit kündbar
                 </p>
             </div>
         </div>

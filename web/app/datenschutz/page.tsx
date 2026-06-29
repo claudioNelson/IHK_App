@@ -7,7 +7,7 @@ export const metadata = {
 
 // Festes Datum der letzten inhaltlichen Änderung.
 // Bei jeder echten Überarbeitung der Datenschutzerklärung manuell anpassen.
-const STAND = "18. Juni 2026";
+const STAND = "28. Juni 2026";
 
 const sections = [
   {
@@ -219,8 +219,49 @@ const sections = [
     ),
   },
   {
+    id: "stripe",
+    title: "8. Stripe (Zahlungsabwicklung)",
+    content: (
+      <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+        <p>
+          Für die Zahlungsabwicklung von Premium-Abonnements über die Web-App
+          nutzen wir den Zahlungsdienstleister Stripe. Anbieter ist die Stripe
+          Payments Europe, Ltd., The One Building, 1 Grand Canal Street Lower,
+          Dublin 2, Irland.
+        </p>
+        <p>
+          Wenn du ein Abonnement abschließt oder verwaltest, werden die im
+          Bezahlvorgang eingegebenen Daten (z. B. Name, E-Mail-Adresse,
+          Zahlungs- und Rechnungsdaten sowie technische Daten wie IP-Adresse)
+          direkt von Stripe verarbeitet. Die vollständigen Kartendaten werden
+          ausschließlich von Stripe verarbeitet und nicht an uns übertragen; wir
+          erhalten lediglich eine Kundenkennung sowie Status- und
+          Abrechnungsinformationen zur Verwaltung deines Abonnements.
+        </p>
+        <p>
+          Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
+          Die Verarbeitung erfolgt auf Grundlage eines
+          Auftragsverarbeitungsvertrags (Art. 28 DSGVO); soweit Daten in
+          Drittländer übermittelt werden, erfolgt dies auf Grundlage der
+          EU-Standardvertragsklauseln (Art. 46 DSGVO).
+        </p>
+        <p>
+          Datenschutzerklärung von Stripe:{" "}
+          
+            href="https://stripe.com/de/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-700 hover:underline"
+          >
+            stripe.com/de/privacy
+          </a>
+        </p>
+      </div>
+    ),
+  },
+  {
     id: "rechte",
-    title: "8. Deine Rechte",
+    title: "9. Deine Rechte",
     content: (
       <div className="text-gray-700 text-sm leading-relaxed space-y-2">
         <p>Du hast gemäß DSGVO folgende Rechte:</p>
@@ -270,7 +311,7 @@ const sections = [
   },
   {
     id: "loeschung",
-    title: "9. Datenlöschung und Account-Löschung",
+    title: "10. Datenlöschung und Account-Löschung",
     content: (
       <p className="text-gray-700 text-sm leading-relaxed">
         Du kannst deinen Account und alle damit verbundenen Daten jederzeit
@@ -284,7 +325,7 @@ const sections = [
   },
   {
     id: "aenderungen",
-    title: "10. Änderungen dieser Datenschutzerklärung",
+    title: "11. Änderungen dieser Datenschutzerklärung",
     content: (
       <p className="text-gray-700 text-sm leading-relaxed">
         Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen,

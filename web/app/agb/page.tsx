@@ -163,7 +163,8 @@ const sections = [
           </li>
           <li>
             In der <strong>Web-App</strong> erfolgt die Abrechnung über den
-            Zahlungsdienstleister Stripe.
+            Zahlungsdienstleister Stripe (Stripe Payments Europe, Ltd., Dublin,
+            Irland). Es gelten ergänzend die Hinweise in der Datenschutzerklärung.
           </li>
         </ul>
         <p>
@@ -193,8 +194,10 @@ const sections = [
               Abo-Einstellungen des Google-Play-Kontos gekündigt.
             </li>
             <li>
-              Über die Web-App (Stripe) gekaufte Abonnements werden per E-Mail
-              an den Anbieter oder über die Kontoeinstellungen gekündigt.
+              Über die Web-App (Stripe) gekaufte Abonnements können jederzeit
+              selbst über die Abo-Verwaltung im eigenen Konto („Abo verwalten")
+              gekündigt werden. Die Kündigung wird zum Ende des laufenden
+              Abrechnungszeitraums wirksam; der Zugang bleibt bis dahin bestehen.
             </li>
           </ul>
         </div>

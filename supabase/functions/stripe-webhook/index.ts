@@ -13,14 +13,6 @@ const supabase = createClient(
   Deno.env.get("SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-const _k = Deno.env.get("SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-try {
-  const _payload = JSON.parse(atob(_k.split(".")[1] ?? ""));
-  console.log("🔑 Key-Rolle:", _payload.role, "| Länge:", _k.length);
-} catch {
-  console.log("🔑 Key konnte nicht gelesen werden | Länge:", _k.length);
-}
-
 function monthsForTier(tier: string): number {
   switch (tier) {
     case "monthly": return 1;
