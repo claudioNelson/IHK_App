@@ -7,7 +7,7 @@ export const metadata = {
 
 // Festes Datum der letzten inhaltlichen Änderung.
 // Bei jeder echten Überarbeitung der AGB manuell anpassen.
-const STAND = "18. Juni 2026";
+const STAND = "28. Juni 2026";
 
 const sections = [
   {
@@ -113,8 +113,8 @@ const sections = [
           </p>
           <ul className="list-disc list-inside text-gray-600 space-y-1 mt-2">
             <li>Monatlich: 9,99 € / Monat</li>
-            <li>Jährlich: 59,00 € / Jahr (entspricht ca. 4,92 € / Monat)</li>
-            <li>Lifetime: 99,00 € (einmalige Zahlung, unbegrenzte Laufzeit)</li>
+            <li>Halbjährlich: 39,99 € / 6 Monate (entspricht ca. 6,67 € / Monat)</li>
+            <li>Jährlich: 69,99 € / Jahr (entspricht ca. 5,83 € / Monat)</li>
           </ul>
           <p className="mt-2">
             Alle Preise sind Endpreise. Die Umsatzsteuer-Behandlung hängt vom
@@ -142,10 +142,9 @@ const sections = [
             4.3 Laufzeit und Verlängerung
           </h3>
           <p>
-            Das Monats- und das Jahresabonnement verlängern sich automatisch um
-            die jeweilige Laufzeit, wenn sie nicht rechtzeitig vor Ablauf
-            gekündigt werden (siehe Abschnitt 6). Der Lifetime-Zugang verlängert
-            sich nicht und wird nicht wiederkehrend abgerechnet.
+            Alle Abonnements (monatlich, halbjährlich, jährlich) verlängern sich
+            automatisch um die jeweilige Laufzeit, wenn sie nicht rechtzeitig vor
+            Ablauf gekündigt werden (siehe Abschnitt 6).
           </p>
         </div>
       </div>
@@ -184,8 +183,8 @@ const sections = [
         <div>
           <h3 className="font-semibold text-gray-800 mb-1">6.1 Kündigung</h3>
           <p>
-            Das Monats- und das Jahresabonnement können jederzeit zum Ende des
-            laufenden Abrechnungszeitraums gekündigt werden. Der Kündigungsweg
+            Alle Abonnements können jederzeit zum Ende des laufenden
+            Abrechnungszeitraums gekündigt werden. Der Kündigungsweg
             richtet sich nach dem Kaufkanal:
           </p>
           <ul className="list-disc list-inside text-gray-600 space-y-1 mt-1">
@@ -198,10 +197,6 @@ const sections = [
               an den Anbieter oder über die Kontoeinstellungen gekündigt.
             </li>
           </ul>
-          <p className="mt-1">
-            Der Lifetime-Zugang ist kein Abonnement und muss nicht gekündigt
-            werden.
-          </p>
         </div>
         <div>
           <h3 className="font-semibold text-gray-800 mb-1">
@@ -433,9 +428,8 @@ const sections = [
             9.3 Bereits bezahlte Leistungen
           </h3>
           <p>
-            Bereits abgeschlossene und vollständig bezahlte Leistungen,
-            insbesondere der Lifetime-Zugang, bleiben von Preisänderungen
-            unberührt.
+            Bereits abgeschlossene und vollständig bezahlte Leistungen bleiben
+            von Preisänderungen unberührt.
           </p>
         </div>
       </div>

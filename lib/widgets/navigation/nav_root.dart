@@ -8,6 +8,11 @@ import '../../screens/learning/learning_hub_screen.dart';
 import '../../screens/pruefen/pruefen_screen.dart';
 import '../../screens/simulation/async_match_demo_screen.dart';
 import '../../screens/profile/new_profile_page.dart';
+import '../../services/streak_service.dart';
+import '../../services/spaced_repetition_service.dart';
+import '../../services/daily_goal_service.dart';
+import '../dialogs/streak_greeting_dialog.dart';
+import '../../screens/learning/review_screen.dart';
 
 class NavRoot extends StatefulWidget {
   const NavRoot({super.key});
@@ -32,6 +37,41 @@ class _NavRootState extends State<NavRoot> {
     _TabItem(icon: Icons.bolt_outlined, label: 'Arena'),
     _TabItem(icon: Icons.person_outline, label: 'Profil'),
   ];
+
+  final _streakService = StreakService();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeShowStreakGreeting();
+    });
+  }
+
+  Future<void> _maybeShowStreakGreeting() async {
+    final result = await _streakService.evaluate();
+    if (result == null) return;
+    if (!result.shouldShowGreeting || result.streakDays <= 0) return;
+
+    final dueCount = await SpacedRepetitionService().getDueCount();
+    final answeredYesterday = await DailyGoalService()
+        .getYesterdayAnsweredCount();
+    if (!mounted) return;
+
+    final wantsReview = await showStreakGreetingDialog(
+      context,
+      result.streakDays,
+      dueCount,
+      answeredYesterday,
+    );
+    await _streakService.markGreetingShown();
+
+    if (wantsReview != true) return;
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ReviewScreen(totalCount: dueCount)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

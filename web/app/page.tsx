@@ -1020,12 +1020,13 @@ export default function LandingPage() {
         /* PRICING */
         .pricing-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 20px;
-          max-width: 1100px;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+          max-width: 1240px;
           margin: 60px auto 0;
         }
-        @media (max-width: 900px) { .pricing-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1100px) { .pricing-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .pricing-grid { grid-template-columns: 1fr; } }
         .plan {
           padding: 36px;
           border: 1px solid ${t.border};
@@ -1319,7 +1320,7 @@ export default function LandingPage() {
             der erklärt statt vorbetet.
           </p>
           <div className="hero-actions">
-            <Link href="/register" className="btn-primary">
+            <Link href="/signup" className="btn-primary">
               Kostenlos starten →
             </Link>
             <a href="#product" className="btn-secondary">
@@ -1801,8 +1802,8 @@ export default function LandingPage() {
             Fair. Transparent. <em>Kein Kleingedrucktes.</em>
           </h2>
           <p className="section-desc">
-            Kostenlos anfangen. Upgraden, wenn&apos;s ernst wird. Lifetime
-            kaufen, wenn du dich nicht festlegen willst.
+            Kostenlos anfangen. Upgraden, wenn&apos;s ernst wird. Halbjahr
+            für den Prüfungssprint, Jahr für den besten Preis.
           </p>
         </div>
 
@@ -1815,7 +1816,7 @@ export default function LandingPage() {
               <span className="plan-period">/ für immer</span>
             </div>
             <div className="plan-note">Keine Kreditkarte erforderlich</div>
-            <Link href="/register" className="plan-cta outline">
+            <Link href="/signup" className="plan-cta outline">
               Kostenlos starten
             </Link>
             <ul className="plan-features">
@@ -1836,8 +1837,8 @@ export default function LandingPage() {
               <span className="plan-amount">9,99€</span>
               <span className="plan-period">/ Monat</span>
             </div>
-            <div className="plan-note">Oder 59€/Jahr · 50% sparen</div>
-            <Link href="/register?plan=premium" className="plan-cta primary">
+            <div className="plan-note">Oder 69,99€/Jahr · 42% sparen</div>
+            <Link href="/upgrade" className="plan-cta primary">
               Premium starten
             </Link>
             <ul className="plan-features">
@@ -1851,24 +1852,44 @@ export default function LandingPage() {
           </div>
 
           <div className="plan lifetime">
-            <div className="plan-badge">Best Value</div>
-            <div className="plan-name">Lifetime</div>
-            <div className="plan-tag">Für Sammler</div>
+            <div className="plan-badge">Beliebt</div>
+            <div className="plan-name">Halbjahr</div>
+            <div className="plan-tag">Prüfungsphase</div>
             <div className="plan-price">
-              <span className="plan-amount">99€</span>
-              <span className="plan-period">/ einmalig</span>
+              <span className="plan-amount">39,99€</span>
+              <span className="plan-period">/ 6 Monate</span>
             </div>
-            <div className="plan-note">Einmal zahlen, für immer nutzen</div>
-            <Link href="/register?plan=lifetime" className="plan-cta outline">
-              Lifetime kaufen
+            <div className="plan-note">≈ 6,67€/Monat · deckt die heiße Phase ab</div>
+            <Link href="/upgrade" className="plan-cta outline">
+              Halbjahr starten
             </Link>
             <ul className="plan-features">
               <li className="plan-feature">Alles aus Premium</li>
-              <li className="plan-feature">Auch alle zukünftigen Lernpfade</li>
-              <li className="plan-feature">Alle zukünftigen Features</li>
-              <li className="plan-feature">Keine Verlängerungen</li>
-              <li className="plan-feature">Bezahlt nach 10 Monaten</li>
-              <li className="plan-feature">Beste Wahl ab AP1+AP2</li>
+              <li className="plan-feature">6 Monate Vollzugang</li>
+              <li className="plan-feature">Cloud-Zertifikate inklusive</li>
+              <li className="plan-feature">Auto-Verlängerung</li>
+              <li className="plan-feature">Jederzeit kündbar</li>
+              <li className="plan-feature">Ideal für AP1- oder AP2-Sprint</li>
+            </ul>
+          </div>
+
+          <div className="plan">
+            <div className="plan-name">Jährlich</div>
+            <div className="plan-tag">Bestpreis</div>
+            <div className="plan-price">
+              <span className="plan-amount">69,99€</span>
+              <span className="plan-period">/ Jahr</span>
+            </div>
+            <div className="plan-note">≈ 5,83€/Monat · 42% sparen</div>
+            <Link href="/upgrade" className="plan-cta outline">
+              Jährlich starten
+            </Link>
+            <ul className="plan-features">
+              <li className="plan-feature">Alles aus Premium</li>
+              <li className="plan-feature">12 Monate Vollzugang</li>
+              <li className="plan-feature">Bester Preis pro Monat</li>
+              <li className="plan-feature">Bevorzugter Support</li>
+              <li className="plan-feature">Früher Zugang zu neuen Features</li>
             </ul>
           </div>
         </div>
@@ -1890,7 +1911,7 @@ export default function LandingPage() {
             Lernpfade, ein Tutor der erklärt, ein System das dich nicht vergessen lässt.
           </p>
           <div className="hero-actions" style={{ justifyContent: "center", marginBottom: 0 }}>
-            <Link href="/register" className="btn-primary">
+            <Link href="/signup" className="btn-primary">
               Kostenlos registrieren →
             </Link>
             <a href="#pricing" className="btn-secondary">
@@ -1926,7 +1947,7 @@ export default function LandingPage() {
             <h4>Ressourcen</h4>
             <ul>
               <li><Link href="/login">Login</Link></li>
-              <li><Link href="/register">Registrieren</Link></li>
+              <li><Link href="/signup">Registrieren</Link></li>
               <li><a href="mailto:info@lernarena.app">Kontakt</a></li>
             </ul>
           </div>

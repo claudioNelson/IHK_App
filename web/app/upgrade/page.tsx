@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import CheckoutButton from "./CheckoutButton";
 
 export default async function UpgradePage({
     searchParams,
@@ -30,7 +31,7 @@ export default async function UpgradePage({
         // Auto-Expire-Check
         const tier = profile.premium_tier;
         const until = profile.premium_until ? new Date(profile.premium_until) : null;
-        const isExpired = tier !== "lifetime" && until && until < new Date();
+        const isExpired = until && until < new Date();
         if (!isExpired) {
             redirect(next);
         }
@@ -276,70 +277,64 @@ export default async function UpgradePage({
                 </div>
 
                 <div className="up-grid">
-                    {/* MONATLICH */}
-                    <div className="up-plan">
-                        <div className="up-plan-name">Monatlich</div>
-                        <div className="up-plan-tag">Flexibel</div>
-                        <div className="up-price-row">
-                            <span className="up-price">9,99€</span>
-                            <span className="up-period">/ Monat</span>
-                        </div>
-                        <div className="up-note">Monatlich kündbar</div>
-                        <button className="up-cta" disabled>
-                            Demnächst verfügbar
-                        </button>
+    {/* MONATLICH */}
+    <div className="up-plan">
+        <div className="up-plan-name">Monatlich</div>
+        <div className="up-plan-tag">Flexibel</div>
+        <div className="up-price-row">
+            <span className="up-price">9,99€</span>
+            <span className="up-period">/ Monat</span>
+        </div>
+        <div className="up-note">Monatlich kündbar</div>
+        <CheckoutButton tier="monthly" label="Monatlich starten" />
                         <ul className="up-features">
                             <li className="up-feature">Alle 937 Prüfungsfragen</li>
-                            <li className="up-feature">Alle Lernpfade (33 Levels)</li>
-                            <li className="up-feature">Echte IHK-Prüfungssimulation</li>
-                            <li className="up-feature">Ada KI-Tutor unbegrenzt</li>
-                            <li className="up-feature">Jederzeit kündbar</li>
-                        </ul>
-                    </div>
+            <li className="up-feature">Alle Lernpfade (33 Levels)</li>
+            <li className="up-feature">Echte IHK-Prüfungssimulation</li>
+            <li className="up-feature">Ada KI-Tutor unbegrenzt</li>
+            <li className="up-feature">Jederzeit kündbar</li>
+        </ul>
+    </div>
 
-                    {/* JÄHRLICH */}
-                    <div className="up-plan featured">
-                        <div className="up-badge">Empfohlen · 51% sparen</div>
-                        <div className="up-plan-name">Jährlich</div>
-                        <div className="up-plan-tag">Für Prüflinge</div>
-                        <div className="up-price-row">
-                            <span className="up-price">59€</span>
-                            <span className="up-period">/ Jahr</span>
-                        </div>
-                        <div className="up-note">≈ 4,92€/Monat · 60€ gespart</div>
-                        <button className="up-cta primary" disabled>
-                            Demnächst verfügbar
-                        </button>
+    {/* HALBJAHR */}
+    <div className="up-plan">
+        <div className="up-plan-name">Halbjahr</div>
+        <div className="up-plan-tag">Beliebt</div>
+        <div className="up-price-row">
+            <span className="up-price">39,99€</span>
+            <span className="up-period">/ 6 Monate</span>
+        </div>
+        <div className="up-note">≈ 6,67€/Monat · 20€ gespart</div>
+        <CheckoutButton tier="halfyear" label="Halbjahr starten" />
                         <ul className="up-features">
                             <li className="up-feature">Alles aus Monatlich</li>
-                            <li className="up-feature">12 Monate Vollzugang</li>
-                            <li className="up-feature">Cloud-Zertifikate inklusive</li>
-                            <li className="up-feature">Bevorzugter Support</li>
-                            <li className="up-feature">Frühzeitiger Zugang zu neuen Features</li>
-                        </ul>
-                    </div>
+            <li className="up-feature">6 Monate Vollzugang</li>
+            <li className="up-feature">Cloud-Zertifikate inklusive</li>
+            <li className="up-feature">Deckt die heiße Prüfungsphase ab</li>
+            <li className="up-feature">Auto-Verlängerung, jederzeit kündbar</li>
+        </ul>
+    </div>
 
-                    {/* LIFETIME */}
-                    <div className="up-plan">
-                        <div className="up-plan-name">Lifetime</div>
-                        <div className="up-plan-tag">Einmal zahlen</div>
-                        <div className="up-price-row">
-                            <span className="up-price">129€</span>
-                            <span className="up-period">/ einmalig</span>
-                        </div>
-                        <div className="up-note">Für immer dein</div>
-                        <button className="up-cta" disabled>
-                            Demnächst verfügbar
-                        </button>
+    {/* JÄHRLICH */}
+    <div className="up-plan featured">
+        <div className="up-badge">Empfohlen · 42% sparen</div>
+        <div className="up-plan-name">Jährlich</div>
+        <div className="up-plan-tag">Bestpreis</div>
+        <div className="up-price-row">
+            <span className="up-price">69,99€</span>
+            <span className="up-period">/ Jahr</span>
+        </div>
+        <div className="up-note">≈ 5,83€/Monat · 50€ gespart</div>
+        <CheckoutButton tier="yearly" label="Jährlich starten" primary />
                         <ul className="up-features">
-                            <li className="up-feature">Alles aus Jährlich</li>
-                            <li className="up-feature">Alle zukünftigen Features</li>
-                            <li className="up-feature">Alle zukünftigen Lernpfade</li>
-                            <li className="up-feature">Keine Verlängerungen</li>
-                            <li className="up-feature">Beste Wahl ab AP1+AP2</li>
-                        </ul>
-                    </div>
-                </div>
+                            <li className="up-feature">Alles aus Halbjahr</li>
+            <li className="up-feature">12 Monate Vollzugang</li>
+            <li className="up-feature">Bevorzugter Support</li>
+            <li className="up-feature">Früher Zugang zu neuen Features</li>
+            <li className="up-feature">Bester Preis pro Monat</li>
+        </ul>
+    </div>
+</div>
 
                 <p className="up-coming">
                     🚀 Zahlung wird in Kürze freigeschaltet. Stay tuned!

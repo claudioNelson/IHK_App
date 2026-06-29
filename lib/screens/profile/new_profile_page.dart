@@ -13,6 +13,8 @@ import '../auth/change_password_screen.dart';
 import '../auth/login_screen.dart';
 import '../../services/subscription_service.dart';
 import '../legal/legal_document_screen.dart';
+import '../../services/daily_goal_service.dart';
+import '../../widgets/streak_calendar.dart';
 
 class NewProfilePage extends StatefulWidget {
   const NewProfilePage({super.key});
@@ -37,6 +39,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
   int _streakDays = 0;
   int _certsPassed = 0;
   int _examsPassed = 0;
+  Map<DateTime, int> _activeDayCounts = {};
 
   bool _loading = true;
   bool _notificationsEnabled = true;
@@ -128,6 +131,9 @@ class _NewProfilePageState extends State<NewProfilePage> {
       // Streak aus lokalen Prefs
       final streak = await _calcStreak();
 
+      // Aktivität der letzten 12 Wochen für den Kalender
+      final activeDays = await DailyGoalService().getActiveDayCounts();
+
       if (!mounted) return;
       setState(() {
         _playerStats = playerStats;
@@ -136,6 +142,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
         _certsPassed = certs.length;
         _examsPassed = exams.length;
         _streakDays = streak;
+        _activeDayCounts = activeDays;
       });
     } catch (e) {
       debugPrint('Stats-Load error: $e');
@@ -533,6 +540,11 @@ class _NewProfilePageState extends State<NewProfilePage> {
                     const SizedBox(height: 32),
                   ],
 
+                  // AKTIVITÄT (Streak-Kalender, ausklappbar)
+                  _buildCalendarSection(surface, border, text, textDim),
+
+                  const SizedBox(height: 32),
+
                   // EINSTELLUNGEN
                   _sectionLabel('EINSTELLUNGEN', textDim),
                   const SizedBox(height: 12),
@@ -655,7 +667,6 @@ class _NewProfilePageState extends State<NewProfilePage> {
           const SizedBox(height: 16),
 
           // Meta Row: Tier + Join Date
-          // Meta Row: Tier + Join Date
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -752,6 +763,51 @@ class _NewProfilePageState extends State<NewProfilePage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ─── AKTIVITÄT (ausklappbar) ──────────────────────
+  Widget _buildCalendarSection(
+    Color surface,
+    Color border,
+    Color text,
+    Color textDim,
+  ) {
+    return Theme(
+      // ExpansionTile zeichnet sonst eigene Trennlinien — die nehmen wir weg.
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: Container(
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: border),
+        ),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          iconColor: AppColors.accent,
+          collapsedIconColor: textDim,
+          title: Row(
+            children: [
+              Container(width: 16, height: 1, color: AppColors.accent),
+              const SizedBox(width: 10),
+              Text(
+                'AKTIVITÄT · 12 WOCHEN',
+                style: AppTextStyles.monoLabel(AppColors.accent),
+              ),
+            ],
+          ),
+          children: [
+            StreakCalendar(
+              dayCounts: _activeDayCounts,
+              surface: surface,
+              border: border,
+              text: text,
+              textDim: textDim,
+            ),
+          ],
+        ),
       ),
     );
   }
