@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/app_cache_service.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +27,6 @@ void main() async {
   );
 
   await Hive.initFlutter();
-  await dotenv.load(fileName: ".env");
 
   final themeProvider = ThemeProvider();
   await themeProvider.loadTheme();
@@ -64,6 +62,11 @@ class AppInitializer extends StatefulWidget {
 
 class _AppInitializerState extends State<AppInitializer> {
   bool _initialized = false;
+
+  // Einmalig erzeugen: sonst startet jeder Rebuild (z.B. Theme-Wechsel)
+  // den FutureBuilder neu und der Screen springt kurz auf den Splash.
+  late final Future<bool> _onboardingFuture = SharedPreferences.getInstance()
+      .then((p) => p.getBool('hasSeenOnboarding') ?? false);
 
   @override
   void initState() {
@@ -135,9 +138,7 @@ class _AppInitializerState extends State<AppInitializer> {
     }
 
     return FutureBuilder<bool>(
-      future: SharedPreferences.getInstance().then(
-        (p) => p.getBool('hasSeenOnboarding') ?? false,
-      ),
+      future: _onboardingFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const SplashScreen();
         if (snapshot.data == true) return const LoginScreen();
