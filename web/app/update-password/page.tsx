@@ -78,7 +78,7 @@ export default function UpdatePasswordPage() {
         if (password !== confirm) {
             setError("Passwörter stimmen nicht überein.");
             return;
-        }S
+        }
 
         setLoading(true);
         const { error } = await supabase.auth.updateUser({ password });
