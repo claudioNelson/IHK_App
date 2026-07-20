@@ -37,10 +37,16 @@ export default function AuthCallbackPage() {
                 return;
             }
 
-            // Fallback: PKCE-Flow mit ?code=
-            const code = new URLSearchParams(window.location.search).get("code");
-            if (code) {
-                const { error } = await supabase.auth.exchangeCodeForSession(code);
+            // Bestätigung per token_hash (geräteunabhängig, kein PKCE nötig)
+            const query = new URLSearchParams(window.location.search);
+            const tokenHash = query.get("token_hash");
+            const type = query.get("type");
+
+            if (tokenHash) {
+                const { error } = await supabase.auth.verifyOtp({
+                    token_hash: tokenHash,
+                    type: (type ?? "signup") as "signup" | "email",
+                });
                 if (error) {
                     setError(error.message);
                     return;
