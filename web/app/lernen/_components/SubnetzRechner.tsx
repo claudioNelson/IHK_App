@@ -26,18 +26,18 @@ function ipToBin(ip: number): string {
 }
 
 const box: React.CSSProperties = {
-  background: "#12121C",
-  border: "1px solid rgba(124,109,255,0.35)",
+  background: "var(--surface, #12121C)",
+  border: "1px solid var(--accent, rgba(124,109,255,0.35))",
   borderRadius: 16,
   padding: "24px 26px",
   margin: "20px 0",
 };
 
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(255,255,255,0.15)",
+  background: "var(--input-bg, rgba(255,255,255,0.05))",
+  border: "1px solid var(--input-border, rgba(255,255,255,0.15))",
   borderRadius: 10,
-  color: "#F5F5F7",
+  color: "var(--text, #F5F5F7)",
   padding: "11px 14px",
   fontSize: 16,
   fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
@@ -49,18 +49,18 @@ const inputStyle: React.CSSProperties = {
 const th: React.CSSProperties = {
   textAlign: "left",
   padding: "8px 12px",
-  color: "#A0A0B0",
+  color: "var(--text-dim, #A0A0B0)",
   fontSize: 13,
   fontWeight: 600,
   textTransform: "uppercase",
   letterSpacing: "0.04em",
-  borderBottom: "1px solid rgba(255,255,255,0.08)",
+  borderBottom: "1px solid var(--border, rgba(255,255,255,0.08))",
 };
 
 const td: React.CSSProperties = {
   padding: "9px 12px",
-  borderBottom: "1px solid rgba(255,255,255,0.06)",
-  color: "#E0E0E8",
+  borderBottom: "1px solid var(--border, rgba(255,255,255,0.06))",
+  color: "var(--text-body, #E0E0E8)",
   fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
   fontSize: 15,
 };
@@ -94,7 +94,7 @@ export default function SubnetzRechner() {
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
         <div style={{ flex: "1 1 220px" }}>
           <label
-            style={{ display: "block", color: "#A0A0B0", fontSize: 13, marginBottom: 6, fontWeight: 600 }}
+            style={{ display: "block", color: "var(--text-dim, #A0A0B0)", fontSize: 13, marginBottom: 6, fontWeight: 600 }}
           >
             IP-Adresse
           </label>
@@ -108,7 +108,7 @@ export default function SubnetzRechner() {
         </div>
         <div style={{ flex: "0 1 160px" }}>
           <label
-            style={{ display: "block", color: "#A0A0B0", fontSize: 13, marginBottom: 6, fontWeight: 600 }}
+            style={{ display: "block", color: "var(--text-dim, #A0A0B0)", fontSize: 13, marginBottom: 6, fontWeight: 600 }}
           >
             Präfix (CIDR): /{prefix}
           </label>
@@ -124,7 +124,7 @@ export default function SubnetzRechner() {
       </div>
 
       {!gueltig && (
-        <p style={{ color: "#FF6B63", fontSize: 15, margin: 0 }}>
+        <p style={{ color: "var(--err, #FF6B63)", fontSize: 15, margin: 0 }}>
           Bitte eine gültige IPv4-Adresse eingeben (vier Zahlen von 0–255, z. B.
           192.168.1.10).
         </p>
@@ -167,9 +167,9 @@ export default function SubnetzRechner() {
               marginTop: 16,
               padding: "9px 16px",
               borderRadius: 8,
-              background: "rgba(124,109,255,0.14)",
-              border: "1px solid rgba(124,109,255,0.4)",
-              color: "#C4BBFF",
+              background: "var(--accent-soft, rgba(124,109,255,0.14))",
+              border: "1px solid var(--accent, rgba(124,109,255,0.4))",
+              color: "var(--accent-text, #C4BBFF)",
               fontSize: 14,
               cursor: "pointer",
               fontFamily: "inherit",
@@ -182,7 +182,7 @@ export default function SubnetzRechner() {
             <div
               style={{
                 marginTop: 14,
-                background: "rgba(0,0,0,0.35)",
+                background: "var(--pre-bg, rgba(0,0,0,0.35))",
                 borderRadius: 10,
                 padding: "14px 16px",
                 overflowX: "auto",
@@ -191,7 +191,7 @@ export default function SubnetzRechner() {
               <pre
                 style={{
                   margin: 0,
-                  color: "#C8C8D2",
+                  color: "var(--text-body, #C8C8D2)",
                   fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
                   fontSize: 13.5,
                   lineHeight: 1.9,
@@ -203,7 +203,7 @@ Maske (/${String(prefix).padEnd(2)})  ${ipToBin(mask)}
 Netzadresse  ${ipToBin(network)}
 Broadcast    ${ipToBin(broadcast)}`}
               </pre>
-              <p style={{ color: "#A0A0B0", fontSize: 13.5, margin: "10px 0 0" }}>
+              <p style={{ color: "var(--text-dim, #A0A0B0)", fontSize: 13.5, margin: "10px 0 0" }}>
                 Netzadresse = IP UND Maske (bitweise). Broadcast = Netzadresse mit
                 allen Host-Bits auf 1. Nutzbare Hosts = 2^{32 - prefix} − 2.
               </p>

@@ -87,22 +87,34 @@ export default function LernenUebersicht() {
     <main className="lv-wrap">
       <style>{`
         .lv-wrap {
+          --bg: #08080C; --bg-muted: #0E0E14; --surface: #12121C; --surface-2: #151521;
+          --border: rgba(255,255,255,0.08);
+          --text: #F5F5F7; --text-body: #C8C8D2; --text-dim: #A0A0B0;
+          --accent: #7C6DFF; --accent-soft: rgba(124,109,255,0.14); --accent-text: #C4BBFF;
+          --chip-bg: rgba(255,255,255,0.06); --chip-border: rgba(255,255,255,0.12);
           font-family: var(--font-geist-sans), system-ui, sans-serif;
-          background: #08080C;
-          color: #F5F5F7;
+          background: var(--bg);
+          color: var(--text);
           min-height: 100vh;
           line-height: 1.65;
         }
+        html[data-theme="light"] .lv-wrap {
+          --bg: #FAFAF9; --bg-muted: #F4F4F1; --surface: #FFFFFF; --surface-2: #FFFFFF;
+          --border: rgba(10,10,15,0.10);
+          --text: #0A0A0F; --text-body: #3A3A44; --text-dim: #6A6A74;
+          --accent: #6A5AE8; --accent-soft: rgba(106,90,232,0.10); --accent-text: #5B4BE0;
+          --chip-bg: rgba(10,10,15,0.04); --chip-border: rgba(10,10,15,0.12);
+        }
         .lv-container { max-width: 900px; margin: 0 auto; padding: 72px 24px 96px; }
-        .lv-crumb { font-size: 14px; color: #7C6DFF; margin-bottom: 24px; }
-        .lv-crumb a { color: #7C6DFF; text-decoration: none; }
+        .lv-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
+        .lv-crumb a { color: var(--accent); text-decoration: none; }
         .lv-crumb a:hover { text-decoration: underline; }
         .lv-wrap h1 {
           font-size: clamp(32px, 5vw, 46px);
           line-height: 1.1; letter-spacing: -0.02em;
           margin: 0 0 16px; font-weight: 700;
         }
-        .lv-lead { font-size: 19px; color: #A0A0B0; margin: 0 0 40px; max-width: 640px; }
+        .lv-lead { font-size: 19px; color: var(--text-dim); margin: 0 0 40px; max-width: 640px; }
         .lv-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -110,8 +122,8 @@ export default function LernenUebersicht() {
         }
         .lv-card {
           display: block;
-          background: #12121C;
-          border: 1px solid rgba(255,255,255,0.08);
+          background: var(--surface);
+          border: 1px solid var(--border);
           border-radius: 16px;
           padding: 22px 24px;
           text-decoration: none;
@@ -119,8 +131,8 @@ export default function LernenUebersicht() {
         }
         .lv-card:hover {
           transform: translateY(-3px);
-          border-color: rgba(124,109,255,0.5);
-          background: #151521;
+          border-color: var(--accent);
+          background: var(--surface-2);
         }
         .lv-tag {
           display: inline-block;
@@ -128,21 +140,21 @@ export default function LernenUebersicht() {
           font-weight: 600;
           letter-spacing: 0.05em;
           text-transform: uppercase;
-          color: #C4BBFF;
-          background: rgba(124,109,255,0.14);
+          color: var(--accent-text);
+          background: var(--accent-soft);
           border-radius: 6px;
           padding: 3px 8px;
           margin-bottom: 12px;
         }
-        .lv-card h2 { color: #F5F5F7; font-size: 19px; margin: 0 0 8px; font-weight: 650; }
-        .lv-card p { color: #A0A0B0; font-size: 14.5px; margin: 0; }
+        .lv-card h2 { color: var(--text); font-size: 19px; margin: 0 0 8px; font-weight: 650; }
+        .lv-card p { color: var(--text-dim); font-size: 14.5px; margin: 0; }
         .lv-final {
-          text-align: center; background: linear-gradient(180deg, #12121C, #0E0E14);
+          text-align: center; background: linear-gradient(180deg, var(--surface), var(--bg-muted));
           border: 1px solid rgba(124,109,255,0.25); border-radius: 20px;
           padding: 40px 28px; margin: 56px 0 0;
         }
         .lv-final h2 { margin: 0 0 12px; font-size: 26px; }
-        .lv-final p { color: #C8C8D2; max-width: 520px; margin: 0 auto 20px; }
+        .lv-final p { color: var(--text-body); max-width: 520px; margin: 0 auto 20px; }
         .lv-cta-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
         .lv-btn {
           display: inline-block; padding: 13px 26px; border-radius: 12px;
@@ -150,8 +162,8 @@ export default function LernenUebersicht() {
         }
         .lv-btn-primary { background: #7C6DFF; color: #fff; box-shadow: 0 10px 30px rgba(124,109,255,0.35); }
         .lv-btn-primary:hover { transform: translateY(-2px); }
-        .lv-btn-ghost { background: rgba(255,255,255,0.06); color: #F5F5F7; border: 1px solid rgba(255,255,255,0.12); }
-        .lv-btn-ghost:hover { background: rgba(255,255,255,0.1); }
+        .lv-btn-ghost { background: var(--chip-bg); color: var(--text); border: 1px solid var(--chip-border); }
+        .lv-btn-ghost:hover { background: var(--accent-soft); }
       `}</style>
 
       <div className="lv-container">

@@ -21,8 +21,8 @@ export default function QuizFrage({
   return (
     <div
       style={{
-        background: "#12121C",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--surface, #12121C)",
+        border: "1px solid var(--border, rgba(255,255,255,0.08))",
         borderRadius: 16,
         padding: "22px 24px",
         margin: "18px 0",
@@ -30,7 +30,7 @@ export default function QuizFrage({
     >
       <p
         style={{
-          color: "#F5F5F7",
+          color: "var(--text, #F5F5F7)",
           fontWeight: 600,
           margin: "0 0 16px",
           fontSize: 17,
@@ -42,21 +42,21 @@ export default function QuizFrage({
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {optionen.map((o, i) => {
-          let bg = "rgba(255,255,255,0.04)";
-          let border = "1px solid rgba(255,255,255,0.12)";
-          let color = "#E0E0E8";
+          let bg = "var(--chip-bg, rgba(255,255,255,0.04))";
+          let border = "1px solid var(--chip-border, rgba(255,255,255,0.12))";
+          let color = "var(--text-body, #E0E0E8)";
           let mark = "";
 
           if (beantwortet) {
             if (i === richtigIndex) {
-              bg = "rgba(52,199,89,0.16)";
-              border = "1px solid rgba(52,199,89,0.6)";
-              color = "#B8F0C4";
+              bg = "var(--ok-bg, rgba(52,199,89,0.16))";
+              border = "1px solid var(--ok-border, rgba(52,199,89,0.6))";
+              color = "var(--ok-text, #B8F0C4)";
               mark = "  ✓";
             } else if (i === gewaehlt) {
-              bg = "rgba(255,69,58,0.16)";
-              border = "1px solid rgba(255,69,58,0.6)";
-              color = "#FFC1BC";
+              bg = "var(--err-bg, rgba(255,69,58,0.16))";
+              border = "1px solid var(--err-border, rgba(255,69,58,0.6))";
+              color = "var(--err-text, #FFC1BC)";
               mark = "  ✗";
             }
           }
@@ -92,7 +92,7 @@ export default function QuizFrage({
         <div style={{ marginTop: 16 }}>
           <p
             style={{
-              color: istRichtig ? "#5FD98A" : "#FF6B63",
+              color: istRichtig ? "var(--ok, #5FD98A)" : "var(--err, #FF6B63)",
               fontWeight: 600,
               margin: "0 0 6px",
               fontSize: 16,
@@ -100,7 +100,14 @@ export default function QuizFrage({
           >
             {istRichtig ? "Richtig!" : "Nicht ganz."}
           </p>
-          <p style={{ color: "#C8C8D2", margin: 0, fontSize: 15, lineHeight: 1.6 }}>
+          <p
+            style={{
+              color: "var(--text-body, #C8C8D2)",
+              margin: 0,
+              fontSize: 15,
+              lineHeight: 1.6,
+            }}
+          >
             {erklaerung}
           </p>
           <button
@@ -109,9 +116,9 @@ export default function QuizFrage({
               marginTop: 14,
               padding: "8px 16px",
               borderRadius: 8,
-              background: "rgba(124,109,255,0.14)",
-              border: "1px solid rgba(124,109,255,0.4)",
-              color: "#C4BBFF",
+              background: "var(--accent-soft, rgba(124,109,255,0.14))",
+              border: "1px solid var(--accent, #7C6DFF)",
+              color: "var(--accent-text, #C4BBFF)",
               fontSize: 14,
               cursor: "pointer",
               fontFamily: "inherit",

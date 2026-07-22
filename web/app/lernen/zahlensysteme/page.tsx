@@ -57,26 +57,46 @@ export default function LernSeite() {
 
       <style>{`
         .lp-wrap {
+          --bg: #08080C; --bg-muted: #0E0E14; --surface: #12121C; --surface-2: #151521;
+          --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.14);
+          --text: #F5F5F7; --text-body: #C8C8D2; --text-dim: #A0A0B0;
+          --accent: #7C6DFF; --accent-soft: rgba(124,109,255,0.14); --accent-text: #C4BBFF;
+          --chip-bg: rgba(255,255,255,0.05); --chip-border: rgba(255,255,255,0.1);
+          --input-bg: rgba(255,255,255,0.05); --input-border: rgba(255,255,255,0.15);
+          --pre-bg: rgba(0,0,0,0.35);
+          --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
+          --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #A32620;
           font-family: var(--font-geist-sans), system-ui, sans-serif;
-          background: #08080C;
-          color: #F5F5F7;
+          background: var(--bg);
+          color: var(--text);
           min-height: 100vh;
           line-height: 1.65;
         }
+        html[data-theme="light"] .lp-wrap {
+          --bg: #FAFAF9; --bg-muted: #F4F4F1; --surface: #FFFFFF; --surface-2: #FFFFFF;
+          --border: rgba(10,10,15,0.10); --border-strong: rgba(10,10,15,0.18);
+          --text: #0A0A0F; --text-body: #3A3A44; --text-dim: #6A6A74;
+          --accent: #6A5AE8; --accent-soft: rgba(106,90,232,0.10); --accent-text: #5B4BE0;
+          --chip-bg: rgba(10,10,15,0.04); --chip-border: rgba(10,10,15,0.12);
+          --input-bg: #FFFFFF; --input-border: rgba(10,10,15,0.18);
+          --pre-bg: rgba(10,10,15,0.05);
+          --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
+          --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
+        }
         .lp-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
-        .lp-crumb { font-size: 14px; color: #7C6DFF; margin-bottom: 24px; }
-        .lp-crumb a { color: #7C6DFF; text-decoration: none; }
+        .lp-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
+        .lp-crumb a { color: var(--accent); text-decoration: none; }
         .lp-crumb a:hover { text-decoration: underline; }
         .lp-wrap h1 {
           font-size: clamp(32px, 5vw, 46px);
           line-height: 1.1; letter-spacing: -0.02em;
           margin: 0 0 16px; font-weight: 700;
         }
-        .lp-lead { font-size: 19px; color: #A0A0B0; margin: 0 0 32px; }
+        .lp-lead { font-size: 19px; color: var(--text-dim); margin: 0 0 32px; }
         .lp-wrap h2 { font-size: 26px; letter-spacing: -0.01em; margin: 48px 0 16px; font-weight: 650; }
         .lp-wrap h3 { font-size: 19px; margin: 28px 0 8px; font-weight: 600; }
-        .lp-wrap p { color: #C8C8D2; margin: 0 0 16px; }
-        .lp-wrap strong { color: #F5F5F7; }
+        .lp-wrap p { color: var(--text-body); margin: 0 0 16px; }
+        .lp-wrap strong { color: var(--text); }
         .lp-cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
         .lp-btn {
           display: inline-block; padding: 13px 26px; border-radius: 12px;
@@ -84,28 +104,28 @@ export default function LernSeite() {
         }
         .lp-btn-primary { background: #7C6DFF; color: #fff; box-shadow: 0 10px 30px rgba(124,109,255,0.35); }
         .lp-btn-primary:hover { transform: translateY(-2px); }
-        .lp-btn-ghost { background: rgba(255,255,255,0.06); color: #F5F5F7; border: 1px solid rgba(255,255,255,0.12); }
-        .lp-btn-ghost:hover { background: rgba(255,255,255,0.1); }
+        .lp-btn-ghost { background: var(--chip-bg); color: var(--text); border: 1px solid var(--chip-border); }
+        .lp-btn-ghost:hover { background: var(--accent-soft); }
         .lp-table { width: 100%; border-collapse: collapse; margin: 16px 0 8px; font-size: 15px; }
-        .lp-table th, .lp-table td { text-align: left; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .lp-table th { color: #A0A0B0; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
-        .lp-table td { color: #E0E0E8; }
-        .lp-table td:first-child { font-weight: 600; color: #C4BBFF; white-space: nowrap; }
-        .lp-card { background: #12121C; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px 26px; margin: 20px 0; }
+        .lp-table th, .lp-table td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); }
+        .lp-table th { color: var(--text-dim); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .lp-table td { color: var(--text-body); }
+        .lp-table td:first-child { font-weight: 600; color: var(--accent-text); white-space: nowrap; }
+        .lp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px 26px; margin: 20px 0; }
         .lp-mono {
           font-family: var(--font-geist-mono), ui-monospace, monospace;
-          background: rgba(124,109,255,0.14); color: #C4BBFF;
+          background: var(--accent-soft); color: var(--accent-text);
           padding: 2px 7px; border-radius: 6px; font-size: 0.92em;
         }
         .lp-related { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
         .lp-chip {
           display: inline-block; padding: 10px 16px; border-radius: 10px;
-          background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-          color: #E0E0E8; text-decoration: none; font-size: 15px;
+          background: var(--chip-bg); border: 1px solid var(--chip-border);
+          color: var(--text-body); text-decoration: none; font-size: 15px;
         }
-        .lp-chip:hover { background: rgba(124,109,255,0.14); border-color: rgba(124,109,255,0.4); }
+        .lp-chip:hover { background: var(--accent-soft); border-color: var(--accent); }
         .lp-final {
-          text-align: center; background: linear-gradient(180deg, #12121C, #0E0E14);
+          text-align: center; background: linear-gradient(180deg, var(--surface), var(--bg-muted));
           border: 1px solid rgba(124,109,255,0.25); border-radius: 20px;
           padding: 40px 28px; margin: 56px 0 0;
         }
