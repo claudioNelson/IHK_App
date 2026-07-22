@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { exam, answers, completed } = await request.json();
+    const { exam, answers } = await request.json();
 
     // Prompt bauen
     let prompt = `Du bist ein strenger aber fairer IHK-Prüfer für Fachinformatiker.
