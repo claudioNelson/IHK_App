@@ -284,6 +284,7 @@ export default function SubnettingPage() {
 
         <h2>Verwandte Themen</h2>
         <div className="sn-related">
+          <Link href="/lernen" className="sn-chip">Alle Lernthemen →</Link>
           <Link href="/lernen/raid" className="sn-chip">RAID Level erklärt →</Link>
           <Link href="/pruefungen" className="sn-chip">Alle IHK-Prüfungen →</Link>
         </div>

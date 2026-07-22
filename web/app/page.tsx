@@ -1937,6 +1937,7 @@ export default function LandingPage() {
               <li><a href="#product">Features</a></li>
               <li><a href="#pricing">Preise</a></li>
               <li><Link href="/pruefungen">Prüfungen</Link></li>
+              <li><Link href="/fachinformatiker-pruefung">Prüfungs-Guide</Link></li>
               <li><a href="#ada">Ada KI-Tutor</a></li>
             </ul>
           </div>
