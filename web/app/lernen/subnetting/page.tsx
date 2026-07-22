@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import QuizFrage from "../_components/QuizFrage";
+import SubnetzRechner from "../_components/SubnetzRechner";
 
 export const metadata: Metadata = {
-  title: "Subnetting üben — Aufgaben, Rechenweg & Lösungen (IHK)",
+  title: "Subnetting üben — Rechner, Aufgaben & Lösungen (IHK)",
   description:
-    "Subnetting einfach erklärt und kostenlos üben: Subnetzmaske, CIDR, Netz- und Broadcast-Adresse berechnen. Mit Schritt-für-Schritt-Beispiel und interaktiven Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
+    "Subnetting einfach erklärt — mit kostenlosem Subnetz-Rechner inklusive Binär-Rechenweg, Schritt-für-Schritt-Beispiel und interaktiven Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
   alternates: {
     canonical: "https://lernarena.app/lernen/subnetting",
   },
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/subnetting",
     siteName: "Lernarena",
-    title: "Subnetting üben — Aufgaben, Rechenweg & Lösungen (IHK)",
+    title: "Subnetting üben — Rechner, Aufgaben & Lösungen (IHK)",
     description:
       "Subnetting Schritt für Schritt: Subnetzmaske, CIDR, Netz- und Broadcast-Adresse. Mit interaktiven Übungsaufgaben für die Fachinformatiker-Prüfung.",
   },
@@ -214,6 +215,15 @@ export default function SubnettingPage() {
             2^(32−26) − 2 = 2^6 − 2 = <strong>62 nutzbare Hosts</strong> pro Subnetz.
           </p>
         </div>
+
+        <h2>Subnetz-Rechner — mit Rechenweg</h2>
+        <p>
+          Gib eine IP-Adresse und ein Präfix ein — der Rechner liefert Subnetzmaske,
+          Netz- und Broadcast-Adresse samt Host-Bereich. Und das Besondere: Er zeigt
+          dir auf Wunsch den <strong>kompletten Rechenweg in Binärdarstellung</strong>,
+          damit du das Verfahren für die Prüfung wirklich verstehst.
+        </p>
+        <SubnetzRechner />
 
         <h2>Jetzt selbst testen</h2>
         <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>

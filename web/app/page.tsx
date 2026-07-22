@@ -1244,6 +1244,7 @@ export default function LandingPage() {
             <a href="#product">Produkt</a>
             <a href="#ada">Ada</a>
             <a href="#pricing">Preise</a>
+            <Link href="/lernen">Lernen</Link>
             <Link href="/pruefungen">Prüfungen</Link>
           </div>
           <div className="nav-actions">
@@ -1942,6 +1943,7 @@ export default function LandingPage() {
           <div className="footer-col">
             <h4>Ressourcen</h4>
             <ul>
+              <li><Link href="/lernen">Alle Lernthemen</Link></li>
               <li><Link href="/login">Login</Link></li>
               <li><Link href="/signup">Registrieren</Link></li>
               <li><a href="mailto:info@lernarena.app">Kontakt</a></li>
