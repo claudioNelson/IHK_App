@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import QuizFrage from "../_components/QuizFrage";
 
 export const metadata: Metadata = {
   title: "Subnetting üben — Aufgaben, Rechenweg & Lösungen (IHK)",
   description:
-    "Subnetting einfach erklärt und kostenlos üben: Subnetzmaske, CIDR, Netz- und Broadcast-Adresse berechnen. Mit Schritt-für-Schritt-Beispiel und Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
+    "Subnetting einfach erklärt und kostenlos üben: Subnetzmaske, CIDR, Netz- und Broadcast-Adresse berechnen. Mit Schritt-für-Schritt-Beispiel und interaktiven Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
   alternates: {
     canonical: "https://lernarena.app/lernen/subnetting",
   },
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
     siteName: "Lernarena",
     title: "Subnetting üben — Aufgaben, Rechenweg & Lösungen (IHK)",
     description:
-      "Subnetting Schritt für Schritt: Subnetzmaske, CIDR, Netz- und Broadcast-Adresse. Mit Übungsaufgaben und Lösungen für die Fachinformatiker-Prüfung.",
+      "Subnetting Schritt für Schritt: Subnetzmaske, CIDR, Netz- und Broadcast-Adresse. Mit interaktiven Übungsaufgaben für die Fachinformatiker-Prüfung.",
   },
 };
 
@@ -74,93 +75,50 @@ export default function SubnettingPage() {
           min-height: 100vh;
           line-height: 1.65;
         }
-        .sn-container {
-          max-width: 780px;
-          margin: 0 auto;
-          padding: 72px 24px 96px;
-        }
+        .sn-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
         .sn-crumb { font-size: 14px; color: #7C6DFF; margin-bottom: 24px; }
         .sn-crumb a { color: #7C6DFF; text-decoration: none; }
         .sn-crumb a:hover { text-decoration: underline; }
         .sn-wrap h1 {
           font-size: clamp(32px, 5vw, 46px);
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          margin: 0 0 16px;
-          font-weight: 700;
+          line-height: 1.1; letter-spacing: -0.02em;
+          margin: 0 0 16px; font-weight: 700;
         }
         .sn-lead { font-size: 19px; color: #A0A0B0; margin: 0 0 32px; }
-        .sn-wrap h2 {
-          font-size: 26px;
-          letter-spacing: -0.01em;
-          margin: 48px 0 16px;
-          font-weight: 650;
-        }
+        .sn-wrap h2 { font-size: 26px; letter-spacing: -0.01em; margin: 48px 0 16px; font-weight: 650; }
         .sn-wrap h3 { font-size: 19px; margin: 28px 0 8px; font-weight: 600; }
         .sn-wrap p { color: #C8C8D2; margin: 0 0 16px; }
         .sn-wrap strong { color: #F5F5F7; }
-        .sn-cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0 8px; }
+        .sn-cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
         .sn-btn {
-          display: inline-block;
-          padding: 13px 26px;
-          border-radius: 12px;
-          font-weight: 600;
-          font-size: 16px;
-          text-decoration: none;
-          transition: transform .12s ease, box-shadow .12s ease;
+          display: inline-block; padding: 13px 26px; border-radius: 12px;
+          font-weight: 600; font-size: 16px; text-decoration: none; transition: transform .12s ease;
         }
-        .sn-btn-primary {
-          background: #7C6DFF;
-          color: #fff;
-          box-shadow: 0 10px 30px rgba(124,109,255,0.35);
-        }
+        .sn-btn-primary { background: #7C6DFF; color: #fff; box-shadow: 0 10px 30px rgba(124,109,255,0.35); }
         .sn-btn-primary:hover { transform: translateY(-2px); }
-        .sn-btn-ghost {
-          background: rgba(255,255,255,0.06);
-          color: #F5F5F7;
-          border: 1px solid rgba(255,255,255,0.12);
-        }
+        .sn-btn-ghost { background: rgba(255,255,255,0.06); color: #F5F5F7; border: 1px solid rgba(255,255,255,0.12); }
         .sn-btn-ghost:hover { background: rgba(255,255,255,0.1); }
         .sn-table { width: 100%; border-collapse: collapse; margin: 16px 0 8px; font-size: 15px; }
-        .sn-table th, .sn-table td {
-          text-align: left;
-          padding: 11px 14px;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
+        .sn-table th, .sn-table td { text-align: left; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
         .sn-table th { color: #A0A0B0; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
         .sn-table td { color: #E0E0E8; font-variant-numeric: tabular-nums; }
-        .sn-card {
-          background: #12121C;
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 16px;
-          padding: 24px 26px;
-          margin: 20px 0;
-        }
+        .sn-card { background: #12121C; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px 26px; margin: 20px 0; }
         .sn-mono {
           font-family: var(--font-geist-mono), ui-monospace, monospace;
-          background: rgba(124,109,255,0.14);
-          color: #C4BBFF;
-          padding: 2px 7px;
-          border-radius: 6px;
-          font-size: 0.92em;
+          background: rgba(124,109,255,0.14); color: #C4BBFF;
+          padding: 2px 7px; border-radius: 6px; font-size: 0.92em;
         }
-        .sn-task { border-top: 1px solid rgba(255,255,255,0.08); padding: 18px 0; }
-        .sn-task:first-of-type { border-top: none; }
-        .sn-task summary {
-          cursor: pointer;
-          color: #7C6DFF;
-          font-weight: 600;
-          margin-top: 8px;
-          list-style: none;
+        .sn-related { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+        .sn-chip {
+          display: inline-block; padding: 10px 16px; border-radius: 10px;
+          background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+          color: #E0E0E8; text-decoration: none; font-size: 15px;
         }
-        .sn-task summary::-webkit-details-marker { display: none; }
+        .sn-chip:hover { background: rgba(124,109,255,0.14); border-color: rgba(124,109,255,0.4); }
         .sn-final {
-          text-align: center;
-          background: linear-gradient(180deg, #12121C, #0E0E14);
-          border: 1px solid rgba(124,109,255,0.25);
-          border-radius: 20px;
-          padding: 40px 28px;
-          margin: 56px 0 0;
+          text-align: center; background: linear-gradient(180deg, #12121C, #0E0E14);
+          border: 1px solid rgba(124,109,255,0.25); border-radius: 20px;
+          padding: 40px 28px; margin: 56px 0 0;
         }
         .sn-final h2 { margin-top: 0; }
       `}</style>
@@ -179,12 +137,8 @@ export default function SubnettingPage() {
         </p>
 
         <div className="sn-cta-row">
-          <Link href="/signup" className="sn-btn sn-btn-primary">
-            Kostenlos üben
-          </Link>
-          <Link href="/pruefungen" className="sn-btn sn-btn-ghost">
-            Zu den Prüfungen
-          </Link>
+          <Link href="/signup" className="sn-btn sn-btn-primary">Kostenlos üben</Link>
+          <Link href="/pruefungen" className="sn-btn sn-btn-ghost">Zu den Prüfungen</Link>
         </div>
 
         <h2>Was ist Subnetting?</h2>
@@ -261,60 +215,46 @@ export default function SubnettingPage() {
           </p>
         </div>
 
-        <h2>Übungsaufgaben</h2>
-        <p>Probier es selbst — die Lösung klappt jeweils per Klick auf.</p>
+        <h2>Jetzt selbst testen</h2>
+        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
 
-        <details className="sn-task">
-          <summary>Aufgabe 1 anzeigen</summary>
-          <p style={{ marginTop: 12 }}>
-            Welche Subnetzmaske gehört zur CIDR-Notation{" "}
-            <span className="sn-mono">/27</span>?
-          </p>
-          <details>
-            <summary style={{ color: "#7C6DFF", cursor: "pointer" }}>Lösung</summary>
-            <p style={{ marginTop: 8 }}>
-              <span className="sn-mono">255.255.255.224</span> — im letzten Oktett
-              sind 3 Bit gesetzt (11100000 = 224).
-            </p>
-          </details>
-        </details>
+        <QuizFrage
+          frage="Welche Subnetzmaske gehört zur CIDR-Notation /27?"
+          optionen={[
+            { text: "255.255.255.192", richtig: false },
+            { text: "255.255.255.224", richtig: true },
+            { text: "255.255.255.240", richtig: false },
+            { text: "255.255.255.248", richtig: false },
+          ]}
+          erklaerung="/27 bedeutet 3 gesetzte Bits im letzten Oktett: 11100000 = 224. Die Maske ist also 255.255.255.224."
+        />
 
-        <details className="sn-task">
-          <summary>Aufgabe 2 anzeigen</summary>
-          <p style={{ marginTop: 12 }}>
-            Wie viele nutzbare Hosts hat ein <span className="sn-mono">/28</span>-Netz?
-          </p>
-          <details>
-            <summary style={{ color: "#7C6DFF", cursor: "pointer" }}>Lösung</summary>
-            <p style={{ marginTop: 8 }}>
-              2^(32−28) − 2 = 2^4 − 2 = <strong>14 Hosts</strong>.
-            </p>
-          </details>
-        </details>
+        <QuizFrage
+          frage="Wie viele nutzbare Hosts hat ein /28-Netz?"
+          optionen={[
+            { text: "16", richtig: false },
+            { text: "30", richtig: false },
+            { text: "14", richtig: true },
+            { text: "8", richtig: false },
+          ]}
+          erklaerung="2^(32−28) − 2 = 2^4 − 2 = 14. Netz- und Broadcast-Adresse zählen nicht als nutzbare Hosts."
+        />
 
-        <details className="sn-task">
-          <summary>Aufgabe 3 anzeigen</summary>
-          <p style={{ marginTop: 12 }}>
-            In welchem Subnetz liegt die Adresse{" "}
-            <span className="sn-mono">172.16.5.200</span> bei einem{" "}
-            <span className="sn-mono">/26</span>-Präfix? Nenne Netz- und
-            Broadcast-Adresse.
-          </p>
-          <details>
-            <summary style={{ color: "#7C6DFF", cursor: "pointer" }}>Lösung</summary>
-            <p style={{ marginTop: 8 }}>
-              Blockgröße 64 → Subnetze .0, .64, .128, .192. Die .200 liegt im Block{" "}
-              <span className="sn-mono">.192</span>. Netzadresse{" "}
-              <span className="sn-mono">172.16.5.192</span>, Broadcast{" "}
-              <span className="sn-mono">172.16.5.255</span>, nutzbar .193–.254.
-            </p>
-          </details>
-        </details>
-        
+        <QuizFrage
+          frage="In welchem Subnetz liegt die Adresse 172.16.5.200 bei einem /26-Präfix?"
+          optionen={[
+            { text: "Netz 172.16.5.128, Broadcast 172.16.5.191", richtig: false },
+            { text: "Netz 172.16.5.192, Broadcast 172.16.5.255", richtig: true },
+            { text: "Netz 172.16.5.200, Broadcast 172.16.5.255", richtig: false },
+            { text: "Netz 172.16.5.64, Broadcast 172.16.5.127", richtig: false },
+          ]}
+          erklaerung="Blockgröße bei /26 ist 64 → Subnetze .0, .64, .128, .192. Die .200 liegt im Block .192: Netzadresse 172.16.5.192, Broadcast 172.16.5.255, nutzbar .193–.254."
+        />
+
         <h2>Verwandte Themen</h2>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 12 }}>
-          <Link href="/lernen/raid" style={{ padding: "10px 16px", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#E0E0E8", textDecoration: "none", fontSize: 15 }}>RAID Level erklärt →</Link>
-          <Link href="/pruefungen" style={{ padding: "10px 16px", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#E0E0E8", textDecoration: "none", fontSize: 15 }}>Alle IHK-Prüfungen →</Link>
+        <div className="sn-related">
+          <Link href="/lernen/raid" className="sn-chip">RAID Level erklärt →</Link>
+          <Link href="/pruefungen" className="sn-chip">Alle IHK-Prüfungen →</Link>
         </div>
 
         <section className="sn-final">
@@ -325,12 +265,8 @@ export default function SubnettingPage() {
             erklärt. Kostenlos starten, direkt üben.
           </p>
           <div className="sn-cta-row" style={{ justifyContent: "center" }}>
-            <Link href="/signup" className="sn-btn sn-btn-primary">
-              Jetzt kostenlos starten
-            </Link>
-            <Link href="/pruefungen" className="sn-btn sn-btn-ghost">
-              Alle Prüfungen ansehen
-            </Link>
+            <Link href="/signup" className="sn-btn sn-btn-primary">Jetzt kostenlos starten</Link>
+            <Link href="/pruefungen" className="sn-btn sn-btn-ghost">Alle Prüfungen ansehen</Link>
           </div>
         </section>
       </div>
