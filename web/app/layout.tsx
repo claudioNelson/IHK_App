@@ -115,6 +115,38 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://lernarena.app/#organization",
+                  name: "Lernarena",
+                  url: "https://lernarena.app",
+                  logo: "https://lernarena.app/android-chrome-512x512.png",
+                  description:
+                    "Lernarena ist die Prüfungsvorbereitung für Fachinformatiker: strukturierte Lernpfade, echte IHK-Simulation und ein KI-Tutor.",
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://lernarena.app/#website",
+                  name: "Lernarena",
+                  url: "https://lernarena.app",
+                  publisher: { "@id": "https://lernarena.app/#organization" },
+                  inLanguage: "de-DE",
+                },
+              ],
+            }),
+          }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[]).push(arguments);},l=d.createElement(e),l.async=1,l.src=u,n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})(window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');ml('account', '2530586');`,
+          }}
+        />
         {children}
       </body>
     </html>
