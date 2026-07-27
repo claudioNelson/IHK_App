@@ -66,6 +66,7 @@ export default function LernSeite() {
           --pre-bg: rgba(0,0,0,0.35);
           --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
           --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #A32620;
+          --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
           font-family: var(--font-geist-sans), system-ui, sans-serif;
           background: var(--bg);
           color: var(--text);
@@ -82,6 +83,7 @@ export default function LernSeite() {
           --pre-bg: rgba(10,10,15,0.05);
           --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
           --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
+          --warn-bg: rgba(180,120,0,0.10); --warn-border: rgba(180,120,0,0.45); --warn-text: #8A5A00;
         }
         .lp-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
         .lp-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
@@ -130,6 +132,22 @@ export default function LernSeite() {
           padding: 40px 28px; margin: 56px 0 0;
         }
         .lp-final h2 { margin-top: 0; }
+        .lp-tip { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-tip p { margin: 0; }
+        .lp-tip strong { color: var(--accent-text); }
+        .lp-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-warn p { margin: 0 0 8px; }
+        .lp-warn strong { color: var(--warn-text); }
+        .lp-warn ul { margin: 8px 0 0; padding-left: 20px; }
+        .lp-warn li { color: var(--text-body); margin: 6px 0; }
+        .lp-faq { margin: 8px 0; }
+        .lp-faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2px 22px; margin: 10px 0; transition: border-color .15s ease; }
+        .lp-faq details[open] { border-color: var(--border-strong); }
+        .lp-faq summary { cursor: pointer; font-weight: 600; color: var(--text); padding: 16px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .lp-faq summary::-webkit-details-marker { display: none; }
+        .lp-faq summary::after { content: "+"; color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1; }
+        .lp-faq details[open] summary::after { content: "−"; }
+        .lp-faq details p { padding: 0 0 16px; margin: 0; color: var(--text-body); }
 `}</style>
 
       <div className="lp-container">
@@ -158,6 +176,18 @@ export default function LernSeite() {
           <strong>Punkte</strong>, und die gewichtete Summe ergibt den{" "}
           <strong>Nutzwert</strong>. Die Alternative mit dem höchsten Nutzwert gewinnt.
         </p>
+
+        <div className="lp-tip">
+          <p>
+            <strong>🏠 Stell es dir wie Wohnungssuche vor:</strong> Du entscheidest ja
+            nicht nur nach der Miete. Lage, Größe und Zustand zählen auch — aber nicht
+            gleich stark. Vielleicht ist dir die Lage doppelt so wichtig wie der Zustand.
+            Genau das machst du mit der <strong>Gewichtung</strong>: Jedem Kriterium gibst
+            du ein Gewicht, vergibst pro Wohnung Punkte und rechnest zusammen. Am Ende
+            gewinnt nicht automatisch die billigste — sondern die, die zu deinen
+            Prioritäten am besten passt.
+          </p>
+        </div>
 
         <h2>Die vier Schritte</h2>
         <p>
@@ -197,14 +227,37 @@ export default function LernSeite() {
           </p>
         </div>
 
-        <h2>Typische Prüfungs-Stolperfallen</h2>
-        <p>
-          Erstens: Die <strong>Gewichte müssen sich auf 100 % summieren</strong> —
-          prüfe das immer zuerst. Zweitens: Rechne sauber Punkte × Gewicht und runde
-          erst am Ende. Drittens: Die Nutzwertanalyse ist ein Verfahren für{" "}
-          <strong>qualitative und quantitative Kriterien zusammen</strong> — das
-          unterscheidet sie vom reinen Preisvergleich.
-        </p>
+        <div className="lp-tip">
+          <p>
+            <strong>💡 Prüfungstipp — in dieser Reihenfolge rechnen:</strong> Erst prüfen,
+            ob die Gewichte zusammen <span className="lp-mono">100 %</span> ergeben, dann
+            pro Feld <span className="lp-mono">Punkte × Gewicht</span>, dann pro Spalte
+            aufsummieren, zuletzt die Rangfolge bilden. So kann fast nichts schiefgehen —
+            und <strong>runde immer erst ganz am Ende</strong>.
+          </p>
+        </div>
+
+        <div className="lp-warn">
+          <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
+          <ul>
+            <li>
+              Nicht prüfen, ob die <strong>Gewichte 100 %</strong> ergeben — der häufigste
+              Fehler überhaupt.
+            </li>
+            <li>
+              Zwischenergebnisse zu früh runden. Rechne mit den genauen Werten und runde
+              erst das Endergebnis.
+            </li>
+            <li>
+              Punkte und Gewicht vertauschen oder das Gewicht als ganze Zahl (40 statt
+              0,40) einsetzen.
+            </li>
+            <li>
+              Denken, „der Billigste gewinnt" — die Nutzwertanalyse bezieht bewusst auch
+              qualitative Kriterien mit ein.
+            </li>
+          </ul>
+        </div>
 
         <h2>Jetzt selbst testen</h2>
         <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
@@ -242,11 +295,44 @@ export default function LernSeite() {
           erklaerung={"Die Nutzwertanalyse macht qualitative und quantitative Kriterien gemeinsam vergleichbar — genau dann ist sie das Mittel der Wahl."}
         />
 
+        <QuizFrage
+          frage={"Anbieter A hat Nutzwert 7,05, Anbieter B 7,55. Wer bekommt den Zuschlag?"}
+          optionen={[
+            { text: "Anbieter A", richtig: false },
+            { text: "Anbieter B", richtig: true },
+            { text: "Beide gleich", richtig: false },
+            { text: "Der mit dem niedrigeren Preis", richtig: false },
+          ]}
+          erklaerung={"Es gewinnt immer die Alternative mit dem höchsten Nutzwert — hier Anbieter B mit 7,55, auch wenn A beim reinen Preis vorne lag."}
+        />
+
+        <QuizFrage
+          frage={"Kriterium mit Gewicht 25 %, Alternative erhält 8 Punkte. Gewichtete Punkte?"}
+          optionen={[
+            { text: "2,0", richtig: true },
+            { text: "3,2", richtig: false },
+            { text: "0,25", richtig: false },
+            { text: "8,25", richtig: false },
+          ]}
+          erklaerung={"8 × 0,25 = 2,0. Immer Punkte mal Gewicht (als Dezimalzahl) rechnen."}
+        />
+
+        <h2>Häufige Fragen</h2>
+        <div className="lp-faq">
+          {faq.map((f) => (
+            <details key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+
         <h2>Verwandte Themen</h2>
         <div className="lp-related">
           <Link href="/lernen/zahlensysteme" className="lp-chip">Zahlensysteme →</Link>
-          <Link href="/pruefungen" className="lp-chip">Alle IHK-Prüfungen →</Link>
           <Link href="/lernen/subnetting" className="lp-chip">Subnetting üben →</Link>
+          <Link href="/lernen" className="lp-chip">Alle Lernthemen →</Link>
+          <Link href="/pruefungen" className="lp-chip">Alle IHK-Prüfungen →</Link>
         </div>
 
         <section className="lp-final">

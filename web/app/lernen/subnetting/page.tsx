@@ -45,6 +45,14 @@ const faq: { q: string; a: string }[] = [
     a: "Die Zahl nach dem Schrägstrich (das Präfix) gibt an, wie viele Bits der IP-Adresse zum Netz-Teil gehören. /26 bedeutet, dass die ersten 26 Bit das Netz beschreiben und die restlichen 6 Bit für Hosts zur Verfügung stehen.",
   },
   {
+    q: "Wie finde ich heraus, in welchem Subnetz eine IP-Adresse liegt?",
+    a: "Berechne zuerst die Blockgröße (256 minus Maskenwert des letzten Oktetts). Dann suchst du das größte Vielfache der Blockgröße, das noch kleiner oder gleich deinem Oktett-Wert ist — das ist die Netzadresse. Beispiel: 192.168.1.200 bei /26 hat Blockgröße 64, das passende Vielfache ist 192, also liegt sie im Subnetz 192.168.1.192.",
+  },
+  {
+    q: "Was ist der Unterschied zwischen Subnetzmaske und CIDR?",
+    a: "Beide beschreiben dasselbe, nur anders geschrieben. Die Subnetzmaske ist die ausführliche Punktschreibweise (z. B. 255.255.255.192), CIDR ist die Kurzform mit dem Präfix (/26). /26 heißt: 26 Bit gehören zum Netz — genau das drückt auch 255.255.255.192 aus.",
+  },
+  {
     q: "Kommt Subnetting in der IHK-Prüfung vor?",
     a: "Ja. Subnetting ist ein klassisches Thema in der Abschlussprüfung Teil 1 (AP1) und in der AP2 für Fachinformatiker Systemintegration. Typische Aufgaben sind das Berechnen von Subnetzmaske, Netz- und Broadcast-Adresse sowie der Anzahl der Hosts.",
   },
@@ -79,6 +87,7 @@ export default function SubnettingPage() {
           --pre-bg: rgba(0,0,0,0.35);
           --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
           --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #A32620;
+          --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
           font-family: var(--font-geist-sans), system-ui, sans-serif;
           background: var(--bg);
           color: var(--text);
@@ -95,6 +104,7 @@ export default function SubnettingPage() {
           --pre-bg: rgba(10,10,15,0.05);
           --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
           --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
+          --warn-bg: rgba(180,120,0,0.10); --warn-border: rgba(180,120,0,0.45); --warn-text: #8A5A00;
         }
         .sn-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
         .sn-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
@@ -143,11 +153,27 @@ export default function SubnettingPage() {
           padding: 40px 28px; margin: 56px 0 0;
         }
         .sn-final h2 { margin-top: 0; }
+        .sn-tip { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .sn-tip p { margin: 0; }
+        .sn-tip strong { color: var(--accent-text); }
+        .sn-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .sn-warn p { margin: 0 0 8px; }
+        .sn-warn strong { color: var(--warn-text); }
+        .sn-warn ul { margin: 8px 0 0; padding-left: 20px; }
+        .sn-warn li { color: var(--text-body); margin: 6px 0; }
+        .sn-faq { margin: 8px 0; }
+        .sn-faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2px 22px; margin: 10px 0; transition: border-color .15s ease; }
+        .sn-faq details[open] { border-color: var(--border-strong); }
+        .sn-faq summary { cursor: pointer; font-weight: 600; color: var(--text); padding: 16px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .sn-faq summary::-webkit-details-marker { display: none; }
+        .sn-faq summary::after { content: "+"; color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1; }
+        .sn-faq details[open] summary::after { content: "−"; }
+        .sn-faq details p { padding: 0 0 16px; margin: 0; color: var(--text-body); }
 `}</style>
 
       <div className="sn-container">
         <nav className="sn-crumb">
-          <Link href="/">Lernarena</Link> · Subnetting üben
+          <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · Subnetting üben
         </nav>
 
         <h1>Subnetting üben — einfach erklärt, mit Aufgaben und Lösungen</h1>
@@ -177,6 +203,19 @@ export default function SubnettingPage() {
           <span className="sn-mono">192.168.10.0/26</span> — die ersten 26 Bit sind
           der Netz-Teil.
         </p>
+
+        <div className="sn-tip">
+          <p>
+            <strong>🏢 Stell es dir wie ein Wohnhaus vor:</strong> Die IP-Adresse ist
+            die komplette Anschrift. Der <strong>Netz-Teil</strong> ist wie
+            Straße + Hausnummer (welches Gebäude), der <strong>Host-Teil</strong> ist
+            die Wohnungsnummer (welches Gerät im Netz). Subnetting heißt: Du machst aus
+            einem großen Haus mehrere kleinere Häuser — die Subnetzmaske ist die Grenze,
+            die sagt „ab hier beginnt die Wohnungsnummer". Je mehr Bits du dem Netz-Teil
+            gibst (größeres Präfix wie /27, /28), desto mehr, aber kleinere Häuser
+            bekommst du.
+          </p>
+        </div>
 
         <h2>Die wichtigsten Werte auf einen Blick</h2>
         <p>
@@ -237,6 +276,41 @@ export default function SubnettingPage() {
           </p>
         </div>
 
+        <div className="sn-tip">
+          <p>
+            <strong>💡 Der schnellste Trick — die Blockgröße:</strong> Rechne einfach{" "}
+            <span className="sn-mono">256 − Maskenwert</span> des letzten Oktetts.
+            Bei /26 ist die Maske 192 → <span className="sn-mono">256 − 192 = 64</span>.
+            Diese 64 ist dein „Sprung": Die Subnetze starten bei .0, .64, .128, .192,
+            und der Broadcast liegt immer <strong>eins vor</strong> dem nächsten Start
+            (also .63, .127, .191, .255). Mit diesem einen Trick löst du fast jede
+            Subnetting-Aufgabe im Kopf.
+          </p>
+        </div>
+
+        <div className="sn-warn">
+          <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
+          <ul>
+            <li>
+              Das <strong>−2</strong> bei den Hosts vergessen. Netz- und
+              Broadcast-Adresse sind keine nutzbaren Hosts — es sind immer 2 weniger.
+            </li>
+            <li>
+              Broadcast und nächste Netzadresse verwechseln: Der Broadcast ist die{" "}
+              <strong>letzte</strong> Adresse im Block (z. B. .63), nicht die erste des
+              nächsten (.64).
+            </li>
+            <li>
+              Größeres Präfix = <strong>kleineres</strong> Netz. /28 hat weniger Hosts
+              als /26, nicht mehr — ein häufiger Denkfehler.
+            </li>
+            <li>
+              Die Blockgröße im falschen Oktett anwenden. Prüfe zuerst, in welchem
+              Oktett sich die Maske überhaupt ändert.
+            </li>
+          </ul>
+        </div>
+
         <h2>Subnetz-Rechner — mit Rechenweg</h2>
         <p>
           Gib eine IP-Adresse und ein Präfix ein — der Rechner liefert Subnetzmaske,
@@ -282,10 +356,43 @@ export default function SubnettingPage() {
           erklaerung="Blockgröße bei /26 ist 64 → Subnetze .0, .64, .128, .192. Die .200 liegt im Block .192: Netzadresse 172.16.5.192, Broadcast 172.16.5.255, nutzbar .193–.254."
         />
 
+        <QuizFrage
+          frage="Wie lautet die Broadcast-Adresse des Netzes 192.168.1.0/28?"
+          optionen={[
+            { text: "192.168.1.7", richtig: false },
+            { text: "192.168.1.15", richtig: true },
+            { text: "192.168.1.16", richtig: false },
+            { text: "192.168.1.255", richtig: false },
+          ]}
+          erklaerung="/28 → Maske 255.255.255.240, Blockgröße 256 − 240 = 16. Erstes Subnetz: .0 bis .15. Der Broadcast ist die letzte Adresse im Block, also 192.168.1.15."
+        />
+
+        <QuizFrage
+          frage="Du brauchst mindestens 50 nutzbare Hosts pro Subnetz. Welches Präfix ist das kleinste passende?"
+          optionen={[
+            { text: "/25", richtig: false },
+            { text: "/26", richtig: true },
+            { text: "/27", richtig: false },
+            { text: "/28", richtig: false },
+          ]}
+          erklaerung="/26 liefert 2^6 − 2 = 62 Hosts — das reicht für 50 und lässt am wenigsten Adressen ungenutzt. /27 hätte nur 30 Hosts (zu wenig), /25 mit 126 wäre unnötig groß."
+        />
+
+        <h2>Häufige Fragen</h2>
+        <div className="sn-faq">
+          {faq.map((f) => (
+            <details key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+
         <h2>Verwandte Themen</h2>
         <div className="sn-related">
+          <Link href="/lernen/ip-adressen" className="sn-chip">IP-Adressen & IPv6 →</Link>
+          <Link href="/lernen/zahlensysteme" className="sn-chip">Zahlensysteme umrechnen →</Link>
           <Link href="/lernen" className="sn-chip">Alle Lernthemen →</Link>
-          <Link href="/lernen/raid" className="sn-chip">RAID Level erklärt →</Link>
           <Link href="/pruefungen" className="sn-chip">Alle IHK-Prüfungen →</Link>
         </div>
 

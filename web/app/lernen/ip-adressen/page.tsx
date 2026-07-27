@@ -66,6 +66,7 @@ export default function LernSeite() {
           --pre-bg: rgba(0,0,0,0.35);
           --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
           --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #A32620;
+          --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
           font-family: var(--font-geist-sans), system-ui, sans-serif;
           background: var(--bg);
           color: var(--text);
@@ -82,6 +83,7 @@ export default function LernSeite() {
           --pre-bg: rgba(10,10,15,0.05);
           --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
           --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
+          --warn-bg: rgba(180,120,0,0.10); --warn-border: rgba(180,120,0,0.45); --warn-text: #8A5A00;
         }
         .lp-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
         .lp-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
@@ -130,6 +132,22 @@ export default function LernSeite() {
           padding: 40px 28px; margin: 56px 0 0;
         }
         .lp-final h2 { margin-top: 0; }
+        .lp-tip { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-tip p { margin: 0; }
+        .lp-tip strong { color: var(--accent-text); }
+        .lp-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-warn p { margin: 0 0 8px; }
+        .lp-warn strong { color: var(--warn-text); }
+        .lp-warn ul { margin: 8px 0 0; padding-left: 20px; }
+        .lp-warn li { color: var(--text-body); margin: 6px 0; }
+        .lp-faq { margin: 8px 0; }
+        .lp-faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2px 22px; margin: 10px 0; transition: border-color .15s ease; }
+        .lp-faq details[open] { border-color: var(--border-strong); }
+        .lp-faq summary { cursor: pointer; font-weight: 600; color: var(--text); padding: 16px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .lp-faq summary::-webkit-details-marker { display: none; }
+        .lp-faq summary::after { content: "+"; color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1; }
+        .lp-faq details[open] summary::after { content: "−"; }
+        .lp-faq details p { padding: 0 0 16px; margin: 0; color: var(--text-body); }
 `}</style>
 
       <div className="lp-container">
@@ -157,6 +175,19 @@ export default function LernSeite() {
           sind weltweit eindeutig — <strong>private Adressen</strong> dürfen nur in
           lokalen Netzen verwendet werden und werden im Internet nicht geroutet.
         </p>
+
+        <div className="lp-tip">
+          <p>
+            <strong>☎️ Stell es dir wie Telefonnummern in einer Firma vor:</strong> Die{" "}
+            <strong>öffentliche IP</strong> ist die Hauptnummer, die die ganze Welt
+            anrufen kann. Die <strong>privaten IPs</strong> sind die internen Durchwahlen
+            (z. B. „Apparat 101") — sie gelten nur im Haus, und jede Firma darf dieselbe
+            Durchwahl 101 haben, ohne dass es Chaos gibt. Damit ein internes Gerät ins
+            Internet kommt, „übersetzt" der Router per <strong>NAT</strong> die private
+            Adresse auf die öffentliche — wie eine Telefonzentrale, die nach außen
+            vermittelt.
+          </p>
+        </div>
 
         <h2>Diese Bereiche musst du erkennen</h2>
         <table className="lp-table">
@@ -209,6 +240,39 @@ export default function LernSeite() {
           </p>
         </div>
 
+        <div className="lp-tip">
+          <p>
+            <strong>💡 Prüfungstipp — die 172er-Falle:</strong> Der private Bereich der
+            „Klasse B" geht nur von <span className="lp-mono">172.16</span> bis{" "}
+            <span className="lp-mono">172.31</span>. Genau hier baut die IHK gern Fallen:
+            <span className="lp-mono">172.32.x.x</span> ist schon{" "}
+            <strong>öffentlich</strong>, ebenso <span className="lp-mono">172.15.x.x</span>.
+            Merke dir die Grenzen 16 und 31 auswendig.
+          </p>
+        </div>
+
+        <div className="lp-warn">
+          <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
+          <ul>
+            <li>
+              <span className="lp-mono">192.169.x.x</span> für privat halten — privat ist
+              nur <span className="lp-mono">192.168.x.x</span> (eine 8, keine 9).
+            </li>
+            <li>
+              Das <span className="lp-mono">::</span> in IPv6 <strong>zweimal</strong>{" "}
+              verwenden. Es ist nur <em>einmal</em> pro Adresse erlaubt.
+            </li>
+            <li>
+              APIPA (<span className="lp-mono">169.254.x.x</span>) mit einer normalen
+              Adresse verwechseln — sie bedeutet immer „DHCP nicht erreicht".
+            </li>
+            <li>
+              Loopback ist <span className="lp-mono">127.0.0.1</span>, nicht{" "}
+              <span className="lp-mono">10.0.0.1</span> — ein beliebter Verwechsler.
+            </li>
+          </ul>
+        </div>
+
         <h2>Jetzt selbst testen</h2>
         <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
 
@@ -245,11 +309,44 @@ export default function LernSeite() {
           erklaerung={"Das :: darf nur einmal vorkommen — 2001:db8::ff::1 ist deshalb ungültig. Korrekt gekürzt: 2001:db8::ff:0:0:1 (die längere Nullfolge wird ersetzt). Achtung: 2001:db8:0:0:ff::1 ersetzt nicht die längste Folge und ist nach RFC 5952 nicht die empfohlene Form."}
         />
 
+        <QuizFrage
+          frage={"Wofür steht die Adresse 127.0.0.1?"}
+          optionen={[
+            { text: "Für den Standard-Gateway", richtig: false },
+            { text: "Für den eigenen Rechner (Loopback/localhost)", richtig: true },
+            { text: "Für eine private Klasse-A-Adresse", richtig: false },
+            { text: "Für eine APIPA-Adresse", richtig: false },
+          ]}
+          erklaerung={"127.0.0.1 ist die Loopback-Adresse — der Rechner spricht damit mit sich selbst (localhost). Der gesamte Bereich 127.0.0.0/8 ist dafür reserviert."}
+        />
+
+        <QuizFrage
+          frage={"Wie viele Bit hat eine IPv6-Adresse?"}
+          optionen={[
+            { text: "32 Bit", richtig: false },
+            { text: "64 Bit", richtig: false },
+            { text: "128 Bit", richtig: true },
+            { text: "256 Bit", richtig: false },
+          ]}
+          erklaerung={"IPv6 nutzt 128 Bit (acht Blöcke à 16 Bit, hexadezimal). IPv4 hat dagegen nur 32 Bit — deshalb war ein größerer Adressraum überhaupt nötig."}
+        />
+
+        <h2>Häufige Fragen</h2>
+        <div className="lp-faq">
+          {faq.map((f) => (
+            <details key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+
         <h2>Verwandte Themen</h2>
         <div className="lp-related">
           <Link href="/lernen/subnetting" className="lp-chip">Subnetting üben →</Link>
           <Link href="/lernen/osi-modell" className="lp-chip">OSI-Modell →</Link>
           <Link href="/lernen/zahlensysteme" className="lp-chip">Zahlensysteme →</Link>
+          <Link href="/lernen" className="lp-chip">Alle Lernthemen →</Link>
         </div>
 
         <section className="lp-final">

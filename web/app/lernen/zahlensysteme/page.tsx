@@ -28,6 +28,14 @@ const faq: { q: string; a: string }[] = [
     "a": "Die Binärzahl von rechts in Vierergruppen aufteilen und jede Gruppe einzeln übersetzen, denn ein Hex-Zeichen entspricht genau 4 Bit. 10101100 wird zu 1010|1100, also A und C — das Ergebnis ist AC."
   },
   {
+    "q": "Wie rechne ich hexadezimal in dezimal um?",
+    "a": "Jede Hex-Stelle mit ihrem Stellenwert (…, 256, 16, 1) multiplizieren und addieren. A entspricht 10, B=11, C=12, D=13, E=14, F=15. Beispiel: 2F = 2×16 + 15 = 47."
+  },
+  {
+    "q": "Was ist der Unterschied zwischen Bit und Byte?",
+    "a": "Ein Bit ist die kleinste Einheit und kann nur 0 oder 1 sein. Ein Byte besteht aus 8 Bit und kann 2^8 = 256 verschiedene Werte darstellen (0 bis 255). Ein Oktett einer IPv4-Adresse ist genau ein Byte."
+  },
+  {
     "q": "Warum wird in der IT hexadezimal verwendet?",
     "a": "Weil ein Hex-Zeichen exakt 4 Bit darstellt, lassen sich lange Bitfolgen kompakt schreiben. MAC-Adressen, IPv6-Adressen, Farbcodes und Speicheradressen werden deshalb hexadezimal notiert."
   },
@@ -66,6 +74,7 @@ export default function LernSeite() {
           --pre-bg: rgba(0,0,0,0.35);
           --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
           --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #A32620;
+          --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
           font-family: var(--font-geist-sans), system-ui, sans-serif;
           background: var(--bg);
           color: var(--text);
@@ -82,6 +91,7 @@ export default function LernSeite() {
           --pre-bg: rgba(10,10,15,0.05);
           --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
           --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
+          --warn-bg: rgba(180,120,0,0.10); --warn-border: rgba(180,120,0,0.45); --warn-text: #8A5A00;
         }
         .lp-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
         .lp-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
@@ -117,6 +127,22 @@ export default function LernSeite() {
           background: var(--accent-soft); color: var(--accent-text);
           padding: 2px 7px; border-radius: 6px; font-size: 0.92em;
         }
+        .lp-tip { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-tip p { margin: 0; }
+        .lp-tip strong { color: var(--accent-text); }
+        .lp-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-warn p { margin: 0 0 8px; }
+        .lp-warn strong { color: var(--warn-text); }
+        .lp-warn ul { margin: 8px 0 0; padding-left: 20px; }
+        .lp-warn li { color: var(--text-body); margin: 6px 0; }
+        .lp-faq { margin: 8px 0; }
+        .lp-faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2px 22px; margin: 10px 0; transition: border-color .15s ease; }
+        .lp-faq details[open] { border-color: var(--border-strong); }
+        .lp-faq summary { cursor: pointer; font-weight: 600; color: var(--text); padding: 16px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .lp-faq summary::-webkit-details-marker { display: none; }
+        .lp-faq summary::after { content: "+"; color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1; }
+        .lp-faq details[open] summary::after { content: "−"; }
+        .lp-faq details p { padding: 0 0 16px; margin: 0; color: var(--text-body); }
         .lp-related { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
         .lp-chip {
           display: inline-block; padding: 10px 16px; border-radius: 10px;
@@ -195,6 +221,26 @@ export default function LernSeite() {
           </p>
         </div>
 
+        <h2>Binär → Dezimal: Stellenwerte addieren</h2>
+        <p>
+          Das ist der schnellste Weg und für ein Byte im Kopf machbar. Schreibe über
+          jedes Bit seinen Stellenwert und addiere überall dort, wo eine{" "}
+          <span className="lp-mono">1</span> steht.
+        </p>
+        <div className="lp-card">
+          <p>
+            <strong>Beispiel: <span className="lp-mono">10101100</span>.</strong>
+          </p>
+          <p>
+            <span className="lp-mono">128&nbsp;·&nbsp;64&nbsp;·&nbsp;32&nbsp;·&nbsp;16&nbsp;·&nbsp;8&nbsp;·&nbsp;4&nbsp;·&nbsp;2&nbsp;·&nbsp;1</span>
+            <br />
+            <span className="lp-mono">&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;1&nbsp;&nbsp;1&nbsp;&nbsp;0&nbsp;&nbsp;0</span>
+          </p>
+          <p>
+            Gesetzte Bits: 128 + 32 + 8 + 4 = <strong>172</strong>.
+          </p>
+        </div>
+
         <h2>Binär → Hex: Vierergruppen</h2>
         <p>
           Teile die Binärzahl von rechts in Vierergruppen und übersetze jede Gruppe
@@ -205,12 +251,68 @@ export default function LernSeite() {
           4 Bit auflösen.
         </p>
 
+        <h2>Hex → Dezimal: Schritt für Schritt</h2>
+        <p>
+          Jede Hex-Stelle hat einen Stellenwert — von rechts nach links{" "}
+          <span className="lp-mono">1, 16, 256, 4096 …</span> (also 16 hoch 0, 1, 2, 3).
+          Multipliziere jede Stelle mit ihrem Wert und addiere. Die Buchstaben stehen
+          für <span className="lp-mono">A=10</span> bis <span className="lp-mono">F=15</span>.
+        </p>
+        <div className="lp-card">
+          <p>
+            <strong>Beispiel: <span className="lp-mono">2F</span>.</strong>
+          </p>
+          <p>
+            <span className="lp-mono">F</span> = 15 steht an der 1er-Stelle → 15 × 1 = 15.
+            <br />
+            <span className="lp-mono">2</span> steht an der 16er-Stelle → 2 × 16 = 32.
+          </p>
+          <p>
+            Summe: 32 + 15 = <strong>47</strong>. Gegenprobe binär:{" "}
+            <span className="lp-mono">2F</span> = <span className="lp-mono">0010&nbsp;1111</span>{" "}
+            = 32 + 8 + 4 + 2 + 1 = 47. ✓
+          </p>
+        </div>
+
         <h2>Die Stellenwerte, die du auswendig können solltest</h2>
         <p>
           <span className="lp-mono">128 · 64 · 32 · 16 · 8 · 4 · 2 · 1</span> — die
           Wertigkeiten eines Bytes. Wer diese Reihe sicher beherrscht, rechnet auch
           Subnetzmasken ohne Taschenrechner um.
         </p>
+
+        <div className="lp-tip">
+          <p>
+            <strong>💡 Prüfungstipp:</strong> Präge dir die 8er-Reihe{" "}
+            <span className="lp-mono">128&nbsp;64&nbsp;32&nbsp;16&nbsp;8&nbsp;4&nbsp;2&nbsp;1</span>{" "}
+            fest ein. Damit rechnest du in der Prüfung jedes Oktett — ob bei
+            Zahlensystemen oder Subnetting — sekundenschnell und ohne Hilfsmittel um.
+            Und merke dir zwei Anker: <span className="lp-mono">FF</span> = 255 und{" "}
+            <span className="lp-mono">80</span> (hex) = 128.
+          </p>
+        </div>
+
+        <div className="lp-warn">
+          <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
+          <ul>
+            <li>
+              Beim Divisionsverfahren die Reste <strong>falsch herum</strong> lesen —
+              sie müssen von <em>unten nach oben</em> gelesen werden.
+            </li>
+            <li>
+              Vierergruppen von <strong>links</strong> statt von <strong>rechts</strong>{" "}
+              bilden. Bei ungerader Bitzahl links mit Nullen auffüllen.
+            </li>
+            <li>
+              Die Hex-Buchstaben verwechseln: <span className="lp-mono">A=10</span>,
+              nicht 1 — und <span className="lp-mono">F=15</span>, nicht 16.
+            </li>
+            <li>
+              Vergessen, die <strong>Gegenprobe</strong> zu machen. Ein schneller Check
+              über die Stellenwerte deckt Rechenfehler sofort auf.
+            </li>
+          </ul>
+        </div>
 
         <h2>Jetzt selbst testen</h2>
         <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
@@ -248,10 +350,43 @@ export default function LernSeite() {
           erklaerung={"B = 11. Also 11 × 16 + 3 = 176 + 3 = 179. Hex rechnet man über die Stellenwerte 16, 256, 4096 usw. um."}
         />
 
+        <QuizFrage
+          frage={"Wie lautet die Dezimalzahl 45 in Binär?"}
+          optionen={[
+            { text: "101101", richtig: true },
+            { text: "101011", richtig: false },
+            { text: "110101", richtig: false },
+            { text: "100101", richtig: false },
+          ]}
+          erklaerung={"45 = 32 + 8 + 4 + 1 → Bits an den Stellen 32, 8, 4, 1 gesetzt: 101101. Gegenprobe: 32+8+4+1 = 45. ✓"}
+        />
+
+        <QuizFrage
+          frage={"Wie viele verschiedene Werte kann ein Byte (8 Bit) darstellen?"}
+          optionen={[
+            { text: "128", richtig: false },
+            { text: "255", richtig: false },
+            { text: "256", richtig: true },
+            { text: "512", richtig: false },
+          ]}
+          erklaerung={"2^8 = 256 verschiedene Werte, nämlich 0 bis 255. Achtung: 256 Werte, aber der höchste Wert ist 255 — ein klassischer Stolperstein."}
+        />
+
+        <h2>Häufige Fragen</h2>
+        <div className="lp-faq">
+          {faq.map((f) => (
+            <details key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+
         <h2>Verwandte Themen</h2>
         <div className="lp-related">
           <Link href="/lernen/subnetting" className="lp-chip">Subnetting üben →</Link>
           <Link href="/lernen/ip-adressen" className="lp-chip">IP-Adressen & IPv6 →</Link>
+          <Link href="/lernen" className="lp-chip">Alle Lernthemen →</Link>
           <Link href="/pruefungen" className="lp-chip">Alle IHK-Prüfungen →</Link>
         </div>
 

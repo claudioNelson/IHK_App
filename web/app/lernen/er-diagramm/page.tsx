@@ -66,6 +66,7 @@ export default function LernSeite() {
           --pre-bg: rgba(0,0,0,0.35);
           --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
           --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #A32620;
+          --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
           font-family: var(--font-geist-sans), system-ui, sans-serif;
           background: var(--bg);
           color: var(--text);
@@ -82,6 +83,7 @@ export default function LernSeite() {
           --pre-bg: rgba(10,10,15,0.05);
           --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
           --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
+          --warn-bg: rgba(180,120,0,0.10); --warn-border: rgba(180,120,0,0.45); --warn-text: #8A5A00;
         }
         .lp-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
         .lp-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
@@ -130,6 +132,22 @@ export default function LernSeite() {
           padding: 40px 28px; margin: 56px 0 0;
         }
         .lp-final h2 { margin-top: 0; }
+        .lp-tip { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-tip p { margin: 0; }
+        .lp-tip strong { color: var(--accent-text); }
+        .lp-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-warn p { margin: 0 0 8px; }
+        .lp-warn strong { color: var(--warn-text); }
+        .lp-warn ul { margin: 8px 0 0; padding-left: 20px; }
+        .lp-warn li { color: var(--text-body); margin: 6px 0; }
+        .lp-faq { margin: 8px 0; }
+        .lp-faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2px 22px; margin: 10px 0; transition: border-color .15s ease; }
+        .lp-faq details[open] { border-color: var(--border-strong); }
+        .lp-faq summary { cursor: pointer; font-weight: 600; color: var(--text); padding: 16px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .lp-faq summary::-webkit-details-marker { display: none; }
+        .lp-faq summary::after { content: "+"; color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1; }
+        .lp-faq details[open] summary::after { content: "−"; }
+        .lp-faq details p { padding: 0 0 16px; margin: 0; color: var(--text-body); }
 `}</style>
 
       <div className="lp-container">
@@ -157,6 +175,19 @@ export default function LernSeite() {
           der jeden Datensatz eindeutig identifiziert. <strong>Beziehungen</strong>{" "}
           verbinden Entitäten miteinander und tragen die Kardinalität.
         </p>
+
+        <div className="lp-tip">
+          <p>
+            <strong>📐 Stell es dir wie einen Bauplan vor:</strong> Bevor ein Haus gebaut
+            wird, zeichnet der Architekt einen Grundriss. Das ER-Diagramm ist genau dieser
+            Grundriss für deine Datenbank. Die <strong>Entitäten</strong> sind die Räume
+            (Kunde, Artikel), die <strong>Attribute</strong> die Einrichtung darin, und die{" "}
+            <strong>Beziehungen</strong> sind die Türen zwischen den Räumen. Die{" "}
+            <strong>Kardinalität</strong> sagt, wie viele durch eine Tür passen — eine
+            Person, viele Personen? Erst wenn der Plan steht, „baust" du daraus die
+            Tabellen.
+          </p>
+        </div>
 
         <h2>Die Kardinalitäten</h2>
         <table className="lp-table">
@@ -201,6 +232,40 @@ export default function LernSeite() {
           Überführung ist eine Standard-Teilaufgabe der Prüfung.
         </p>
 
+        <div className="lp-tip">
+          <p>
+            <strong>💡 Prüfungstipp — Fremdschlüssel richtig setzen:</strong> Der
+            Fremdschlüssel wandert bei <span className="lp-mono">1:n</span> <strong>immer
+            auf die n-Seite</strong> („der Kunde steckt im Auftrag, nicht umgekehrt"). Und
+            eine <span className="lp-mono">n:m</span>-Beziehung wird <strong>nie</strong>{" "}
+            direkt umgesetzt — sie braucht immer eine Zwischentabelle. Wer sich nur diese
+            zwei Regeln merkt, holt sich fast alle Punkte bei Datenbankaufgaben.
+          </p>
+        </div>
+
+        <div className="lp-warn">
+          <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
+          <ul>
+            <li>
+              Den Fremdschlüssel auf die falsche Seite setzen (bei 1:n auf die 1-Seite
+              statt auf die n-Seite).
+            </li>
+            <li>
+              Die <span className="lp-mono">n:m</span>-Beziehung ohne Zwischentabelle
+              „direkt" verbinden — das geht in einer relationalen Datenbank nicht.
+            </li>
+            <li>
+              Den Primärschlüssel vergessen. Jede Tabelle braucht einen — er identifiziert
+              jeden Datensatz eindeutig.
+            </li>
+            <li>
+              Kardinalität aus der falschen Richtung lesen: „Ein Kunde hat viele Aufträge"
+              ist aus Kundensicht 1:n, aus Auftragssicht n:1 — beides beschreibt dieselbe
+              Beziehung.
+            </li>
+          </ul>
+        </div>
+
         <h2>Jetzt selbst testen</h2>
         <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
 
@@ -237,10 +302,43 @@ export default function LernSeite() {
           erklaerung={"Bei 1:n wandert der Primärschlüssel der 1-Seite als Fremdschlüssel in die n-Seite: die kunden_nr steht in jedem Auftrag."}
         />
 
+        <QuizFrage
+          frage={"Ein Schüler kann viele Kurse belegen, ein Kurs hat viele Schüler. Welche Kardinalität liegt vor?"}
+          optionen={[
+            { text: "1:1", richtig: false },
+            { text: "1:n", richtig: false },
+            { text: "n:m", richtig: true },
+            { text: "n:1", richtig: false },
+          ]}
+          erklaerung={"Viele Schüler stehen mit vielen Kursen in Beziehung — das ist n:m. In Tabellen wird das über eine Zwischentabelle (z. B. belegung) aufgelöst."}
+        />
+
+        <QuizFrage
+          frage={"Was identifiziert einen Datensatz in einer Tabelle eindeutig?"}
+          optionen={[
+            { text: "Der Fremdschlüssel", richtig: false },
+            { text: "Der Primärschlüssel", richtig: true },
+            { text: "Das erste Attribut", richtig: false },
+            { text: "Die Kardinalität", richtig: false },
+          ]}
+          erklaerung={"Der Primärschlüssel macht jeden Datensatz eindeutig. Der Fremdschlüssel verweist dagegen auf den Primärschlüssel einer anderen Tabelle."}
+        />
+
+        <h2>Häufige Fragen</h2>
+        <div className="lp-faq">
+          {faq.map((f) => (
+            <details key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+
         <h2>Verwandte Themen</h2>
         <div className="lp-related">
           <Link href="/lernen/normalisierung" className="lp-chip">Normalisierung →</Link>
           <Link href="/lernen/sql" className="lp-chip">SQL üben →</Link>
+          <Link href="/lernen" className="lp-chip">Alle Lernthemen →</Link>
           <Link href="/pruefungen" className="lp-chip">Alle IHK-Prüfungen →</Link>
         </div>
 

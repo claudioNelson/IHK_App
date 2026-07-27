@@ -66,6 +66,7 @@ export default function LernSeite() {
           --pre-bg: rgba(0,0,0,0.35);
           --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
           --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #A32620;
+          --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
           font-family: var(--font-geist-sans), system-ui, sans-serif;
           background: var(--bg);
           color: var(--text);
@@ -82,6 +83,7 @@ export default function LernSeite() {
           --pre-bg: rgba(10,10,15,0.05);
           --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
           --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
+          --warn-bg: rgba(180,120,0,0.10); --warn-border: rgba(180,120,0,0.45); --warn-text: #8A5A00;
         }
         .lp-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
         .lp-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
@@ -130,6 +132,22 @@ export default function LernSeite() {
           padding: 40px 28px; margin: 56px 0 0;
         }
         .lp-final h2 { margin-top: 0; }
+        .lp-tip { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-tip p { margin: 0; }
+        .lp-tip strong { color: var(--accent-text); }
+        .lp-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-warn p { margin: 0 0 8px; }
+        .lp-warn strong { color: var(--warn-text); }
+        .lp-warn ul { margin: 8px 0 0; padding-left: 20px; }
+        .lp-warn li { color: var(--text-body); margin: 6px 0; }
+        .lp-faq { margin: 8px 0; }
+        .lp-faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2px 22px; margin: 10px 0; transition: border-color .15s ease; }
+        .lp-faq details[open] { border-color: var(--border-strong); }
+        .lp-faq summary { cursor: pointer; font-weight: 600; color: var(--text); padding: 16px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .lp-faq summary::-webkit-details-marker { display: none; }
+        .lp-faq summary::after { content: "+"; color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1; }
+        .lp-faq details[open] summary::after { content: "−"; }
+        .lp-faq details p { padding: 0 0 16px; margin: 0; color: var(--text-body); }
 `}</style>
 
       <div className="lp-container">
@@ -159,6 +177,18 @@ export default function LernSeite() {
           diese Probleme Schritt für Schritt.
         </p>
 
+        <div className="lp-tip">
+          <p>
+            <strong>📇 Stell es dir wie ein chaotisches Adressbuch vor:</strong> Wenn du
+            die Telefonnummer eines Freundes auf zehn verschiedenen Seiten notiert hast und
+            er umzieht, musst du zehnmal korrigieren — und vergisst garantiert eine Stelle
+            (das ist die <em>Änderungsanomalie</em>). Normalisieren heißt: Jede Information
+            steht nur an <strong>einer</strong> Stelle. Änderst du sie dort, stimmt sie
+            überall. Genau darum zerlegen wir eine große, unübersichtliche Tabelle in
+            mehrere saubere.
+          </p>
+        </div>
+
         <h2>Die drei Normalformen</h2>
         <table className="lp-table">
           <thead>
@@ -174,6 +204,17 @@ export default function LernSeite() {
             <tr><td>3. NF</td><td>2. NF + kein Nicht-Schlüssel-Attribut hängt von einem anderen Nicht-Schlüssel-Attribut ab</td><td>Keine transitiven Abhängigkeiten</td></tr>
           </tbody>
         </table>
+
+        <div className="lp-tip">
+          <p>
+            <strong>💡 Der berühmte Merksatz:</strong> Jedes Nicht-Schlüssel-Attribut
+            hängt ab „<strong>vom Schlüssel, vom ganzen Schlüssel und von nichts als dem
+            Schlüssel</strong>". Übersetzt: <span className="lp-mono">1. NF</span> = ein
+            Wert pro Feld, <span className="lp-mono">2. NF</span> = vom <em>ganzen</em>{" "}
+            Schlüssel (keine Teil-Abhängigkeit), <span className="lp-mono">3. NF</span> =
+            von <em>nichts als</em> dem Schlüssel (keine Umleitung über andere Attribute).
+          </p>
+        </div>
 
         <h2>Beispiel: eine Rechnungstabelle normalisieren</h2>
         <div className="lp-card">
@@ -196,6 +237,28 @@ export default function LernSeite() {
             Schlüssel rechnungs_nr) → eigene Kunden-Tabelle. Ergebnis: rechnung,
             rechnungsposition, artikel, kunde.
           </p>
+        </div>
+
+        <div className="lp-warn">
+          <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
+          <ul>
+            <li>
+              Normalformen überspringen. Du musst der Reihe nach vorgehen: erst 1. NF,
+              dann 2. NF, dann 3. NF — eine höhere setzt die niedrigere voraus.
+            </li>
+            <li>
+              Die 2. NF prüfen, obwohl es <strong>keinen zusammengesetzten Schlüssel</strong>{" "}
+              gibt. Ohne mehrteiligen Schlüssel ist die 2. NF automatisch erfüllt.
+            </li>
+            <li>
+              Transitive Abhängigkeiten übersehen (z. B. <span className="lp-mono">PLZ → Ort</span>) —
+              das ist der typische 3.-NF-Verstoß.
+            </li>
+            <li>
+              Beim Zerlegen den <strong>Fremdschlüssel vergessen</strong>, der die neuen
+              Tabellen wieder verbindet.
+            </li>
+          </ul>
         </div>
 
         <h2>Jetzt selbst testen</h2>
@@ -234,10 +297,43 @@ export default function LernSeite() {
           erklaerung={"Wenn derselbe Wert redundant in vielen Zeilen steht und überall geändert werden muss, spricht man von einer Änderungsanomalie."}
         />
 
+        <QuizFrage
+          frage={"Was fordert die 1. Normalform?"}
+          optionen={[
+            { text: "Keine transitiven Abhängigkeiten", richtig: false },
+            { text: "Atomare Werte — nur ein Wert pro Feld", richtig: true },
+            { text: "Einen zusammengesetzten Primärschlüssel", richtig: false },
+            { text: "Mindestens drei Tabellen", richtig: false },
+          ]}
+          erklaerung={"Die 1. NF verlangt Atomarität: In jedem Feld steht genau ein Wert — keine Listen oder zusammengesetzten Angaben."}
+        />
+
+        <QuizFrage
+          frage={"Wann ist die 2. Normalform automatisch erfüllt (sofern 1. NF gilt)?"}
+          optionen={[
+            { text: "Wenn es keine Fremdschlüssel gibt", richtig: false },
+            { text: "Wenn der Primärschlüssel aus nur einem Attribut besteht", richtig: true },
+            { text: "Wenn alle Attribute Text sind", richtig: false },
+            { text: "Nie — man muss sie immer prüfen", richtig: false },
+          ]}
+          erklaerung={"Partielle Abhängigkeiten können nur bei zusammengesetzten Schlüsseln auftreten. Bei einem einteiligen Primärschlüssel ist die 2. NF also automatisch erfüllt."}
+        />
+
+        <h2>Häufige Fragen</h2>
+        <div className="lp-faq">
+          {faq.map((f) => (
+            <details key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+
         <h2>Verwandte Themen</h2>
         <div className="lp-related">
           <Link href="/lernen/er-diagramm" className="lp-chip">ER-Diagramm →</Link>
           <Link href="/lernen/sql" className="lp-chip">SQL üben →</Link>
+          <Link href="/lernen" className="lp-chip">Alle Lernthemen →</Link>
           <Link href="/pruefungen" className="lp-chip">Alle IHK-Prüfungen →</Link>
         </div>
 

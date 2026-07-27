@@ -66,6 +66,7 @@ export default function LernSeite() {
           --pre-bg: rgba(0,0,0,0.35);
           --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
           --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #A32620;
+          --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
           font-family: var(--font-geist-sans), system-ui, sans-serif;
           background: var(--bg);
           color: var(--text);
@@ -82,6 +83,7 @@ export default function LernSeite() {
           --pre-bg: rgba(10,10,15,0.05);
           --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
           --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
+          --warn-bg: rgba(180,120,0,0.10); --warn-border: rgba(180,120,0,0.45); --warn-text: #8A5A00;
         }
         .lp-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
         .lp-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
@@ -130,6 +132,22 @@ export default function LernSeite() {
           padding: 40px 28px; margin: 56px 0 0;
         }
         .lp-final h2 { margin-top: 0; }
+        .lp-tip { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-tip p { margin: 0; }
+        .lp-tip strong { color: var(--accent-text); }
+        .lp-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-warn p { margin: 0 0 8px; }
+        .lp-warn strong { color: var(--warn-text); }
+        .lp-warn ul { margin: 8px 0 0; padding-left: 20px; }
+        .lp-warn li { color: var(--text-body); margin: 6px 0; }
+        .lp-faq { margin: 8px 0; }
+        .lp-faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2px 22px; margin: 10px 0; transition: border-color .15s ease; }
+        .lp-faq details[open] { border-color: var(--border-strong); }
+        .lp-faq summary { cursor: pointer; font-weight: 600; color: var(--text); padding: 16px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .lp-faq summary::-webkit-details-marker { display: none; }
+        .lp-faq summary::after { content: "+"; color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1; }
+        .lp-faq details[open] summary::after { content: "−"; }
+        .lp-faq details p { padding: 0 0 16px; margin: 0; color: var(--text-body); }
 `}</style>
 
       <div className="lp-container">
@@ -147,6 +165,19 @@ export default function LernSeite() {
         <div className="lp-cta-row">
           <Link href="/signup" className="lp-btn lp-btn-primary">Kostenlos üben</Link>
           <Link href="/pruefungen" className="lp-btn lp-btn-ghost">Zu den Prüfungen</Link>
+        </div>
+
+        <div className="lp-tip">
+          <p>
+            <strong>🃏 Zuerst kurz zur O-Notation:</strong> Sie beschreibt nur, wie stark
+            der Aufwand <em>wächst</em>, wenn die Datenmenge größer wird —
+            nicht die genaue Zeit. <span className="lp-mono">O(n²)</span> heißt: doppelt so
+            viele Elemente → viermal so viel Arbeit (schlecht bei großen Mengen).{" "}
+            <span className="lp-mono">O(n log n)</span> wächst viel langsamer und ist
+            deshalb bei großen Datenmengen klar besser. Denk an Karten sortieren:{" "}
+            <strong>Insertionsort</strong> ist genau das, was du intuitiv tust — du nimmst
+            eine Karte und steckst sie an die richtige Stelle in deiner Hand.
+          </p>
         </div>
 
         <h2>Die wichtigsten Verfahren im Vergleich</h2>
@@ -203,6 +234,42 @@ export default function LernSeite() {
           Er garantiert O(n log n), braucht dafür aber zusätzlichen Speicher.
         </p>
 
+        <div className="lp-tip">
+          <p>
+            <strong>💡 Prüfungstipp — was du sicher wissen musst:</strong>{" "}
+            <span className="lp-mono">Mergesort</span> = immer{" "}
+            <span className="lp-mono">O(n log n)</span> und stabil (aber extra Speicher).{" "}
+            <span className="lp-mono">Quicksort</span> = im Schnitt schnell, aber Worst
+            Case <span className="lp-mono">O(n²)</span> bei schon sortierter Folge.{" "}
+            <span className="lp-mono">Bubble-/Insertion-/Selectionsort</span> = einfach,
+            aber <span className="lp-mono">O(n²)</span>. Diese drei Fakten decken die
+            meisten Fragen ab.
+          </p>
+        </div>
+
+        <div className="lp-warn">
+          <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
+          <ul>
+            <li>
+              Quicksort für „immer schnell" halten — sein Worst Case ist{" "}
+              <span className="lp-mono">O(n²)</span>, nicht O(n log n).
+            </li>
+            <li>
+              „Stabil" mit „schnell" verwechseln. Stabil heißt nur: gleiche Werte behalten
+              ihre Reihenfolge.
+            </li>
+            <li>
+              Bei Bubblesort einen Durchlauf falsch zählen — pro Durchlauf wandert{" "}
+              <strong>ein</strong> größtes Element ans Ende, nicht die halbe Folge.
+            </li>
+            <li>
+              <span className="lp-mono">O(n log n)</span> und{" "}
+              <span className="lp-mono">O(n²)</span> verwechseln: n log n wächst deutlich
+              langsamer und ist bei großen Datenmengen besser.
+            </li>
+          </ul>
+        </div>
+
         <h2>Jetzt selbst testen</h2>
         <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
 
@@ -239,10 +306,43 @@ export default function LernSeite() {
           erklaerung={"Bei einer sortierten Folge teilt das Rand-Pivot die Folge maximal ungleich — die Rekursionstiefe wird n und die Laufzeit O(n²)."}
         />
 
+        <QuizFrage
+          frage={"Was bedeutet 'stabiles' Sortierverfahren?"}
+          optionen={[
+            { text: "Es stürzt nie ab", richtig: false },
+            { text: "Gleiche Werte behalten ihre ursprüngliche Reihenfolge", richtig: true },
+            { text: "Es braucht keinen zusätzlichen Speicher", richtig: false },
+            { text: "Es ist immer O(n log n)", richtig: false },
+          ]}
+          erklaerung={"Stabil heißt: Elemente mit gleichem Sortierwert bleiben in ihrer ursprünglichen Reihenfolge. Wichtig, wenn nach mehreren Kriterien nacheinander sortiert wird."}
+        />
+
+        <QuizFrage
+          frage={"Welche durchschnittliche Laufzeit hat Bubblesort?"}
+          optionen={[
+            { text: "O(n)", richtig: false },
+            { text: "O(log n)", richtig: false },
+            { text: "O(n log n)", richtig: false },
+            { text: "O(n²)", richtig: true },
+          ]}
+          erklaerung={"Bubblesort vergleicht in verschachtelten Schleifen jedes Element mit jedem — das ergibt im Durchschnitt O(n²). Nur im Best Case (fast sortiert) kann er O(n) erreichen."}
+        />
+
+        <h2>Häufige Fragen</h2>
+        <div className="lp-faq">
+          {faq.map((f) => (
+            <details key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+
         <h2>Verwandte Themen</h2>
         <div className="lp-related">
           <Link href="/lernen/sql" className="lp-chip">SQL üben →</Link>
           <Link href="/lernen/er-diagramm" className="lp-chip">ER-Diagramm →</Link>
+          <Link href="/lernen" className="lp-chip">Alle Lernthemen →</Link>
           <Link href="/pruefungen" className="lp-chip">Alle IHK-Prüfungen →</Link>
         </div>
 

@@ -66,6 +66,7 @@ export default function LernSeite() {
           --pre-bg: rgba(0,0,0,0.35);
           --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
           --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #A32620;
+          --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
           font-family: var(--font-geist-sans), system-ui, sans-serif;
           background: var(--bg);
           color: var(--text);
@@ -82,6 +83,7 @@ export default function LernSeite() {
           --pre-bg: rgba(10,10,15,0.05);
           --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
           --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
+          --warn-bg: rgba(180,120,0,0.10); --warn-border: rgba(180,120,0,0.45); --warn-text: #8A5A00;
         }
         .lp-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
         .lp-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
@@ -130,6 +132,22 @@ export default function LernSeite() {
           padding: 40px 28px; margin: 56px 0 0;
         }
         .lp-final h2 { margin-top: 0; }
+        .lp-tip { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-tip p { margin: 0; }
+        .lp-tip strong { color: var(--accent-text); }
+        .lp-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
+        .lp-warn p { margin: 0 0 8px; }
+        .lp-warn strong { color: var(--warn-text); }
+        .lp-warn ul { margin: 8px 0 0; padding-left: 20px; }
+        .lp-warn li { color: var(--text-body); margin: 6px 0; }
+        .lp-faq { margin: 8px 0; }
+        .lp-faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2px 22px; margin: 10px 0; transition: border-color .15s ease; }
+        .lp-faq details[open] { border-color: var(--border-strong); }
+        .lp-faq summary { cursor: pointer; font-weight: 600; color: var(--text); padding: 16px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .lp-faq summary::-webkit-details-marker { display: none; }
+        .lp-faq summary::after { content: "+"; color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1; }
+        .lp-faq details[open] summary::after { content: "−"; }
+        .lp-faq details p { padding: 0 0 16px; margin: 0; color: var(--text-body); }
 `}</style>
 
       <div className="lp-container">
@@ -157,6 +175,18 @@ export default function LernSeite() {
           über und unter ihr. So lassen sich Protokolle, Geräte und Fehlerquellen
           sauber einordnen — genau das wird in der Prüfung abgefragt.
         </p>
+
+        <div className="lp-tip">
+          <p>
+            <strong>📦 Stell es dir wie einen Paketversand vor:</strong> Deine Nachricht
+            (oben, Schicht 7) wird auf dem Weg nach unten Schicht für Schicht in einen
+            weiteren Umschlag gepackt — Absender/Empfänger drauf, Portoetikett, ab in den
+            Transporter. Beim Empfänger wird jeder Umschlag in umgekehrter Reihenfolge
+            wieder ausgepackt, bis die eigentliche Nachricht oben ankommt. Dieses
+            Ein- und Auspacken nennt man <strong>Kapselung</strong> (Encapsulation) — jede
+            Schicht fügt ihren eigenen „Umschlag" (Header) hinzu.
+          </p>
+        </div>
 
         <h2>Die 7 Schichten im Überblick</h2>
         <table className="lp-table">
@@ -202,6 +232,39 @@ export default function LernSeite() {
           Zuordnung wird in fast jeder Prüfung in irgendeiner Form abgefragt.
         </p>
 
+        <div className="lp-tip">
+          <p>
+            <strong>💡 Prüfungstipp — Geräte auf einen Blick:</strong>{" "}
+            <span className="lp-mono">Hub = 1</span> (nur Signale),{" "}
+            <span className="lp-mono">Switch = 2</span> (MAC-Adressen),{" "}
+            <span className="lp-mono">Router = 3</span> (IP-Adressen). Merke: Je „schlauer"
+            das Gerät, desto höher die Schicht. Und der Klassiker: <strong>TCP/UDP arbeiten
+            mit Ports</strong> auf Schicht 4, <strong>IP</strong> mit Adressen auf Schicht 3.
+          </p>
+        </div>
+
+        <div className="lp-warn">
+          <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
+          <ul>
+            <li>
+              Schicht 2 und 3 verwechseln: <strong>MAC</strong>-Adresse = Schicht 2,{" "}
+              <strong>IP</strong>-Adresse = Schicht 3.
+            </li>
+            <li>
+              Die Dateneinheiten durcheinanderbringen. Von unten:{" "}
+              <span className="lp-mono">Bits → Frames → Pakete → Segmente</span>.
+            </li>
+            <li>
+              TLS/SSL auf Schicht 7 statt 6 einordnen — Verschlüsselung/Darstellung ist
+              Schicht 6.
+            </li>
+            <li>
+              Die Schichten falsch herum zählen. Schicht <strong>1 ist unten</strong>{" "}
+              (Kabel), Schicht 7 oben (Anwendung).
+            </li>
+          </ul>
+        </div>
+
         <h2>Jetzt selbst testen</h2>
         <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
 
@@ -238,11 +301,44 @@ export default function LernSeite() {
           erklaerung={"TCP und UDP sind die Transportprotokolle der Schicht 4 und adressieren über Ports. IP/ICMP gehören zu Schicht 3, HTTP/DNS zu Schicht 7."}
         />
 
+        <QuizFrage
+          frage={"Auf welcher Schicht arbeitet ein Switch?"}
+          optionen={[
+            { text: "Schicht 1 — Bitübertragung", richtig: false },
+            { text: "Schicht 2 — Sicherung", richtig: true },
+            { text: "Schicht 3 — Vermittlung", richtig: false },
+            { text: "Schicht 4 — Transport", richtig: false },
+          ]}
+          erklaerung={"Ein Switch entscheidet anhand von MAC-Adressen und arbeitet damit auf Schicht 2 (Sicherungsschicht). Ein Hub wäre Schicht 1, ein Router Schicht 3."}
+        />
+
+        <QuizFrage
+          frage={"Auf welcher Schicht ist die Verschlüsselung (TLS/SSL) angesiedelt?"}
+          optionen={[
+            { text: "Schicht 4 — Transport", richtig: false },
+            { text: "Schicht 5 — Sitzung", richtig: false },
+            { text: "Schicht 6 — Darstellung", richtig: true },
+            { text: "Schicht 7 — Anwendung", richtig: false },
+          ]}
+          erklaerung={"Die Darstellungsschicht (Schicht 6) kümmert sich um Codierung und Verschlüsselung — dort ist TLS/SSL klassisch eingeordnet."}
+        />
+
+        <h2>Häufige Fragen</h2>
+        <div className="lp-faq">
+          {faq.map((f) => (
+            <details key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+
         <h2>Verwandte Themen</h2>
         <div className="lp-related">
           <Link href="/lernen/subnetting" className="lp-chip">Subnetting üben →</Link>
           <Link href="/lernen/ip-adressen" className="lp-chip">IP-Adressen & IPv6 →</Link>
           <Link href="/lernen/raid" className="lp-chip">RAID Level →</Link>
+          <Link href="/lernen" className="lp-chip">Alle Lernthemen →</Link>
         </div>
 
         <section className="lp-final">
