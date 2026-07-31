@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// KI-Prüfungskorrektur: Claude Haiku (primär) mit Groq-Fallback.
+// Keys kommen aus den Vercel-Umgebungsvariablen:
+//   ANTHROPIC_API_KEY  (primär)
+//   GROQ_API_KEY       (Fallback)
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
+const CLAUDE_MODEL = "claude-haiku-4-5";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
+
 export async function POST(request: NextRequest) {
-  if (!GROQ_API_KEY) {
+  if (!ANTHROPIC_API_KEY && !GROQ_API_KEY) {
     return NextResponse.json({ error: "API Key nicht konfiguriert" }, { status: 500 });
   }
 
@@ -67,29 +75,68 @@ Gesamtpunkte: ${exam.totalPoints}
 Sei streng aber fair. Nicht beantwortete Fragen = 0 Punkte.
 Antworte auf Deutsch, strukturiert mit Emojis.`;
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 4000,
-        temperature: 0.7,
-      }),
-    });
+    // ─── 1) Primär: Claude Haiku ─────────────────────────────
+    if (ANTHROPIC_API_KEY) {
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+          },
+          body: JSON.stringify({
+            model: CLAUDE_MODEL,
+            max_tokens: 4000,
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
 
-    if (!response.ok) {
-      const error = await response.text();
-      return NextResponse.json({ error: `Groq API Fehler: ${error}` }, { status: 500 });
+        if (res.ok) {
+          const data = await res.json();
+          const feedback = data.content?.[0]?.text;
+          if (feedback) {
+            return NextResponse.json({ feedback, provider: "claude" });
+          }
+        } else {
+          console.warn(`Claude API Fehler ${res.status}: ${await res.text()}`);
+        }
+      } catch (err) {
+        console.warn("Claude nicht erreichbar, nutze Groq-Fallback:", err);
+      }
     }
 
-    const data = await response.json();
-    const feedback = data.choices[0]?.message?.content || "Keine Antwort erhalten";
+    // ─── 2) Fallback: Groq ───────────────────────────────────
+    if (GROQ_API_KEY) {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 4000,
+          temperature: 0.7,
+        }),
+      });
 
-    return NextResponse.json({ feedback });
+      if (!response.ok) {
+        const error = await response.text();
+        return NextResponse.json({ error: `Groq API Fehler: ${error}` }, { status: 500 });
+      }
+
+      const data = await response.json();
+      const feedback = data.choices[0]?.message?.content || "Keine Antwort erhalten";
+
+      return NextResponse.json({ feedback, provider: "groq" });
+    }
+
+    return NextResponse.json(
+      { error: "Kein KI-Anbieter erreichbar" },
+      { status: 503 }
+    );
   } catch (error) {
     console.error("KI-Korrektur Fehler:", error);
     return NextResponse.json({ error: "Interner Serverfehler" }, { status: 500 });

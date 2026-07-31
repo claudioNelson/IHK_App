@@ -1,16 +1,19 @@
 // supabase/functions/ai-tutor/index.ts
 //
-// AI-Tutor Edge Function mit Failover (Groq → Gemini)
+// AI-Tutor Edge Function mit Failover (Claude → Groq → Gemini)
 // + server-seitiger Usage-Tracking für Free-User
 //
 // Request:  { messages: [{role, content}], max_tokens?, temperature? }
-// Response: { content: string, provider: 'groq'|'gemini', remaining: number }
+// Response: { content: string, provider: 'claude'|'groq'|'gemini', remaining: number }
 
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY')
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+
+const CLAUDE_MODEL = 'claude-haiku-4-5'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
@@ -109,11 +112,20 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Conversation too long (max 20k chars)' }, 400)
     }
 
-    // ─── 5. Failover: Groq → Gemini ──────────────
+    // ─── 5. Failover: Claude → Groq → Gemini ─────
     let content: string | null = null
-    let provider: 'groq' | 'gemini' | null = null
+    let provider: 'claude' | 'groq' | 'gemini' | null = null
 
-    if (GROQ_API_KEY) {
+    if (ANTHROPIC_API_KEY) {
+      try {
+        content = await callClaude(messages, maxTokens, temperature)
+        provider = 'claude'
+      } catch (err: any) {
+        console.warn('Claude failed:', err.message)
+      }
+    }
+
+    if (!content && GROQ_API_KEY) {
       try {
         content = await callGroq(messages, maxTokens, temperature)
         provider = 'groq'
@@ -185,6 +197,50 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Internal server error' }, 500)
   }
 })
+
+// ─── Provider: Claude (Anthropic) ───────────────
+async function callClaude(
+  messages: ChatMessage[],
+  maxTokens: number,
+  temperature: number,
+): Promise<string> {
+  // Anthropic erwartet system-Prompts als eigenes Top-Level-Feld,
+  // die Konversation nur mit user/assistant-Rollen.
+  const systemPrompt = messages
+    .filter((m) => m.role === 'system')
+    .map((m) => m.content)
+    .join('\n\n')
+
+  const conversation = messages
+    .filter((m) => m.role !== 'system')
+    .map((m) => ({ role: m.role, content: m.content }))
+
+  const body: any = {
+    model: CLAUDE_MODEL,
+    max_tokens: maxTokens,
+    temperature,
+    messages: conversation,
+  }
+  if (systemPrompt) {
+    body.system = systemPrompt
+  }
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_API_KEY!,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Claude HTTP ${res.status}: ${await res.text()}`)
+  }
+  const data = await res.json()
+  return data.content?.[0]?.text ?? ''
+}
 
 // ─── Provider: Groq ─────────────────────────────
 async function callGroq(
