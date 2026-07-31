@@ -63,9 +63,27 @@ Zwei Produkte, ein Projekt:
 
 ## 4. Release-Status (Google Play)
 
-- App ist in der **geschlossenen Testphase** (Closed Testing) im Google Play Store.
-- Google-Vorgabe: **12 Tester, 14 Tage** aktive Teilnahme, bevor Produktion beantragt werden kann. Tester sind eingerichtet und laufen.
-- Play-Policy „App must target Android 16 (API 36)" ist **erledigt** (target/compileSdk 36, im `.aab` verifiziert). Neuer Release mit versionCode 3 wurde hochgeladen.
+- App ist in der **geschlossenen Testphase** (Closed Testing, Alpha-Track) im Google Play Store.
+- 14-Tage-Test **abgeschlossen**; Fragebogen „Apply for production access" wurde ausgefüllt und eingereicht → wartet auf Googles Prüfung.
+- Play-Policy „App must target Android 16 (API 36)" ist **erledigt** (target/compileSdk 36). Aktueller Track-Release: **versionCode 6 (1.0.2+6)** — enthält die Google-Play-Billing-Bibliothek (versionCode 4/5 waren Fehlversuche ohne Billing; Ursache: hängender Gradle-Daemon, gelöst per Java-Prozess-Kill + Cache-Löschung).
+
+---
+
+## 4b. Monetarisierung (Stand 31.07.2026 — FUNKTIONIERT end-to-end)
+
+**Google Payments-Profil:** Unternehmensprofil (Einzelunternehmer/Kleingewerbe, rechtl. Name = eigener Name, Statement-Name LERNARENA), Bankkonto per Cent-Gutschrift verifiziert.
+
+**Produkte (Play Console):** Abo `lernarena_premium` mit 3 aktiven Base Plans: `monthly` · `half-year` · `annual` (je Auto-renewing, Grace 7 Tage). ⚠️ Toter Base Plan `yearly` existiert deaktiviert (war versehentlich monatlich — Base Plans sind unveränderlich, ID verbrannt). KEIN Lifetime mehr.
+
+**Preise (deutsche Endpreise inkl. 19 % MwSt.):** 11,99 €/M · 47,99 €/6M · 84,99 €/Jahr. (Ursprünglich 9,99/39,99/69,99 netto eingegeben; Google hat MwSt. aufgeschlagen — bewusst so belassen.) Alle Texte in App (Kauf-Sheet, PremiumLock, In-App-AGB) und Web (Startseite, /upgrade, AGB) auf die Endpreise aktualisiert; €/Monat-Anzeige im Kauf-Sheet rechnet dynamisch aus echten Google-Preisen.
+
+**App-Integration:** `lib/services/billing_service.dart` (in_app_purchase ^3.2.0, Produkt-Mapping über basePlanId, Kauf, Restore, completePurchase) + `lib/widgets/premium_kauf_sheet.dart` (Bottom Sheet, 3 Pläne). Verdrahtet an: IHK-Prüfungs-Paywall, beide Zertifikat-Paywalls, KI-Tutor-Limit, Modul-Fragen-Limit (practice_limit_mixin). Init in main.dart + restorePurchases nach Login. Prüfungs-Karten in pruefen_screen navigieren jetzt **in-App** zur Detailseite (Website-Link entfernt — Play-Policy: keine externen Kaufwege; Website-Stripe bleibt separat geplant).
+
+**Supabase:** Schutz-Trigger `trg_protect_premium` (blockt direkte Premium-Feld-Änderungen durch User) wurde erweitert um Sitzungs-Schalter `app.premium_grant`; neue RPC `activate_premium_purchase(p_tier, p_days)` (SECURITY DEFINER, validiert Tier/Laufzeit, verkürzt nie) ist der einzige Kauf-Schreibweg. App und Web lesen dasselbe `profiles.is_premium` → **einmal kaufen = überall Premium**.
+
+**Getestet:** Lizenz-Tester eingerichtet; Testkauf auf echtem Gerät (24090RA29G) erfolgreich: purchased → RPC → `isPremium=true, tier=yearly`. Free-Limits im Code verifiziert: 5 Modul-Fragen/Modul/Tag, 5 KI-Fragen, 5 Duelle; Karteikarten bewusst unbegrenzt (Konstante 30 existiert, wird nicht durchgesetzt).
+
+**VOR PUBLIC LAUNCH ZWINGEND:** Serverseitige Belegprüfung (Supabase Edge Function + Google Play Developer API), da Freischaltung aktuell clientseitig angestoßen wird. Außerdem: 15-%-Service-Fee-Programm in Play Console aktivieren (sonst 30 % Gebühr!).
 
 ---
 
@@ -78,7 +96,10 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 ## 6. Offene Punkte / Nächste Schritte
 
 **App**
-- Testphase abwarten (14 Tage) → danach Produktions-Release beantragen.
+- Auf Googles Antwort zum Produktionszugriff warten.
+- **Neuen Build (versionCode 7) mit komplettem Kauf-Code** bauen + in den Track hochladen (v6 im Store hat nur die Billing-Bibliothek, noch nicht das Kauf-Sheet).
+- Vor Public Launch: serverseitige Belegprüfung + 15-%-Fee-Programm (siehe 4b).
+- App-Änderungen committen/pushen (billing_service, premium_kauf_sheet, verdrahtete Screens, pubspec, Manifest, legal_texts).
 - KI-Kosten im Blick behalten (Ada-Tutor läuft über Gemini; Nutzungslimits über `usage_tracker`).
 
 **Web**

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../services/usage_tracker.dart';
 import '../widgets/limit_reached_dialog.dart';
+import '../widgets/premium_kauf_sheet.dart';
 
 /// Mixin für alle Practice-Screens (Module + Kernthemen).
 ///
@@ -49,19 +50,28 @@ mixin PracticeLimitMixin<T extends StatefulWidget> on State<T> {
 
     if (!mounted) return false;
 
-    // Limit erreicht → Dialog zeigen, dann Screen schließen
-    LimitReachedDialog.show(
+    // Limit erreicht → Dialog zeigen.
+    var upgradeTapped = false;
+    await LimitReachedDialog.show(
       context,
       featureName: 'Modul-Fragen',
       limit: UsageTracker.limitModuleQuestions,
       icon: Icons.help_outline_rounded,
-      onUpgrade: () {
-        // TODO: später zur Pricing-Page navigieren
-      },
-    ).then((_) {
-      if (mounted) Navigator.pop(context);
-    });
+      onUpgrade: () => upgradeTapped = true,
+    );
 
+    if (!mounted) return false;
+
+    // User will Premium → Kauf-Sheet öffnen. Bei Erfolg darf er
+    // direkt weitermachen, ohne den Screen zu verlassen.
+    if (upgradeTapped) {
+      final purchased = await showPremiumKaufSheet(context);
+      if (purchased == true) return true;
+      if (!mounted) return false;
+    }
+
+    // Kein Kauf → Screen schließen wie bisher.
+    Navigator.pop(context);
     return false;
   }
 

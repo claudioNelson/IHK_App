@@ -2,6 +2,8 @@
     <!-- Permissions MÜSSEN hier rein, BEVOR <application> -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Google Play Billing (In-App-Käufe / Abos) -->
+    <uses-permission android:name="com.android.vending.BILLING"/>
 
     <application
         android:label="Lernarena"

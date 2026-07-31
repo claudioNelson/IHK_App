@@ -14,6 +14,7 @@ import 'theme/app_theme.dart';
 import 'theme/theme_provider.dart';
 import 'services/subscription_service.dart';
 import 'services/deep_link_service.dart';
+import 'services/billing_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -90,10 +91,16 @@ class _AppInitializerState extends State<AppInitializer> {
       await DeepLinkService().initialize();
       print('✅ Deep Link Service aktiv');
 
+      // Google Play Billing initialisieren (Kauf-Events, Produkte)
+      await BillingService().init();
+      print('✅ Billing Service aktiv');
+
       // Auf Auth-Änderungen reagieren (Login/Logout)
       Supabase.instance.client.auth.onAuthStateChange.listen((data) {
         if (data.event == AuthChangeEvent.signedIn) {
           SubscriptionService().load();
+          // Aktive Abos wiederherstellen/verlängern
+          BillingService().restorePurchases();
         } else if (data.event == AuthChangeEvent.signedOut) {
           SubscriptionService().clear();
         }
@@ -107,6 +114,8 @@ class _AppInitializerState extends State<AppInitializer> {
       if (session != null) {
         await AppCacheService().preloadAllData();
         await SubscriptionService().load();
+        // Aktive Abos wiederherstellen/verlängern (still im Hintergrund)
+        BillingService().restorePurchases();
       }
 
       await Future.delayed(const Duration(milliseconds: 500));

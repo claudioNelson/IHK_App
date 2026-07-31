@@ -198,9 +198,9 @@ Der Free-Tarif ist kostenlos und beinhaltet einen eingeschränkten Zugang zu den
 
 Premium bietet unbegrenzten Zugang zu allen Funktionen und ist in folgenden Varianten erhältlich:
 
-- Monatlich: 9,99 € / Monat
-- Halbjährlich: 39,99 € / 6 Monate (entspricht ca. 6,67 € / Monat)
-- Jährlich: 69,99 € / Jahr (entspricht ca. 5,83 € / Monat)
+- Monatlich: 11,99 € / Monat
+- Halbjährlich: 47,99 € / 6 Monate (entspricht ca. 8,00 € / Monat)
+- Jährlich: 84,99 € / Jahr (entspricht ca. 7,08 € / Monat)
 
 Alle Preise sind Endpreise. Die Umsatzsteuer-Behandlung hängt vom Kaufweg ab:
 

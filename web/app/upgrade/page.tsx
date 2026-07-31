@@ -287,7 +287,7 @@ export default async function UpgradePage({
         <div className="up-plan-name">Monatlich</div>
         <div className="up-plan-tag">Flexibel</div>
         <div className="up-price-row">
-            <span className="up-price">9,99€</span>
+            <span className="up-price">11,99€</span>
             <span className="up-period">/ Monat</span>
         </div>
         <div className="up-note">Monatlich kündbar</div>
@@ -306,10 +306,10 @@ export default async function UpgradePage({
         <div className="up-plan-name">Halbjahr</div>
         <div className="up-plan-tag">Beliebt</div>
         <div className="up-price-row">
-            <span className="up-price">39,99€</span>
+            <span className="up-price">47,99€</span>
             <span className="up-period">/ 6 Monate</span>
         </div>
-        <div className="up-note">≈ 6,67€/Monat · 20€ gespart</div>
+        <div className="up-note">≈ 8,00€/Monat · 24€ gespart</div>
         <CheckoutButton tier="halfyear" label="Halbjahr starten" />
                         <ul className="up-features">
                             <li className="up-feature">Alles aus Monatlich</li>
@@ -322,14 +322,14 @@ export default async function UpgradePage({
 
     {/* JÄHRLICH */}
     <div className="up-plan featured">
-        <div className="up-badge">Empfohlen · 42% sparen</div>
+        <div className="up-badge">Empfohlen · 41% sparen</div>
         <div className="up-plan-name">Jährlich</div>
         <div className="up-plan-tag">Bestpreis</div>
         <div className="up-price-row">
-            <span className="up-price">69,99€</span>
+            <span className="up-price">84,99€</span>
             <span className="up-period">/ Jahr</span>
         </div>
-        <div className="up-note">≈ 5,83€/Monat · 50€ gespart</div>
+        <div className="up-note">≈ 7,08€/Monat · 59€ gespart</div>
         <CheckoutButton tier="yearly" label="Jährlich starten" primary />
                         <ul className="up-features">
                             <li className="up-feature">Alles aus Halbjahr</li>

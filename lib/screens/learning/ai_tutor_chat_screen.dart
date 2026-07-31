@@ -6,6 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/limit_reached_dialog.dart';
+import '../../widgets/premium_kauf_sheet.dart';
 import '../../widgets/limit_indicator_pill.dart';
 import '../../services/usage_tracker.dart';
 
@@ -93,7 +94,7 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
           limit: e.limit,
           icon: Icons.auto_awesome_rounded,
           onUpgrade: () {
-            // TODO: Pricing-Page
+            showPremiumKaufSheet(context);
           },
         );
       }

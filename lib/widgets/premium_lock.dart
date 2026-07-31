@@ -133,7 +133,7 @@ class PremiumLock extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Ab 9,99€/M · 59€/J · 99€ Lifetime',
+                            '11,99€/M · 47,99€/6M · 84,99€/Jahr',
                             style: AppTextStyles.mono(
                               size: 11,
                               color: textMid,

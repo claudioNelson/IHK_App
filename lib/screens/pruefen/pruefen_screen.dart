@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../models/ihk_exam_model.dart';
 import '../../data/exams/ae-1.dart';
 import '../../data/exams/ae-2.dart';
@@ -522,17 +521,16 @@ class _PruefenScreenState extends State<PruefenScreen>
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
-        onTap: () async {
-          final uri = Uri.parse('https://lernarena.app/pruefungen');
-          if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Link konnte nicht geöffnet werden'),
-                ),
-              );
-            }
-          }
+        onTap: () {
+          // In-App-Navigation statt Website-Link (Google-Play-Richtlinie:
+          // keine externen Kaufwege). Ohne Premium zeigt die Detailseite
+          // automatisch die Premium-Sperre mit dem Kauf-Sheet.
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => IHKPruefungDetailScreen(exam: exam),
+            ),
+          );
         },
         child: Container(
           padding: const EdgeInsets.all(18),

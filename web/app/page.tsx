@@ -1831,10 +1831,10 @@ export default function LandingPage() {
             <div className="plan-name">Premium</div>
             <div className="plan-tag">Für Prüflinge</div>
             <div className="plan-price">
-              <span className="plan-amount">9,99€</span>
+              <span className="plan-amount">11,99€</span>
               <span className="plan-period">/ Monat</span>
             </div>
-            <div className="plan-note">Oder 69,99€/Jahr · 42% sparen</div>
+            <div className="plan-note">Oder 84,99€/Jahr · 41% sparen</div>
             <Link href="/upgrade" className="plan-cta primary">
               Premium starten
             </Link>
@@ -1853,10 +1853,10 @@ export default function LandingPage() {
             <div className="plan-name">Halbjahr</div>
             <div className="plan-tag">Prüfungsphase</div>
             <div className="plan-price">
-              <span className="plan-amount">39,99€</span>
+              <span className="plan-amount">47,99€</span>
               <span className="plan-period">/ 6 Monate</span>
             </div>
-            <div className="plan-note">≈ 6,67€/Monat · deckt die heiße Phase ab</div>
+            <div className="plan-note">≈ 8,00€/Monat · deckt die heiße Phase ab</div>
             <Link href="/upgrade" className="plan-cta outline">
               Halbjahr starten
             </Link>
@@ -1874,10 +1874,10 @@ export default function LandingPage() {
             <div className="plan-name">Jährlich</div>
             <div className="plan-tag">Bestpreis</div>
             <div className="plan-price">
-              <span className="plan-amount">69,99€</span>
+              <span className="plan-amount">84,99€</span>
               <span className="plan-period">/ Jahr</span>
             </div>
-            <div className="plan-note">≈ 5,83€/Monat · 42% sparen</div>
+            <div className="plan-note">≈ 7,08€/Monat · 41% sparen</div>
             <Link href="/upgrade" className="plan-cta outline">
               Jährlich starten
             </Link>

@@ -1,7 +1,7 @@
 name: ihk_app
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.2+6
 environment:
   sdk: ^3.8.1
 dependencies:
@@ -21,6 +21,8 @@ dependencies:
   flutter_highlight: ^0.7.0
   flutter_markdown_plus: ^1.0.6
   app_links: ^3.5.1
+  in_app_purchase: ^3.2.0
+  in_app_purchase_android: ^0.4.0
 
 dev_dependencies:
   flutter_test:
@@ -35,8 +37,6 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
-  assets:
-  
 
 flutter_launcher_icons:
   android: true
