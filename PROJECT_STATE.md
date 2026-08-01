@@ -42,7 +42,7 @@ Zwei Produkte, ein Projekt:
 **Infrastruktur / Konten**
 - E-Mail: `admin@lernarena.app` + `info@lernarena.app` (Zoho)
 - Domain: lernarena.app
-- KI-Anbieter: Google Gemini (App) + Groq (Web). Umstieg des Web-Tutors auf Claude Haiku war geplant, liegt wegen Zahlungsproblem bei Anthropic aktuell auf Eis.
+- KI-Anbieter: **Claude Haiku 4.5 (primär, App + Web)** mit Failover: Web-Tutor Claude→Groq; Ada (Edge Function ai-tutor) Claude→Groq→Gemini.
 
 ---
 
@@ -109,7 +109,11 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 - Nach 2–3 Wochen Search-Console-Daten prüfen → Seiten mit Impressionen weiter ausbauen; ggf. neue Themenseiten (VLAN, DHCP/DNS, USV, Scrum, …).
 
 **KI / Kosten**
-- Umstieg Web-Tutor auf Claude (Haiku) offen, solange Anthropic-Zahlung nicht klappt → aktuell weiter Groq.
+- ✅ ERLEDIGT (31.07.): Anthropic-Zahlung erfolgreich (Blocker war der VPN). Beide KI-Anbindungen auf **Claude Haiku 4.5** umgestellt:
+  - Web-Tutor (`web/app/api/ki-korrektur/route.ts`): Claude primär → Groq-Fallback. Liefert jetzt **strukturiertes JSON**; neue Ergebnis-Ansicht in `ExamResult.tsx` (Punkte-Header, Note/Bestanden-Badges, Aufgaben-Karten mit Farbpunkten, Stärken/Verbesserungen/Lernempfehlungen). Fallback auf Rohtext, falls JSON-Parse scheitert.
+  - Ada in der App (`supabase/functions/ai-tutor/index.ts`): Claude → Groq → Gemini. Edge Function deployed.
+  - Keys: ANTHROPIC_API_KEY in Vercel-Env + Supabase-Secrets (nie im Code/Repo).
+- Anthropic-Guthaben im Blick behalten (Start: 20 $; Haiku ≈ 1–2 Cent pro Prüfungskorrektur).
 
 **Social / Marketing**
 - Fertiges Subnetting-Video auf TikTok + Instagram Reels posten.
