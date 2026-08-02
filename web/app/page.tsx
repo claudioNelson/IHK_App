@@ -1320,14 +1320,25 @@ export default function LandingPage() {
             <Link href="/signup" className="btn-primary">
               Kostenlos starten →
             </Link>
-            <a href="#product" className="btn-secondary">
-              Produkt ansehen
+            <a
+              href="https://play.google.com/store/apps/details?id=app.lernarena"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Lernarena bei Google Play herunterladen"
+              style={{ display: "inline-flex", alignItems: "center" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://play.google.com/intl/de_de/badges/static/images/badges/de_badge_web_generic.png"
+                alt="Jetzt bei Google Play"
+                style={{ height: 62, margin: "-6px 0" }}
+              />
             </a>
           </div>
           <div className="hero-meta">
             <span><span className="check">✓</span> Keine Kreditkarte</span>
             <span><span className="check">✓</span> Free-Tier dauerhaft</span>
-            <span><span className="check">✓</span> Web & Mobile</span>
+            <span><span className="check">✓</span> Android-App & Web</span>
           </div>
         </div>
 
@@ -1911,8 +1922,19 @@ export default function LandingPage() {
             <Link href="/signup" className="btn-primary">
               Kostenlos registrieren →
             </Link>
-            <a href="#pricing" className="btn-secondary">
-              Preise ansehen
+            <a
+              href="https://play.google.com/store/apps/details?id=app.lernarena"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Lernarena bei Google Play herunterladen"
+              style={{ display: "inline-flex", alignItems: "center" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://play.google.com/intl/de_de/badges/static/images/badges/de_badge_web_generic.png"
+                alt="Jetzt bei Google Play"
+                style={{ height: 62, margin: "-6px 0" }}
+              />
             </a>
           </div>
         </div>
@@ -1945,6 +1967,15 @@ export default function LandingPage() {
             <h4>Ressourcen</h4>
             <ul>
               <li><Link href="/lernen">Alle Lernthemen</Link></li>
+              <li>
+                <a
+                  href="https://play.google.com/store/apps/details?id=app.lernarena"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Android-App im Play Store
+                </a>
+              </li>
               <li><Link href="/login">Login</Link></li>
               <li><Link href="/signup">Registrieren</Link></li>
               <li><a href="mailto:info@lernarena.app">Kontakt</a></li>

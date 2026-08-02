@@ -1,7 +1,8 @@
 name: ihk_app
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.1.0+7
+# v8: serverseitige Belegprüfung (verify-purchase) — Upload NACH dem Launch mit v7
+version: 1.1.1+8
 environment:
   sdk: ^3.8.1
 dependencies:

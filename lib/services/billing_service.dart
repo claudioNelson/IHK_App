@@ -9,14 +9,12 @@
 // Ablauf:
 //   1. init() beim App-Start → lädt Produkte + lauscht auf Kauf-Events.
 //   2. buy(plan) startet den Google-Play-Kaufdialog.
-//   3. Bei erfolgreichem Kauf wird Premium in Supabase freigeschaltet
-//      (is_premium, premium_tier, premium_until) und das Abo bestätigt.
-//   4. restorePurchases() verlängert Premium bei aktiven Abos (z. B. nach
+//   3. Bei erfolgreichem Kauf schickt die App den purchaseToken an die
+//      Edge Function `verify-purchase`. Die prüft den Kauf DIREKT bei
+//      Google (Play Developer API) und schaltet erst dann Premium frei —
+//      inklusive echtem Ablaufdatum aus dem Google-Abo.
+//   4. restorePurchases() läuft über denselben Weg (z. B. nach
 //      Neuinstallation oder automatischer Abo-Verlängerung).
-//
-// HINWEIS (vor Public Launch): Die Freischaltung passiert aktuell clientseitig.
-// Vor dem öffentlichen Release kommt eine serverseitige Belegprüfung
-// (Supabase Edge Function + Google Play Developer API) dazu.
 
 import 'dart:async';
 
@@ -302,11 +300,14 @@ class BillingService {
     }
   }
 
-  /// Schaltet Premium in Supabase frei.
+  /// Schaltet Premium über die serverseitige Belegprüfung frei.
   ///
-  /// fresh = true  → neuer Kauf: volle Laufzeit des gewählten Plans.
-  /// fresh = false → Restore/Verlängerung: premium_until wird rollierend
-  ///                 verlängert (nur nach vorn, nie verkürzt).
+  /// Die App schickt nur den purchaseToken — der Server fragt bei Google
+  /// nach, ob der Kauf echt und aktiv ist, ermittelt Plan + echtes
+  /// Ablaufdatum aus dem Abo und schreibt erst dann Premium in Supabase.
+  ///
+  /// fresh = true  → neuer Kauf (UI wartet auf onPremiumActivated).
+  /// fresh = false → Restore/Verlängerung (gleicher Prüfweg).
   Future<void> _grantPremium(
     PurchaseDetails purchase, {
     required bool fresh,
@@ -320,40 +321,29 @@ class BillingService {
     }
 
     try {
-      final plan = fresh ? (_pendingPlan ?? PremiumPlan.monthly) : null;
-
-      String tier;
-      int days;
-      if (fresh && plan != null) {
-        tier = plan.tier;
-        days = plan.durationDays;
-      } else {
-        // Restore: rollierend um 38 Tage verlängern (die DB-Funktion
-        // verkürzt nie); echte Laufzeitprüfung folgt mit der
-        // serverseitigen Belegprüfung vor dem Public Launch.
-        final profile = await Supabase.instance.client
-            .from('profiles')
-            .select('premium_tier')
-            .eq('id', user.id)
-            .maybeSingle();
-        tier = (profile?['premium_tier'] as String?) ?? 'monthly';
-        if (!['monthly', 'half-year', 'yearly'].contains(tier)) {
-          tier = 'monthly';
-        }
-        days = 38;
+      // Der purchaseToken von Google Play — der Nachweis des Kaufs.
+      final token = purchase.verificationData.serverVerificationData;
+      if (token.isEmpty) {
+        throw Exception('Kein purchaseToken vorhanden');
       }
 
-      // Freischaltung über die geschützte DB-Funktion (umgeht den
-      // Premium-Schutz-Trigger auf kontrolliertem Weg).
-      await Supabase.instance.client.rpc(
-        'activate_premium_purchase',
-        params: {'p_tier': tier, 'p_days': days},
+      final res = await Supabase.instance.client.functions.invoke(
+        'verify-purchase',
+        body: {'purchaseToken': token},
       );
+
+      final data = res.data is Map ? Map<String, dynamic>.from(res.data) : null;
+      if (data == null || data['ok'] != true) {
+        throw Exception(data?['error'] ?? 'Status ${res.status}');
+      }
 
       await SubscriptionService().refresh();
       _pendingPlan = null;
 
-      debugPrint('✅ Premium aktiviert (tier: $tier, +$days Tage)');
+      debugPrint(
+        '✅ Premium verifiziert & aktiviert '
+        '(tier: ${data['tier']}, bis: ${data['premiumUntil']})',
+      );
       if (fresh) _premiumActivated.add(true);
     } catch (e) {
       debugPrint('❌ Premium-Freischaltung fehlgeschlagen: $e');
