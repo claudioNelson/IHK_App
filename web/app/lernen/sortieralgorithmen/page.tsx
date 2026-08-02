@@ -3,8 +3,8 @@ import Link from "next/link";
 import QuizFrage from "../_components/QuizFrage";
 
 export const metadata: Metadata = {
-  title: "Sortieralgorithmen — Bubblesort, Quicksort & Mergesort (IHK)",
-  description: "Sortieralgorithmen für die IHK-Prüfung: Bubblesort, Insertionsort, Quicksort und Mergesort mit Laufzeiten, Stabilität und Beispieldurchlauf — plus interaktive Übungsaufgaben.",
+  title: "Sortieralgorithmen: Bubblesort, Quicksort & Mergesort (IHK)",
+  description: "Sortieralgorithmen für die IHK-Prüfung: Bubblesort, Insertionsort, Quicksort und Mergesort mit Laufzeiten, Stabilität und Beispieldurchlauf, plus interaktive Übungsaufgaben.",
   alternates: {
     canonical: "https://lernarena.app/lernen/sortieralgorithmen",
   },
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/sortieralgorithmen",
     siteName: "Lernarena",
-    title: "Sortieralgorithmen — Bubblesort, Quicksort & Mergesort (IHK)",
+    title: "Sortieralgorithmen: Bubblesort, Quicksort & Mergesort (IHK)",
     description: "Bubblesort, Quicksort, Mergesort: Laufzeiten, Stabilität und Beispieldurchlauf für die Fachinformatiker-Prüfung.",
   },
 };
@@ -25,15 +25,15 @@ const faq: { q: string; a: string }[] = [
   },
   {
     "q": "Was bedeutet ein stabiles Sortierverfahren?",
-    "a": "Ein Verfahren ist stabil, wenn Elemente mit gleichem Sortierwert ihre ursprüngliche Reihenfolge behalten. Bubblesort, Insertionsort und Mergesort sind stabil — Selectionsort und Quicksort in der Standardform nicht."
+    "a": "Ein Verfahren ist stabil, wenn Elemente mit gleichem Sortierwert ihre ursprüngliche Reihenfolge behalten. Bubblesort, Insertionsort und Mergesort sind stabil, Selectionsort und Quicksort in der Standardform nicht."
   },
   {
     "q": "Wie funktioniert Bubblesort?",
-    "a": "Bubblesort vergleicht wiederholt benachbarte Elemente und vertauscht sie, wenn sie in der falschen Reihenfolge stehen. Nach jedem Durchlauf steht das größte verbleibende Element am Ende — es steigt wie eine Blase auf. Laufzeit im Normalfall O(n²)."
+    "a": "Bubblesort vergleicht wiederholt benachbarte Elemente und vertauscht sie, wenn sie in der falschen Reihenfolge stehen. Nach jedem Durchlauf steht das größte verbleibende Element am Ende, es steigt wie eine Blase auf. Laufzeit im Normalfall O(n²)."
   },
   {
     "q": "Wann hat Quicksort seinen Worst Case?",
-    "a": "Wenn das Pivot-Element wiederholt ungünstig gewählt wird — klassisch bei einer bereits sortierten Folge und Pivot am Rand. Dann zerfällt die Aufteilung in extrem ungleiche Teile und die Laufzeit wird O(n²)."
+    "a": "Wenn das Pivot-Element wiederholt ungünstig gewählt wird, klassisch bei einer bereits sortierten Folge und Pivot am Rand. Dann zerfällt die Aufteilung in extrem ungleiche Teile und die Laufzeit wird O(n²)."
   }
 ];
 
@@ -155,10 +155,10 @@ export default function LernSeite() {
           <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · Sortieralgorithmen
         </nav>
 
-        <h1>Sortieralgorithmen — Bubblesort, Quicksort und Mergesort im Vergleich</h1>
+        <h1>Sortieralgorithmen: Bubblesort, Quicksort und Mergesort im Vergleich</h1>
         <p className="lp-lead">
           Sortierverfahren mit ihren Laufzeiten vergleichen und einen Durchlauf per
-          Hand ausführen — beides sind Klassiker der Fachinformatiker-Prüfung
+          Hand ausführen: Beides sind Klassiker der Fachinformatiker-Prüfung
           (besonders Anwendungsentwicklung). Hier bekommst du beides kompakt.
         </p>
 
@@ -170,12 +170,12 @@ export default function LernSeite() {
         <div className="lp-tip">
           <p>
             <strong>🃏 Zuerst kurz zur O-Notation:</strong> Sie beschreibt nur, wie stark
-            der Aufwand <em>wächst</em>, wenn die Datenmenge größer wird —
+            der Aufwand <em>wächst</em>, wenn die Datenmenge größer wird,
             nicht die genaue Zeit. <span className="lp-mono">O(n²)</span> heißt: doppelt so
             viele Elemente → viermal so viel Arbeit (schlecht bei großen Mengen).{" "}
             <span className="lp-mono">O(n log n)</span> wächst viel langsamer und ist
             deshalb bei großen Datenmengen klar besser. Denk an Karten sortieren:{" "}
-            <strong>Insertionsort</strong> ist genau das, was du intuitiv tust — du nimmst
+            <strong>Insertionsort</strong> ist genau das, was du intuitiv tust: Du nimmst
             eine Karte und steckst sie an die richtige Stelle in deiner Hand.
           </p>
         </div>
@@ -202,10 +202,10 @@ export default function LernSeite() {
         <p>
           <strong>Stabil</strong> heißt: Gleiche Werte behalten ihre ursprüngliche
           Reihenfolge. Das ist wichtig, wenn nach mehreren Kriterien nacheinander
-          sortiert wird — ein beliebtes Prüfungsdetail.
+          sortiert wird (ein beliebtes Prüfungsdetail).
         </p>
 
-        <h2>Bubblesort per Hand — ein Durchlauf</h2>
+        <h2>Bubblesort per Hand: ein Durchlauf</h2>
         <div className="lp-card">
           <p>
             <strong>Ausgangsfolge:</strong> <span className="lp-mono">5, 2, 4, 1</span>.
@@ -219,7 +219,7 @@ export default function LernSeite() {
           </p>
           <p>
             Nach dem ersten Durchlauf steht das <strong>größte Element ganz
-            hinten</strong> — es ist wie eine Blase nach oben „aufgestiegen". Genau
+            hinten</strong>, es ist wie eine Blase nach oben „aufgestiegen". Genau
             diese Eigenschaft wird in Prüfungen gern abgefragt.
           </p>
         </div>
@@ -228,7 +228,7 @@ export default function LernSeite() {
         <p>
           <strong>Quicksort</strong> wählt ein Pivot-Element, teilt die Folge in
           „kleiner" und „größer" und sortiert die Teile rekursiv. Im Schnitt sehr
-          schnell — aber bei ungünstigem Pivot (z. B. bereits sortierte Folge)
+          schnell, aber bei ungünstigem Pivot (z. B. bereits sortierte Folge)
           degradiert er zu O(n²). <strong>Mergesort</strong> teilt die Folge immer in
           der Mitte, sortiert beide Hälften rekursiv und verschmilzt sie (Merge).
           Er garantiert O(n log n), braucht dafür aber zusätzlichen Speicher.
@@ -236,7 +236,7 @@ export default function LernSeite() {
 
         <div className="lp-tip">
           <p>
-            <strong>💡 Prüfungstipp — was du sicher wissen musst:</strong>{" "}
+            <strong>💡 Prüfungstipp, das musst du sicher wissen:</strong>{" "}
             <span className="lp-mono">Mergesort</span> = immer{" "}
             <span className="lp-mono">O(n log n)</span> und stabil (aber extra Speicher).{" "}
             <span className="lp-mono">Quicksort</span> = im Schnitt schnell, aber Worst
@@ -251,7 +251,7 @@ export default function LernSeite() {
           <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
           <ul>
             <li>
-              Quicksort für „immer schnell" halten — sein Worst Case ist{" "}
+              Quicksort für „immer schnell" halten. Sein Worst Case ist{" "}
               <span className="lp-mono">O(n²)</span>, nicht O(n log n).
             </li>
             <li>
@@ -259,7 +259,7 @@ export default function LernSeite() {
               ihre Reihenfolge.
             </li>
             <li>
-              Bei Bubblesort einen Durchlauf falsch zählen — pro Durchlauf wandert{" "}
+              Bei Bubblesort einen Durchlauf falsch zählen. Pro Durchlauf wandert{" "}
               <strong>ein</strong> größtes Element ans Ende, nicht die halbe Folge.
             </li>
             <li>
@@ -271,7 +271,7 @@ export default function LernSeite() {
         </div>
 
         <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
+        <p>Beantworte die Fragen und bekomme sofort Feedback, so viele Versuche du willst.</p>
 
         <QuizFrage
           frage={"Welches Verfahren ist stabil UND garantiert O(n log n) im Worst Case?"}
@@ -292,7 +292,7 @@ export default function LernSeite() {
             { text: "Die Folge ist fertig sortiert", richtig: false },
             { text: "Die Hälfte der Elemente ist sortiert", richtig: false },
           ]}
-          erklaerung={"Bubblesort schiebt in jedem Durchlauf das größte verbleibende Element ans Ende — nach Durchlauf 1 steht das Maximum ganz hinten."}
+          erklaerung={"Bubblesort schiebt in jedem Durchlauf das größte verbleibende Element ans Ende. Nach Durchlauf 1 steht das Maximum also ganz hinten."}
         />
 
         <QuizFrage
@@ -303,7 +303,7 @@ export default function LernSeite() {
             { text: "Bei lauter gleichen Elementen im besten Fall", richtig: false },
             { text: "Quicksort hat keinen Worst Case", richtig: false },
           ]}
-          erklaerung={"Bei einer sortierten Folge teilt das Rand-Pivot die Folge maximal ungleich — die Rekursionstiefe wird n und die Laufzeit O(n²)."}
+          erklaerung={"Bei einer sortierten Folge teilt das Rand-Pivot die Folge maximal ungleich: Die Rekursionstiefe wird n und die Laufzeit O(n²)."}
         />
 
         <QuizFrage
@@ -325,7 +325,7 @@ export default function LernSeite() {
             { text: "O(n log n)", richtig: false },
             { text: "O(n²)", richtig: true },
           ]}
-          erklaerung={"Bubblesort vergleicht in verschachtelten Schleifen jedes Element mit jedem — das ergibt im Durchschnitt O(n²). Nur im Best Case (fast sortiert) kann er O(n) erreichen."}
+          erklaerung={"Bubblesort vergleicht in verschachtelten Schleifen jedes Element mit jedem. Das ergibt im Durchschnitt O(n²). Nur im Best Case (fast sortiert) kann er O(n) erreichen."}
         />
 
         <h2>Häufige Fragen</h2>
@@ -349,7 +349,7 @@ export default function LernSeite() {
         <section className="lp-final">
           <h2>Algorithmen interaktiv trainieren</h2>
           <p>
-            In der Lernarena führst du Sortierdurchläufe Schritt für Schritt aus — mit
+            In der Lernarena führst du Sortierdurchläufe Schritt für Schritt aus: mit
             sofortigem Feedback, echten IHK-Prüfungsaufgaben und einem KI-Tutor.
             Kostenlos starten, direkt üben.
           </p>

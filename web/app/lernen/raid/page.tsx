@@ -3,9 +3,9 @@ import Link from "next/link";
 import QuizFrage from "../_components/QuizFrage";
 
 export const metadata: Metadata = {
-  title: "RAID Level erklärt — RAID 0, 1, 5, 6 & 10 im Vergleich (IHK)",
+  title: "RAID Level erklärt: RAID 0, 1, 5, 6 & 10 im Vergleich (IHK)",
   description:
-    "RAID einfach erklärt: RAID 0, 1, 5, 6 und 10 im Vergleich — Nutzkapazität, Ausfallsicherheit und Rechenbeispiele für die IHK-Prüfung als Fachinformatiker Systemintegration.",
+    "RAID einfach erklärt: RAID 0, 1, 5, 6 und 10 im Vergleich mit Nutzkapazität, Ausfallsicherheit und Rechenbeispielen für die IHK-Prüfung als Fachinformatiker Systemintegration.",
   alternates: {
     canonical: "https://lernarena.app/lernen/raid",
   },
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/raid",
     siteName: "Lernarena",
-    title: "RAID Level erklärt — RAID 0, 1, 5, 6 & 10 im Vergleich (IHK)",
+    title: "RAID Level erklärt: RAID 0, 1, 5, 6 & 10 im Vergleich (IHK)",
     description:
       "RAID-Level im Vergleich: Nutzkapazität, Ausfallsicherheit und Rechenbeispiele für die Fachinformatiker-Prüfung.",
   },
@@ -27,7 +27,7 @@ const raidTable: {
   tol: string;
   note: string;
 }[] = [
-  { level: "RAID 0", min: "2", cap: "100 % (n)", tol: "keine", note: "Striping — maximale Geschwindigkeit, kein Schutz" },
+  { level: "RAID 0", min: "2", cap: "100 % (n)", tol: "keine", note: "Striping: maximale Geschwindigkeit, kein Schutz" },
   { level: "RAID 1", min: "2", cap: "50 %", tol: "1 Platte", note: "Spiegelung (Mirroring)" },
   { level: "RAID 5", min: "3", cap: "(n − 1) Platten", tol: "1 Platte", note: "Striping + Parität, guter Kompromiss" },
   { level: "RAID 6", min: "4", cap: "(n − 2) Platten", tol: "2 Platten", note: "Doppelte Parität" },
@@ -41,7 +41,7 @@ const faq: { q: string; a: string }[] = [
   },
   {
     q: "Welches RAID-Level ist das beste?",
-    a: "Es gibt kein pauschal bestes Level — es kommt auf das Ziel an. RAID 1 für einfache Ausfallsicherheit, RAID 5 als Kompromiss aus Kapazität und Sicherheit, RAID 6 für höhere Sicherheit bei vielen Platten, RAID 10 wenn Geschwindigkeit und Redundanz zusammen zählen.",
+    a: "Es gibt kein pauschal bestes Level, es kommt auf das Ziel an. RAID 1 für einfache Ausfallsicherheit, RAID 5 als Kompromiss aus Kapazität und Sicherheit, RAID 6 für höhere Sicherheit bei vielen Platten, RAID 10 wenn Geschwindigkeit und Redundanz zusammen zählen.",
   },
   {
     q: "Wie berechne ich die Nutzkapazität bei RAID 5?",
@@ -49,7 +49,7 @@ const faq: { q: string; a: string }[] = [
   },
   {
     q: "Warum ist ein RAID kein Backup?",
-    a: "Ein RAID schützt vor dem Ausfall einzelner Festplatten (Hardware). Es schützt aber nicht vor versehentlichem Löschen, Dateibeschädigung, Viren oder Ransomware — solche Fehler werden sofort auf alle Platten übernommen. Deshalb braucht man zusätzlich echte Backups.",
+    a: "Ein RAID schützt vor dem Ausfall einzelner Festplatten (Hardware). Es schützt aber nicht vor versehentlichem Löschen, Dateibeschädigung, Viren oder Ransomware. Solche Fehler werden sofort auf alle Platten übernommen. Deshalb braucht man zusätzlich echte Backups.",
   },
   {
     q: "Wie viele Festplatten dürfen bei RAID 5 ausfallen?",
@@ -175,11 +175,11 @@ export default function RaidPage() {
           <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · RAID Level erklärt
         </nav>
 
-        <h1>RAID Level erklärt — RAID 0, 1, 5, 6 und 10 im Vergleich</h1>
+        <h1>RAID Level erklärt: RAID 0, 1, 5, 6 und 10 im Vergleich</h1>
         <p className="lp-lead">
           RAID gehört zu den sicheren Punktelieferanten in der IHK-Prüfung für
           Fachinformatiker Systemintegration. Hier lernst du die wichtigsten
-          RAID-Level, wie du Nutzkapazität und Ausfallsicherheit berechnest — mit
+          RAID-Level und wie du Nutzkapazität und Ausfallsicherheit berechnest, mit
           Beispielen und Übungsaufgaben.
         </p>
 
@@ -194,7 +194,7 @@ export default function RaidPage() {
           und fasst mehrere Festplatten zu einem logischen Verbund zusammen. Je nach
           gewähltem Level bekommst du mehr <strong>Ausfallsicherheit</strong>, mehr{" "}
           <strong>Geschwindigkeit</strong> oder eine Mischung aus beidem. Ein wichtiger
-          Merksatz für die Prüfung: <strong>Ein RAID ersetzt kein Backup</strong> — es
+          Merksatz für die Prüfung: <strong>Ein RAID ersetzt kein Backup</strong>. Es
           schützt vor Hardware-Ausfall, nicht vor versehentlichem Löschen oder
           Verschlüsselung durch Ransomware.
         </p>
@@ -202,10 +202,10 @@ export default function RaidPage() {
         <div className="lp-tip">
           <p>
             <strong>📄 Stell es dir mit Kopien vor:</strong>{" "}
-            <strong>RAID 1</strong> ist wie ein <em>Durchschlag</em> — von jedem Blatt gibt
+            <strong>RAID 1</strong> ist wie ein <em>Durchschlag</em>: Von jedem Blatt gibt
             es sofort eine identische Kopie in der zweiten Schublade. Verbrennt eine, hast
             du noch die andere. <strong>RAID 0</strong> zerreißt jedes Blatt in zwei
-            Hälften und legt die Hälften auf zwei Schubladen — das geht doppelt so schnell,
+            Hälften und legt die Hälften auf zwei Schubladen. Das geht doppelt so schnell,
             aber fehlt eine Schublade, ist <em>alles</em> unlesbar.{" "}
             <strong>RAID 5</strong> ist eine Lerngruppe: Fällt eine Person aus, lässt sich
             ihr Wissen aus den Notizen der anderen (der „Parität") rekonstruieren.
@@ -246,7 +246,7 @@ export default function RaidPage() {
         <p>
           Die <strong>Parität</strong> ist eine clevere Prüfsumme. Vereinfacht: Aus den
           Datenblöcken der übrigen Platten wird ein Wert berechnet, mit dem sich ein
-          fehlender Block wieder ausrechnen lässt — wie in der Gleichung{" "}
+          fehlender Block wieder ausrechnen lässt, wie in der Gleichung{" "}
           <span className="lp-mono">3 + 4 + ? = 12</span>: Fehlt eine Zahl, kannst du sie
           aus den anderen zurückrechnen (hier 5). Genau so stellt RAID 5 die Daten einer
           ausgefallenen Platte wieder her. Deshalb kostet die Parität immer den Platz{" "}
@@ -266,20 +266,20 @@ export default function RaidPage() {
           <p>
             Bei RAID 5 gilt: Nutzkapazität = (n − 1) × Plattengröße. Also{" "}
             <span className="lp-mono">(4 − 1) × 2 TB = 6 TB</span>. Die Kapazität einer
-            Platte (2 TB) geht für die verteilte Parität verloren — dafür darf eine
+            Platte (2 TB) geht für die verteilte Parität verloren. Dafür darf eine
             beliebige Platte ausfallen, ohne dass Daten verloren gehen.
           </p>
         </div>
 
         <div className="lp-tip">
           <p>
-            <strong>💡 Prüfungstipp — die Formeln im Kopf:</strong>{" "}
+            <strong>💡 Prüfungstipp, damit die Formeln im Kopf bleiben:</strong>{" "}
             <span className="lp-mono">RAID 0 = n</span> (alles),{" "}
             <span className="lp-mono">RAID 1 = 50 %</span>,{" "}
             <span className="lp-mono">RAID 5 = (n−1)</span>,{" "}
             <span className="lp-mono">RAID 6 = (n−2)</span>,{" "}
             <span className="lp-mono">RAID 10 = 50 %</span>. Rechne die Nutzkapazität immer
-            in Platten und multipliziere erst am Ende mit der Plattengröße — so vermeidest
+            in Platten und multipliziere erst am Ende mit der Plattengröße. So vermeidest
             du Rechenfehler.
           </p>
         </div>
@@ -288,7 +288,7 @@ export default function RaidPage() {
           <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
           <ul>
             <li>
-              „RAID ist ein Backup" ankreuzen — <strong>ist es nicht</strong>. Es schützt
+              „RAID ist ein Backup" ankreuzen. <strong>Ist es nicht.</strong> Es schützt
               nur vor Plattenausfall, nicht vor Löschen oder Ransomware.
             </li>
             <li>
@@ -307,7 +307,7 @@ export default function RaidPage() {
         </div>
 
         <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
+        <p>Beantworte die Fragen und bekomme sofort Feedback. Du hast so viele Versuche, wie du willst.</p>
 
         <QuizFrage
           frage={"Wie viele Festplatten braucht RAID 5 mindestens?"}
@@ -350,7 +350,7 @@ export default function RaidPage() {
             { text: "2", richtig: true },
             { text: "Beliebig viele", richtig: false },
           ]}
-          erklaerung={"RAID 6 nutzt doppelte Parität und verträgt damit den gleichzeitigen Ausfall von zwei Platten — deshalb braucht es auch mindestens 4 Platten."}
+          erklaerung={"RAID 6 nutzt doppelte Parität und verträgt damit den gleichzeitigen Ausfall von zwei Platten. Deshalb braucht es auch mindestens 4 Platten."}
         />
 
         <QuizFrage
@@ -361,7 +361,7 @@ export default function RaidPage() {
             { text: "RAID 10", richtig: true },
             { text: "RAID 6", richtig: false },
           ]}
-          erklaerung={"RAID 10 kombiniert Spiegelung (Sicherheit) und Striping (Geschwindigkeit). Es kostet zwar 50 % Kapazität, liefert aber beides zusammen — anders als RAID 0 (kein Schutz) oder RAID 1 (kein Striping-Speed)."}
+          erklaerung={"RAID 10 kombiniert Spiegelung (Sicherheit) und Striping (Geschwindigkeit). Es kostet zwar 50 % Kapazität, liefert aber beides zusammen, anders als RAID 0 (kein Schutz) oder RAID 1 (kein Striping-Speed)."}
         />
 
         <h2>Häufige Fragen</h2>

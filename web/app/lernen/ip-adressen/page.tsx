@@ -3,8 +3,8 @@ import Link from "next/link";
 import QuizFrage from "../_components/QuizFrage";
 
 export const metadata: Metadata = {
-  title: "IP-Adressen & IPv6 einfach erklärt — private Bereiche & Kürzung (IHK)",
-  description: "IPv4 und IPv6 einfach erklärt: private Adressbereiche, APIPA, Loopback und die IPv6-Kürzungsregeln — mit interaktiven Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
+  title: "IP-Adressen & IPv6 einfach erklärt: private Bereiche & Kürzung (IHK)",
+  description: "IPv4 und IPv6 einfach erklärt: private Adressbereiche, APIPA, Loopback und die IPv6-Kürzungsregeln, mit interaktiven Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
   alternates: {
     canonical: "https://lernarena.app/lernen/ip-adressen",
   },
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/ip-adressen",
     siteName: "Lernarena",
-    title: "IP-Adressen & IPv6 einfach erklärt — private Bereiche & Kürzung (IHK)",
-    description: "IPv4 und IPv6 für die IHK-Prüfung: private Bereiche, APIPA und IPv6-Kürzung — mit Übungsaufgaben.",
+    title: "IP-Adressen & IPv6 einfach erklärt: private Bereiche & Kürzung (IHK)",
+    description: "IPv4 und IPv6 für die IHK-Prüfung: private Bereiche, APIPA und IPv6-Kürzung, mit Übungsaufgaben.",
   },
 };
 
@@ -155,10 +155,10 @@ export default function LernSeite() {
           <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · IP-Adressen & IPv6
         </nav>
 
-        <h1>IP-Adressen und IPv6 — private Bereiche, APIPA und Kürzungsregeln</h1>
+        <h1>IP-Adressen und IPv6: private Bereiche, APIPA und Kürzungsregeln</h1>
         <p className="lp-lead">
-          Private Adressbereiche erkennen, IPv6-Adressen kürzen, APIPA einordnen —
-          das sind Standardaufgaben in der IHK-Prüfung. Hier bekommst du alle
+          Private Adressbereiche erkennen, IPv6-Adressen kürzen, APIPA einordnen:
+          Das sind Standardaufgaben in der IHK-Prüfung. Hier bekommst du alle
           Tabellen und Regeln kompakt, mit interaktiven Übungen.
         </p>
 
@@ -172,7 +172,7 @@ export default function LernSeite() {
           Eine <strong>IPv4-Adresse</strong> ist 32 Bit lang und wird in vier Oktetten
           geschrieben, z. B. <span className="lp-mono">192.168.10.25</span>. Zusammen mit
           der Subnetzmaske zerfällt sie in Netz- und Host-Teil. Öffentliche Adressen
-          sind weltweit eindeutig — <strong>private Adressen</strong> dürfen nur in
+          sind weltweit eindeutig. <strong>Private Adressen</strong> dürfen nur in
           lokalen Netzen verwendet werden und werden im Internet nicht geroutet.
         </p>
 
@@ -181,10 +181,10 @@ export default function LernSeite() {
             <strong>☎️ Stell es dir wie Telefonnummern in einer Firma vor:</strong> Die{" "}
             <strong>öffentliche IP</strong> ist die Hauptnummer, die die ganze Welt
             anrufen kann. Die <strong>privaten IPs</strong> sind die internen Durchwahlen
-            (z. B. „Apparat 101") — sie gelten nur im Haus, und jede Firma darf dieselbe
+            (z. B. „Apparat 101"): Sie gelten nur im Haus, und jede Firma darf dieselbe
             Durchwahl 101 haben, ohne dass es Chaos gibt. Damit ein internes Gerät ins
             Internet kommt, „übersetzt" der Router per <strong>NAT</strong> die private
-            Adresse auf die öffentliche — wie eine Telefonzentrale, die nach außen
+            Adresse auf die öffentliche, wie eine Telefonzentrale, die nach außen
             vermittelt.
           </p>
         </div>
@@ -210,10 +210,10 @@ export default function LernSeite() {
           <strong>APIPA-Merksatz:</strong> Hat ein Rechner eine{" "}
           <span className="lp-mono">169.254.x.x</span>-Adresse, hat er{" "}
           <strong>keinen DHCP-Server erreicht</strong> und sich selbst eine Adresse
-          gegeben — ein klassisches Troubleshooting-Indiz in der Prüfung.
+          gegeben. Das ist ein klassisches Troubleshooting-Indiz in der Prüfung.
         </p>
 
-        <h2>IPv6 — das Wichtigste</h2>
+        <h2>IPv6: das Wichtigste</h2>
         <p>
           Eine <strong>IPv6-Adresse</strong> ist 128 Bit lang und wird hexadezimal in
           acht Blöcken geschrieben. Wichtige Typen:{" "}
@@ -223,7 +223,7 @@ export default function LernSeite() {
           Gegenstück zu privaten IPv4-Adressen).
         </p>
 
-        <h2>IPv6 kürzen — die zwei Regeln</h2>
+        <h2>IPv6 kürzen: die zwei Regeln</h2>
         <div className="lp-card">
           <p>
             <strong>Regel 1:</strong> Führende Nullen in jedem Block dürfen weg:{" "}
@@ -242,7 +242,7 @@ export default function LernSeite() {
 
         <div className="lp-tip">
           <p>
-            <strong>💡 Prüfungstipp — die 172er-Falle:</strong> Der private Bereich der
+            <strong>💡 Prüfungstipp zur 172er-Falle:</strong> Der private Bereich der
             „Klasse B" geht nur von <span className="lp-mono">172.16</span> bis{" "}
             <span className="lp-mono">172.31</span>. Genau hier baut die IHK gern Fallen:
             <span className="lp-mono">172.32.x.x</span> ist schon{" "}
@@ -255,7 +255,7 @@ export default function LernSeite() {
           <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
           <ul>
             <li>
-              <span className="lp-mono">192.169.x.x</span> für privat halten — privat ist
+              <span className="lp-mono">192.169.x.x</span> für privat halten. Privat ist
               nur <span className="lp-mono">192.168.x.x</span> (eine 8, keine 9).
             </li>
             <li>
@@ -264,17 +264,17 @@ export default function LernSeite() {
             </li>
             <li>
               APIPA (<span className="lp-mono">169.254.x.x</span>) mit einer normalen
-              Adresse verwechseln — sie bedeutet immer „DHCP nicht erreicht".
+              Adresse verwechseln. Sie bedeutet immer „DHCP nicht erreicht".
             </li>
             <li>
               Loopback ist <span className="lp-mono">127.0.0.1</span>, nicht{" "}
-              <span className="lp-mono">10.0.0.1</span> — ein beliebter Verwechsler.
+              <span className="lp-mono">10.0.0.1</span> (ein beliebter Verwechsler).
             </li>
           </ul>
         </div>
 
         <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
+        <p>Beantworte die Fragen und bekomme sofort Feedback. Du hast so viele Versuche, wie du willst.</p>
 
         <QuizFrage
           frage={"Welche dieser Adressen ist eine private IPv4-Adresse?"}
@@ -284,7 +284,7 @@ export default function LernSeite() {
             { text: "11.0.0.5", richtig: false },
             { text: "192.169.1.1", richtig: false },
           ]}
-          erklaerung={"Der private Bereich lautet 172.16.0.0 bis 172.31.255.255 — 172.20.10.1 liegt darin. 172.32.x.x liegt schon außerhalb, ebenso 11.x und 192.169.x."}
+          erklaerung={"Der private Bereich lautet 172.16.0.0 bis 172.31.255.255, und 172.20.10.1 liegt darin. 172.32.x.x liegt schon außerhalb, ebenso 11.x und 192.169.x."}
         />
 
         <QuizFrage
@@ -306,7 +306,7 @@ export default function LernSeite() {
             { text: "2001:db8:0:0:ff::1 und 2001:db8::ff:0:0:1 sind beide erlaubt", richtig: false },
             { text: "2001:0db8::00ff::0001", richtig: false },
           ]}
-          erklaerung={"Das :: darf nur einmal vorkommen — 2001:db8::ff::1 ist deshalb ungültig. Korrekt gekürzt: 2001:db8::ff:0:0:1 (die längere Nullfolge wird ersetzt). Achtung: 2001:db8:0:0:ff::1 ersetzt nicht die längste Folge und ist nach RFC 5952 nicht die empfohlene Form."}
+          erklaerung={"Das :: darf nur einmal vorkommen, 2001:db8::ff::1 ist deshalb ungültig. Korrekt gekürzt: 2001:db8::ff:0:0:1 (die längere Nullfolge wird ersetzt). Achtung: 2001:db8:0:0:ff::1 ersetzt nicht die längste Folge und ist nach RFC 5952 nicht die empfohlene Form."}
         />
 
         <QuizFrage
@@ -317,7 +317,7 @@ export default function LernSeite() {
             { text: "Für eine private Klasse-A-Adresse", richtig: false },
             { text: "Für eine APIPA-Adresse", richtig: false },
           ]}
-          erklaerung={"127.0.0.1 ist die Loopback-Adresse — der Rechner spricht damit mit sich selbst (localhost). Der gesamte Bereich 127.0.0.0/8 ist dafür reserviert."}
+          erklaerung={"127.0.0.1 ist die Loopback-Adresse: Der Rechner spricht damit mit sich selbst (localhost). Der gesamte Bereich 127.0.0.0/8 ist dafür reserviert."}
         />
 
         <QuizFrage
@@ -328,7 +328,7 @@ export default function LernSeite() {
             { text: "128 Bit", richtig: true },
             { text: "256 Bit", richtig: false },
           ]}
-          erklaerung={"IPv6 nutzt 128 Bit (acht Blöcke à 16 Bit, hexadezimal). IPv4 hat dagegen nur 32 Bit — deshalb war ein größerer Adressraum überhaupt nötig."}
+          erklaerung={"IPv6 nutzt 128 Bit (acht Blöcke à 16 Bit, hexadezimal). IPv4 hat dagegen nur 32 Bit. Deshalb war ein größerer Adressraum überhaupt nötig."}
         />
 
         <h2>Häufige Fragen</h2>

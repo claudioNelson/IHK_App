@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://lernarena.app"),
   title: {
-    default: "Lernarena — IHK-Prüfungsvorbereitung für Fachinformatiker",
+    default: "Lernarena: IHK-Prüfungsvorbereitung für Fachinformatiker",
     template: "%s · Lernarena",
   },
   description:
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app",
     siteName: "Lernarena",
-    title: "Lernarena — IHK-Prüfungsvorbereitung für Fachinformatiker",
+    title: "Lernarena: IHK-Prüfungsvorbereitung für Fachinformatiker",
     description:
       "Strukturierte Lernpfade, echte IHK-Simulation und ein KI-Tutor. Bereite dich gezielt auf AP1 und AP2 vor.",
     images: [
@@ -54,13 +54,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Lernarena — IHK-Prüfungsvorbereitung",
+        alt: "Lernarena: IHK-Prüfungsvorbereitung",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lernarena — IHK-Prüfungsvorbereitung für Fachinformatiker",
+    title: "Lernarena: IHK-Prüfungsvorbereitung für Fachinformatiker",
     description:
       "Strukturierte Lernpfade, echte IHK-Simulation, KI-Tutor. Mehrere Prüfungspfade.",
     images: ["/og-image.png"],

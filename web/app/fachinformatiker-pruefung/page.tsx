@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Fachinformatiker Prüfung: AP1 & AP2 — Ablauf, Themen & Vorbereitung",
+  title: "Fachinformatiker Prüfung AP1 & AP2: Ablauf, Themen & Vorbereitung",
   description:
     "Die Fachinformatiker-Prüfung verständlich erklärt: Ablauf der gestreckten Abschlussprüfung (AP1 & AP2), Gewichtung, Prüfungsbereiche für Anwendungsentwicklung und Systemintegration sowie alle wichtigen Themen zum Üben.",
   alternates: {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/fachinformatiker-pruefung",
     siteName: "Lernarena",
-    title: "Fachinformatiker Prüfung: AP1 & AP2 — Ablauf, Themen & Vorbereitung",
+    title: "Fachinformatiker Prüfung AP1 & AP2: Ablauf, Themen & Vorbereitung",
     description:
       "Gestreckte Abschlussprüfung erklärt: AP1 & AP2, Gewichtung, Prüfungsbereiche und alle Themen zum Üben.",
   },
@@ -135,7 +135,7 @@ export default function FachinformatikerPruefungPage() {
 
         <h1>Fachinformatiker Prüfung: AP1 &amp; AP2 verständlich erklärt</h1>
         <p className="pl-lead">
-          Ablauf, Gewichtung und alle Themen der gestreckten Abschlussprüfung —
+          Ablauf, Gewichtung und alle Themen der gestreckten Abschlussprüfung
           für Fachinformatiker Anwendungsentwicklung und Systemintegration. Hier
           bekommst du den kompletten Überblick und die passenden Übungen dazu.
         </p>
@@ -152,11 +152,11 @@ export default function FachinformatikerPruefungPage() {
           <strong> „gestreckt"</strong>: Sie besteht aus zwei zeitlich getrennten
           Teilen. <strong>Teil 1 (AP1)</strong> wird etwa in der Mitte der Ausbildung
           geschrieben und zählt bereits zur Endnote. <strong>Teil 2 (AP2)</strong>{" "}
-          folgt am Ende der Ausbildung. Beide Teile zusammen ergeben deine Gesamtnote —
-          im Verhältnis <strong>20 zu 80 Prozent</strong>.
+          folgt am Ende der Ausbildung. Beide Teile zusammen ergeben deine Gesamtnote,
+          und zwar im Verhältnis <strong>20 zu 80 Prozent</strong>.
         </p>
 
-        <h2>AP1 — Teil 1 der Prüfung</h2>
+        <h2>AP1: Teil 1 der Prüfung</h2>
         <p>
           Die AP1 besteht aus dem Prüfungsbereich{" "}
           <strong>„Einrichten eines IT-gestützten Arbeitsplatzes"</strong>, dauert{" "}
@@ -168,11 +168,11 @@ export default function FachinformatikerPruefungPage() {
         </p>
         <p>
           Typische AP1-Themen sind Zahlensysteme, Netzwerkgrundlagen, einfache
-          Berechnungen und kaufmännische Grundlagen — alles Themen, die du{" "}
+          Berechnungen und kaufmännische Grundlagen: alles Themen, die du{" "}
           <Link href="/lernen">in der Lernarena üben</Link> kannst.
         </p>
 
-        <h2>AP2 — Teil 2 der Prüfung</h2>
+        <h2>AP2: Teil 2 der Prüfung</h2>
         <p>
           Die AP2 macht <strong>80 Prozent</strong> der Gesamtnote aus und findet am
           Ende der Ausbildung statt. Herzstück ist ein{" "}
@@ -245,7 +245,7 @@ export default function FachinformatikerPruefungPage() {
           </p>
           <p>
             <strong>3. Schwächen gezielt schließen.</strong> Nutze die Themenseiten
-            oben, um genau die Bereiche zu üben, in denen du unsicher bist — mit
+            oben, um genau die Bereiche zu üben, in denen du unsicher bist, mit
             sofortigem Feedback und einem KI-Tutor, der jeden Schritt erklärt.
           </p>
         </div>
@@ -262,7 +262,7 @@ export default function FachinformatikerPruefungPage() {
           <h2>Bereit für deine Prüfung?</h2>
           <p>
             Übe mit echten IHK-Prüfungen, interaktiven Aufgaben und einem KI-Tutor,
-            der dir jeden Schritt erklärt — kostenlos starten und direkt loslegen.
+            der dir jeden Schritt erklärt. Kostenlos starten und direkt loslegen.
           </p>
           <div className="pl-cta-row" style={{ justifyContent: "center" }}>
             <Link href="/signup" className="pl-btn pl-btn-primary">Jetzt kostenlos starten</Link>

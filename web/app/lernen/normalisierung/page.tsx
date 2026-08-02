@@ -3,8 +3,8 @@ import Link from "next/link";
 import QuizFrage from "../_components/QuizFrage";
 
 export const metadata: Metadata = {
-  title: "Normalisierung — 1. bis 3. Normalform einfach erklärt (IHK)",
-  description: "Datenbank-Normalisierung einfach erklärt: 1., 2. und 3. Normalform mit Beispielen, Anomalien und Merksätzen — plus interaktive Übungsaufgaben für die IHK-Prüfung.",
+  title: "Normalisierung: 1. bis 3. Normalform einfach erklärt (IHK)",
+  description: "Datenbank-Normalisierung einfach erklärt: 1., 2. und 3. Normalform mit Beispielen, Anomalien und Merksätzen, dazu interaktive Übungsaufgaben für die IHK-Prüfung.",
   alternates: {
     canonical: "https://lernarena.app/lernen/normalisierung",
   },
@@ -13,23 +13,23 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/normalisierung",
     siteName: "Lernarena",
-    title: "Normalisierung — 1. bis 3. Normalform einfach erklärt (IHK)",
-    description: "1NF, 2NF und 3NF mit Beispielen und Merksätzen — für die Fachinformatiker-Prüfung.",
+    title: "Normalisierung: 1. bis 3. Normalform einfach erklärt (IHK)",
+    description: "1NF, 2NF und 3NF mit Beispielen und Merksätzen für die Fachinformatiker-Prüfung.",
   },
 };
 
 const faq: { q: string; a: string }[] = [
   {
     "q": "Was bedeutet die 1. Normalform?",
-    "a": "Alle Attributwerte müssen atomar sein — in jedem Feld steht genau ein Wert. Listen, Aufzählungen oder zusammengesetzte Angaben wie 'Name, Vorname' in einem Feld verletzen die 1. Normalform."
+    "a": "Alle Attributwerte müssen atomar sein, das heißt: In jedem Feld steht genau ein Wert. Listen, Aufzählungen oder zusammengesetzte Angaben wie 'Name, Vorname' in einem Feld verletzen die 1. Normalform."
   },
   {
     "q": "Was bedeutet die 2. Normalform?",
-    "a": "Die Tabelle ist in der 1. Normalform und jedes Nicht-Schlüssel-Attribut hängt vom gesamten Primärschlüssel ab — nicht nur von einem Teil. Relevant ist das bei zusammengesetzten Schlüsseln, etwa (rechnungs_nr, artikel_nr)."
+    "a": "Die Tabelle ist in der 1. Normalform und jedes Nicht-Schlüssel-Attribut hängt vom gesamten Primärschlüssel ab, nicht nur von einem Teil. Relevant ist das bei zusammengesetzten Schlüsseln, etwa (rechnungs_nr, artikel_nr)."
   },
   {
     "q": "Was bedeutet die 3. Normalform?",
-    "a": "Die Tabelle ist in der 2. Normalform und kein Nicht-Schlüssel-Attribut hängt transitiv, also über ein anderes Nicht-Schlüssel-Attribut, vom Schlüssel ab. Beispiel: Der Ort hängt von der Postleitzahl ab — dann gehören PLZ und Ort in eine eigene Tabelle."
+    "a": "Die Tabelle ist in der 2. Normalform und kein Nicht-Schlüssel-Attribut hängt transitiv, also über ein anderes Nicht-Schlüssel-Attribut, vom Schlüssel ab. Beispiel: Der Ort hängt von der Postleitzahl ab. Dann gehören PLZ und Ort in eine eigene Tabelle."
   },
   {
     "q": "Welche Anomalien verhindert die Normalisierung?",
@@ -155,11 +155,11 @@ export default function LernSeite() {
           <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · Normalisierung
         </nav>
 
-        <h1>Normalisierung — die 1. bis 3. Normalform einfach erklärt</h1>
+        <h1>Normalisierung: die 1. bis 3. Normalform einfach erklärt</h1>
         <p className="lp-lead">
           Kaum eine Datenbankprüfung ohne Normalisierung: Tabellen in die 1., 2. und
           3. Normalform bringen. Hier bekommst du die drei Regeln mit Beispielen und
-          Merksätzen — und testest dich direkt.
+          Merksätzen und testest dich direkt.
         </p>
 
         <div className="lp-cta-row">
@@ -181,7 +181,7 @@ export default function LernSeite() {
           <p>
             <strong>📇 Stell es dir wie ein chaotisches Adressbuch vor:</strong> Wenn du
             die Telefonnummer eines Freundes auf zehn verschiedenen Seiten notiert hast und
-            er umzieht, musst du zehnmal korrigieren — und vergisst garantiert eine Stelle
+            er umzieht, musst du zehnmal korrigieren und vergisst dabei garantiert eine Stelle
             (das ist die <em>Änderungsanomalie</em>). Normalisieren heißt: Jede Information
             steht nur an <strong>einer</strong> Stelle. Änderst du sie dort, stimmt sie
             überall. Genau darum zerlegen wir eine große, unübersichtliche Tabelle in
@@ -199,7 +199,7 @@ export default function LernSeite() {
             </tr>
           </thead>
           <tbody>
-            <tr><td>1. NF</td><td>Alle Attribute sind atomar — keine Listen oder zusammengesetzten Werte in einem Feld</td><td>Ein Wert pro Feld</td></tr>
+            <tr><td>1. NF</td><td>Alle Attribute sind atomar, also keine Listen oder zusammengesetzten Werte in einem Feld</td><td>Ein Wert pro Feld</td></tr>
             <tr><td>2. NF</td><td>1. NF + jedes Nicht-Schlüssel-Attribut hängt vom ganzen Primärschlüssel ab</td><td>Keine partiellen Abhängigkeiten</td></tr>
             <tr><td>3. NF</td><td>2. NF + kein Nicht-Schlüssel-Attribut hängt von einem anderen Nicht-Schlüssel-Attribut ab</td><td>Keine transitiven Abhängigkeiten</td></tr>
           </tbody>
@@ -220,11 +220,11 @@ export default function LernSeite() {
         <div className="lp-card">
           <p>
             <strong>Ausgangslage (unnormalisiert):</strong>{" "}
-            <span className="lp-mono">rechnung(rechnungs_nr, datum, kunde_name, kunde_ort, artikel_liste)</span>{" "}
-            — im Feld artikel_liste stehen mehrere Artikel als Text.
+            <span className="lp-mono">rechnung(rechnungs_nr, datum, kunde_name, kunde_ort, artikel_liste)</span>.
+            Im Feld artikel_liste stehen mehrere Artikel als Text.
           </p>
           <p>
-            <strong>1. NF:</strong> Die Artikelliste wird aufgelöst — pro Artikel eine
+            <strong>1. NF:</strong> Die Artikelliste wird aufgelöst: pro Artikel eine
             eigene Zeile, alle Felder atomar.
           </p>
           <p>
@@ -244,15 +244,15 @@ export default function LernSeite() {
           <ul>
             <li>
               Normalformen überspringen. Du musst der Reihe nach vorgehen: erst 1. NF,
-              dann 2. NF, dann 3. NF — eine höhere setzt die niedrigere voraus.
+              dann 2. NF, dann 3. NF. Eine höhere setzt die niedrigere voraus.
             </li>
             <li>
               Die 2. NF prüfen, obwohl es <strong>keinen zusammengesetzten Schlüssel</strong>{" "}
               gibt. Ohne mehrteiligen Schlüssel ist die 2. NF automatisch erfüllt.
             </li>
             <li>
-              Transitive Abhängigkeiten übersehen (z. B. <span className="lp-mono">PLZ → Ort</span>) —
-              das ist der typische 3.-NF-Verstoß.
+              Transitive Abhängigkeiten übersehen (z. B. <span className="lp-mono">PLZ → Ort</span>).
+              Das ist der typische 3.-NF-Verstoß.
             </li>
             <li>
               Beim Zerlegen den <strong>Fremdschlüssel vergessen</strong>, der die neuen
@@ -262,7 +262,7 @@ export default function LernSeite() {
         </div>
 
         <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
+        <p>Beantworte die Fragen und bekomme sofort Feedback. Du hast so viele Versuche, wie du willst.</p>
 
         <QuizFrage
           frage={"In einem Feld steht 'Müller, Hans, Berlin'. Welche Normalform ist verletzt?"}
@@ -270,9 +270,9 @@ export default function LernSeite() {
             { text: "1. Normalform", richtig: true },
             { text: "2. Normalform", richtig: false },
             { text: "3. Normalform", richtig: false },
-            { text: "Keine — das ist erlaubt", richtig: false },
+            { text: "Keine, das ist erlaubt", richtig: false },
           ]}
-          erklaerung={"Mehrere Werte in einem Feld verletzen die Atomarität — das ist ein klassischer Verstoß gegen die 1. Normalform."}
+          erklaerung={"Mehrere Werte in einem Feld verletzen die Atomarität. Das ist ein klassischer Verstoß gegen die 1. Normalform."}
         />
 
         <QuizFrage
@@ -283,7 +283,7 @@ export default function LernSeite() {
             { text: "3. Normalform", richtig: true },
             { text: "Keine", richtig: false },
           ]}
-          erklaerung={"Das ist eine transitive Abhängigkeit: Ort hängt über die PLZ (ein Nicht-Schlüssel-Attribut) vom Schlüssel ab — Verstoß gegen die 3. Normalform."}
+          erklaerung={"Das ist eine transitive Abhängigkeit: Ort hängt über die PLZ (ein Nicht-Schlüssel-Attribut) vom Schlüssel ab. Das ist ein Verstoß gegen die 3. Normalform."}
         />
 
         <QuizFrage
@@ -301,11 +301,11 @@ export default function LernSeite() {
           frage={"Was fordert die 1. Normalform?"}
           optionen={[
             { text: "Keine transitiven Abhängigkeiten", richtig: false },
-            { text: "Atomare Werte — nur ein Wert pro Feld", richtig: true },
+            { text: "Atomare Werte, also nur ein Wert pro Feld", richtig: true },
             { text: "Einen zusammengesetzten Primärschlüssel", richtig: false },
             { text: "Mindestens drei Tabellen", richtig: false },
           ]}
-          erklaerung={"Die 1. NF verlangt Atomarität: In jedem Feld steht genau ein Wert — keine Listen oder zusammengesetzten Angaben."}
+          erklaerung={"Die 1. NF verlangt Atomarität: In jedem Feld steht genau ein Wert, keine Listen oder zusammengesetzten Angaben."}
         />
 
         <QuizFrage
@@ -314,7 +314,7 @@ export default function LernSeite() {
             { text: "Wenn es keine Fremdschlüssel gibt", richtig: false },
             { text: "Wenn der Primärschlüssel aus nur einem Attribut besteht", richtig: true },
             { text: "Wenn alle Attribute Text sind", richtig: false },
-            { text: "Nie — man muss sie immer prüfen", richtig: false },
+            { text: "Nie, man muss sie immer prüfen", richtig: false },
           ]}
           erklaerung={"Partielle Abhängigkeiten können nur bei zusammengesetzten Schlüsseln auftreten. Bei einem einteiligen Primärschlüssel ist die 2. NF also automatisch erfüllt."}
         />

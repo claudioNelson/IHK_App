@@ -4,9 +4,9 @@ import QuizFrage from "../_components/QuizFrage";
 import SubnetzRechner from "../_components/SubnetzRechner";
 
 export const metadata: Metadata = {
-  title: "Subnetting üben — Rechner, Aufgaben & Lösungen (IHK)",
+  title: "Subnetting üben: Rechner, Aufgaben & Lösungen (IHK)",
   description:
-    "Subnetting einfach erklärt — mit kostenlosem Subnetz-Rechner inklusive Binär-Rechenweg, Schritt-für-Schritt-Beispiel und interaktiven Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
+    "Subnetting einfach erklärt: mit kostenlosem Subnetz-Rechner inklusive Binär-Rechenweg, Schritt-für-Schritt-Beispiel und interaktiven Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
   alternates: {
     canonical: "https://lernarena.app/lernen/subnetting",
   },
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/subnetting",
     siteName: "Lernarena",
-    title: "Subnetting üben — Rechner, Aufgaben & Lösungen (IHK)",
+    title: "Subnetting üben: Rechner, Aufgaben & Lösungen (IHK)",
     description:
       "Subnetting Schritt für Schritt: Subnetzmaske, CIDR, Netz- und Broadcast-Adresse. Mit interaktiven Übungsaufgaben für die Fachinformatiker-Prüfung.",
   },
@@ -46,11 +46,11 @@ const faq: { q: string; a: string }[] = [
   },
   {
     q: "Wie finde ich heraus, in welchem Subnetz eine IP-Adresse liegt?",
-    a: "Berechne zuerst die Blockgröße (256 minus Maskenwert des letzten Oktetts). Dann suchst du das größte Vielfache der Blockgröße, das noch kleiner oder gleich deinem Oktett-Wert ist — das ist die Netzadresse. Beispiel: 192.168.1.200 bei /26 hat Blockgröße 64, das passende Vielfache ist 192, also liegt sie im Subnetz 192.168.1.192.",
+    a: "Berechne zuerst die Blockgröße (256 minus Maskenwert des letzten Oktetts). Dann suchst du das größte Vielfache der Blockgröße, das noch kleiner oder gleich deinem Oktett-Wert ist. Das ist die Netzadresse. Beispiel: 192.168.1.200 bei /26 hat Blockgröße 64, das passende Vielfache ist 192, also liegt sie im Subnetz 192.168.1.192.",
   },
   {
     q: "Was ist der Unterschied zwischen Subnetzmaske und CIDR?",
-    a: "Beide beschreiben dasselbe, nur anders geschrieben. Die Subnetzmaske ist die ausführliche Punktschreibweise (z. B. 255.255.255.192), CIDR ist die Kurzform mit dem Präfix (/26). /26 heißt: 26 Bit gehören zum Netz — genau das drückt auch 255.255.255.192 aus.",
+    a: "Beide beschreiben dasselbe, nur anders geschrieben. Die Subnetzmaske ist die ausführliche Punktschreibweise (z. B. 255.255.255.192), CIDR ist die Kurzform mit dem Präfix (/26). /26 heißt: 26 Bit gehören zum Netz. Genau das drückt auch 255.255.255.192 aus.",
   },
   {
     q: "Kommt Subnetting in der IHK-Prüfung vor?",
@@ -176,12 +176,12 @@ export default function SubnettingPage() {
           <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · Subnetting üben
         </nav>
 
-        <h1>Subnetting üben — einfach erklärt, mit Aufgaben und Lösungen</h1>
+        <h1>Subnetting üben: einfach erklärt, mit Aufgaben und Lösungen</h1>
         <p className="sn-lead">
           Subnetting gehört zu den Klassikern der IHK-Prüfung für Fachinformatiker.
           Hier lernst du Schritt für Schritt, wie du Subnetzmaske, Netz- und
-          Broadcast-Adresse sowie die Anzahl der Hosts berechnest — und übst es
-          danach interaktiv in der Lernarena.
+          Broadcast-Adresse sowie die Anzahl der Hosts berechnest. Danach übst du es
+          interaktiv in der Lernarena.
         </p>
 
         <div className="sn-cta-row">
@@ -194,13 +194,13 @@ export default function SubnettingPage() {
           Beim <strong>Subnetting</strong> teilst du ein großes IP-Netz in mehrere
           kleinere Teilnetze auf. Dazu „leihst" du dir Bits aus dem Host-Teil der
           IP-Adresse und schlägst sie dem Netz-Teil zu. So nutzt du Adressbereiche
-          effizienter und trennst Netze logisch — etwa Abteilungen in einer Firma.
+          effizienter und trennst Netze logisch, etwa Abteilungen in einer Firma.
         </p>
         <p>
           Eine IPv4-Adresse besteht aus 32 Bit. Die <strong>Subnetzmaske</strong>{" "}
           legt fest, welcher Teil davon das Netz beschreibt und welcher die Hosts.
           In der CIDR-Schreibweise steht das als Präfix hinter der Adresse, z. B.{" "}
-          <span className="sn-mono">192.168.10.0/26</span> — die ersten 26 Bit sind
+          <span className="sn-mono">192.168.10.0/26</span>. Die ersten 26 Bit sind
           der Netz-Teil.
         </p>
 
@@ -210,7 +210,7 @@ export default function SubnettingPage() {
             die komplette Anschrift. Der <strong>Netz-Teil</strong> ist wie
             Straße + Hausnummer (welches Gebäude), der <strong>Host-Teil</strong> ist
             die Wohnungsnummer (welches Gerät im Netz). Subnetting heißt: Du machst aus
-            einem großen Haus mehrere kleinere Häuser — die Subnetzmaske ist die Grenze,
+            einem großen Haus mehrere kleinere Häuser. Die Subnetzmaske ist die Grenze,
             die sagt „ab hier beginnt die Wohnungsnummer". Je mehr Bits du dem Netz-Teil
             gibst (größeres Präfix wie /27, /28), desto mehr, aber kleinere Häuser
             bekommst du.
@@ -278,7 +278,7 @@ export default function SubnettingPage() {
 
         <div className="sn-tip">
           <p>
-            <strong>💡 Der schnellste Trick — die Blockgröße:</strong> Rechne einfach{" "}
+            <strong>💡 Der schnellste Trick ist die Blockgröße:</strong> Rechne einfach{" "}
             <span className="sn-mono">256 − Maskenwert</span> des letzten Oktetts.
             Bei /26 ist die Maske 192 → <span className="sn-mono">256 − 192 = 64</span>.
             Diese 64 ist dein „Sprung": Die Subnetze starten bei .0, .64, .128, .192,
@@ -293,7 +293,7 @@ export default function SubnettingPage() {
           <ul>
             <li>
               Das <strong>−2</strong> bei den Hosts vergessen. Netz- und
-              Broadcast-Adresse sind keine nutzbaren Hosts — es sind immer 2 weniger.
+              Broadcast-Adresse sind keine nutzbaren Hosts, es sind immer 2 weniger.
             </li>
             <li>
               Broadcast und nächste Netzadresse verwechseln: Der Broadcast ist die{" "}
@@ -302,7 +302,7 @@ export default function SubnettingPage() {
             </li>
             <li>
               Größeres Präfix = <strong>kleineres</strong> Netz. /28 hat weniger Hosts
-              als /26, nicht mehr — ein häufiger Denkfehler.
+              als /26, nicht mehr. Das ist ein häufiger Denkfehler.
             </li>
             <li>
               Die Blockgröße im falschen Oktett anwenden. Prüfe zuerst, in welchem
@@ -311,9 +311,9 @@ export default function SubnettingPage() {
           </ul>
         </div>
 
-        <h2>Subnetz-Rechner — mit Rechenweg</h2>
+        <h2>Subnetz-Rechner mit Rechenweg</h2>
         <p>
-          Gib eine IP-Adresse und ein Präfix ein — der Rechner liefert Subnetzmaske,
+          Gib eine IP-Adresse und ein Präfix ein. Der Rechner liefert Subnetzmaske,
           Netz- und Broadcast-Adresse samt Host-Bereich. Und das Besondere: Er zeigt
           dir auf Wunsch den <strong>kompletten Rechenweg in Binärdarstellung</strong>,
           damit du das Verfahren für die Prüfung wirklich verstehst.
@@ -321,7 +321,7 @@ export default function SubnettingPage() {
         <SubnetzRechner />
 
         <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
+        <p>Beantworte die Fragen und bekomme sofort Feedback, so viele Versuche du willst.</p>
 
         <QuizFrage
           frage="Welche Subnetzmaske gehört zur CIDR-Notation /27?"
@@ -375,7 +375,7 @@ export default function SubnettingPage() {
             { text: "/27", richtig: false },
             { text: "/28", richtig: false },
           ]}
-          erklaerung="/26 liefert 2^6 − 2 = 62 Hosts — das reicht für 50 und lässt am wenigsten Adressen ungenutzt. /27 hätte nur 30 Hosts (zu wenig), /25 mit 126 wäre unnötig groß."
+          erklaerung="/26 liefert 2^6 − 2 = 62 Hosts. Das reicht für 50 und lässt am wenigsten Adressen ungenutzt. /27 hätte nur 30 Hosts (zu wenig), /25 mit 126 wäre unnötig groß."
         />
 
         <h2>Häufige Fragen</h2>

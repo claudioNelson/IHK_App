@@ -3,8 +3,8 @@ import Link from "next/link";
 import QuizFrage from "../_components/QuizFrage";
 
 export const metadata: Metadata = {
-  title: "OSI-Modell einfach erklärt — die 7 Schichten (IHK)",
-  description: "Das OSI-Modell einfach erklärt: alle 7 Schichten mit Protokollen, Geräten und Merksatz — plus interaktive Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
+  title: "OSI-Modell einfach erklärt: die 7 Schichten (IHK)",
+  description: "Das OSI-Modell einfach erklärt: alle 7 Schichten mit Protokollen, Geräten und Merksatz, plus interaktive Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
   alternates: {
     canonical: "https://lernarena.app/lernen/osi-modell",
   },
@@ -13,19 +13,19 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/osi-modell",
     siteName: "Lernarena",
-    title: "OSI-Modell einfach erklärt — die 7 Schichten (IHK)",
-    description: "Alle 7 Schichten des OSI-Modells mit Protokollen, Geräten und Merksatz — für die Fachinformatiker-Prüfung.",
+    title: "OSI-Modell einfach erklärt: die 7 Schichten (IHK)",
+    description: "Alle 7 Schichten des OSI-Modells mit Protokollen, Geräten und Merksatz für die Fachinformatiker-Prüfung.",
   },
 };
 
 const faq: { q: string; a: string }[] = [
   {
     "q": "Was ist das OSI-Modell?",
-    "a": "Das OSI-Modell (Open Systems Interconnection) ist ein Referenzmodell, das die Netzwerkkommunikation in 7 Schichten aufteilt — von der Bitübertragung (Schicht 1) bis zur Anwendung (Schicht 7). Jede Schicht hat eine klar definierte Aufgabe."
+    "a": "Das OSI-Modell (Open Systems Interconnection) ist ein Referenzmodell, das die Netzwerkkommunikation in 7 Schichten aufteilt, von der Bitübertragung (Schicht 1) bis zur Anwendung (Schicht 7). Jede Schicht hat eine klar definierte Aufgabe."
   },
   {
     "q": "Wie merke ich mir die 7 Schichten?",
-    "a": "Ein bewährter deutscher Merksatz von Schicht 7 nach 1 ist: 'Alle deutschen Studenten trinken verschiedene Sorten Bier' — Anwendung, Darstellung, Sitzung, Transport, Vermittlung, Sicherung, Bitübertragung."
+    "a": "Ein bewährter deutscher Merksatz von Schicht 7 nach 1 ist: 'Alle deutschen Studenten trinken verschiedene Sorten Bier'. Das steht für: Anwendung, Darstellung, Sitzung, Transport, Vermittlung, Sicherung, Bitübertragung."
   },
   {
     "q": "Auf welcher OSI-Schicht arbeitet ein Router?",
@@ -155,11 +155,11 @@ export default function LernSeite() {
           <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · OSI-Modell
         </nav>
 
-        <h1>OSI-Modell einfach erklärt — die 7 Schichten</h1>
+        <h1>OSI-Modell einfach erklärt: die 7 Schichten</h1>
         <p className="lp-lead">
           Das OSI-Modell ist das Grundgerüst der Netzwerktechnik und ein Dauergast in
           der IHK-Prüfung. Hier lernst du alle 7 Schichten mit typischen Protokollen
-          und Geräten, einen bewährten Merksatz — und testest dich direkt selbst.
+          und Geräten sowie einen bewährten Merksatz. Und danach testest du dich direkt selbst.
         </p>
 
         <div className="lp-cta-row">
@@ -173,18 +173,18 @@ export default function LernSeite() {
           Netzwerkkommunikation in <strong>7 Schichten</strong> auf. Jede Schicht hat
           eine klar abgegrenzte Aufgabe und kommuniziert nur mit der Schicht direkt
           über und unter ihr. So lassen sich Protokolle, Geräte und Fehlerquellen
-          sauber einordnen — genau das wird in der Prüfung abgefragt.
+          sauber einordnen. Genau das wird in der Prüfung abgefragt.
         </p>
 
         <div className="lp-tip">
           <p>
             <strong>📦 Stell es dir wie einen Paketversand vor:</strong> Deine Nachricht
             (oben, Schicht 7) wird auf dem Weg nach unten Schicht für Schicht in einen
-            weiteren Umschlag gepackt — Absender/Empfänger drauf, Portoetikett, ab in den
+            weiteren Umschlag gepackt: Absender/Empfänger drauf, Portoetikett, ab in den
             Transporter. Beim Empfänger wird jeder Umschlag in umgekehrter Reihenfolge
             wieder ausgepackt, bis die eigentliche Nachricht oben ankommt. Dieses
-            Ein- und Auspacken nennt man <strong>Kapselung</strong> (Encapsulation) — jede
-            Schicht fügt ihren eigenen „Umschlag" (Header) hinzu.
+            Ein- und Auspacken nennt man <strong>Kapselung</strong> (Encapsulation). Dabei fügt jede
+            Schicht ihren eigenen „Umschlag" (Header) hinzu.
           </p>
         </div>
 
@@ -200,8 +200,8 @@ export default function LernSeite() {
           </thead>
           <tbody>
             <tr><td>7</td><td>Anwendung (Application)</td><td>HTTP, SMTP, DNS, FTP</td><td>Gateway, Proxy</td></tr>
-            <tr><td>6</td><td>Darstellung (Presentation)</td><td>TLS/SSL, Zeichencodierung</td><td>—</td></tr>
-            <tr><td>5</td><td>Sitzung (Session)</td><td>Sitzungsauf- und -abbau</td><td>—</td></tr>
+            <tr><td>6</td><td>Darstellung (Presentation)</td><td>TLS/SSL, Zeichencodierung</td><td>keine</td></tr>
+            <tr><td>5</td><td>Sitzung (Session)</td><td>Sitzungsauf- und -abbau</td><td>keine</td></tr>
             <tr><td>4</td><td>Transport</td><td>TCP, UDP (Ports)</td><td>Firewall (L4)</td></tr>
             <tr><td>3</td><td>Vermittlung (Network)</td><td>IP, ICMP, Routing</td><td>Router, Layer-3-Switch</td></tr>
             <tr><td>2</td><td>Sicherung (Data Link)</td><td>Ethernet, MAC-Adressen, VLAN</td><td>Switch, Bridge</td></tr>
@@ -213,7 +213,7 @@ export default function LernSeite() {
         <div className="lp-card">
           <p>
             Von Schicht 7 nach 1: <strong>„Alle deutschen Studenten trinken
-            verschiedene Sorten Bier"</strong> — Anwendung, Darstellung, Sitzung,
+            verschiedene Sorten Bier"</strong>. Das steht für: Anwendung, Darstellung, Sitzung,
             Transport, Vermittlung, Sicherung, Bitübertragung.
           </p>
           <p>
@@ -225,7 +225,7 @@ export default function LernSeite() {
 
         <h2>Typische Prüfungsfrage: Gerät zuordnen</h2>
         <p>
-          Ein <strong>Hub</strong> arbeitet auf Schicht 1 — er verstärkt nur Signale.
+          Ein <strong>Hub</strong> arbeitet auf Schicht 1, er verstärkt nur Signale.
           Ein <strong>Switch</strong> arbeitet auf Schicht 2 und entscheidet anhand von{" "}
           <strong>MAC-Adressen</strong>. Ein <strong>Router</strong> arbeitet auf
           Schicht 3 und entscheidet anhand von <strong>IP-Adressen</strong>. Diese
@@ -234,7 +234,7 @@ export default function LernSeite() {
 
         <div className="lp-tip">
           <p>
-            <strong>💡 Prüfungstipp — Geräte auf einen Blick:</strong>{" "}
+            <strong>💡 Prüfungstipp, Geräte auf einen Blick:</strong>{" "}
             <span className="lp-mono">Hub = 1</span> (nur Signale),{" "}
             <span className="lp-mono">Switch = 2</span> (MAC-Adressen),{" "}
             <span className="lp-mono">Router = 3</span> (IP-Adressen). Merke: Je „schlauer"
@@ -255,7 +255,7 @@ export default function LernSeite() {
               <span className="lp-mono">Bits → Frames → Pakete → Segmente</span>.
             </li>
             <li>
-              TLS/SSL auf Schicht 7 statt 6 einordnen — Verschlüsselung/Darstellung ist
+              TLS/SSL auf Schicht 7 statt 6 einordnen. Verschlüsselung/Darstellung ist
               Schicht 6.
             </li>
             <li>
@@ -266,17 +266,17 @@ export default function LernSeite() {
         </div>
 
         <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
+        <p>Beantworte die Fragen und bekomme sofort Feedback, so viele Versuche du willst.</p>
 
         <QuizFrage
           frage={"Auf welcher OSI-Schicht arbeitet ein Router?"}
           optionen={[
-            { text: "Schicht 2 — Sicherung", richtig: false },
-            { text: "Schicht 3 — Vermittlung", richtig: true },
-            { text: "Schicht 4 — Transport", richtig: false },
-            { text: "Schicht 7 — Anwendung", richtig: false },
+            { text: "Schicht 2 (Sicherung)", richtig: false },
+            { text: "Schicht 3 (Vermittlung)", richtig: true },
+            { text: "Schicht 4 (Transport)", richtig: false },
+            { text: "Schicht 7 (Anwendung)", richtig: false },
           ]}
-          erklaerung={"Ein Router leitet Pakete anhand von IP-Adressen weiter — das ist Schicht 3, die Vermittlungsschicht (Network Layer)."}
+          erklaerung={"Ein Router leitet Pakete anhand von IP-Adressen weiter. Das ist Schicht 3, die Vermittlungsschicht (Network Layer)."}
         />
 
         <QuizFrage
@@ -304,10 +304,10 @@ export default function LernSeite() {
         <QuizFrage
           frage={"Auf welcher Schicht arbeitet ein Switch?"}
           optionen={[
-            { text: "Schicht 1 — Bitübertragung", richtig: false },
-            { text: "Schicht 2 — Sicherung", richtig: true },
-            { text: "Schicht 3 — Vermittlung", richtig: false },
-            { text: "Schicht 4 — Transport", richtig: false },
+            { text: "Schicht 1 (Bitübertragung)", richtig: false },
+            { text: "Schicht 2 (Sicherung)", richtig: true },
+            { text: "Schicht 3 (Vermittlung)", richtig: false },
+            { text: "Schicht 4 (Transport)", richtig: false },
           ]}
           erklaerung={"Ein Switch entscheidet anhand von MAC-Adressen und arbeitet damit auf Schicht 2 (Sicherungsschicht). Ein Hub wäre Schicht 1, ein Router Schicht 3."}
         />
@@ -315,12 +315,12 @@ export default function LernSeite() {
         <QuizFrage
           frage={"Auf welcher Schicht ist die Verschlüsselung (TLS/SSL) angesiedelt?"}
           optionen={[
-            { text: "Schicht 4 — Transport", richtig: false },
-            { text: "Schicht 5 — Sitzung", richtig: false },
-            { text: "Schicht 6 — Darstellung", richtig: true },
-            { text: "Schicht 7 — Anwendung", richtig: false },
+            { text: "Schicht 4 (Transport)", richtig: false },
+            { text: "Schicht 5 (Sitzung)", richtig: false },
+            { text: "Schicht 6 (Darstellung)", richtig: true },
+            { text: "Schicht 7 (Anwendung)", richtig: false },
           ]}
-          erklaerung={"Die Darstellungsschicht (Schicht 6) kümmert sich um Codierung und Verschlüsselung — dort ist TLS/SSL klassisch eingeordnet."}
+          erklaerung={"Die Darstellungsschicht (Schicht 6) kümmert sich um Codierung und Verschlüsselung. Dort ist TLS/SSL klassisch eingeordnet."}
         />
 
         <h2>Häufige Fragen</h2>

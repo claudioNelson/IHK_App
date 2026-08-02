@@ -3,8 +3,8 @@ import Link from "next/link";
 import QuizFrage from "../_components/QuizFrage";
 
 export const metadata: Metadata = {
-  title: "ER-Diagramm erstellen — Entitäten, Beziehungen & Kardinalitäten (IHK)",
-  description: "ER-Diagramme einfach erklärt: Entitäten, Attribute, Beziehungen und Kardinalitäten (1:1, 1:n, n:m) — mit Beispiel, n:m-Auflösung und Übungsaufgaben für die IHK-Prüfung.",
+  title: "ER-Diagramm erstellen: Entitäten, Beziehungen & Kardinalitäten (IHK)",
+  description: "ER-Diagramme einfach erklärt: Entitäten, Attribute, Beziehungen und Kardinalitäten (1:1, 1:n, n:m), mit Beispiel, n:m-Auflösung und Übungsaufgaben für die IHK-Prüfung.",
   alternates: {
     canonical: "https://lernarena.app/lernen/er-diagramm",
   },
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/er-diagramm",
     siteName: "Lernarena",
-    title: "ER-Diagramm erstellen — Entitäten, Beziehungen & Kardinalitäten (IHK)",
+    title: "ER-Diagramm erstellen: Entitäten, Beziehungen & Kardinalitäten (IHK)",
     description: "ER-Modell für die Fachinformatiker-Prüfung: Kardinalitäten, n:m-Auflösung und Übungsaufgaben.",
   },
 };
@@ -155,11 +155,11 @@ export default function LernSeite() {
           <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · ER-Diagramm
         </nav>
 
-        <h1>ER-Diagramm erstellen — Entitäten, Beziehungen und Kardinalitäten</h1>
+        <h1>ER-Diagramm erstellen: Entitäten, Beziehungen und Kardinalitäten</h1>
         <p className="lp-lead">
           Das Entity-Relationship-Modell ist der Standard-Einstieg in jede
           Datenbankaufgabe der IHK-Prüfung. Hier lernst du Entitäten, Beziehungen
-          und Kardinalitäten — und wie du eine n:m-Beziehung sauber auflöst.
+          und Kardinalitäten kennen. Außerdem zeigen wir dir, wie du eine n:m-Beziehung sauber auflöst.
         </p>
 
         <div className="lp-cta-row">
@@ -171,7 +171,7 @@ export default function LernSeite() {
         <p>
           Eine <strong>Entität</strong> ist ein Objekt der realen Welt (Kunde,
           Artikel, Auftrag). <strong>Attribute</strong> beschreiben die Entität
-          (Name, Preis, Datum) — eines davon ist der <strong>Primärschlüssel</strong>,
+          (Name, Preis, Datum). Eines davon ist der <strong>Primärschlüssel</strong>,
           der jeden Datensatz eindeutig identifiziert. <strong>Beziehungen</strong>{" "}
           verbinden Entitäten miteinander und tragen die Kardinalität.
         </p>
@@ -183,8 +183,8 @@ export default function LernSeite() {
             Grundriss für deine Datenbank. Die <strong>Entitäten</strong> sind die Räume
             (Kunde, Artikel), die <strong>Attribute</strong> die Einrichtung darin, und die{" "}
             <strong>Beziehungen</strong> sind die Türen zwischen den Räumen. Die{" "}
-            <strong>Kardinalität</strong> sagt, wie viele durch eine Tür passen — eine
-            Person, viele Personen? Erst wenn der Plan steht, „baust" du daraus die
+            <strong>Kardinalität</strong> sagt, wie viele durch eine Tür passen: eine
+            Person oder viele Personen? Erst wenn der Plan steht, „baust" du daraus die
             Tabellen.
           </p>
         </div>
@@ -199,9 +199,9 @@ export default function LernSeite() {
             </tr>
           </thead>
           <tbody>
-            <tr><td>1:1</td><td>Jedem A gehört genau ein B</td><td>Mitarbeiter — Firmenlaptop</td></tr>
-            <tr><td>1:n</td><td>Ein A hat viele B, jedes B genau ein A</td><td>Kunde — Aufträge</td></tr>
-            <tr><td>n:m</td><td>Viele A stehen mit vielen B in Beziehung</td><td>Schüler — Kurse</td></tr>
+            <tr><td>1:1</td><td>Jedem A gehört genau ein B</td><td>Mitarbeiter und Firmenlaptop</td></tr>
+            <tr><td>1:n</td><td>Ein A hat viele B, jedes B genau ein A</td><td>Kunde und Aufträge</td></tr>
+            <tr><td>n:m</td><td>Viele A stehen mit vielen B in Beziehung</td><td>Schüler und Kurse</td></tr>
           </tbody>
         </table>
 
@@ -217,7 +217,7 @@ export default function LernSeite() {
             <span className="lp-mono">kurs(kurs_id, titel)</span> bekommen die
             Zwischentabelle{" "}
             <span className="lp-mono">belegung(schueler_id, kurs_id, note)</span>.
-            Ihr Primärschlüssel ist meist die Kombination beider Fremdschlüssel —
+            Ihr Primärschlüssel ist meist die Kombination beider Fremdschlüssel,
             und sie kann eigene Attribute tragen (hier: die Note).
           </p>
         </div>
@@ -227,18 +227,18 @@ export default function LernSeite() {
           Bei der Überführung gilt: Jede Entität wird eine Tabelle. Bei{" "}
           <strong>1:n</strong> wandert der Primärschlüssel der 1-Seite als{" "}
           <strong>Fremdschlüssel</strong> in die n-Seite (der Kunde steckt als{" "}
-          <span className="lp-mono">kunden_nr</span> im Auftrag — nie umgekehrt).
+          <span className="lp-mono">kunden_nr</span> im Auftrag, nie umgekehrt).
           Bei <strong>n:m</strong> entsteht die Zwischentabelle. Genau diese
           Überführung ist eine Standard-Teilaufgabe der Prüfung.
         </p>
 
         <div className="lp-tip">
           <p>
-            <strong>💡 Prüfungstipp — Fremdschlüssel richtig setzen:</strong> Der
+            <strong>💡 Prüfungstipp, Fremdschlüssel richtig setzen:</strong> Der
             Fremdschlüssel wandert bei <span className="lp-mono">1:n</span> <strong>immer
             auf die n-Seite</strong> („der Kunde steckt im Auftrag, nicht umgekehrt"). Und
             eine <span className="lp-mono">n:m</span>-Beziehung wird <strong>nie</strong>{" "}
-            direkt umgesetzt — sie braucht immer eine Zwischentabelle. Wer sich nur diese
+            direkt umgesetzt, sie braucht immer eine Zwischentabelle. Wer sich nur diese
             zwei Regeln merkt, holt sich fast alle Punkte bei Datenbankaufgaben.
           </p>
         </div>
@@ -252,22 +252,22 @@ export default function LernSeite() {
             </li>
             <li>
               Die <span className="lp-mono">n:m</span>-Beziehung ohne Zwischentabelle
-              „direkt" verbinden — das geht in einer relationalen Datenbank nicht.
+              „direkt" verbinden. Das geht in einer relationalen Datenbank nicht.
             </li>
             <li>
-              Den Primärschlüssel vergessen. Jede Tabelle braucht einen — er identifiziert
+              Den Primärschlüssel vergessen. Jede Tabelle braucht einen, denn er identifiziert
               jeden Datensatz eindeutig.
             </li>
             <li>
               Kardinalität aus der falschen Richtung lesen: „Ein Kunde hat viele Aufträge"
-              ist aus Kundensicht 1:n, aus Auftragssicht n:1 — beides beschreibt dieselbe
+              ist aus Kundensicht 1:n, aus Auftragssicht n:1. Beides beschreibt dieselbe
               Beziehung.
             </li>
           </ul>
         </div>
 
         <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
+        <p>Beantworte die Fragen und bekomme sofort Feedback, so viele Versuche du willst.</p>
 
         <QuizFrage
           frage={"Ein Kunde kann viele Aufträge haben, jeder Auftrag gehört zu genau einem Kunden. Welche Kardinalität ist das?"}
@@ -277,7 +277,7 @@ export default function LernSeite() {
             { text: "n:m", richtig: false },
             { text: "n:1 von Kunde aus gesehen", richtig: false },
           ]}
-          erklaerung={"Von Kunde zu Auftrag ist es 1:n — ein Kunde hat beliebig viele Aufträge, aber jeder Auftrag genau einen Kunden."}
+          erklaerung={"Von Kunde zu Auftrag ist es 1:n. Ein Kunde hat beliebig viele Aufträge, aber jeder Auftrag genau einen Kunden."}
         />
 
         <QuizFrage
@@ -286,13 +286,13 @@ export default function LernSeite() {
             { text: "Durch einen doppelten Primärschlüssel in einer der Tabellen", richtig: false },
             { text: "Durch eine Zwischentabelle mit beiden Fremdschlüsseln", richtig: true },
             { text: "Durch NULL-Werte in beiden Tabellen", richtig: false },
-            { text: "Gar nicht — n:m ist verboten", richtig: false },
+            { text: "Gar nicht, n:m ist verboten", richtig: false },
           ]}
           erklaerung={"Die Zwischentabelle enthält die Primärschlüssel beider Entitäten als Fremdschlüssel und zerlegt die n:m-Beziehung in zwei 1:n-Beziehungen."}
         />
 
         <QuizFrage
-          frage={"Wohin gehört der Fremdschlüssel bei Kunde (1) — Auftrag (n)?"}
+          frage={"Wohin gehört der Fremdschlüssel bei der Beziehung Kunde (1) zu Auftrag (n)?"}
           optionen={[
             { text: "In die Kundentabelle", richtig: false },
             { text: "In die Auftragstabelle", richtig: true },
@@ -310,7 +310,7 @@ export default function LernSeite() {
             { text: "n:m", richtig: true },
             { text: "n:1", richtig: false },
           ]}
-          erklaerung={"Viele Schüler stehen mit vielen Kursen in Beziehung — das ist n:m. In Tabellen wird das über eine Zwischentabelle (z. B. belegung) aufgelöst."}
+          erklaerung={"Viele Schüler stehen mit vielen Kursen in Beziehung, das ist n:m. In Tabellen wird das über eine Zwischentabelle (z. B. belegung) aufgelöst."}
         />
 
         <QuizFrage
@@ -345,7 +345,7 @@ export default function LernSeite() {
         <section className="lp-final">
           <h2>Datenbanken interaktiv trainieren</h2>
           <p>
-            In der Lernarena modellierst du ER-Diagramme und überführst sie in Tabellen —
+            In der Lernarena modellierst du ER-Diagramme und überführst sie in Tabellen:
             mit sofortigem Feedback, echten IHK-Prüfungsaufgaben und einem KI-Tutor.
             Kostenlos starten, direkt üben.
           </p>

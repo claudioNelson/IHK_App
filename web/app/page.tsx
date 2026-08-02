@@ -103,7 +103,7 @@ export default function LandingPage() {
       { role: "user", text: adaInput },
       {
         role: "ada",
-        text: "Das ist eine Demo-Chat-Vorschau. In der App antworte ich dir natürlich echt — mit Beispielen, Eselsbrücken und Prüfungsfragen zum Üben.",
+        text: "Das ist eine Demo-Chat-Vorschau. In der App antworte ich dir natürlich echt: mit Beispielen, Eselsbrücken und Prüfungsfragen zum Üben.",
       },
     ]);
     setAdaInput("");
@@ -1309,7 +1309,7 @@ export default function LandingPage() {
           </div>
           <h1 className="hero-title">
             Prüfungsangst war<br />
-            gestern — heute <em>übst du smart.</em>
+            gestern. Heute <em>übst du smart.</em>
           </h1>
           <p className="hero-sub">
             Lernarena ist die Prüfungsvorbereitung für Fachinformatiker. Strukturierte
@@ -1411,7 +1411,7 @@ export default function LandingPage() {
             Drei Werkzeuge. <em>Eine Prüfung.</em>
           </h2>
           <p className="section-desc">
-            Keine aufgeblähte Feature-Liste — nur die drei Dinge, die in der
+            Keine aufgeblähte Feature-Liste, nur die drei Dinge, die in der
             Prüfung wirklich den Unterschied machen.
           </p>
         </div>
@@ -1427,7 +1427,7 @@ export default function LandingPage() {
               {
                 num: "02",
                 title: "Echte Prüfungssimulation",
-                desc: "Timer, Fragenübersicht, Flagging — so wie am Prüfungstag.",
+                desc: "Timer, Fragenübersicht, Flagging. So wie am Prüfungstag.",
               },
               {
                 num: "03",
@@ -1606,14 +1606,14 @@ export default function LandingPage() {
             </h2>
             <p className="section-desc">
               Benannt nach Ada Lovelace. Ein Sprachmodell mit Prüfungswissen,
-              das auf deinem Level antwortet — und nachfragt, wenn du eine
+              das auf deinem Level antwortet und nachfragt, wenn du eine
               falsche Annahme triffst. Direkt verfügbar in jedem Level, jeder
               Frage und jedem Match.
             </p>
             <div className="ada-quote">
               &ldquo;The more I study, the more insatiable do I feel my
               genius for it to be.&rdquo;
-              <div className="ada-quote-by">— Ada Lovelace, 1843</div>
+              <div className="ada-quote-by">Ada Lovelace, 1843</div>
             </div>
           </div>
 
@@ -1667,7 +1667,7 @@ export default function LandingPage() {
             IHK geschafft. <em>Was kommt danach?</em>
           </h2>
           <p className="section-desc">
-            Vier Cloud-Zertifizierungen — in zwei Modi: erst in Ruhe verstehen,
+            Vier Cloud-Zertifizierungen in zwei Modi: erst in Ruhe verstehen,
             dann unter Prüfungsbedingungen testen.
           </p>
         </div>
@@ -1753,7 +1753,7 @@ export default function LandingPage() {
               <ul className="mode-list">
                 <li>17 Module · alle Prüfungsbereiche</li>
                 <li>Erklärungen zu jeder Antwort</li>
-                <li>Kein Zeitdruck — Gold zum Lernen</li>
+                <li>Kein Zeitdruck: Gold zum Lernen</li>
               </ul>
             </div>
 

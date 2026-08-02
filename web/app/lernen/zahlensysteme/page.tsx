@@ -3,8 +3,8 @@ import Link from "next/link";
 import QuizFrage from "../_components/QuizFrage";
 
 export const metadata: Metadata = {
-  title: "Zahlensysteme umrechnen — binär, dezimal, hexadezimal (IHK)",
-  description: "Binär, dezimal und hexadezimal sicher umrechnen: Divisionsverfahren, Stellenwert und Vierergruppen einfach erklärt — mit interaktiven Übungsaufgaben für die IHK-Prüfung (AP1).",
+  title: "Zahlensysteme umrechnen: binär, dezimal, hexadezimal (IHK)",
+  description: "Binär, dezimal und hexadezimal sicher umrechnen: Divisionsverfahren, Stellenwert und Vierergruppen einfach erklärt, mit interaktiven Übungsaufgaben für die IHK-Prüfung (AP1).",
   alternates: {
     canonical: "https://lernarena.app/lernen/zahlensysteme",
   },
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/zahlensysteme",
     siteName: "Lernarena",
-    title: "Zahlensysteme umrechnen — binär, dezimal, hexadezimal (IHK)",
-    description: "Binär, dezimal, hexadezimal umrechnen — Schritt für Schritt mit Übungsaufgaben für AP1 und AP2.",
+    title: "Zahlensysteme umrechnen: binär, dezimal, hexadezimal (IHK)",
+    description: "Binär, dezimal, hexadezimal umrechnen: Schritt für Schritt mit Übungsaufgaben für AP1 und AP2.",
   },
 };
 
@@ -25,7 +25,7 @@ const faq: { q: string; a: string }[] = [
   },
   {
     "q": "Wie rechne ich binär in hexadezimal um?",
-    "a": "Die Binärzahl von rechts in Vierergruppen aufteilen und jede Gruppe einzeln übersetzen, denn ein Hex-Zeichen entspricht genau 4 Bit. 10101100 wird zu 1010|1100, also A und C — das Ergebnis ist AC."
+    "a": "Die Binärzahl von rechts in Vierergruppen aufteilen und jede Gruppe einzeln übersetzen, denn ein Hex-Zeichen entspricht genau 4 Bit. 10101100 wird zu 1010|1100, also A und C. Das Ergebnis ist AC."
   },
   {
     "q": "Wie rechne ich hexadezimal in dezimal um?",
@@ -163,10 +163,10 @@ export default function LernSeite() {
           <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · Zahlensysteme
         </nav>
 
-        <h1>Zahlensysteme umrechnen — binär, dezimal und hexadezimal</h1>
+        <h1>Zahlensysteme umrechnen: binär, dezimal und hexadezimal</h1>
         <p className="lp-lead">
           Zahlensysteme sind Pflichtstoff in der AP1 und tauchen auch in der AP2 immer
-          wieder auf — von IP-Adressen bis Speicheradressen. Hier lernst du die
+          wieder auf, von IP-Adressen bis Speicheradressen. Hier lernst du die
           Umrechnungswege Schritt für Schritt und übst direkt interaktiv.
         </p>
 
@@ -180,7 +180,7 @@ export default function LernSeite() {
           <strong>Dezimal</strong> (Basis 10) nutzt die Ziffern 0–9,{" "}
           <strong>Binär</strong> (Basis 2) nur 0 und 1, und{" "}
           <strong>Hexadezimal</strong> (Basis 16) die Zeichen 0–9 und A–F. Ein
-          Hex-Zeichen entspricht genau <strong>4 Bit</strong> — deshalb ist Hex die
+          Hex-Zeichen entspricht genau <strong>4 Bit</strong>, deshalb ist Hex die
           Kurzschreibweise der IT (MAC-Adressen, IPv6, Farbcodes).
         </p>
         <table className="lp-table">
@@ -253,7 +253,7 @@ export default function LernSeite() {
 
         <h2>Hex → Dezimal: Schritt für Schritt</h2>
         <p>
-          Jede Hex-Stelle hat einen Stellenwert — von rechts nach links{" "}
+          Jede Hex-Stelle hat einen Stellenwert: von rechts nach links{" "}
           <span className="lp-mono">1, 16, 256, 4096 …</span> (also 16 hoch 0, 1, 2, 3).
           Multipliziere jede Stelle mit ihrem Wert und addiere. Die Buchstaben stehen
           für <span className="lp-mono">A=10</span> bis <span className="lp-mono">F=15</span>.
@@ -276,7 +276,7 @@ export default function LernSeite() {
 
         <h2>Die Stellenwerte, die du auswendig können solltest</h2>
         <p>
-          <span className="lp-mono">128 · 64 · 32 · 16 · 8 · 4 · 2 · 1</span> — die
+          <span className="lp-mono">128 · 64 · 32 · 16 · 8 · 4 · 2 · 1</span>: die
           Wertigkeiten eines Bytes. Wer diese Reihe sicher beherrscht, rechnet auch
           Subnetzmasken ohne Taschenrechner um.
         </p>
@@ -285,8 +285,8 @@ export default function LernSeite() {
           <p>
             <strong>💡 Prüfungstipp:</strong> Präge dir die 8er-Reihe{" "}
             <span className="lp-mono">128&nbsp;64&nbsp;32&nbsp;16&nbsp;8&nbsp;4&nbsp;2&nbsp;1</span>{" "}
-            fest ein. Damit rechnest du in der Prüfung jedes Oktett — ob bei
-            Zahlensystemen oder Subnetting — sekundenschnell und ohne Hilfsmittel um.
+            fest ein. Damit rechnest du in der Prüfung jedes Oktett (ob bei
+            Zahlensystemen oder Subnetting) sekundenschnell und ohne Hilfsmittel um.
             Und merke dir zwei Anker: <span className="lp-mono">FF</span> = 255 und{" "}
             <span className="lp-mono">80</span> (hex) = 128.
           </p>
@@ -296,8 +296,8 @@ export default function LernSeite() {
           <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
           <ul>
             <li>
-              Beim Divisionsverfahren die Reste <strong>falsch herum</strong> lesen —
-              sie müssen von <em>unten nach oben</em> gelesen werden.
+              Beim Divisionsverfahren die Reste <strong>falsch herum</strong> lesen.
+              Sie müssen von <em>unten nach oben</em> gelesen werden.
             </li>
             <li>
               Vierergruppen von <strong>links</strong> statt von <strong>rechts</strong>{" "}
@@ -305,7 +305,7 @@ export default function LernSeite() {
             </li>
             <li>
               Die Hex-Buchstaben verwechseln: <span className="lp-mono">A=10</span>,
-              nicht 1 — und <span className="lp-mono">F=15</span>, nicht 16.
+              nicht 1, und <span className="lp-mono">F=15</span>, nicht 16.
             </li>
             <li>
               Vergessen, die <strong>Gegenprobe</strong> zu machen. Ein schneller Check
@@ -315,7 +315,7 @@ export default function LernSeite() {
         </div>
 
         <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
+        <p>Beantworte die Fragen und bekomme sofort Feedback, so viele Versuche du willst.</p>
 
         <QuizFrage
           frage={"Was ist 11001000 in Dezimal?"}
@@ -369,7 +369,7 @@ export default function LernSeite() {
             { text: "256", richtig: true },
             { text: "512", richtig: false },
           ]}
-          erklaerung={"2^8 = 256 verschiedene Werte, nämlich 0 bis 255. Achtung: 256 Werte, aber der höchste Wert ist 255 — ein klassischer Stolperstein."}
+          erklaerung={"2^8 = 256 verschiedene Werte, nämlich 0 bis 255. Achtung: 256 Werte, aber der höchste Wert ist 255, ein klassischer Stolperstein."}
         />
 
         <h2>Häufige Fragen</h2>

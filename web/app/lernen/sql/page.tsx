@@ -3,8 +3,8 @@ import Link from "next/link";
 import QuizFrage from "../_components/QuizFrage";
 
 export const metadata: Metadata = {
-  title: "SQL üben — SELECT, JOIN & GROUP BY einfach erklärt (IHK)",
-  description: "SQL für die IHK-Prüfung: SELECT, WHERE, JOIN, GROUP BY und HAVING mit Beispielen erklärt — plus interaktive Übungsaufgaben für Fachinformatiker (AP1 und AP2).",
+  title: "SQL üben: SELECT, JOIN & GROUP BY einfach erklärt (IHK)",
+  description: "SQL für die IHK-Prüfung: SELECT, WHERE, JOIN, GROUP BY und HAVING mit Beispielen erklärt, plus interaktive Übungsaufgaben für Fachinformatiker (AP1 und AP2).",
   alternates: {
     canonical: "https://lernarena.app/lernen/sql",
   },
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/sql",
     siteName: "Lernarena",
-    title: "SQL üben — SELECT, JOIN & GROUP BY einfach erklärt (IHK)",
-    description: "SQL für die Fachinformatiker-Prüfung: SELECT, JOIN, GROUP BY — mit Beispielen und Übungsaufgaben.",
+    title: "SQL üben: SELECT, JOIN & GROUP BY einfach erklärt (IHK)",
+    description: "SQL für die Fachinformatiker-Prüfung: SELECT, JOIN und GROUP BY mit Beispielen und Übungsaufgaben.",
   },
 };
 
@@ -25,7 +25,7 @@ const faq: { q: string; a: string }[] = [
   },
   {
     "q": "Was ist der Unterschied zwischen INNER JOIN und LEFT JOIN?",
-    "a": "Ein INNER JOIN liefert nur Datensätze, die in beiden Tabellen einen passenden Partner haben. Ein LEFT JOIN liefert zusätzlich alle Datensätze der linken Tabelle ohne Partner — deren Spalten aus der rechten Tabelle sind dann NULL."
+    "a": "Ein INNER JOIN liefert nur Datensätze, die in beiden Tabellen einen passenden Partner haben. Ein LEFT JOIN liefert zusätzlich alle Datensätze der linken Tabelle ohne Partner. Deren Spalten aus der rechten Tabelle sind dann NULL."
   },
   {
     "q": "Welche Aggregatfunktionen muss ich für die IHK-Prüfung kennen?",
@@ -155,10 +155,10 @@ export default function LernSeite() {
           <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · SQL üben
         </nav>
 
-        <h1>SQL üben — SELECT, JOIN und GROUP BY für die IHK-Prüfung</h1>
+        <h1>SQL üben: SELECT, JOIN und GROUP BY für die IHK-Prüfung</h1>
         <p className="lp-lead">
           SQL-Abfragen schreiben gehört zu den häufigsten Aufgaben in der
-          Fachinformatiker-Prüfung — vor allem für Anwendungsentwickler. Hier lernst
+          Fachinformatiker-Prüfung, vor allem für Anwendungsentwickler. Hier lernst
           du das Grundgerüst, JOINs und Gruppierungen mit typischen Prüfungsbeispielen.
         </p>
 
@@ -192,7 +192,7 @@ export default function LernSeite() {
           </p>
         </div>
 
-        <h2>JOIN — zwei Tabellen verbinden</h2>
+        <h2>JOIN: zwei Tabellen verbinden</h2>
         <p>
           In der Prüfung fast immer dabei: Daten aus zwei Tabellen zusammenführen.
           Gegeben seien <span className="lp-mono">kunde(kunden_nr, name, ort)</span> und{" "}
@@ -207,7 +207,7 @@ export default function LernSeite() {
           <p>
             Der <strong>INNER JOIN</strong> liefert nur Kunden, die mindestens einen
             Auftrag haben. Ein <strong>LEFT JOIN</strong> liefert zusätzlich alle
-            Kunden ohne Auftrag (mit NULL in den Auftragsspalten) — ein beliebter
+            Kunden ohne Auftrag (mit NULL in den Auftragsspalten), ein beliebter
             Prüfungsunterschied.
           </p>
         </div>
@@ -218,7 +218,7 @@ export default function LernSeite() {
           wie <span className="lp-mono">COUNT()</span>, <span className="lp-mono">SUM()</span>,{" "}
           <span className="lp-mono">AVG()</span>, <span className="lp-mono">MIN()</span> und{" "}
           <span className="lp-mono">MAX()</span> rechnen pro Gruppe.{" "}
-          <strong>HAVING</strong> filtert <em>nach</em> der Gruppierung — während
+          <strong>HAVING</strong> filtert <em>nach</em> der Gruppierung, während
           WHERE <em>vor</em> der Gruppierung filtert.
         </p>
         <div className="lp-card">
@@ -235,9 +235,9 @@ export default function LernSeite() {
 
         <div className="lp-tip">
           <p>
-            <strong>💡 Prüfungstipp — die Schreib-Reihenfolge:</strong>{" "}
+            <strong>💡 Prüfungstipp zur Schreib-Reihenfolge:</strong>{" "}
             <span className="lp-mono">SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY</span>.
-            Diese Reihenfolge ist fest — wer sie einhält, macht schon die halbe Aufgabe
+            Diese Reihenfolge ist fest. Wer sie einhält, macht schon die halbe Aufgabe
             richtig. Faustregel: <strong>WHERE kommt vor der Gruppierung, HAVING danach</strong>,
             und nur HAVING darf Aggregatfunktionen wie{" "}
             <span className="lp-mono">COUNT()</span> enthalten.
@@ -249,7 +249,7 @@ export default function LernSeite() {
           <ul>
             <li>
               <span className="lp-mono">COUNT()</span> in der{" "}
-              <span className="lp-mono">WHERE</span>-Klausel benutzen — das ist ungültig,
+              <span className="lp-mono">WHERE</span>-Klausel benutzen. Das ist ungültig,
               Aggregate gehören in <span className="lp-mono">HAVING</span>.
             </li>
             <li>
@@ -258,7 +258,7 @@ export default function LernSeite() {
             <li>
               Beim <span className="lp-mono">GROUP BY</span> Spalten im{" "}
               <span className="lp-mono">SELECT</span> vergessen, die nicht in einer
-              Aggregatfunktion stehen — die müssen mit gruppiert werden.
+              Aggregatfunktion stehen. Die müssen mit gruppiert werden.
             </li>
             <li>
               <span className="lp-mono">INNER JOIN</span> und{" "}
@@ -269,7 +269,7 @@ export default function LernSeite() {
         </div>
 
         <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
+        <p>Beantworte die Fragen und bekomme sofort Feedback, so viele Versuche du willst.</p>
 
         <QuizFrage
           frage={"Welche Klausel filtert Gruppen nach einer Aggregatfunktion?"}
@@ -279,7 +279,7 @@ export default function LernSeite() {
             { text: "GROUP BY", richtig: false },
             { text: "ORDER BY", richtig: false },
           ]}
-          erklaerung={"HAVING filtert nach der Gruppierung und darf Aggregatfunktionen enthalten — WHERE filtert Zeilen davor und darf das nicht."}
+          erklaerung={"HAVING filtert nach der Gruppierung und darf Aggregatfunktionen enthalten. WHERE filtert Zeilen davor und darf das nicht."}
         />
 
         <QuizFrage
@@ -290,7 +290,7 @@ export default function LernSeite() {
             { text: "Nur Kunden mit mehreren Aufträgen", richtig: false },
             { text: "Doppelte Datensätze", richtig: false },
           ]}
-          erklaerung={"Der LEFT JOIN behält alle Zeilen der linken Tabelle (kunde) — auch Kunden ohne passenden Auftrag. Deren Auftragsspalten sind dann NULL."}
+          erklaerung={"Der LEFT JOIN behält alle Zeilen der linken Tabelle (kunde), also auch Kunden ohne passenden Auftrag. Deren Auftragsspalten sind dann NULL."}
         />
 
         <QuizFrage
@@ -301,7 +301,7 @@ export default function LernSeite() {
             { text: "SELECT COUNT(ort) FROM kunde ORDER BY ort;", richtig: false },
             { text: "SELECT ort FROM kunde WHERE COUNT(*) > 0;", richtig: false },
           ]}
-          erklaerung={"COUNT(*) zählt die Zeilen pro Gruppe, GROUP BY ort bildet die Gruppen. WHERE mit COUNT(*) ist ungültig — dafür gibt es HAVING."}
+          erklaerung={"COUNT(*) zählt die Zeilen pro Gruppe, GROUP BY ort bildet die Gruppen. WHERE mit COUNT(*) ist ungültig, dafür gibt es HAVING."}
         />
 
         <QuizFrage

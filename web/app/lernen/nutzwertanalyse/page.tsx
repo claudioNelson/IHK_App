@@ -3,8 +3,8 @@ import Link from "next/link";
 import QuizFrage from "../_components/QuizFrage";
 
 export const metadata: Metadata = {
-  title: "Nutzwertanalyse einfach erklärt — mit Beispiel & Rechnung (IHK)",
-  description: "Nutzwertanalyse Schritt für Schritt: Kriterien gewichten, Punkte vergeben, Nutzwert berechnen — mit vollständigem Rechenbeispiel und Übungsaufgaben für die IHK-Prüfung (AP1).",
+  title: "Nutzwertanalyse einfach erklärt: mit Beispiel & Rechnung (IHK)",
+  description: "Nutzwertanalyse Schritt für Schritt: Kriterien gewichten, Punkte vergeben, Nutzwert berechnen. Mit vollständigem Rechenbeispiel und Übungsaufgaben für die IHK-Prüfung (AP1).",
   alternates: {
     canonical: "https://lernarena.app/lernen/nutzwertanalyse",
   },
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/lernen/nutzwertanalyse",
     siteName: "Lernarena",
-    title: "Nutzwertanalyse einfach erklärt — mit Beispiel & Rechnung (IHK)",
-    description: "Nutzwertanalyse mit Rechenbeispiel und Übungsaufgaben — der WiSo- und AP1-Klassiker verständlich erklärt.",
+    title: "Nutzwertanalyse einfach erklärt: mit Beispiel & Rechnung (IHK)",
+    description: "Nutzwertanalyse mit Rechenbeispiel und Übungsaufgaben: der WiSo- und AP1-Klassiker verständlich erklärt.",
   },
 };
 
@@ -29,11 +29,11 @@ const faq: { q: string; a: string }[] = [
   },
   {
     "q": "Wann verwendet man eine Nutzwertanalyse?",
-    "a": "Immer wenn eine Entscheidung von mehreren, auch nicht-monetären Kriterien abhängt — typisch beim Vergleich von Angeboten, Lieferanten, Software oder Standorten. In der IHK-Prüfung ist sie ein Klassiker im Bereich Wirtschafts- und Geschäftsprozesse."
+    "a": "Immer wenn eine Entscheidung von mehreren, auch nicht-monetären Kriterien abhängt, typisch beim Vergleich von Angeboten, Lieferanten, Software oder Standorten. In der IHK-Prüfung ist sie ein Klassiker im Bereich Wirtschafts- und Geschäftsprozesse."
   },
   {
     "q": "Was ist der Vorteil gegenüber einem reinen Preisvergleich?",
-    "a": "Qualitative Faktoren wie Service, Qualität oder Lieferzeit fließen messbar in die Entscheidung ein. Das günstigste Angebot gewinnt dadurch nicht automatisch — die Entscheidung wird nachvollziehbar und objektiver."
+    "a": "Qualitative Faktoren wie Service, Qualität oder Lieferzeit fließen messbar in die Entscheidung ein. Das günstigste Angebot gewinnt dadurch nicht automatisch. Die Entscheidung wird nachvollziehbar und objektiver."
   }
 ];
 
@@ -155,7 +155,7 @@ export default function LernSeite() {
           <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · Nutzwertanalyse
         </nav>
 
-        <h1>Nutzwertanalyse — Schritt für Schritt mit Rechenbeispiel</h1>
+        <h1>Nutzwertanalyse: Schritt für Schritt mit Rechenbeispiel</h1>
         <p className="lp-lead">
           Die Nutzwertanalyse ist der Dauerbrenner in der AP1: Angebote oder Anbieter
           anhand gewichteter Kriterien objektiv vergleichen. Hier lernst du das
@@ -180,11 +180,11 @@ export default function LernSeite() {
         <div className="lp-tip">
           <p>
             <strong>🏠 Stell es dir wie Wohnungssuche vor:</strong> Du entscheidest ja
-            nicht nur nach der Miete. Lage, Größe und Zustand zählen auch — aber nicht
+            nicht nur nach der Miete. Lage, Größe und Zustand zählen auch, aber nicht
             gleich stark. Vielleicht ist dir die Lage doppelt so wichtig wie der Zustand.
             Genau das machst du mit der <strong>Gewichtung</strong>: Jedem Kriterium gibst
             du ein Gewicht, vergibst pro Wohnung Punkte und rechnest zusammen. Am Ende
-            gewinnt nicht automatisch die billigste — sondern die, die zu deinen
+            gewinnt nicht automatisch die billigste, sondern die, die zu deinen
             Prioritäten am besten passt.
           </p>
         </div>
@@ -221,7 +221,7 @@ export default function LernSeite() {
             </tbody>
           </table>
           <p>
-            <strong>Anbieter B gewinnt</strong> (7,55 gegen 7,05) — obwohl A beim
+            <strong>Anbieter B gewinnt</strong> (7,55 gegen 7,05), obwohl A beim
             Preis vorn liegt. Genau dieser Effekt („der Billigste gewinnt nicht
             automatisch") ist die typische Prüfungserkenntnis.
           </p>
@@ -229,11 +229,11 @@ export default function LernSeite() {
 
         <div className="lp-tip">
           <p>
-            <strong>💡 Prüfungstipp — in dieser Reihenfolge rechnen:</strong> Erst prüfen,
+            <strong>💡 Prüfungstipp: Rechne in dieser Reihenfolge.</strong> Erst prüfen,
             ob die Gewichte zusammen <span className="lp-mono">100 %</span> ergeben, dann
             pro Feld <span className="lp-mono">Punkte × Gewicht</span>, dann pro Spalte
-            aufsummieren, zuletzt die Rangfolge bilden. So kann fast nichts schiefgehen —
-            und <strong>runde immer erst ganz am Ende</strong>.
+            aufsummieren, zuletzt die Rangfolge bilden. So kann fast nichts schiefgehen.
+            Und <strong>runde immer erst ganz am Ende</strong>.
           </p>
         </div>
 
@@ -241,8 +241,8 @@ export default function LernSeite() {
           <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
           <ul>
             <li>
-              Nicht prüfen, ob die <strong>Gewichte 100 %</strong> ergeben — der häufigste
-              Fehler überhaupt.
+              Nicht prüfen, ob die <strong>Gewichte 100 %</strong> ergeben. Das ist der
+              häufigste Fehler überhaupt.
             </li>
             <li>
               Zwischenergebnisse zu früh runden. Rechne mit den genauen Werten und runde
@@ -253,24 +253,24 @@ export default function LernSeite() {
               0,40) einsetzen.
             </li>
             <li>
-              Denken, „der Billigste gewinnt" — die Nutzwertanalyse bezieht bewusst auch
-              qualitative Kriterien mit ein.
+              Denken, „der Billigste gewinnt". Dabei bezieht die Nutzwertanalyse bewusst
+              auch qualitative Kriterien mit ein.
             </li>
           </ul>
         </div>
 
         <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback — so viele Versuche du willst.</p>
+        <p>Beantworte die Fragen und bekomme sofort Feedback, so viele Versuche du willst.</p>
 
         <QuizFrage
           frage={"Die Gewichte einer Nutzwertanalyse ergeben zusammen 90 %. Was bedeutet das?"}
           optionen={[
             { text: "Das ist erlaubt, solange alle Kriterien bewertet sind", richtig: false },
-            { text: "Die Analyse ist fehlerhaft — die Gewichte müssen 100 % ergeben", richtig: true },
+            { text: "Die Analyse ist fehlerhaft, denn die Gewichte müssen 100 % ergeben", richtig: true },
             { text: "Die restlichen 10 % gelten als Puffer", richtig: false },
             { text: "Der Nutzwert muss durch 0,9 geteilt werden", richtig: false },
           ]}
-          erklaerung={"Die Summe der Gewichte muss immer 100 % ergeben — sonst ist die Gewichtung inkonsistent und die Nutzwerte sind nicht vergleichbar."}
+          erklaerung={"Die Summe der Gewichte muss immer 100 % ergeben, sonst ist die Gewichtung inkonsistent und die Nutzwerte sind nicht vergleichbar."}
         />
 
         <QuizFrage
@@ -292,7 +292,7 @@ export default function LernSeite() {
             { text: "Für die Berechnung von Abschreibungen", richtig: false },
             { text: "Für die Liquiditätsplanung", richtig: false },
           ]}
-          erklaerung={"Die Nutzwertanalyse macht qualitative und quantitative Kriterien gemeinsam vergleichbar — genau dann ist sie das Mittel der Wahl."}
+          erklaerung={"Die Nutzwertanalyse macht qualitative und quantitative Kriterien gemeinsam vergleichbar. Genau dann ist sie das Mittel der Wahl."}
         />
 
         <QuizFrage
@@ -303,7 +303,7 @@ export default function LernSeite() {
             { text: "Beide gleich", richtig: false },
             { text: "Der mit dem niedrigeren Preis", richtig: false },
           ]}
-          erklaerung={"Es gewinnt immer die Alternative mit dem höchsten Nutzwert — hier Anbieter B mit 7,55, auch wenn A beim reinen Preis vorne lag."}
+          erklaerung={"Es gewinnt immer die Alternative mit dem höchsten Nutzwert. Hier ist das Anbieter B mit 7,55, auch wenn A beim reinen Preis vorne lag."}
         />
 
         <QuizFrage
