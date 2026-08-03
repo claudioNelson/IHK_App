@@ -1,9 +1,9 @@
 # Projektstatus — Lernarena (ihk_app)
 
-Aktualisiert: **2026-07-27**
+Aktualisiert: **2026-08-01**
 Repo: **github.com/claudioNelson/IHK_App** · Branch **main**
 Lokal: **C:\Users\cnm89\Desktop\Projekte\IHK\ihk_app**
-App-Version: **1.0.1+3** (versionName 1.0.1, versionCode 3)
+App-Version im Store: **1.1.0+7** (Closed Track, approved, bei Testern) · lokal bereit: **v8-Stand** mit Flutter 3.44.8 + neuer Billing-Lib (NICHT hochladen bis nach dem Launch)
 
 > Hinweis: Diese Datei wurde bis 09/2025 automatisch von `Update-ProjectState.ps1` erzeugt (nur Git-/Datei-Metadaten). Seit 07/2026 wird sie manuell als echte Projekt-Übersicht gepflegt. Das alte Skript spiegelt den Stand nicht mehr wider.
 
@@ -22,22 +22,26 @@ Zwei Produkte, ein Projekt:
 ## 2. Tech-Stack
 
 **Mobile App**
-- **Flutter / Dart** (SDK `^3.8.1`)
+- **Flutter 3.44.8 / Dart 3.12.2** (Upgrade 01.08.2026; pubspec-SDK `^3.8.1`)
 - State-Management: **provider**
 - Backend & Auth: **Supabase** (`supabase_flutter`), inkl. Sign in with Apple (`sign_in_with_apple`), Deep Links (`app_links`)
-- KI-Tutor „Ada": **Google Gemini** (`google_generative_ai`, `lib/services/gemini_service.dart`)
+- KI-Tutor „Ada": Supabase Edge Function `ai-tutor` → **Claude Haiku 4.5** (Failover Groq → Gemini). Aufruf aus `lib/services/gemini_service.dart` (Name historisch, Keys liegen nur serverseitig)
+- Billing: `in_app_purchase ^3.3.0` + `in_app_purchase_android ^0.5.2` (**neue Play-Billing-Bibliothek, Google-Frist 31.08.2026 erfüllt**)
 - UI/Extras: `google_fonts`, `confetti` (Badges), `audioplayers` (Sound), `flutter_highlight` (Code), `flutter_markdown_plus`, `image_picker`, `url_launcher`
 - Config: `dotenv` (API-Keys aus `.env`), Icons via `flutter_launcher_icons`, Paketname via `change_app_package_name`
 
 **Android / Release**
 - `applicationId = app.lernarena`, `compileSdk = 36`, `targetSdk = 36` (Android 16, hart gesetzt), `minSdk = 23`
-- AGP 8.9.1 / Gradle 8.12, NDK 27
+- AGP 8.9.1 / Gradle 8.12, NDK 27 · Flutter-Tool hat beim Upgrade `build.gradle.kts` + `gradle.properties` automatisch angepasst
+- ⚠️ Nicht blockierende „will soon be dropped"-Warnungen: Gradle → ≥8.14, AGP → ≥8.11.1, Kotlin → ≥2.2.20 (später zusammen erledigen)
+- Lokales SDK-Setup komplett: cmdline-tools + NDK installiert, alle Lizenzen akzeptiert (`flutter doctor`: No issues)
 - Build: `flutter build appbundle --release` → `.aab`
 
 **Web**
 - **Next.js (App Router, TypeScript)**, Deployment **Vercel**
-- Web-Prüfungstutor: API-Route `web/app/api/ki-korrektur/route.ts` → **Groq** (`llama-3.3-70b-versatile`)
-- MailerLite (Warteliste-Popup), SEO-Cluster (Details siehe Claude-Projekt-Doc `claude/seo-status-web.md`)
+- Web-Prüfungstutor: API-Route `web/app/api/ki-korrektur/route.ts` → **Claude Haiku 4.5** (Fallback Groq `llama-3.3-70b-versatile`), strukturierte JSON-Korrektur
+- SEO-Cluster (Details siehe Claude-Projekt-Doc `claude/seo-status-web.md`) · MailerLite wurde komplett entfernt
+- `public/.well-known/assetlinks.json` live (Digital Asset Links für App-Deep-Links, SHA-256 aus Play App Signing)
 
 **Infrastruktur / Konten**
 - E-Mail: `admin@lernarena.app` + `info@lernarena.app` (Zoho)
@@ -63,9 +67,15 @@ Zwei Produkte, ein Projekt:
 
 ## 4. Release-Status (Google Play)
 
-- App ist in der **geschlossenen Testphase** (Closed Testing, Alpha-Track) im Google Play Store.
-- 14-Tage-Test **abgeschlossen**; Fragebogen „Apply for production access" wurde ausgefüllt und eingereicht → wartet auf Googles Prüfung.
-- Play-Policy „App must target Android 16 (API 36)" ist **erledigt** (target/compileSdk 36). Aktueller Track-Release: **versionCode 6 (1.0.2+6)** — enthält die Google-Play-Billing-Bibliothek (versionCode 4/5 waren Fehlversuche ohne Billing; Ursache: hängender Gradle-Daemon, gelöst per Java-Prozess-Kill + Cache-Löschung).
+- 🚀 **DIE APP IST LIVE IM PLAY STORE (seit 02.08.2026)!** Produktionszugriff genehmigt, Production-Release (v7, Länder DE/AT/CH) eingereicht und von Google freigegeben. Store-Link: https://play.google.com/store/apps/details?id=app.lernarena — Suche nach „Fachinformatiker" findet die App bereits.
+- Launch-Entscheidung: **Option A** — mit v7 (clientseitige Freischaltung) launchen, serverseitige Belegprüfung sofort nachrüsten (in v8 fertig gebaut, siehe 4b).
+- Wichtig fürs Bewertungs-Thema: **Eingetragene Closed-Tester können NICHT öffentlich bewerten** (sie sehen nur „privates Feedback an den Entwickler" + „interne Betaversion"-Label). Zum öffentlichen Bewerten müssen sie das Testprogramm verlassen: https://play.google.com/apps/testing/app.lernarena
+- Historie: 14-Tage-Test abgeschlossen, Produktionszugriff-Fragebogen bestanden.
+- Aktueller Track-Release: **versionCode 7 (1.1.0+7)** — approved & bei den Testern. Enthält das komplette Kauf-System (Kauf-Sheet, BillingService, In-App-Navigation statt Website-Links). Historie: v4/v5 Fehlversuche ohne Billing (hängender Gradle-Daemon), v6 = Billing-Lib ohne Kauf-UI.
+- ⚠️ Gelernte Lektion: In der Play Console reicht **Save nicht** — ein Release braucht **Edit → Rollout → Publishing overview → Submit for review**, sonst bleibt es als Draft liegen.
+- **v8 lokal bereit** (01.08.): Flutter 3.44.8 + `in_app_purchase ^3.3.0`/`in_app_purchase_android ^0.5.2`; auf Gerät getestet (Kauf-Sheet lädt echte Preise), `flutter analyze` 0 Errors, `.aab` baut sauber (58,9 MB). **Erst NACH dem Launch mit v7 hochladen** (dann Version auf 1.1.1+8 bumpen, idealerweise zusammen mit serverseitiger Belegprüfung).
+- Play-Policy „target Android 16 (API 36)" ✅ · Edge-to-edge-Hinweise (Android 15) durch Flutter-Upgrade erledigt.
+- Open Testing bewusst NICHT genutzt (erst nach Produktionszugriff möglich; offene Tester würden echt zahlen).
 
 ---
 
@@ -77,35 +87,57 @@ Zwei Produkte, ein Projekt:
 
 **Preise (deutsche Endpreise inkl. 19 % MwSt.):** 11,99 €/M · 47,99 €/6M · 84,99 €/Jahr. (Ursprünglich 9,99/39,99/69,99 netto eingegeben; Google hat MwSt. aufgeschlagen — bewusst so belassen.) Alle Texte in App (Kauf-Sheet, PremiumLock, In-App-AGB) und Web (Startseite, /upgrade, AGB) auf die Endpreise aktualisiert; €/Monat-Anzeige im Kauf-Sheet rechnet dynamisch aus echten Google-Preisen.
 
-**App-Integration:** `lib/services/billing_service.dart` (in_app_purchase ^3.2.0, Produkt-Mapping über basePlanId, Kauf, Restore, completePurchase) + `lib/widgets/premium_kauf_sheet.dart` (Bottom Sheet, 3 Pläne). Verdrahtet an: IHK-Prüfungs-Paywall, beide Zertifikat-Paywalls, KI-Tutor-Limit, Modul-Fragen-Limit (practice_limit_mixin). Init in main.dart + restorePurchases nach Login. Prüfungs-Karten in pruefen_screen navigieren jetzt **in-App** zur Detailseite (Website-Link entfernt — Play-Policy: keine externen Kaufwege; Website-Stripe bleibt separat geplant).
+**App-Integration:** `lib/services/billing_service.dart` (in_app_purchase ^3.3.0, Produkt-Mapping über basePlanId, Kauf, Restore, completePurchase) + `lib/widgets/premium_kauf_sheet.dart` (Bottom Sheet, 3 Pläne). Verdrahtet an: IHK-Prüfungs-Paywall, beide Zertifikat-Paywalls, KI-Tutor-Limit, Modul-Fragen-Limit (practice_limit_mixin). Init in main.dart + restorePurchases nach Login. Prüfungs-Karten in pruefen_screen navigieren jetzt **in-App** zur Detailseite (Website-Link entfernt — Play-Policy: keine externen Kaufwege; Website-Stripe bleibt separat geplant).
 
 **Supabase:** Schutz-Trigger `trg_protect_premium` (blockt direkte Premium-Feld-Änderungen durch User) wurde erweitert um Sitzungs-Schalter `app.premium_grant`; neue RPC `activate_premium_purchase(p_tier, p_days)` (SECURITY DEFINER, validiert Tier/Laufzeit, verkürzt nie) ist der einzige Kauf-Schreibweg. App und Web lesen dasselbe `profiles.is_premium` → **einmal kaufen = überall Premium**.
 
-**Getestet:** Lizenz-Tester eingerichtet; Testkauf auf echtem Gerät (24090RA29G) erfolgreich: purchased → RPC → `isPremium=true, tier=yearly`. Free-Limits im Code verifiziert: 5 Modul-Fragen/Modul/Tag, 5 KI-Fragen, 5 Duelle; Karteikarten bewusst unbegrenzt (Konstante 30 existiert, wird nicht durchgesetzt).
+**Getestet:** Lizenz-Tester eingerichtet (Testkarten sieht NUR, wer in Play Console → Einstellungen → License testing eingetragen ist — alle anderen zahlen echt); Testkauf mit Testkarte aus der Store-Version v7 auf echtem Gerät erfolgreich: purchased → RPC → `isPremium=true`. Free-Limits im Code verifiziert: 5 Modul-Fragen/Modul/Tag, 5 KI-Fragen, 5 Duelle; Karteikarten bewusst unbegrenzt (Konstante 30 existiert, wird nicht durchgesetzt).
 
-**VOR PUBLIC LAUNCH ZWINGEND:** Serverseitige Belegprüfung (Supabase Edge Function + Google Play Developer API), da Freischaltung aktuell clientseitig angestoßen wird. Außerdem: 15-%-Service-Fee-Programm in Play Console aktivieren (sonst 30 % Gebühr!).
+**Gebühren:** ✅ 15-%-Service-Fee-Programm enrolled (31.07.).
+
+**VOR PUBLIC LAUNCH ZWINGEND:** Serverseitige Belegprüfung (Supabase Edge Function + Google Play Developer API), da Freischaltung aktuell clientseitig angestoßen wird — idealerweise zusammen mit dem v8-Upload nach dem Launch.
+
+---
+
+## 4c. App Store Release (iOS) — in Vorbereitung
+
+**Schritt 1 — Apple Developer Account:** bezahlt am 03.08.2026, wartet auf Apples Freischaltung (dauert meist 1–2 Tage, manchmal bis 48 h nach Zahlungseingang).
+
+**Schritt 2 — Projekt-Check (03.08.2026):**
+- `ios/`-Ordner existiert ✅ (inkl. Runner.xcodeproj, xcworkspace, RunnerTests)
+- Bundle-ID: **`app.lernarena`** — identisch mit der Android applicationId ✅ (keine Änderung nötig; RunnerTests: app.lernarena.RunnerTests)
+- App-Name (CFBundleDisplayName in Info.plist): war „Ihk App" → auf **„Lernarena"** korrigiert ✅
+- App-Icons: waren noch **Flutter-Standard** ❌ → `flutter_launcher_icons` in pubspec auf `ios: true` + `remove_alpha_ios: true` umgestellt (App Store lehnt Alpha-Kanal ab). **TODO:** `dart run flutter_launcher_icons` ausführen, dann sind die iOS-Icons generiert.
+- in_app_purchase: Plugin ist föderiert — iOS-Unterstützung (in_app_purchase_storekit) kommt automatisch mit `in_app_purchase ^3.3.0`. Kein Podfile vorhanden — normal, wird beim ersten iOS-Build erzeugt. Pods/CocoaPods lassen sich **nur auf einem Mac** prüfen.
+
+**Offene Punkte / Realität-Check:**
+- ⚠️ **iOS-Builds brauchen einen Mac mit Xcode** (Windows kann keine iOS-Apps bauen/signieren). Optionen: Mac besorgen/leihen oder CI-Dienst wie Codemagic (baut + signiert in der Cloud, Free-Tier vorhanden).
+- App Store Connect: App anlegen, Abo-Produkte (monthly/half-year/annual) NEU anlegen — Apple hat eigenes Abo-System, Preise/Produkte aus der Play Console gelten dort nicht.
+- Belegprüfung: `verify-purchase` prüft nur Google-Käufe. Für iOS braucht es einen zweiten Prüfweg (App Store Server API) — bauen, wenn iOS-Version konkret wird.
+- Apple-Abos: Kommission ebenfalls 15 % (Small Business Program, muss nach Freischaltung beantragt werden).
+- Sign in with Apple ist Pflicht, wenn Google-Login angeboten wird — `sign_in_with_apple` ist schon im Projekt ✅.
 
 ---
 
 ## 5. Web / SEO (Kurzfassung)
 
-Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpage-Cluster unter `/lernen/*` (10 Themen), Pillar-Seite `/fachinformatiker-pruefung`, Sitemap, strukturierte Daten, OG-Bild, 301-Redirect, Hell/Dunkel-Theme. **07/2026:** alle 10 Lernseiten inhaltlich vertieft (Alltags-Vergleiche, Prüfungstipp- & „Häufige Fehler"-Kästen, sichtbarer FAQ, je 5 Quizfragen; RAID auf themefähiges System umgebaut). **Noch nicht deployt — `git commit` + `push` steht aus.**
+Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpage-Cluster unter `/lernen/*` (10 Themen), Pillar-Seite `/fachinformatiker-pruefung`, Sitemap, strukturierte Daten, OG-Bild, 301-Redirect, Hell/Dunkel-Theme. **07/2026:** alle 10 Lernseiten inhaltlich vertieft (Alltags-Vergleiche, Prüfungstipp- & „Häufige Fehler"-Kästen, sichtbarer FAQ, je 5 Quizfragen; RAID auf themefähiges System umgebaut) — ✅ **live deployt und verifiziert**. MailerLite komplett entfernt. Neue strukturierte Prüfungs-Ergebnisseite (`ExamResult.tsx`) live.
 
 ---
 
 ## 6. Offene Punkte / Nächste Schritte
 
 **App**
-- Auf Googles Antwort zum Produktionszugriff warten.
-- **Neuen Build (versionCode 7) mit komplettem Kauf-Code** bauen + in den Track hochladen (v6 im Store hat nur die Billing-Bibliothek, noch nicht das Kauf-Sheet).
-- Vor Public Launch: serverseitige Belegprüfung + 15-%-Fee-Programm (siehe 4b).
-- App-Änderungen committen/pushen (billing_service, premium_kauf_sheet, verdrahtete Screens, pubspec, Manifest, legal_texts).
-- KI-Kosten im Blick behalten (Ada-Tutor läuft über Gemini; Nutzungslimits über `usage_tracker`).
+- ⏳ Auf Googles Antwort zum **Produktionszugriff** warten → dann Launch mit v7 (staged rollout empfohlen).
+- Uncommittete Änderungen committen/pushen: `pubspec.yaml`/`pubspec.lock` (neue Billing-Lib), `android/app/build.gradle.kts` + `android/gradle.properties` (Auto-Anpassung durchs Flutter-Upgrade), PROJECT_STATE.md.
+- **Nach dem Launch:** v8 hochladen (Version auf 1.1.1+8 bumpen) — idealerweise zusammen mit der serverseitigen Belegprüfung (Pflicht vor Public Launch des Kaufsystems, siehe 4b).
+- Tester bitten, den Kauf-Flow in v7 zu testen (dafür ihre Gmail-Adressen als Lizenztester eintragen, sonst zahlen sie echt!).
+- Später: Gradle ≥8.14, AGP ≥8.11.1, Kotlin ≥2.2.20 (nicht blockierende Flutter-Warnungen) + `withOpacity`→`withValues`-Aufräum-Session (384 Analyzer-Infos).
+- KI-Kosten im Blick behalten (Ada läuft über Claude Haiku; Nutzungslimits über `usage_tracker`).
 
 **Web**
-- Vertiefte Lernseiten committen + pushen (Vercel-Deploy).
-- MailerLite: Domain verifizieren (SPF/DKIM), Absender auf `@lernarena.app` setzen, bevor die erste Broadcast-Mail rausgeht.
 - Zum Launch: „Bald verfügbar"-Popup gegen echten Play-Store-Button tauschen.
+- `/upgrade` (Web-Stripe-Checkout) fertig bauen; Play-Premium-Nutzern dort keinen Doppelkauf anbieten.
 - Nach 2–3 Wochen Search-Console-Daten prüfen → Seiten mit Impressionen weiter ausbauen; ggf. neue Themenseiten (VLAN, DHCP/DNS, USV, Scrum, …).
 
 **KI / Kosten**
