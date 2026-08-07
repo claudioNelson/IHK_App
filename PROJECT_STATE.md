@@ -63,6 +63,10 @@ Zwei Produkte, ein Projekt:
 
 **Kern-Features:** Modul-/Themen-Lernpfade, Karteikarten mit Spaced Repetition, gamifizierter Level-Modus, echte IHK-Prüfungssimulation mit KI-Korrektur, Async-Duell + Leaderboard, Zertifikate, Streaks/Tagesziele, Badges, Premium-Abo mit Nutzungslimits, Report-Funktion.
 
+**Neu (06.08.2026) — Anschlüsse-Quiz (erster SI-Baustein):** 16 selbst erstellte, lizenzfreie Anschluss-Illustrationen (`assets/anschluesse/`, je labeled + quiz-Variante; Quelle: SVG-Generator, reproduzierbar). Lern-Modus (Karten) + Quiz (Bild ohne Label, 4 Optionen, Feedback mit Erklärung) in `anschluesse_quiz_screen.dart`, Daten in `data/anschluesse_data.dart`, Einstieg im Learning Hub (Tag „SI", cyan). Läuft komplett offline, kein Supabase. Geplant: eigener AE/SI-Fachrichtungs-Bereich (AP1 gemeinsam, AP2 getrennt), Fachrichtungs-Wahl im Onboarding/Profil.
+
+**Neu (06.08.2026) — Eigene lokale Sounds:** `assets/sounds/` (correct, wrong, victory, defeat, click, timeup) — selbst synthetisiert, lizenzfrei. SoundService von freesound-Streaming-URLs auf `AssetSource` umgestellt → offline-fähig, keine Latenz. Anschlüsse-Quiz spielt richtig/falsch + Victory ab ≥80 %.
+
 ---
 
 ## 4. Release-Status (Google Play)
@@ -95,7 +99,7 @@ Zwei Produkte, ein Projekt:
 
 **Gebühren:** ✅ 15-%-Service-Fee-Programm enrolled (31.07.).
 
-**VOR PUBLIC LAUNCH ZWINGEND:** Serverseitige Belegprüfung (Supabase Edge Function + Google Play Developer API), da Freischaltung aktuell clientseitig angestoßen wird — idealerweise zusammen mit dem v8-Upload nach dem Launch.
+**✅ Serverseitige Belegprüfung (07.08.2026, END-TO-END GETESTET):** Edge Function `verify-purchase` (holt Google-Token via Service-Account `lernarena-play-verify@gen-lang-client-0675834051`, prüft Abo bei Google, Base Plan → Tier, echtes Ablaufdatum) + DB-Funktion `grant_premium_from_server` (nur service_role). App (v8) schickt nur noch den purchaseToken; Restore läuft über denselben Weg (Auto-Restore beim App-Start). Getestet: Frischkauf + Restore, beides fehlerfrei. Gefundener & behobener Bug: Secret `GOOGLE_PLAY_SERVICE_ACCOUNT` war beim ersten Einfügen kein valides JSON (SyntaxError in den Function-Logs) → Secret neu eingefügt. Alte RPC `activate_premium_purchase` bleibt aktiv, bis v7-Nutzer auf v8 sind — DANN dichtmachen (revoke execute from authenticated).
 
 ---
 
@@ -110,8 +114,10 @@ Zwei Produkte, ein Projekt:
 - App-Icons: waren noch **Flutter-Standard** ❌ → `flutter_launcher_icons` in pubspec auf `ios: true` + `remove_alpha_ios: true` umgestellt (App Store lehnt Alpha-Kanal ab). **TODO:** `dart run flutter_launcher_icons` ausführen, dann sind die iOS-Icons generiert.
 - in_app_purchase: Plugin ist föderiert — iOS-Unterstützung (in_app_purchase_storekit) kommt automatisch mit `in_app_purchase ^3.3.0`. Kein Podfile vorhanden — normal, wird beim ersten iOS-Build erzeugt. Pods/CocoaPods lassen sich **nur auf einem Mac** prüfen.
 
+**Schritt 3 — Codemagic eingerichtet (04.08.2026):** ✅ Account (GitHub-Login), Repo claudioNelson/IHK_App verbunden, Default Workflow auf iOS/macOS M2. **Erster unsignierter iOS-Build ERFOLGREICH** — das Projekt kompiliert für iOS (inkl. StoreKit/Billing-Pods). Free-Tier: 500 macOS-M2-Minuten/Monat.
+
 **Offene Punkte / Realität-Check:**
-- ⚠️ **iOS-Builds brauchen einen Mac mit Xcode** (Windows kann keine iOS-Apps bauen/signieren). Optionen: Mac besorgen/leihen oder CI-Dienst wie Codemagic (baut + signiert in der Cloud, Free-Tier vorhanden).
+- iOS-Builds laufen über **Codemagic** (Mac in der Cloud) — kein eigener Mac nötig. Testen ohne iPhone: Appetize.io (Simulator im Browser); für Kauf-Tests + TestFlight-Endtest einmal ein echtes iPhone leihen.
 - App Store Connect: App anlegen, Abo-Produkte (monthly/half-year/annual) NEU anlegen — Apple hat eigenes Abo-System, Preise/Produkte aus der Play Console gelten dort nicht.
 - Belegprüfung: `verify-purchase` prüft nur Google-Käufe. Für iOS braucht es einen zweiten Prüfweg (App Store Server API) — bauen, wenn iOS-Version konkret wird.
 - Apple-Abos: Kommission ebenfalls 15 % (Small Business Program, muss nach Freischaltung beantragt werden).

@@ -8,6 +8,7 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import 'review_screen.dart';
 //import 'core_topics_screen.dart';
+import 'anschluesse_quiz_screen.dart';
 import 'flashcard_screen.dart';
 import '../zertifikate/certificate_overview_screen.dart';
 import '../levels/level_module_screen.dart';
@@ -246,6 +247,26 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                       );
                       _loadCounts();
                     },
+                  ),
+                  const SizedBox(height: 10),
+
+                  _buildCategoryRow(
+                    tag: 'SI',
+                    tagColor: AppColors.accentCyan,
+                    title: 'Anschlüsse',
+                    sub: 'Hardware erkennen · Systemintegration',
+                    count: '16',
+                    surface: surface,
+                    border: border,
+                    text: text,
+                    textMid: textMid,
+                    textDim: textDim,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AnschluesseQuizScreen(),
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 36),
