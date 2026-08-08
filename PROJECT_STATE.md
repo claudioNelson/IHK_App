@@ -1,6 +1,6 @@
 # Projektstatus — Lernarena (ihk_app)
 
-Aktualisiert: **2026-08-01**
+Aktualisiert: **2026-08-09**
 Repo: **github.com/claudioNelson/IHK_App** · Branch **main**
 Lokal: **C:\Users\cnm89\Desktop\Projekte\IHK\ihk_app**
 App-Version im Store: **1.1.0+7** (Closed Track, approved, bei Testern) · lokal bereit: **v8-Stand** mit Flutter 3.44.8 + neuer Billing-Lib (NICHT hochladen bis nach dem Launch)
@@ -122,6 +122,33 @@ Zwei Produkte, ein Projekt:
 - Belegprüfung: `verify-purchase` prüft nur Google-Käufe. Für iOS braucht es einen zweiten Prüfweg (App Store Server API) — bauen, wenn iOS-Version konkret wird.
 - Apple-Abos: Kommission ebenfalls 15 % (Small Business Program, muss nach Freischaltung beantragt werden).
 - Sign in with Apple ist Pflicht, wenn Google-Login angeboten wird — `sign_in_with_apple` ist schon im Projekt ✅.
+
+---
+
+## 4d. Gast-Modus (Branch `feature/gast-modus`, Stand 08.08.2026) — wird **v9**
+
+Anonymes Ausprobieren ohne Registrierung, damit Neugierige die App sofort testen können.
+
+- **Supabase Anonymous Sign-ins aktiviert** (Dashboard: Authentication → Sign In/Up).
+- **Trigger `handle_new_user` anonym-sicher gemacht:** Username-Fallback „Gast-XXXX", E-Mail-Fallback `<user-id>@gast.lernarena.app` (nötig, weil `profiles.email` NOT NULL ist).
+- **Login-Screen:** Button „Ohne Account ausprobieren" → `signInAnonymously()` → NavRoot.
+- **Paket-Migration mitgezogen:** `supabase_flutter` 1.10.3 → 2.17.1, `app_links` 3.5.1 → 7.x. Nötige Code-Fixes: `.in_` → `.inFilter` (6 Stellen), `getInitialAppLink` → `getInitialLink`, Future.wait-Typfix in `new_profile_page.dart`.
+- **✅ Getestet (Windows-Desktop):** Gast-Login, Profil „Gast-1758", Ada, Logout → Login-Screen, normaler Login nach Migration — alles fehlerfrei.
+
+**Android App Links eingerichtet (09.08.2026):** Damit die Auth-Mails (Bestätigung + Passwort-Reset) direkt in der App landen statt im Browser.
+- `web/public/.well-known/assetlinks.json`: Package `app.lernarena`, **zwei** SHA-256-Fingerprints — `02:5F:…:00:35` (Play-App-Signing-Key, Store-Builds) **und** `B5:12:…:37:61` (lokaler Debug/Upload-Key, `flutter run`-Builds). Beide nötig, weil Debug-Installs mit dem lokalen Key signiert sind und die Verifizierung sonst mit Status `1024` (failed) scheitert.
+- ⚠️ **Gefundener & behobener Bug:** `web/vercel.json` leitete `/.well-known/assetlinks.json` per Rewrite auf die API-Route `/api/assetlinks` um, die einen **veralteten Fingerprint** (`B5:12:…`) auslieferte → live wurde der falsche Wert serviert. Rewrite entfernt (statische Datei wird jetzt direkt ausgeliefert), API-Route-Fingerprint zur Sicherheit ebenfalls korrigiert, `.well-known/` aus dem `proxy.ts`-Matcher (Next-16-Middleware) ausgeschlossen.
+- `AndroidManifest.xml`: HTTPS-Intent-Filter (`autoVerify="true"`) auf `android:pathPrefix="/auth/callback"` eingeschränkt — nur Auth-Callbacks öffnen die App, normale Website-/SEO-Links bleiben im Browser. Custom-Scheme `app.lernarena://` bleibt.
+- `auth_service.dart` nutzte bereits `https://lernarena.app/auth/callback` (signUp + resetPassword) → konsistent, keine Änderung.
+- **Noch zu tun (User):** Supabase Redirect URLs eintragen (`https://lernarena.app/auth/callback` + `…/auth/callback**`), Web deployen, dann `curl -I https://lernarena.app/.well-known/assetlinks.json` prüfen (200 + application/json + `02:5F`-Fingerprint), danach App aufs Gerät bauen + Mail-Flow testen.
+
+**Noch offen vor Release:**
+1. **Test auf echtem Android-Gerät** — v. a. Deep Links: E-Mail-Bestätigung + Passwort-Reset (`app_links` 7.x + PKCE-Flow von supabase v2 sind ungetestet!). App-Links-Config steht (s. o.), fehlt nur Deploy + Gerätetest.
+2. **Gast → Account-Umwandlung** (Profil: „Account erstellen & Fortschritt sichern", dabei `profiles.email` vom Platzhalter auf echte Mail updaten).
+3. **Premium-Kauf für Gäste blockieren** → erst Registrierung verlangen.
+4. **„Profil bearbeiten" beim Gast prüfen.**
+5. **Cleanup-Job für verwaiste Gast-Accounts** (>30 Tage inaktiv) + evtl. Captcha.
+6. **BillingService: Platform-Check** (Fehler auf Windows ist nur kosmetisch).
 
 ---
 

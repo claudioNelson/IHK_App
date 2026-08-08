@@ -29,13 +29,16 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <!-- Deep Links / App Links für Email-Bestätigung (HTTPS - für später) -->
+            <!-- App Links für Auth-Callbacks (Email-Bestätigung + Passwort-Reset).
+                 NUR /auth/callback abfangen, damit normale lernarena.app-Links
+                 (Website, SEO-Seiten) im Browser bleiben. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" />
                 <data android:host="lernarena.app" />
+                <data android:pathPrefix="/auth/callback" />
             </intent-filter>
 
             <!-- Custom Scheme Deep Link (aktuell verwendet) -->
