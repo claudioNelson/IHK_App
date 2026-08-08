@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter run:*)"
+      "Bash(flutter run:*)",
+      "Bash(grep -A2 \"name: app_links\" pubspec.lock; ls ~/AppData/Local/Pub/Cache/hosted/pub.dev/ | grep app_links)",
+      "Bash(flutter analyze *)",
+      "Bash(grep -v \"//\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\CC-Student\\Desktop\\Projekte\\IHK_App"

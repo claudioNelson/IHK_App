@@ -109,7 +109,15 @@ kein Markdown, keine Code-Fences, kein Text davor oder danach:
   "lernempfehlungen": ["Konkrete Lernempfehlung mit Thema"]
 }
 
-Alle Texte auf Deutsch.`;
+Alle Texte auf Deutsch.
+
+WICHTIGE KONSISTENZ-REGELN:
+- "gesamt.punkte" MUSS exakt die Summe aller "aufgaben[].punkte" sein.
+- Eine Aufgabe mit Antworttext gilt als beantwortet und wird inhaltlich
+  bewertet, auch wenn andere Aufgaben unbeantwortet sind.
+- Der Gesamtkommentar darf den Einzelbewertungen nicht widersprechen
+  (also NICHT "keine Aufgaben beantwortet" schreiben, wenn Teilaufgaben
+  Punkte bekommen haben).`;
 
     // ─── 1) Primär: Claude Haiku ─────────────────────────────
     if (ANTHROPIC_API_KEY) {

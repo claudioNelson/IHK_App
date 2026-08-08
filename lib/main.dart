@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/app_cache_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_provider.dart';
@@ -26,8 +25,6 @@ void main() async {
       systemNavigationBarColor: Colors.transparent,
     ),
   );
-
-  await Hive.initFlutter();
 
   final themeProvider = ThemeProvider();
   await themeProvider.loadTheme();

@@ -51,6 +51,53 @@ interface KiResult {
   lernempfehlungen?: string[];
 }
 
+// Sicherheitsnetz: Die KI bewertet die Aufgaben einzeln meist korrekt,
+// verrechnet sich aber gelegentlich im Gesamt-Block (oder behauptet
+// "nichts beantwortet", obwohl Teilaufgaben Punkte bekommen haben).
+// Deshalb rechnen wir das Gesamtergebnis selbst aus den Einzelbewertungen
+// zusammen und leiten Prozent, Note und Bestanden daraus ab.
+function reconcileKiResult(result: KiResult): KiResult {
+  if (!Array.isArray(result.aufgaben) || result.aufgaben.length === 0) {
+    return result;
+  }
+
+  const punkte = result.aufgaben.reduce(
+    (sum, a) => sum + (Number(a.punkte) || 0),
+    0
+  );
+  const maxPunkte =
+    result.aufgaben.reduce((sum, a) => sum + (Number(a.maxPunkte) || 0), 0) ||
+    result.gesamt?.maxPunkte ||
+    100;
+
+  const prozent = Math.round((punkte / maxPunkte) * 100);
+
+  let note = 6;
+  let noteText = "ungenügend";
+  if (prozent >= 92) { note = 1; noteText = "sehr gut"; }
+  else if (prozent >= 81) { note = 2; noteText = "gut"; }
+  else if (prozent >= 67) { note = 3; noteText = "befriedigend"; }
+  else if (prozent >= 50) { note = 4; noteText = "ausreichend"; }
+  else if (prozent >= 30) { note = 5; noteText = "mangelhaft"; }
+
+  const bestanden = prozent >= 50;
+
+  // Kommentar nur übernehmen, wenn er nicht offensichtlich widerspricht
+  const kommentar =
+    punkte > 0 &&
+    result.gesamt?.kommentar &&
+    /keine aufgaben|nicht beantwortet|nichts beantwortet/i.test(
+      result.gesamt.kommentar
+    )
+      ? undefined
+      : result.gesamt?.kommentar;
+
+  return {
+    ...result,
+    gesamt: { punkte, maxPunkte, prozent, note, noteText, bestanden, kommentar },
+  };
+}
+
 export default function ExamResult({ exam, completed, answers, onReset }: ExamResultProps) {
   const [kiLoading, setKiLoading] = useState(false);
   const [kiFeedback, setKiFeedback] = useState<string | null>(null);
@@ -75,7 +122,7 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unbekannter Fehler");
       if (data.result) {
-        setKiResult(data.result as KiResult);
+        setKiResult(reconcileKiResult(data.result as KiResult));
         setKiFeedback(null);
       } else {
         setKiFeedback(data.feedback ?? "Keine Antwort erhalten");
@@ -424,10 +471,48 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
           background: rgba(220,38,38,0.06);
           border-color: rgba(220,38,38,0.30);
         }
-        .kir-badge.note {
-          color: #7C6DFF;
-          background: rgba(124,109,255,0.08);
-          border-color: rgba(124,109,255,0.30);
+        .kir-note-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 10px 26px 12px;
+          border-radius: 14px;
+          border: 1.5px solid;
+          min-width: 110px;
+        }
+        .kir-note-label {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          opacity: 0.75;
+        }
+        .kir-note-num {
+          font-size: 44px;
+          font-weight: 800;
+          line-height: 1.1;
+          letter-spacing: -1px;
+        }
+        .kir-note-text {
+          font-size: 13px;
+          font-weight: 600;
+          text-transform: capitalize;
+        }
+        .kir-note-card.n12 {
+          color: #047857;
+          background: rgba(16,185,129,0.08);
+          border-color: rgba(16,185,129,0.4);
+        }
+        .kir-note-card.n34 {
+          color: #B45309;
+          background: rgba(245,158,11,0.08);
+          border-color: rgba(245,158,11,0.4);
+        }
+        .kir-note-card.n56 {
+          color: #B91C1C;
+          background: rgba(220,38,38,0.07);
+          border-color: rgba(220,38,38,0.35);
         }
         .kir-progress {
           height: 8px;
@@ -804,9 +889,19 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
                 <span className={`kir-badge ${kiResult.gesamt.bestanden ? "pass" : "fail"}`}>
                   {kiResult.gesamt.bestanden ? "✓ Bestanden" : "✗ Nicht bestanden"}
                 </span>
-                <span className="kir-badge note">
-                  Note {kiResult.gesamt.note} · {kiResult.gesamt.noteText}
-                </span>
+                <div
+                  className={`kir-note-card ${
+                    kiResult.gesamt.note <= 2
+                      ? "n12"
+                      : kiResult.gesamt.note <= 4
+                        ? "n34"
+                        : "n56"
+                  }`}
+                >
+                  <span className="kir-note-label">Note</span>
+                  <span className="kir-note-num">{kiResult.gesamt.note}</span>
+                  <span className="kir-note-text">{kiResult.gesamt.noteText}</span>
+                </div>
               </div>
             </div>
             <div className="kir-progress">

@@ -90,7 +90,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
 
     try {
       // Parallel laden für Speed
-      final results = await Future.wait([
+      final results = await Future.wait<dynamic>([
         // Match Stats
         _supabase
             .from('player_stats')

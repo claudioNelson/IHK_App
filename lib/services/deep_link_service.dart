@@ -20,7 +20,7 @@ class DeepLinkService {
 
     // 1. Falls die App durch einen Link erst gestartet wurde:
     try {
-      final initialUri = await _appLinks.getInitialAppLink();
+      final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
         print('🔗 App durch Link gestartet: $initialUri');
         await _handleUri(initialUri);
