@@ -39,7 +39,8 @@ export const config = {
          * - _next/image (Bild-Optimierung)
          * - favicon.ico
          * - images/ (eigene Bilder)
+         * - .well-known/ (Android App Links assetlinks.json muss unangetastet bleiben)
          */
-        "/((?!_next/static|_next/image|favicon.ico|images/).*)",
+        "/((?!_next/static|_next/image|favicon.ico|images/|.well-known/).*)",
     ],
 };
