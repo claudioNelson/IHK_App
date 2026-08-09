@@ -173,7 +173,8 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 ## 6. Offene Punkte / Nächste Schritte
 
 **App**
-- ⏳ **v8-Review abwarten** (Closed Track, submitted 07.08.) → testen → Promote to Production.
+- ✅ **v8 im Closed Track freigegeben** → am 09.08. per „Promote release" in die **Produktion hochgestuft, Rollout gestartet, in Prüfung**. (Warnung „1.022 Geräte nicht mehr unterstützt" = Uralt-Androids durch Flutter-Upgrade-minSdk, unkritisch.) ⏳ Produktions-Review abwarten.
+- 🔜 **v9 (1.2.0+9) hochladen:** pubspec bereits gebumpt; `flutter build appbundle` auf feature/gast-modus → Closed Track → neuen Release erstellen (frisches AAB, v9 war nie in der Console) → Rollout → Publishing overview „Send for review".
 - ✅ **Gast-Modus (feature/gast-modus) KOMPLETT** (09.08.2026) → wird v9: alle 7 Punkte aus 4d erledigt & getestet (Umwandlung, Kauf-Sperre, Passwort-Reset, Profil-Check, Cleanup-Job, Platform-Check, Kauf-Regressionstest). Nächster Schritt: Version auf 1.2.0+9 bumpen → appbundle bauen → Closed Track (sobald v8 durch ist).
 - Uncommittete Änderungen committen/pushen: `pubspec.yaml`/`pubspec.lock` (neue Billing-Lib), `android/app/build.gradle.kts` + `android/gradle.properties` (Auto-Anpassung durchs Flutter-Upgrade), PROJECT_STATE.md.
 - **Nach dem Launch:** v8 hochladen (Version auf 1.1.1+8 bumpen) — idealerweise zusammen mit der serverseitigen Belegprüfung (Pflicht vor Public Launch des Kaufsystems, siehe 4b).
