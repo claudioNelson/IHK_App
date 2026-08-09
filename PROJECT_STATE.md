@@ -155,7 +155,7 @@ Anonymes Ausprobieren ohne Registrierung, damit Neugierige die App sofort testen
 1. **Deep Links auf echtem Gerät** — ✅ E-Mail-Bestätigung getestet, öffnet App + loggt ein (App Links `verified`). **✅ Passwort-Reset komplett gebaut & Ende-zu-Ende getestet (09.08.2026):** neuer `lib/screens/auth/reset_password_screen.dart` (Formular neues Passwort + Bestätigen, Stil wie change_password_screen, Erfolgsansicht „Passwort gesetzt."); `main.dart` bekam globalen `navigatorKey` + Behandlung von `AuthChangeEvent.passwordRecovery` (öffnet den Screen mit 800 ms Verzögerung, damit der Navigator nach Kaltstart bereit ist). Drei Stolpersteine, alle behoben: (a) Auth-Listener muss VOR `DeepLinkService().initialize()` registriert sein, sonst geht das Event beim Kaltstart über den Mail-Link verloren; (b) das Supabase-Mail-Template „Reset Password" zeigte auf `{{ .SiteURL }}/reset-confirm` — App Link greift aber nur auf `/auth/callback`, Template korrigiert auf `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery`; (c) Bug in `deep_link_service.dart`: `verifyOTP(token: …)` statt `verifyOTP(tokenHash: …)` → Assertion „email or phone needs to be specified", gefixt. Getestet: Mail-Link öffnet App → Reset-Screen → neues Passwort gesetzt.
 2. ~~Gast → Account-Umwandlung~~ — ✅ gebaut & Ende-zu-Ende getestet (siehe oben).
 3. ~~Premium-Kauf für Gäste blockieren~~ — ✅ gebaut & getestet (09.08.2026): `premium_kauf_sheet.dart` zeigt Gästen statt der Pläne ein Gate „Sichere zuerst deinen Account." mit Button zur Account-Erstellung (UpgradeAccountScreen); zusätzlich Sicherheitsnetz in `billing_service.dart` `buy()` (anonymer User → Fehlermeldung statt Kaufdialog). Gate erscheint beim Gast auf dem Gerät ✅ (normaler Kauf-Flow wird vor v9 sowieso nochmal regressionsgetestet).
-4. **„Profil bearbeiten" beim Gast prüfen.**
+4. ~~„Profil bearbeiten" beim Gast prüfen~~ — ✅ getestet (09.08.2026): Benutzername ändern funktioniert auch als Gast.
 5. **Cleanup-Job für verwaiste Gast-Accounts** (>30 Tage inaktiv) + evtl. Captcha.
 6. **BillingService: Platform-Check** (Fehler auf Windows ist nur kosmetisch).
 
@@ -171,7 +171,7 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 
 **App**
 - ⏳ **v8-Review abwarten** (Closed Track, submitted 07.08.) → testen → Promote to Production.
-- **Gast-Modus (feature/gast-modus) fertigstellen** → wird v9 (✅ Gast→Account-Umwandlung getestet, ✅ Premium-Kauf für Gäste blockiert & getestet, ✅ Passwort-Reset gebaut & getestet; offen laut 4d: „Profil bearbeiten" beim Gast prüfen, Cleanup-Job, BillingService-Platform-Check, Kauf-Flow-Regressionstest vor v9).
+- **Gast-Modus (feature/gast-modus) fertigstellen** → wird v9 (✅ Gast→Account-Umwandlung getestet, ✅ Premium-Kauf für Gäste blockiert & getestet, ✅ Passwort-Reset gebaut & getestet; ✅ „Profil bearbeiten" beim Gast getestet; offen laut 4d: Cleanup-Job, BillingService-Platform-Check, Kauf-Flow-Regressionstest vor v9).
 - Uncommittete Änderungen committen/pushen: `pubspec.yaml`/`pubspec.lock` (neue Billing-Lib), `android/app/build.gradle.kts` + `android/gradle.properties` (Auto-Anpassung durchs Flutter-Upgrade), PROJECT_STATE.md.
 - **Nach dem Launch:** v8 hochladen (Version auf 1.1.1+8 bumpen) — idealerweise zusammen mit der serverseitigen Belegprüfung (Pflicht vor Public Launch des Kaufsystems, siehe 4b).
 - Tester bitten, den Kauf-Flow in v7 zu testen (dafür ihre Gmail-Adressen als Lizenztester eintragen, sonst zahlen sie echt!).
