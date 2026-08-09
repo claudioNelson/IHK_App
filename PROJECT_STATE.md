@@ -157,7 +157,10 @@ Anonymes Ausprobieren ohne Registrierung, damit Neugierige die App sofort testen
 3. ~~Premium-Kauf für Gäste blockieren~~ — ✅ gebaut & getestet (09.08.2026): `premium_kauf_sheet.dart` zeigt Gästen statt der Pläne ein Gate „Sichere zuerst deinen Account." mit Button zur Account-Erstellung (UpgradeAccountScreen); zusätzlich Sicherheitsnetz in `billing_service.dart` `buy()` (anonymer User → Fehlermeldung statt Kaufdialog). Gate erscheint beim Gast auf dem Gerät ✅ (normaler Kauf-Flow wird vor v9 sowieso nochmal regressionsgetestet).
 4. ~~„Profil bearbeiten" beim Gast prüfen~~ — ✅ getestet (09.08.2026): Benutzername ändern funktioniert auch als Gast.
 5. ~~Cleanup-Job für verwaiste Gast-Accounts~~ — ✅ eingerichtet (09.08.2026): SQL-Funktion `public.cleanup_guest_accounts()` (security definer, löscht `auth.users` mit `is_anonymous = true` und >30 Tage inaktiv, pro User mit Exception-Handling, execute für anon/authenticated revoked) + pg_cron-Job `cleanup-guest-accounts` täglich 03:00 UTC (`cron.job` zeigt active=true; Testlauf lief fehlerfrei, 0 Löschungen wie erwartet). Captcha bleibt optional für später.
-6. **BillingService: Platform-Check** (Fehler auf Windows ist nur kosmetisch).
+6. ~~BillingService: Platform-Check~~ — ✅ gefixt & getestet (09.08.2026): `_iap` ist jetzt `late final` mit Initializer (wird erst beim ersten Zugriff erzeugt) + neuer Getter `platformSupported` (Android/iOS/macOS); `init()` überspringt Billing auf Windows/Linux/Web sauber mit Log statt LateInitializationError („Plattform nicht unterstützt — übersprungen" auf Windows verifiziert). Alle übrigen Methoden sind über `_available == false` automatisch abgesichert.
+7. ~~Kauf-Flow-Regressionstest~~ — ✅ bestanden (09.08.2026): Mit echtem Account zeigt das Kauf-Sheet die drei Pläne mit echten Google-Preisen; Neukauf (monthly, Lizenztester) lief komplett durch inkl. serverseitiger Belegprüfung → Premium aktiviert. Anmerkung: Das alte Test-Abo war zuvor abgelaufen (Lizenztester-Abos laufen stark verkürzt), daher fand „Käufe wiederherstellen" korrekt nichts — Restore hat aktuell kein UI-Feedback (kosmetisch, evtl. später Snackbar).
+
+**➡️ Damit ist die v9-Feature-Liste KOMPLETT — der Branch ist inhaltlich releasefertig.** Vor dem v9-Release noch: Version in `pubspec.yaml` auf 1.2.0+9 bumpen, `flutter build appbundle`, in Play Console Closed Track hochladen.
 
 ---
 
@@ -171,7 +174,7 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 
 **App**
 - ⏳ **v8-Review abwarten** (Closed Track, submitted 07.08.) → testen → Promote to Production.
-- **Gast-Modus (feature/gast-modus) fertigstellen** → wird v9 (✅ Gast→Account-Umwandlung getestet, ✅ Premium-Kauf für Gäste blockiert & getestet, ✅ Passwort-Reset gebaut & getestet; ✅ „Profil bearbeiten" beim Gast getestet, ✅ Cleanup-Job eingerichtet; offen laut 4d: BillingService-Platform-Check, Kauf-Flow-Regressionstest vor v9).
+- ✅ **Gast-Modus (feature/gast-modus) KOMPLETT** (09.08.2026) → wird v9: alle 7 Punkte aus 4d erledigt & getestet (Umwandlung, Kauf-Sperre, Passwort-Reset, Profil-Check, Cleanup-Job, Platform-Check, Kauf-Regressionstest). Nächster Schritt: Version auf 1.2.0+9 bumpen → appbundle bauen → Closed Track (sobald v8 durch ist).
 - Uncommittete Änderungen committen/pushen: `pubspec.yaml`/`pubspec.lock` (neue Billing-Lib), `android/app/build.gradle.kts` + `android/gradle.properties` (Auto-Anpassung durchs Flutter-Upgrade), PROJECT_STATE.md.
 - **Nach dem Launch:** v8 hochladen (Version auf 1.1.1+8 bumpen) — idealerweise zusammen mit der serverseitigen Belegprüfung (Pflicht vor Public Launch des Kaufsystems, siehe 4b).
 - Tester bitten, den Kauf-Flow in v7 zu testen (dafür ihre Gmail-Adressen als Lizenztester eintragen, sonst zahlen sie echt!).
