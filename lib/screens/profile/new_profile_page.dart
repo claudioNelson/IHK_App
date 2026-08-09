@@ -11,6 +11,7 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../auth/change_password_screen.dart';
 import '../auth/login_screen.dart';
+import '../auth/upgrade_account_screen.dart';
 import '../../services/subscription_service.dart';
 import '../legal/legal_document_screen.dart';
 import '../../services/daily_goal_service.dart';
@@ -517,6 +518,12 @@ class _NewProfilePageState extends State<NewProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // GAST-HINWEIS: Account erstellen & Fortschritt sichern
+                  if (_authService.isGuest) ...[
+                    _buildGuestUpgradeCard(isDark, text, textMid),
+                    const SizedBox(height: 32),
+                  ],
+
                   // LERNFORTSCHRITT
                   _sectionLabel('DEIN FORTSCHRITT', textDim),
                   const SizedBox(height: 12),
@@ -1137,6 +1144,90 @@ class _NewProfilePageState extends State<NewProfilePage> {
     );
   }
 
+  // ─── GAST → ACCOUNT ───────────────────────────────
+  Future<void> _openUpgradeScreen() async {
+    final ok = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const UpgradeAccountScreen()),
+    );
+    if (ok == true && mounted) {
+      // Profil-Cache verwerfen und neu laden,
+      // damit Username/E-Mail direkt aktuell sind
+      final cache = AppCacheService();
+      cache.cachedMyProfile = null;
+      cache.profileLoaded = false;
+      await _loadProfile();
+      if (mounted) setState(() {});
+    }
+  }
+
+  Widget _buildGuestUpgradeCard(bool isDark, Color text, Color textMid) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _openUpgradeScreen,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.accent.withOpacity(isDark ? 0.16 : 0.10),
+                AppColors.accent.withOpacity(isDark ? 0.05 : 0.03),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.accent.withOpacity(0.35)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.person_add_alt_1_outlined,
+                  color: AppColors.accent,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Account erstellen & Fortschritt sichern',
+                      style: AppTextStyles.labelLarge(text),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Als Gast geht dein Fortschritt bei einer '
+                      'Deinstallation verloren.',
+                      style: AppTextStyles.bodySmall(textMid),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: AppColors.accent,
+                size: 14,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ─── ACCOUNT ──────────────────────────────────────
   Widget _buildAccountGroup(
     Color surface,
@@ -1162,17 +1253,29 @@ class _NewProfilePageState extends State<NewProfilePage> {
             textDim: textDim,
           ),
           _divider(border),
-          _actionTile(
-            icon: Icons.lock_outline,
-            title: 'Passwort ändern',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+          if (_authService.isGuest)
+            _actionTile(
+              icon: Icons.person_add_alt_1_outlined,
+              title: 'Account erstellen',
+              subtitle: 'Fortschritt dauerhaft sichern',
+              iconColor: AppColors.accent,
+              onTap: _openUpgradeScreen,
+              text: text,
+              textMid: textMid,
+              textDim: textDim,
+            )
+          else
+            _actionTile(
+              icon: Icons.lock_outline,
+              title: 'Passwort ändern',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+              ),
+              text: text,
+              textMid: textMid,
+              textDim: textDim,
             ),
-            text: text,
-            textMid: textMid,
-            textDim: textDim,
-          ),
           _divider(border),
           _actionTile(
             icon: Icons.delete_outline,

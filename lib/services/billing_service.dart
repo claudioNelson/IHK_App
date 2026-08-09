@@ -219,6 +219,15 @@ class BillingService {
   /// Startet den Google-Play-Kaufdialog für den gewählten Plan.
   /// Liefert false, wenn der Kauf gar nicht gestartet werden konnte.
   Future<bool> buy(PremiumPlan plan) async {
+    // Gäste dürfen nicht kaufen — das Abo würde an einem anonymen
+    // Account hängen und wäre bei Deinstallation verloren.
+    if (Supabase.instance.client.auth.currentUser?.isAnonymous == true) {
+      _purchaseError.add(
+        'Bitte erstelle zuerst einen Account, um Premium zu kaufen.',
+      );
+      return false;
+    }
+
     if (!_available) {
       _purchaseError.add(
         'Google Play Billing ist auf diesem Gerät nicht verfügbar.',

@@ -77,7 +77,7 @@ Zwei Produkte, ein Projekt:
 - Historie: 14-Tage-Test abgeschlossen, Produktionszugriff-Fragebogen bestanden.
 - Aktueller Track-Release: **versionCode 7 (1.1.0+7)** — approved & bei den Testern. Enthält das komplette Kauf-System (Kauf-Sheet, BillingService, In-App-Navigation statt Website-Links). Historie: v4/v5 Fehlversuche ohne Billing (hängender Gradle-Daemon), v6 = Billing-Lib ohne Kauf-UI.
 - ⚠️ Gelernte Lektion: In der Play Console reicht **Save nicht** — ein Release braucht **Edit → Rollout → Publishing overview → Submit for review**, sonst bleibt es als Draft liegen.
-- **v8 lokal bereit** (01.08.): Flutter 3.44.8 + `in_app_purchase ^3.3.0`/`in_app_purchase_android ^0.5.2`; auf Gerät getestet (Kauf-Sheet lädt echte Preise), `flutter analyze` 0 Errors, `.aab` baut sauber (58,9 MB). **Erst NACH dem Launch mit v7 hochladen** (dann Version auf 1.1.1+8 bumpen, idealerweise zusammen mit serverseitiger Belegprüfung).
+- **v8 (1.1.1+8) am 07.08. in den Closed Track hochgeladen & submitted** — Inhalt: serverseitige Belegprüfung (end-to-end getestet), Anschlüsse-Quiz, lokale Sounds, neue Billing-Lib (Flutter 3.44.8). Nach Googles Freigabe: als Tester kurz aus dem Store prüfen → **„Promote release" → Production**.
 - Play-Policy „target Android 16 (API 36)" ✅ · Edge-to-edge-Hinweise (Android 15) durch Flutter-Upgrade erledigt.
 - Open Testing bewusst NICHT genutzt (erst nach Produktionszugriff möglich; offene Tester würden echt zahlen).
 
@@ -140,12 +140,21 @@ Anonymes Ausprobieren ohne Registrierung, damit Neugierige die App sofort testen
 - ⚠️ **Gefundener & behobener Bug:** `web/vercel.json` leitete `/.well-known/assetlinks.json` per Rewrite auf die API-Route `/api/assetlinks` um, die einen **veralteten Fingerprint** (`B5:12:…`) auslieferte → live wurde der falsche Wert serviert. Rewrite entfernt (statische Datei wird jetzt direkt ausgeliefert), API-Route-Fingerprint zur Sicherheit ebenfalls korrigiert, `.well-known/` aus dem `proxy.ts`-Matcher (Next-16-Middleware) ausgeschlossen.
 - `AndroidManifest.xml`: HTTPS-Intent-Filter (`autoVerify="true"`) auf `android:pathPrefix="/auth/callback"` eingeschränkt — nur Auth-Callbacks öffnen die App, normale Website-/SEO-Links bleiben im Browser. Custom-Scheme `app.lernarena://` bleibt.
 - `auth_service.dart` nutzte bereits `https://lernarena.app/auth/callback` (signUp + resetPassword) → konsistent, keine Änderung.
-- **Noch zu tun (User):** Supabase Redirect URLs eintragen (`https://lernarena.app/auth/callback` + `…/auth/callback**`), Web deployen, dann `curl -I https://lernarena.app/.well-known/assetlinks.json` prüfen (200 + application/json + `02:5F`-Fingerprint), danach App aufs Gerät bauen + Mail-Flow testen.
+- **Deploy-Weg:** assetlinks-Fix (nur die 4 Web-Dateien) per Cherry-Pick auf `main` gebracht (Commit `2ce9c9e`, gepusht) — Produktion `lernarena.app` deployt von `main`, nicht vom Feature-Branch. Die Manifest-/AuthService-Änderungen bleiben auf `feature/gast-modus`.
+- **✅ App Links live & verifiziert (09.08.2026):** Live-Datei liefert beide Fingerprints aus; `adb pm get-app-links app.lernarena` zeigt `lernarena.app: verified` (vorher `1024`). Debug-Build ist mit `B5:12:…` signiert, daher der zweite Fingerprint nötig.
+- **✅ Mail-Flow end-to-end getestet (09.08.2026):** Registrierungs-Bestätigungsmail öffnet auf dem echten Android-Gerät direkt die App und loggt den User ein. Supabase Redirect URLs eingetragen (`https://lernarena.app/auth/callback` + `…/auth/callback**`). Passwort-Reset-Mail noch nicht separat gegengetestet, sollte über denselben Callback laufen.
+- ⚠️ **Lesson learned (Git):** Beim Cherry-Pick auf `main` blockierte eine uncommittete `.claude/settings.local.json` den `checkout`; ein `git stash pop` popte danach versehentlich einen **alten, vergessenen Stash** (`WIP on main: 3fc4680`) und riss ~40 Dateien in Merge-Konflikte. Behoben via `git reset --hard HEAD` (HEAD war unberührt `4705095`, `.env` vorher aus dem Index genommen → blieb erhalten). Kein Datenverlust. Merke: alten Stash nicht blind poppen.
+
+**Gast → Account-Umwandlung gebaut & ✅ getestet (09.08.2026):**
+- `auth_service.dart`: neuer Getter `isGuest` (`currentUser.isAnonymous`) + `convertGuestToAccount()` — setzt E-Mail/Passwort/Username per `updateUser()` auf dem **anonymen** User (KEIN neuer Account, User-ID + Fortschritt bleiben), Redirect über `https://lernarena.app/auth/callback`; danach werden `profiles.username`/`email` vom Platzhalter auf die echten Werte geupdatet.
+- `lib/screens/auth/upgrade_account_screen.dart` (NEU): Formular Username/E-Mail/Passwort/Bestätigen im register_screen-Stil, Fehlertext bei bereits vergebener E-Mail, Erfolgsansicht „Fast geschafft!" mit Bestätigungsmail-Hinweis, `pop(true)` zurück zum Profil.
+- `new_profile_page.dart`: Für Gäste auffällige Karte „Account erstellen & Fortschritt sichern" (Accent-Gradient, Hinweis „Fortschritt geht bei Deinstallation verloren") oben im Profil; im ACCOUNT-Block ersetzt „Account erstellen" das „Passwort ändern"-Tile für Gäste; nach erfolgreicher Umwandlung wird der Profil-Cache verworfen und neu geladen.
+- ✅ **Auf echtem Gerät getestet (09.08.2026):** Gast-Login → Karte → Formular → Bestätigungsmail → App Link → Account umgewandelt, Fortschritt erhalten, Profil zeigt echte Daten.
 
 **Noch offen vor Release:**
-1. **Test auf echtem Android-Gerät** — v. a. Deep Links: E-Mail-Bestätigung + Passwort-Reset (`app_links` 7.x + PKCE-Flow von supabase v2 sind ungetestet!). App-Links-Config steht (s. o.), fehlt nur Deploy + Gerätetest.
-2. **Gast → Account-Umwandlung** (Profil: „Account erstellen & Fortschritt sichern", dabei `profiles.email` vom Platzhalter auf echte Mail updaten).
-3. **Premium-Kauf für Gäste blockieren** → erst Registrierung verlangen.
+1. **Deep Links auf echtem Gerät** — ✅ E-Mail-Bestätigung getestet, öffnet App + loggt ein (App Links `verified`). Offen: Passwort-Reset-Mail separat gegentesten.
+2. ~~Gast → Account-Umwandlung~~ — ✅ gebaut & Ende-zu-Ende getestet (siehe oben).
+3. ~~Premium-Kauf für Gäste blockieren~~ — ✅ gebaut (09.08.2026, Test offen): `premium_kauf_sheet.dart` zeigt Gästen statt der Pläne ein Gate „Sichere zuerst deinen Account." mit Button zur Account-Erstellung (UpgradeAccountScreen); zusätzlich Sicherheitsnetz in `billing_service.dart` `buy()` (anonymer User → Fehlermeldung statt Kaufdialog).
 4. **„Profil bearbeiten" beim Gast prüfen.**
 5. **Cleanup-Job für verwaiste Gast-Accounts** (>30 Tage inaktiv) + evtl. Captcha.
 6. **BillingService: Platform-Check** (Fehler auf Windows ist nur kosmetisch).
@@ -161,7 +170,8 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 ## 6. Offene Punkte / Nächste Schritte
 
 **App**
-- ⏳ Auf Googles Antwort zum **Produktionszugriff** warten → dann Launch mit v7 (staged rollout empfohlen).
+- ⏳ **v8-Review abwarten** (Closed Track, submitted 07.08.) → testen → Promote to Production.
+- **Gast-Modus (feature/gast-modus) fertigstellen** → wird v9 (✅ Gast→Account-Umwandlung getestet, ✅ Premium-Kauf für Gäste blockiert (Test offen); offen laut 4d: Passwort-Reset-Test, Cleanup-Job, BillingService-Platform-Check).
 - Uncommittete Änderungen committen/pushen: `pubspec.yaml`/`pubspec.lock` (neue Billing-Lib), `android/app/build.gradle.kts` + `android/gradle.properties` (Auto-Anpassung durchs Flutter-Upgrade), PROJECT_STATE.md.
 - **Nach dem Launch:** v8 hochladen (Version auf 1.1.1+8 bumpen) — idealerweise zusammen mit der serverseitigen Belegprüfung (Pflicht vor Public Launch des Kaufsystems, siehe 4b).
 - Tester bitten, den Kauf-Flow in v7 zu testen (dafür ihre Gmail-Adressen als Lizenztester eintragen, sonst zahlen sie echt!).
@@ -169,7 +179,9 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 - KI-Kosten im Blick behalten (Ada läuft über Claude Haiku; Nutzungslimits über `usage_tracker`).
 
 **Web**
-- Zum Launch: „Bald verfügbar"-Popup gegen echten Play-Store-Button tauschen.
+- ✅ Play-Store-Badge live auf der Startseite (Hero, Schluss-CTA, Footer).
+- **Python-Kurs ausbauen:** `/python-kurs` mit Browser-Editor (Pyodide, Code läuft clientseitig) und Lektion 1–2 ist gebaut; Lektion 3–12 folgen (Kursplan steht, inkl. 2 Spiele-Projekte). Deploy-Status prüfen (committen/pushen falls noch offen).
+- **KI-Korrektur verbessert (07.08.):** Gesamtergebnis wird jetzt clientseitig aus den Einzelbewertungen summiert (Fix für „0/100 trotz Punkten"-Widerspruch), Konsistenz-Regeln im Prompt, große farbige Noten-Karte in `ExamResult.tsx`.
 - `/upgrade` (Web-Stripe-Checkout) fertig bauen; Play-Premium-Nutzern dort keinen Doppelkauf anbieten.
 - Nach 2–3 Wochen Search-Console-Daten prüfen → Seiten mit Impressionen weiter ausbauen; ggf. neue Themenseiten (VLAN, DHCP/DNS, USV, Scrum, …).
 

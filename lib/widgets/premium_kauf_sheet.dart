@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../screens/auth/upgrade_account_screen.dart';
+import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -33,6 +35,7 @@ class PremiumKaufSheet extends StatefulWidget {
 
 class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
   final _billing = BillingService();
+  final _authService = AuthService();
 
   bool _busy = false;
   String? _error;
@@ -93,6 +96,12 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
     final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
     final text = isDark ? AppColors.darkText : AppColors.lightText;
     final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+
+    // Gäste können kein Premium kaufen — das Abo würde an einem
+    // anonymen Account hängen und wäre bei Deinstallation verloren.
+    if (_authService.isGuest) {
+      return _buildGuestGate(bg, surface, border, text, textMid);
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -208,6 +217,123 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
                 'werden.',
                 style: AppTextStyles.bodySmall(
                   textMid.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Ansicht für Gäste: erst Account erstellen, dann kaufen.
+  Widget _buildGuestGate(
+    Color bg,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border.all(color: border),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Grabber
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              Row(
+                children: [
+                  Container(width: 16, height: 1, color: AppColors.accent),
+                  const SizedBox(width: 10),
+                  Text(
+                    'PREMIUM WERDEN',
+                    style: AppTextStyles.monoLabel(AppColors.accent),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              Text(
+                'Sichere zuerst deinen Account.',
+                style: AppTextStyles.instrumentSerif(
+                  size: 28,
+                  color: text,
+                  letterSpacing: -0.8,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Dein Premium-Abo wird mit deinem Account verknüpft. '
+                'Als Gast würde es bei einer Deinstallation verloren gehen. '
+                'Erstelle deshalb zuerst einen kostenlosen Account — dein '
+                'bisheriger Fortschritt bleibt dabei erhalten.',
+                style: AppTextStyles.bodySmall(textMid),
+              ),
+              const SizedBox(height: 20),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final ok = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const UpgradeAccountScreen(),
+                      ),
+                    );
+                    // Nach der Umwandlung muss erst die Mail bestätigt
+                    // werden — Sheet schließen, User kommt später wieder.
+                    if (ok == true && mounted) {
+                      Navigator.pop(context, false);
+                    }
+                  },
+                  icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
+                  label: Text(
+                    'Account erstellen & Fortschritt sichern',
+                    style: AppTextStyles.interTight(
+                      size: 14,
+                      weight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(
+                    'Vielleicht später',
+                    style: AppTextStyles.bodySmall(textMid),
+                  ),
                 ),
               ),
             ],
