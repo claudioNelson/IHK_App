@@ -1,6 +1,7 @@
 import 'widgets/auth_wrapper.dart';
 import 'widgets/navigation/nav_root.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/auth/reset_password_screen.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,10 @@ import 'theme/theme_provider.dart';
 import 'services/subscription_service.dart';
 import 'services/deep_link_service.dart';
 import 'services/billing_service.dart';
+
+/// Globaler Navigator-Key: erlaubt Navigation außerhalb des Widget-Baums
+/// (z. B. Passwort-Reset-Screen öffnen, wenn der Mail-Link die App öffnet).
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +46,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Lernarena',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
@@ -84,15 +90,10 @@ class _AppInitializerState extends State<AppInitializer> {
 
       print('✅ Supabase initialisiert');
 
-      // Deep Links aktivieren (für Email-Bestätigungs-Links)
-      await DeepLinkService().initialize();
-      print('✅ Deep Link Service aktiv');
-
-      // Google Play Billing initialisieren (Kauf-Events, Produkte)
-      await BillingService().init();
-      print('✅ Billing Service aktiv');
-
-      // Auf Auth-Änderungen reagieren (Login/Logout)
+      // Auf Auth-Änderungen reagieren (Login/Logout/Passwort-Reset).
+      // WICHTIG: Muss VOR DeepLinkService().initialize() registriert sein —
+      // sonst geht das passwordRecovery-Event verloren, wenn die App erst
+      // durch den Mail-Link gestartet wird (Kaltstart).
       Supabase.instance.client.auth.onAuthStateChange.listen((data) {
         if (data.event == AuthChangeEvent.signedIn) {
           SubscriptionService().load();
@@ -100,8 +101,26 @@ class _AppInitializerState extends State<AppInitializer> {
           BillingService().restorePurchases();
         } else if (data.event == AuthChangeEvent.signedOut) {
           SubscriptionService().clear();
+        } else if (data.event == AuthChangeEvent.passwordRecovery) {
+          // User hat den Link aus der Passwort-vergessen-Mail geöffnet:
+          // Supabase hat eine Recovery-Session erstellt → Screen zum
+          // Setzen des neuen Passworts öffnen (leicht verzögert, damit
+          // der Navigator nach einem Kaltstart sicher bereit ist).
+          Future.delayed(const Duration(milliseconds: 800), () {
+            navigatorKey.currentState?.push(
+              MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+            );
+          });
         }
       });
+
+      // Deep Links aktivieren (für Email-Bestätigungs-Links)
+      await DeepLinkService().initialize();
+      print('✅ Deep Link Service aktiv');
+
+      // Google Play Billing initialisieren (Kauf-Events, Produkte)
+      await BillingService().init();
+      print('✅ Billing Service aktiv');
 
       final session = Supabase.instance.client.auth.currentSession;
       print(

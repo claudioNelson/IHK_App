@@ -65,9 +65,11 @@ class DeepLinkService {
     print('🔑 Verifiziere Token (type: $type)');
 
     try {
-      // OTP-Token verifizieren → erstellt Session automatisch
+      // OTP-Token verifizieren → erstellt Session automatisch.
+      // WICHTIG: tokenHash (nicht token) — token würde zusätzlich
+      // eine E-Mail/Telefonnummer verlangen.
       await Supabase.instance.client.auth.verifyOTP(
-        token: tokenHash,
+        tokenHash: tokenHash,
         type: _parseOtpType(type),
       );
       print('✅ Session erfolgreich erstellt - User ist eingeloggt!');
