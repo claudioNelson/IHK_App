@@ -1,0 +1,29 @@
+<svg width="860" height="330" viewBox="0 0 860 330" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<rect width="860" height="330" fill="#1a1a2e"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker></defs>
+<text x="40" y="46" fill="#ffffff" font-size="18" font-weight="bold" letter-spacing="1">ARRAY TREFFER</text>
+<rect x="40" y="66" width="290" height="32" fill="#1e293b"/>
+<rect x="40" y="130" width="290" height="32" fill="#20263c"/>
+<rect x="40" y="194" width="290" height="32" fill="#20263c"/>
+<rect x="40" y="66" width="290" height="192" fill="none" stroke="#334155" stroke-width="2"/>
+<line x1="40" y1="98" x2="330" y2="98" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="130" x2="330" y2="130" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="162" x2="330" y2="162" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="194" x2="330" y2="194" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="226" x2="330" y2="226" stroke="#334155" stroke-width="1"/>
+<line x1="170" y1="66" x2="170" y2="258" stroke="#334155" stroke-width="1"/>
+<text x="105.0" y="88" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">score</text>
+<text x="250.0" y="88" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">idPerson</text>
+<text x="105.0" y="120" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">21</text>
+<text x="250.0" y="120" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">73447</text>
+<text x="105.0" y="152" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">85</text>
+<text x="250.0" y="152" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">93334</text>
+<text x="105.0" y="184" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">80</text>
+<text x="250.0" y="184" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">48774</text>
+<text x="105.0" y="216" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">98</text>
+<text x="250.0" y="216" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">56446</text>
+<text x="105.0" y="248" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">81</text>
+<text x="250.0" y="248" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">49982</text>
+<text x="380" y="180" fill="#94a3b8" font-size="14">Gesucht: der minimale Score-Wert</text>
+<text x="380" y="205" fill="#94a3b8" font-size="14" font-family="Consolas, monospace">Beispiel-Ausgabe: minimaler Score = 21</text>
+</svg>

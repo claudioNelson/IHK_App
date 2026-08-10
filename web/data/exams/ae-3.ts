@@ -165,26 +165,7 @@ REGELN FÜR DIE ZEITERFASSUNGSLISTE:
 - Liegt keine Zeitbuchung vor → Anwesenheit 00:00 und "nicht anwesend" ausgeben
 - Am Ende: Summe der Anwesenheitszeiten ausgeben
 
-BEISPIEL - Zeiterfassungsliste:
-┌─────────────────────────────────────────────────────────────┐
-│ Mitarbeiter: 12345                    Oktober 2024         │
-│                                                             │
-│ Tag  Kommen  Gehen   Anwesenheit  Bemerkung                │
-│ ═══════════════════════════════════════════════════════════│
-│ 1                    00:00        nicht anwesend           │
-│ 2    08:10   17:20   09:10                                 │
-│ 3    07:50           00:00        Buchung fehlt            │
-│ 4                    00:00        nicht anwesend           │
-│ 5                    00:00        nicht anwesend           │
-│ 6    08:00   16:00   08:00                                 │
-│ 7    16:30           00:00        Buchung fehlt            │
-│ 8    08:20   16:40   08:20                                 │
-│ ...                                                         │
-│ 30   08:10           00:00        Buchung fehlt            │
-│ 31                   00:00        nicht anwesend           │
-│ ═══════════════════════════════════════════════════════════│
-│ Summe Anwesenheit: 43:10                                   │
-└─────────────────────────────────────────────────────────────┘
+Ein Beispiel der fertigen Zeiterfassungsliste zeigt die Abbildung.
 
 ZEITERFASSUNGSTABELLE (2D-Array "zeiten"):
 | Tag | Stunde | Minute |
@@ -216,6 +197,7 @@ Funktionssignatur:
     erzeugeListe(persnr: int, zeiten: int[][], jahr: int, monat: int)`,
                     type: "code",
                     points: 25,
+                    image: "/images/ae3-zeiterfassung.svg",
                     hint: "Durchlaufen Sie jeden Tag des Monats und prüfen Sie, wie viele Buchungen vorliegen.",
                     tags: ["algorithmen", "pseudocode", "schleife", "zeiterfassung"],
                 },

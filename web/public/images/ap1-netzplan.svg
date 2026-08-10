@@ -1,0 +1,113 @@
+<svg width="860" height="880" viewBox="0 0 860 880" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<rect width="860" height="880" fill="#1a1a2e"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker></defs>
+<text x="40" y="46" fill="#ffffff" font-size="18" font-weight="bold" letter-spacing="1">VORGANGSLISTE</text>
+<rect x="40" y="62" width="690" height="34" fill="#1e293b" rx="0"/>
+<rect x="40" y="130" width="690" height="34" fill="#20263c"/>
+<rect x="40" y="198" width="690" height="34" fill="#20263c"/>
+<rect x="40" y="266" width="690" height="34" fill="#20263c"/>
+<rect x="40" y="334" width="690" height="34" fill="#20263c"/>
+<rect x="40" y="402" width="690" height="34" fill="#20263c"/>
+<rect x="40" y="62" width="690" height="374" fill="none" stroke="#334155" stroke-width="2"/>
+<line x1="40" y1="96" x2="730" y2="96" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="130" x2="730" y2="130" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="164" x2="730" y2="164" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="198" x2="730" y2="198" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="232" x2="730" y2="232" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="266" x2="730" y2="266" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="300" x2="730" y2="300" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="334" x2="730" y2="334" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="368" x2="730" y2="368" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="402" x2="730" y2="402" stroke="#334155" stroke-width="1"/>
+<line x1="110" y1="62" x2="110" y2="436" stroke="#334155" stroke-width="1"/>
+<line x1="530" y1="62" x2="530" y2="436" stroke="#334155" stroke-width="1"/>
+<line x1="620" y1="62" x2="620" y2="436" stroke="#334155" stroke-width="1"/>
+<text x="75.0" y="84" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Vorgang</text>
+<text x="124" y="84" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="start">Beschreibung</text>
+<text x="575.0" y="84" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Dauer</text>
+<text x="675.0" y="84" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Vorgänger</text>
+<text x="75.0" y="118" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">A</text>
+<text x="124" y="118" fill="#e2e8f0" font-size="14">Ist-Analyse</text>
+<text x="575.0" y="118" fill="#e2e8f0" font-size="14" text-anchor="middle">3</text>
+<text x="675.0" y="118" fill="#94a3b8" font-size="14" text-anchor="middle">–</text>
+<text x="75.0" y="152" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">B</text>
+<text x="124" y="152" fill="#e2e8f0" font-size="14">Soll-Konzept</text>
+<text x="575.0" y="152" fill="#e2e8f0" font-size="14" text-anchor="middle">5</text>
+<text x="675.0" y="152" fill="#94a3b8" font-size="14" text-anchor="middle">A</text>
+<text x="75.0" y="186" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">C</text>
+<text x="124" y="186" fill="#e2e8f0" font-size="14">Beschaffung neuer Geräte</text>
+<text x="575.0" y="186" fill="#e2e8f0" font-size="14" text-anchor="middle">4</text>
+<text x="675.0" y="186" fill="#94a3b8" font-size="14" text-anchor="middle">B</text>
+<text x="75.0" y="220" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">D</text>
+<text x="124" y="220" fill="#e2e8f0" font-size="14">Verkabelung erneuern</text>
+<text x="575.0" y="220" fill="#e2e8f0" font-size="14" text-anchor="middle">6</text>
+<text x="675.0" y="220" fill="#94a3b8" font-size="14" text-anchor="middle">B</text>
+<text x="75.0" y="254" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">E</text>
+<text x="124" y="254" fill="#e2e8f0" font-size="14">Datensicherung der Altsysteme</text>
+<text x="575.0" y="254" fill="#e2e8f0" font-size="14" text-anchor="middle">3</text>
+<text x="675.0" y="254" fill="#94a3b8" font-size="14" text-anchor="middle">B</text>
+<text x="75.0" y="288" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">F</text>
+<text x="124" y="288" fill="#e2e8f0" font-size="14">Installation Praxis-Server</text>
+<text x="575.0" y="288" fill="#e2e8f0" font-size="14" text-anchor="middle">4</text>
+<text x="675.0" y="288" fill="#94a3b8" font-size="14" text-anchor="middle">C, D</text>
+<text x="75.0" y="322" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">G</text>
+<text x="124" y="322" fill="#e2e8f0" font-size="14">Installation Arbeitsplatz-PCs</text>
+<text x="575.0" y="322" fill="#e2e8f0" font-size="14" text-anchor="middle">5</text>
+<text x="675.0" y="322" fill="#94a3b8" font-size="14" text-anchor="middle">C, D</text>
+<text x="75.0" y="356" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">H</text>
+<text x="124" y="356" fill="#e2e8f0" font-size="14">Abbau Altgeräte</text>
+<text x="575.0" y="356" fill="#e2e8f0" font-size="14" text-anchor="middle">2</text>
+<text x="675.0" y="356" fill="#94a3b8" font-size="14" text-anchor="middle">E</text>
+<text x="75.0" y="390" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">I</text>
+<text x="124" y="390" fill="#e2e8f0" font-size="14">Funktionstest</text>
+<text x="575.0" y="390" fill="#e2e8f0" font-size="14" text-anchor="middle">2</text>
+<text x="675.0" y="390" fill="#94a3b8" font-size="14" text-anchor="middle">F, G</text>
+<text x="75.0" y="424" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">J</text>
+<text x="124" y="424" fill="#e2e8f0" font-size="14">Mitarbeiter-Schulung</text>
+<text x="575.0" y="424" fill="#e2e8f0" font-size="14" text-anchor="middle">3</text>
+<text x="675.0" y="424" fill="#94a3b8" font-size="14" text-anchor="middle">I, H</text>
+<text x="40" y="482" fill="#ffffff" font-size="18" font-weight="bold" letter-spacing="1">ABLAUF DER VORGÄNGE</text>
+<line x1="119.0" y1="666.0" x2="175.0" y2="666.0" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="232.0" y1="647.1" x2="323.4" y2="568.8" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="239.0" y1="666.0" x2="315.0" y2="666.0" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="232.0" y1="684.9" x2="323.4" y2="763.2" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="378.1" y1="553.0" x2="476.0" y2="577.5" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="375.9" y1="653.0" x2="478.7" y2="601.7" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="370.5" y1="566.5" x2="485.3" y2="681.3" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="378.1" y1="673.0" x2="476.0" y2="697.5" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="536.7" y1="597.4" x2="617.8" y2="632.2" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="536.7" y1="694.6" x2="617.8" y2="659.8" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="379.0" y1="786.0" x2="475.0" y2="786.0" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="675.9" y1="659.0" x2="738.7" y2="690.3" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="537.7" y1="777.5" x2="736.5" y2="716.3" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<circle cx="90" cy="666" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="90" y="673" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">A</text>
+<text x="90" y="712" text-anchor="middle" fill="#94a3b8" font-size="12">Dauer 3</text>
+<circle cx="210" cy="666" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="210" y="673" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">B</text>
+<text x="210" y="712" text-anchor="middle" fill="#94a3b8" font-size="12">Dauer 5</text>
+<circle cx="350" cy="546" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="350" y="553" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">C</text>
+<text x="350" y="592" text-anchor="middle" fill="#94a3b8" font-size="12">Dauer 4</text>
+<circle cx="350" cy="666" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="350" y="673" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">D</text>
+<text x="350" y="712" text-anchor="middle" fill="#94a3b8" font-size="12">Dauer 6</text>
+<circle cx="350" cy="786" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="350" y="793" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">E</text>
+<text x="350" y="832" text-anchor="middle" fill="#94a3b8" font-size="12">Dauer 3</text>
+<circle cx="510" cy="586" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="510" y="593" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">F</text>
+<text x="510" y="632" text-anchor="middle" fill="#94a3b8" font-size="12">Dauer 4</text>
+<circle cx="510" cy="706" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="510" y="713" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">G</text>
+<text x="510" y="752" text-anchor="middle" fill="#94a3b8" font-size="12">Dauer 5</text>
+<circle cx="510" cy="786" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="510" y="793" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">H</text>
+<text x="510" y="832" text-anchor="middle" fill="#94a3b8" font-size="12">Dauer 2</text>
+<circle cx="650" cy="646" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="650" y="653" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">I</text>
+<text x="650" y="692" text-anchor="middle" fill="#94a3b8" font-size="12">Dauer 2</text>
+<circle cx="770" cy="706" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="770" y="713" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">J</text>
+<text x="770" y="752" text-anchor="middle" fill="#94a3b8" font-size="12">Dauer 3</text>
+</svg>

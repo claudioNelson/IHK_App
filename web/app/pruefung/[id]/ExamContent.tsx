@@ -414,11 +414,8 @@ export default function ExamContent({ exam }: ExamContentProps) {
         .q-image {
           margin-bottom: 14px;
           border-radius: 10px;
-          max-width: 100%;
-          max-height: 500px;
-          width: auto;
+          width: 100%;
           height: auto;
-          object-fit: contain;
           display: block;
           border: 1px solid ${t.border};
           cursor: zoom-in;

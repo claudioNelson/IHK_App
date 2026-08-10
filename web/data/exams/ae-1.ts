@@ -90,27 +90,7 @@ Ein Netzwerk von Strecken verbindet verschiedene Standorte. Jede Strecke hat:
 - Eine maximale Kapazität (in Tonnen)
 - Einen Preis pro Tonne
 
-STRECKENNETZ:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-         [10t, 5€]         [8t, 3€]
-    A ─────────────► C ─────────────► B
-    │                                 ▲
-    │ [15t, 4€]              [12t, 6€]│
-    │                                 │
-    └──────────────► D ───────────────┘
-                     │
-                     │ [20t, 2€]
-                     ▼
-                     E ─────────────► B
-                          [10t, 4€]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-ROUTENTABELLE (von A nach B):
-| Route | Strecke 1 | Strecke 2 | Strecke 3 |
-|-------|-----------|-----------|-----------|
-| 1     | A→C       | C→B       | -         |
-| 2     | A→D       | D→B       | -         |
-| 3     | A→D       | D→E       | E→B       |
+Das Streckennetz und die Routentabelle (von A nach B) zeigt die Abbildung.
 
 HILFSFUNKTIONEN:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -134,7 +114,7 @@ ANFORDERUNGEN:
 - Bei gleichen Preisen: niedrigere Routennummer bevorzugen`,
                     type: "code",
                     points: 25,
-                    image: "/images/hs2-graph.png",
+                    image: "/images/ae1-streckennetz.svg",
                     hint: "Prüfen Sie zuerst, ob die Kapazität aller Teilstrecken ausreicht. Vergleichen Sie dann die Gesamtkosten der gültigen Routen.",
                     tags: ["algorithmen", "pseudocode", "optimierung"],
                 },
@@ -154,26 +134,7 @@ ANFORDERUNGEN:
 
 Die Daten eines Transports sind in einem Transport-Objekt enthalten. Die entsprechende Klasse "Transport" wurde bereits entwickelt. Für jedes Attribut der Klasse Transport liegen öffentliche get-/set-Methoden vor.
 
-KLASSE TRANSPORT:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-| Transport                                      |
-|------------------------------------------------|
-| - id: String                                   |
-| - transportDatum: Date                         |
-| - abfahrtZeit: Date                            |
-| - ankunftZeit: Date                            |
-| - preis: Double                                |
-| - freiePlaetze: Integer                        |
-| ...                                            |
-|------------------------------------------------|
-| + getId(): String                              |
-| + getTransportDatum(): Date                    |
-| + getAbfahrtZeit(): Date                       |
-| + getAnkunftZeit(): Date                       |
-| + getPreis(): Double                           |
-| + getFreiePlaetze(): Integer                   |
-| ...                                            |
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Die Klasse Transport zeigt die Abbildung.
 
 Das Array "Linien_Transporte" enthält die Transport-Objekte aller Transporte, die auf einer bestimmten Strecke nonstop durchgeführt werden.
 
@@ -200,6 +161,7 @@ Erstellen Sie die entsprechende Funktion:
 Stellen Sie den Algorithmus in Pseudocode, einem Struktogramm oder einem Programmablaufplan (PAP) dar.`,
                     type: "code",
                     points: 25,
+                    image: "/images/ae1-klasse-transport.svg",
                     hint: "Zuerst filtern (Datum UND Plätze), dann sortieren. Welches einfache Sortierverfahren kennen Sie?",
                     tags: ["algorithmen", "pseudocode", "sortierung", "filterung"],
                 },

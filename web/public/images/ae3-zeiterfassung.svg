@@ -1,0 +1,92 @@
+<svg width="860" height="640" viewBox="0 0 860 640" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<rect width="860" height="640" fill="#1a1a2e"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker></defs>
+<text x="40" y="46" fill="#ffffff" font-size="18" font-weight="bold" letter-spacing="1">BEISPIEL — ZEITERFASSUNGSLISTE</text>
+<rect x="40" y="66" width="780" height="520" fill="#1e293b" stroke="#334155" stroke-width="2" rx="8"/>
+<text x="60" y="98" fill="#ffffff" font-size="15" font-weight="bold" font-family="Consolas, monospace">Mitarbeiter: 12345</text>
+<text x="800" y="98" fill="#ffffff" font-size="15" font-weight="bold" text-anchor="end" font-family="Consolas, monospace">Oktober 2024</text>
+<rect x="60" y="118" width="760" height="32" fill="#1e293b"/>
+<rect x="60" y="182" width="760" height="32" fill="#20263c"/>
+<rect x="60" y="246" width="760" height="32" fill="#20263c"/>
+<rect x="60" y="310" width="760" height="32" fill="#20263c"/>
+<rect x="60" y="374" width="760" height="32" fill="#20263c"/>
+<rect x="60" y="438" width="760" height="32" fill="#20263c"/>
+<rect x="60" y="118" width="760" height="384" fill="none" stroke="#334155" stroke-width="2"/>
+<line x1="60" y1="150" x2="820" y2="150" stroke="#334155" stroke-width="1"/>
+<line x1="60" y1="182" x2="820" y2="182" stroke="#334155" stroke-width="1"/>
+<line x1="60" y1="214" x2="820" y2="214" stroke="#334155" stroke-width="1"/>
+<line x1="60" y1="246" x2="820" y2="246" stroke="#334155" stroke-width="1"/>
+<line x1="60" y1="278" x2="820" y2="278" stroke="#334155" stroke-width="1"/>
+<line x1="60" y1="310" x2="820" y2="310" stroke="#334155" stroke-width="1"/>
+<line x1="60" y1="342" x2="820" y2="342" stroke="#334155" stroke-width="1"/>
+<line x1="60" y1="374" x2="820" y2="374" stroke="#334155" stroke-width="1"/>
+<line x1="60" y1="406" x2="820" y2="406" stroke="#334155" stroke-width="1"/>
+<line x1="60" y1="438" x2="820" y2="438" stroke="#334155" stroke-width="1"/>
+<line x1="60" y1="470" x2="820" y2="470" stroke="#334155" stroke-width="1"/>
+<line x1="130" y1="118" x2="130" y2="502" stroke="#334155" stroke-width="1"/>
+<line x1="250" y1="118" x2="250" y2="502" stroke="#334155" stroke-width="1"/>
+<line x1="370" y1="118" x2="370" y2="502" stroke="#334155" stroke-width="1"/>
+<line x1="520" y1="118" x2="520" y2="502" stroke="#334155" stroke-width="1"/>
+<text x="95.0" y="140" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Tag</text>
+<text x="190.0" y="140" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Kommen</text>
+<text x="310.0" y="140" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Gehen</text>
+<text x="445.0" y="140" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Anwesenheit</text>
+<text x="534" y="140" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="start">Bemerkung</text>
+<text x="95.0" y="172" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">1</text>
+<text x="190.0" y="172" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="310.0" y="172" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="445.0" y="172" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">00:00</text>
+<text x="534" y="172" fill="#e2e8f0" font-size="14" text-anchor="start">nicht anwesend</text>
+<text x="95.0" y="204" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">2</text>
+<text x="190.0" y="204" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">08:10</text>
+<text x="310.0" y="204" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">17:20</text>
+<text x="445.0" y="204" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">09:10</text>
+<text x="534" y="204" fill="#e2e8f0" font-size="14" text-anchor="start"></text>
+<text x="95.0" y="236" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">3</text>
+<text x="190.0" y="236" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">07:50</text>
+<text x="310.0" y="236" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="445.0" y="236" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">00:00</text>
+<text x="534" y="236" fill="#e2e8f0" font-size="14" text-anchor="start">Buchung fehlt</text>
+<text x="95.0" y="268" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">4</text>
+<text x="190.0" y="268" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="310.0" y="268" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="445.0" y="268" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">00:00</text>
+<text x="534" y="268" fill="#e2e8f0" font-size="14" text-anchor="start">nicht anwesend</text>
+<text x="95.0" y="300" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">5</text>
+<text x="190.0" y="300" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="310.0" y="300" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="445.0" y="300" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">00:00</text>
+<text x="534" y="300" fill="#e2e8f0" font-size="14" text-anchor="start">nicht anwesend</text>
+<text x="95.0" y="332" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">6</text>
+<text x="190.0" y="332" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">08:00</text>
+<text x="310.0" y="332" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">16:00</text>
+<text x="445.0" y="332" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">08:00</text>
+<text x="534" y="332" fill="#e2e8f0" font-size="14" text-anchor="start"></text>
+<text x="95.0" y="364" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">7</text>
+<text x="190.0" y="364" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">16:30</text>
+<text x="310.0" y="364" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="445.0" y="364" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">00:00</text>
+<text x="534" y="364" fill="#e2e8f0" font-size="14" text-anchor="start">Buchung fehlt</text>
+<text x="95.0" y="396" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">8</text>
+<text x="190.0" y="396" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">08:20</text>
+<text x="310.0" y="396" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">16:40</text>
+<text x="445.0" y="396" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">08:20</text>
+<text x="534" y="396" fill="#e2e8f0" font-size="14" text-anchor="start"></text>
+<text x="95.0" y="428" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">...</text>
+<text x="190.0" y="428" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="310.0" y="428" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="445.0" y="428" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="534" y="428" fill="#e2e8f0" font-size="14" text-anchor="start"></text>
+<text x="95.0" y="460" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">30</text>
+<text x="190.0" y="460" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">08:10</text>
+<text x="310.0" y="460" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="445.0" y="460" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">00:00</text>
+<text x="534" y="460" fill="#e2e8f0" font-size="14" text-anchor="start">Buchung fehlt</text>
+<text x="95.0" y="492" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">31</text>
+<text x="190.0" y="492" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="310.0" y="492" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle"></text>
+<text x="445.0" y="492" fill="#e2e8f0" font-size="14" font-family="Consolas, monospace" text-anchor="middle">00:00</text>
+<text x="534" y="492" fill="#e2e8f0" font-size="14" text-anchor="start">nicht anwesend</text>
+<line x1="60" y1="514" x2="820" y2="514" stroke="#334155" stroke-width="2"/>
+<text x="60" y="536" fill="#ffffff" font-size="15" font-weight="bold" font-family="Consolas, monospace">Summe Anwesenheit: 43:10</text>
+</svg>

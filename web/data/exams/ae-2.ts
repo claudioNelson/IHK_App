@@ -45,16 +45,7 @@ Die Zeichenkette wird von der Methode berechneMerkmal() anhand des Bildes berech
 
 Die Algorithmen zur Berechnung der Zeichenketten sind für Iris-Scan und Netzhaut-Scan unterschiedlich.
 
-Es existiert bereits folgende Klasse Scan, die für das Klassendiagramm verwendet werden soll:
-
-┌─────────────────────────────┐
-│ Scan                        │
-├─────────────────────────────┤
-│ - bild: Bild                │
-│ - merkmal: String           │
-├─────────────────────────────┤
-│ + berechneMerkmal()         │
-└─────────────────────────────┘
+Es existiert bereits die Klasse Scan (siehe Abbildung), die für das Klassendiagramm verwendet werden soll.
 
 In einem UML-Klassendiagramm können die folgenden Beziehungen vorkommen.
 Beschreiben Sie jeweils kurz:
@@ -62,6 +53,7 @@ Beschreiben Sie jeweils kurz:
 aa) Assoziation`,
                     type: "freeText",
                     points: 2,
+                    image: "/images/ae2-klasse-scan.svg",
                     hint: `Assoziation: Eine allgemeine Beziehung zwischen zwei Klassen. Objekte der einen Klasse kennen Objekte der anderen Klasse.`,
                     tags: ["uml-klasse", "theorie", "assoziation"],
                 },
@@ -133,24 +125,13 @@ VERFÜGBARE FUNKTIONEN:
 | loesche(array,pos) | Löscht Element an Position pos               |
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-BEISPIEL:
-
-Array treffer von suche(scan):          Rückgabe bei schwelle=80, auge=1:
-┌───────┬──────────┬────────┐           ┌───────┬──────────┬────────┐
-│ score │ idPerson │ idAuge │           │ score │ idPerson │ idAuge │
-├───────┼──────────┼────────┤           ├───────┼──────────┼────────┤
-│ 85    │ 93334    │ 1      │           │ 98    │ 56446    │ 1      │
-│ 80    │ 48774    │ 2      │           │ 85    │ 93334    │ 1      │
-│ 98    │ 56446    │ 1      │           │ 81    │ 49982    │ 1      │
-│ 71    │ 33961    │ 2      │           └───────┴──────────┴────────┘
-│ 21    │ 73447    │ 1      │
-│ 81    │ 49982    │ 1      │
-└───────┴──────────┴────────┘
+Ein Beispiel (Eingabe-Array und erwartete Rückgabe) zeigt die Abbildung.
 
 AUFGABE:
     auswertung(scan: String, schwelle: Integer, auge: Integer) : Treffer[]`,
                     type: "code",
                     points: 25,
+                    image: "/images/ae2-treffer-beispiel.svg",
                     hint: `1. treffer = suche(scan)
 2. Filterphase (von hinten nach vorne):
    - score <= schwelle → löschen
@@ -197,22 +178,14 @@ Wichtige Elemente:
                 {
                     id: "hs3-b",
                     title: "Aufgabe b) Minimum ermitteln (5 Punkte)",
-                    description: `Array treffer:
-┌───────┬──────────┐
-│ score │ idPerson │
-├───────┼──────────┤
-│ 21    │ 73447    │
-│ 85    │ 93334    │
-│ 80    │ 48774    │
-│ 98    │ 56446    │
-│ 81    │ 49982    │
-└───────┴──────────┘
+                    description: `Gegeben ist das Array treffer (siehe Abbildung).
 
 Ermitteln Sie den minimalen Score-Wert.
 
 Beispiel-Ausgabe: minimaler Score = 21`,
                     type: "code",
                     points: 5,
+                    image: "/images/ae2-treffer-min.svg",
                     hint: "Initialisieren Sie minimum mit dem ersten Element und durchlaufen Sie dann das Array.",
                     tags: ["algorithmen", "pseudocode", "minimum", "schleife"],
                 },
