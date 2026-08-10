@@ -49,6 +49,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     })),
     {
+      url: `${baseUrl}/python-kurs`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    // Nur live geschaltete Lektionen — beim Freischalten neuer Lektionen erweitern!
+    ...[1, 2, 3, 4, 5, 6].map((nr) => ({
+      url: `${baseUrl}/python-kurs/lektion-${nr}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+    {
       url: `${baseUrl}/impressum`,
       lastModified: now,
       changeFrequency: "yearly",

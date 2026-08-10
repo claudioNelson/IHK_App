@@ -103,14 +103,19 @@ export default function PythonRunner({
     }
   }
 
+  // Der Editor hat bewusst eine EIGENE dunkle Farbwelt (Terminal-Look,
+  // GitHub-Dark-Palette), damit er sich klar vom Seitenhintergrund abhebt —
+  // im Dunkel-Modus durch den blauen Unterton + hellere Kopfleiste,
+  // im Hell-Modus als dunkler Codeblock.
   return (
     <div
       style={{
-        border: "1px solid var(--border, rgba(255,255,255,0.08))",
+        border: "1px solid rgba(139,148,158,0.3)",
         borderRadius: 14,
         overflow: "hidden",
         margin: "18px 0",
-        background: "var(--pre-bg, rgba(0,0,0,0.35))",
+        background: "#0D1117",
+        boxShadow: "0 6px 24px rgba(0,0,0,0.35)",
       }}
     >
       <div
@@ -119,7 +124,8 @@ export default function PythonRunner({
           justifyContent: "space-between",
           alignItems: "center",
           padding: "8px 14px",
-          borderBottom: "1px solid var(--border, rgba(255,255,255,0.08))",
+          background: "#161B26",
+          borderBottom: "1px solid rgba(139,148,158,0.25)",
         }}
       >
         <span
@@ -127,7 +133,7 @@ export default function PythonRunner({
             fontSize: 12,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            color: "var(--text-dim, #A0A0B0)",
+            color: "#8B949E",
             fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
           }}
         >
@@ -144,8 +150,8 @@ export default function PythonRunner({
               padding: "6px 12px",
               borderRadius: 8,
               background: "transparent",
-              border: "1px solid var(--chip-border, rgba(255,255,255,0.12))",
-              color: "var(--text-dim, #A0A0B0)",
+              border: "1px solid rgba(139,148,158,0.4)",
+              color: "#8B949E",
               fontSize: 13,
               cursor: "pointer",
               fontFamily: "inherit",
@@ -193,7 +199,8 @@ export default function PythonRunner({
           background: "transparent",
           border: "none",
           outline: "none",
-          color: "var(--text, #F5F5F7)",
+          color: "#E6EDF3",
+          caretColor: "#7C6DFF",
           fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
           fontSize: 14.5,
           lineHeight: 1.6,
@@ -205,8 +212,8 @@ export default function PythonRunner({
         <div
           style={{
             padding: "10px 16px",
-            borderTop: "1px solid var(--border, rgba(255,255,255,0.08))",
-            color: "var(--text-dim, #A0A0B0)",
+            borderTop: "1px solid rgba(139,148,158,0.25)",
+            color: "#8B949E",
             fontSize: 13.5,
           }}
         >
@@ -218,7 +225,8 @@ export default function PythonRunner({
       {output !== null && (
         <div
           style={{
-            borderTop: "1px solid var(--border, rgba(255,255,255,0.08))",
+            borderTop: "1px solid rgba(139,148,158,0.25)",
+            background: "#0A0E14",
           }}
         >
           <div
@@ -227,9 +235,7 @@ export default function PythonRunner({
               fontSize: 11,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              color: isError
-                ? "var(--err, #FF6B63)"
-                : "var(--text-dim, #A0A0B0)",
+              color: isError ? "#FF6B63" : "#8B949E",
               fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
             }}
           >
@@ -239,9 +245,7 @@ export default function PythonRunner({
             style={{
               margin: 0,
               padding: "6px 16px 14px",
-              color: isError
-                ? "var(--err-text, #FFC1BC)"
-                : "var(--text, #F5F5F7)",
+              color: isError ? "#FFC1BC" : "#E6EDF3",
               fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
               fontSize: 14,
               lineHeight: 1.55,
