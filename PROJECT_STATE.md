@@ -173,12 +173,11 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 ## 6. Offene Punkte / Nächste Schritte
 
 **App**
-- ✅ **v8 im Closed Track freigegeben** → am 09.08. per „Promote release" in die **Produktion hochgestuft, Rollout gestartet, in Prüfung**. (Warnung „1.022 Geräte nicht mehr unterstützt" = Uralt-Androids durch Flutter-Upgrade-minSdk, unkritisch.) ⏳ Produktions-Review abwarten.
-- 🔜 **v9 (1.2.0+9) hochladen:** pubspec bereits gebumpt; `flutter build appbundle` auf feature/gast-modus → Closed Track → neuen Release erstellen (frisches AAB, v9 war nie in der Console) → Rollout → Publishing overview „Send for review".
-- ✅ **Gast-Modus (feature/gast-modus) KOMPLETT** (09.08.2026) → wird v9: alle 7 Punkte aus 4d erledigt & getestet (Umwandlung, Kauf-Sperre, Passwort-Reset, Profil-Check, Cleanup-Job, Platform-Check, Kauf-Regressionstest). Nächster Schritt: Version auf 1.2.0+9 bumpen → appbundle bauen → Closed Track (sobald v8 durch ist).
-- Uncommittete Änderungen committen/pushen: `pubspec.yaml`/`pubspec.lock` (neue Billing-Lib), `android/app/build.gradle.kts` + `android/gradle.properties` (Auto-Anpassung durchs Flutter-Upgrade), PROJECT_STATE.md.
-- **Nach dem Launch:** v8 hochladen (Version auf 1.1.1+8 bumpen) — idealerweise zusammen mit der serverseitigen Belegprüfung (Pflicht vor Public Launch des Kaufsystems, siehe 4b).
-- Tester bitten, den Kauf-Flow in v7 zu testen (dafür ihre Gmail-Adressen als Lizenztester eintragen, sonst zahlen sie echt!).
+- ✅ **v8 (1.1.1+8) LIVE IN PRODUKTION** (09.08.2026, 16:14 — Submission activity „Published"): Belegprüfung, Anschlüsse-Quiz, eigene Sounds, neue Billing-Lib für alle Store-Nutzer. (Warnung beim Promote „1.022 Geräte nicht mehr unterstützt" = Uralt-Androids durch Flutter-Upgrade-minSdk, unkritisch akzeptiert.)
+- ✅ **v9 (1.2.0+9, Gast-Modus) LIVE IN PRODUKTION** (10.08.2026): Closed-Track-Review bestanden → Promote to Production → Rollout. Alle Nutzer haben jetzt Gast-Modus, Gast→Account-Umwandlung, Kauf-Sperre für Gäste, Passwort-Reset-Flow. (Hinweis: Tester bekommen Closed-Track-Updates im Store z. T. mit Stunden Verzögerung — nur Propagation, kein Fehler.)
+- ✅ **Ada-Limit gilt automatisch auch für Gäste** (10.08.2026 verifiziert): serverseitiges `FREE_LIMIT = 5`/Tag in Edge Function `ai-tutor` (usage_tracking pro User+Tag) — Gäste sind normale (anonyme) User und laufen durch denselben Check; Block nach 5 Fragen auf Gerät getestet. Bekanntes Schlupfloch: Gast könnte sich neu einloggen (neue User-ID = frisches Limit) — bewusst akzeptiert; Optionen falls KI-Kosten steigen: Gäste-Limit auf 3 senken (`user.is_anonymous` in der Function) oder Ada für Gäste sperren.
+- **TODO nach v9-Verbreitung:** alte RPC `activate_premium_purchase` dichtmachen (`revoke execute from authenticated`), wenn v7/v8-Nutzer migriert sind.
+- **Branch-Hygiene:** `feature/gast-modus` in `main` mergen (v9 ist released, der Stand ist produktiv).
 - Später: Gradle ≥8.14, AGP ≥8.11.1, Kotlin ≥2.2.20 (nicht blockierende Flutter-Warnungen) + `withOpacity`→`withValues`-Aufräum-Session (384 Analyzer-Infos).
 - KI-Kosten im Blick behalten (Ada läuft über Claude Haiku; Nutzungslimits über `usage_tracker`).
 

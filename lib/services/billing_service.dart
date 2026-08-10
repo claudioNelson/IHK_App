@@ -17,6 +17,7 @@
 //      Neuinstallation oder automatischer Abo-Verlängerung).
 
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -111,7 +112,15 @@ class BillingService {
 
   static const String subscriptionId = 'lernarena_premium';
 
-  final InAppPurchase _iap = InAppPurchase.instance;
+  /// In-App-Purchase-Instanz. `late` + Initializer = wird erst beim ersten
+  /// Zugriff erzeugt — auf nicht unterstützten Plattformen (Windows/Linux/
+  /// Web) greifen wir dank Platform-Check nie darauf zu und vermeiden so
+  /// den LateInitializationError beim App-Start.
+  late final InAppPurchase _iap = InAppPurchase.instance;
+
+  /// Plattformen, auf denen in_app_purchase eine Implementierung hat.
+  static bool get platformSupported =>
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
 
   /// Pro Base Plan das passende Google-Play-Produkt (für Preis + Kauf).
@@ -151,6 +160,14 @@ class BillingService {
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
+
+    // Auf Windows/Linux/Web gibt es kein Billing — sauber überspringen
+    // statt mit LateInitializationError zu crashen. _available bleibt
+    // false, alle anderen Methoden sind damit automatisch abgesichert.
+    if (!platformSupported) {
+      debugPrint('💳 Billing: Plattform nicht unterstützt — übersprungen');
+      return;
+    }
 
     try {
       _available = await _iap.isAvailable();
