@@ -23,9 +23,9 @@ export const metadata: Metadata = {
 const lektionen: { nr: number; titel: string; status: "live" | "bald" }[] = [
   { nr: 1, titel: "Start & erster Code", status: "live" },
   { nr: 2, titel: "Variablen & Datentypen", status: "live" },
-  { nr: 3, titel: "Rechnen & Strings", status: "bald" },
-  { nr: 4, titel: "Entscheidungen (if/else)", status: "bald" },
-  { nr: 5, titel: "Schleifen", status: "bald" },
+  { nr: 3, titel: "Rechnen & Strings", status: "live" },
+  { nr: 4, titel: "Entscheidungen (if/else)", status: "live" },
+  { nr: 5, titel: "Schleifen", status: "live" },
   { nr: 6, titel: "🎮 Projekt: Zahlenraten", status: "bald" },
   { nr: 7, titel: "Listen & Dictionaries", status: "bald" },
   { nr: 8, titel: "Funktionen", status: "bald" },
@@ -416,13 +416,370 @@ print("Nächstes Jahr bist du", naechstes_jahr)
 # int(...) macht aus dem Text eine Zahl.`}</pre>
         </details>
 
+        {/* ─── LEKTION 3 ─────────────────────────────────── */}
+        <hr className="pk-divider" />
+        <h2 id="lektion-3">Lektion 3: Rechnen &amp; Strings</h2>
+        <p>
+          Python ist ein vollwertiger Taschenrechner. Neben{" "}
+          <span className="lp-mono">+</span>, <span className="lp-mono">-</span>,{" "}
+          <span className="lp-mono">*</span> und{" "}
+          <span className="lp-mono">/</span> gibt es drei Operatoren, die du noch
+          nicht aus der Schule kennst, die aber in der Praxis (und in
+          Prüfungsaufgaben) dauernd vorkommen:
+        </p>
+
+        <PythonRunner
+          rows={7}
+          initialCode={`print(17 / 5)    # normale Division -> 3.4
+print(17 // 5)   # Ganzzahl-Division -> 3 (Rest wird abgeschnitten)
+print(17 % 5)    # Modulo -> 2 (nur der Rest!)
+print(2 ** 10)   # Potenz -> 1024
+
+# Klassiker: Ist eine Zahl gerade?
+print(8 % 2)     # 0 bedeutet: glatt teilbar, also gerade`}
+        />
+
+        <p>
+          Besonders <span className="lp-mono">%</span> (Modulo) solltest du dir
+          merken: &quot;Rest bei der Division&quot;. Damit prüfst du, ob eine
+          Zahl gerade ist, ob ein Jahr ein Schaltjahr ist oder wie viele Minuten
+          in einer Sekundenzahl stecken. Das taucht in fast jeder
+          Programmier-Prüfungsaufgabe irgendwo auf.
+        </p>
+
+        <h3>Schöne Ausgaben mit f-Strings</h3>
+        <p>
+          Bisher hast du Ausgaben mit <span className="lp-mono">+</span> oder
+          Kommas zusammengebaut. Es geht eleganter: Ein{" "}
+          <strong>f-String</strong> ist ein String mit einem{" "}
+          <span className="lp-mono">f</span> davor, in den du Variablen direkt in
+          geschweiften Klammern einsetzt:
+        </p>
+
+        <PythonRunner
+          rows={6}
+          initialCode={`name = "Alex"
+punkte = 87
+
+print(f"{name} hat {punkte} von 100 Punkten.")
+print(f"Das sind {punkte / 100} Prozent als Dezimalzahl.")
+print(f"In 3 Jahren: {punkte + 3} Punkte (Quatsch, aber es rechnet!)")`}
+        />
+
+        <p>
+          Strings können noch mehr. Mit{" "}
+          <span className="lp-mono">len()</span> misst du die Länge, mit{" "}
+          <span className="lp-mono">.upper()</span> und{" "}
+          <span className="lp-mono">.lower()</span> änderst du die
+          Schreibweise:
+        </p>
+
+        <PythonRunner
+          rows={5}
+          initialCode={`wort = "Fachinformatiker"
+
+print(len(wort))
+print(wort.upper())
+print(wort.lower())`}
+        />
+
+        <div className="pk-aufgabe">
+          <p>
+            <strong>Übung 3.1:</strong> Ein Netto-Preis von 250 Euro soll mit 19
+            Prozent Mehrwertsteuer ausgegeben werden. Berechne den Brutto-Preis
+            und gib ihn mit einem f-String aus, z. B. &quot;Brutto: 297.5
+            Euro&quot;.
+          </p>
+        </div>
+        <PythonRunner
+          rows={4}
+          initialCode={`netto = 250
+# Dein Code:
+`}
+        />
+        <details className="pk-loesung">
+          <summary>Musterlösung anzeigen</summary>
+          <pre>{`netto = 250
+brutto = netto * 1.19
+print(f"Brutto: {brutto} Euro")`}</pre>
+        </details>
+
+        <div className="pk-aufgabe">
+          <p>
+            <strong>Übung 3.2:</strong> Wandle 347 Sekunden in Minuten und
+            Sekunden um (Ergebnis: 5 Minuten, 47 Sekunden). Tipp: Ganzzahl-Division{" "}
+            <span className="lp-mono">//</span> für die Minuten, Modulo{" "}
+            <span className="lp-mono">%</span> für den Rest.
+          </p>
+        </div>
+        <PythonRunner
+          rows={5}
+          initialCode={`sekunden = 347
+# Dein Code:
+`}
+        />
+        <details className="pk-loesung">
+          <summary>Musterlösung anzeigen</summary>
+          <pre>{`sekunden = 347
+minuten = sekunden // 60
+rest = sekunden % 60
+print(f"{minuten} Minuten, {rest} Sekunden")`}</pre>
+        </details>
+
+        {/* ─── LEKTION 4 ─────────────────────────────────── */}
+        <hr className="pk-divider" />
+        <h2 id="lektion-4">Lektion 4: Entscheidungen (if/else)</h2>
+        <p>
+          Bis jetzt läuft dein Code stur von oben nach unten. Mit{" "}
+          <span className="lp-mono">if</span> bekommt er Verzweigungen:
+          &quot;WENN das gilt, DANN tu dies, SONST das.&quot; Genau so steht es
+          später auch im IHK-Pseudocode.
+        </p>
+
+        <PythonRunner
+          rows={7}
+          initialCode={`alter = 17
+
+if alter >= 18:
+    print("Du bist volljährig.")
+else:
+    print("Du bist minderjährig.")
+
+print("Diese Zeile kommt immer.")`}
+        />
+
+        <p>
+          Zwei Dinge sind hier entscheidend. Erstens die{" "}
+          <strong>Einrückung</strong>: Alles, was um vier Leerzeichen eingerückt
+          ist, gehört zum if-Block. Python erzwingt das, andere Sprachen nutzen
+          dafür geschweifte Klammern. Zweitens der{" "}
+          <strong>Vergleichsoperator</strong>{" "}
+          <span className="lp-mono">&gt;=</span>. Davon gibt es sechs:{" "}
+          <span className="lp-mono">==</span> (gleich, mit ZWEI
+          Gleichheitszeichen!), <span className="lp-mono">!=</span> (ungleich),{" "}
+          <span className="lp-mono">&lt;</span>, <span className="lp-mono">&gt;</span>,{" "}
+          <span className="lp-mono">&lt;=</span> und{" "}
+          <span className="lp-mono">&gt;=</span>.
+        </p>
+
+        <div className="lp-tip">
+          <p>
+            <strong>Der häufigste Anfängerfehler:</strong>{" "}
+            <span className="lp-mono">=</span> speichert einen Wert,{" "}
+            <span className="lp-mono">==</span> vergleicht zwei Werte. Wenn du
+            in einer Bedingung nur ein Gleichheitszeichen schreibst, meckert
+            Python sofort.
+          </p>
+        </div>
+
+        <p>
+          Mit <span className="lp-mono">elif</span> (&quot;else if&quot;) prüfst
+          du mehrere Fälle nacheinander. Perfektes Beispiel: der echte
+          IHK-Notenschlüssel. Python geht die Bedingungen von oben nach unten
+          durch und nimmt die <strong>erste</strong>, die zutrifft:
+        </p>
+
+        <PythonRunner
+          rows={12}
+          initialCode={`punkte = 74
+
+if punkte >= 92:
+    print("Note 1, sehr gut!")
+elif punkte >= 81:
+    print("Note 2, gut")
+elif punkte >= 67:
+    print("Note 3, befriedigend")
+elif punkte >= 50:
+    print("Note 4, bestanden")
+else:
+    print("Leider durchgefallen")`}
+        />
+
+        <p>
+          Bedingungen lassen sich mit <span className="lp-mono">and</span> und{" "}
+          <span className="lp-mono">or</span> kombinieren, und mit{" "}
+          <span className="lp-mono">not</span> umdrehen:
+        </p>
+
+        <PythonRunner
+          rows={6}
+          initialCode={`alter = 22
+azubi = True
+
+if alter < 25 and azubi:
+    print("Du bekommst den Azubi-Rabatt!")`}
+        />
+
+        <div className="pk-aufgabe">
+          <p>
+            <strong>Übung 4.1:</strong> Frag den Nutzer nach einer Zahl und gib
+            aus, ob sie gerade oder ungerade ist. Tipp: Lektion 3, Modulo.
+          </p>
+        </div>
+        <PythonRunner
+          rows={6}
+          initialCode={`zahl = int(input("Eine Zahl: "))
+# Dein Code:
+`}
+        />
+        <details className="pk-loesung">
+          <summary>Musterlösung anzeigen</summary>
+          <pre>{`zahl = int(input("Eine Zahl: "))
+if zahl % 2 == 0:
+    print("gerade")
+else:
+    print("ungerade")`}</pre>
+        </details>
+
+        <div className="pk-aufgabe">
+          <p>
+            <strong>Übung 4.2:</strong> Ein Onlineshop berechnet Versandkosten:
+            unter 20 Euro Bestellwert kosten sie 4,95 Euro, ab 20 Euro noch 1,95
+            Euro, und ab 50 Euro ist der Versand gratis. Schreib das mit
+            if/elif/else und teste verschiedene Werte.
+          </p>
+        </div>
+        <PythonRunner
+          rows={8}
+          initialCode={`bestellwert = 35
+# Dein Code:
+`}
+        />
+        <details className="pk-loesung">
+          <summary>Musterlösung anzeigen</summary>
+          <pre>{`bestellwert = 35
+if bestellwert >= 50:
+    print("Versand gratis")
+elif bestellwert >= 20:
+    print("Versand: 1.95 Euro")
+else:
+    print("Versand: 4.95 Euro")
+
+# Wichtig: von der GROESSTEN Grenze abwaerts pruefen,
+# sonst schnappt sich "ab 20 Euro" auch die 50er-Faelle.`}</pre>
+        </details>
+
+        {/* ─── LEKTION 5 ─────────────────────────────────── */}
+        <hr className="pk-divider" />
+        <h2 id="lektion-5">Lektion 5: Schleifen</h2>
+        <p>
+          Computer sind gut in einer Sache: stumpf wiederholen, ohne sich zu
+          beschweren. Eine <span className="lp-mono">for</span>-Schleife mit{" "}
+          <span className="lp-mono">range()</span> wiederholt Code eine feste
+          Anzahl von Malen:
+        </p>
+
+        <PythonRunner
+          rows={4}
+          initialCode={`for i in range(5):
+    print(f"Durchlauf Nummer {i}")`}
+        />
+
+        <p>
+          Wichtig: <span className="lp-mono">range(5)</span> zählt{" "}
+          <strong>ab 0</strong> und hört <strong>vor 5</strong> auf (0, 1, 2, 3,
+          4). Das verwirrt jeden am Anfang. Willst du von 1 bis 10 zählen,
+          schreibst du <span className="lp-mono">range(1, 11)</span>. Damit
+          lassen sich in drei Zeilen Dinge bauen, für die du früher zehn Minuten
+          getippt hättest:
+        </p>
+
+        <PythonRunner
+          rows={6}
+          initialCode={`# Summe aller Zahlen von 1 bis 100 (der kleine Gauss)
+summe = 0
+for zahl in range(1, 101):
+    summe = summe + zahl
+print(summe)`}
+        />
+
+        <p>
+          Die zweite Schleifenart ist <span className="lp-mono">while</span>:
+          Sie läuft, <strong>solange</strong> eine Bedingung wahr ist. Du weißt
+          vorher nicht, wie oft, und genau das ist ihr Einsatzgebiet:
+        </p>
+
+        <PythonRunner
+          rows={7}
+          initialCode={`countdown = 5
+while countdown > 0:
+    print(countdown)
+    countdown = countdown - 1
+print("Start!")`}
+        />
+
+        <div className="lp-tip">
+          <p>
+            <strong>Achtung, Endlosschleife:</strong> Wenn du das{" "}
+            <span className="lp-mono">countdown = countdown - 1</span> vergisst,
+            bleibt die Bedingung für immer wahr und die Schleife läuft endlos.
+            Falls dir das hier im Browser passiert: Seite neu laden, Code
+            korrigieren, weitermachen. Merke: Eine while-Schleife braucht immer
+            etwas, das ihre Bedingung irgendwann kippt.
+          </p>
+        </div>
+
+        <p>
+          Mit <span className="lp-mono">break</span> brichst du eine Schleife
+          sofort ab. Das brauchst du gleich in Lektion 6 fürs Spiel:
+        </p>
+
+        <PythonRunner
+          rows={7}
+          initialCode={`for zahl in range(1, 100):
+    if zahl * zahl > 200:
+        print(f"{zahl} ist die erste Zahl, deren Quadrat ueber 200 liegt.")
+        break`}
+        />
+
+        <div className="pk-aufgabe">
+          <p>
+            <strong>Übung 5.1:</strong> Gib das kleine Einmaleins der 7 aus, also
+            &quot;1 x 7 = 7&quot; bis &quot;10 x 7 = 70&quot;. Eine
+            for-Schleife, ein f-String, fertig.
+          </p>
+        </div>
+        <PythonRunner
+          rows={4}
+          initialCode={`# Dein Code:
+`}
+        />
+        <details className="pk-loesung">
+          <summary>Musterlösung anzeigen</summary>
+          <pre>{`for i in range(1, 11):
+    print(f"{i} x 7 = {i * 7}")`}</pre>
+        </details>
+
+        <div className="pk-aufgabe">
+          <p>
+            <strong>Übung 5.2:</strong> Simuliere eine PIN-Abfrage: Die richtige
+            PIN ist 4711. Frag mit einer while-Schleife so lange nach der PIN,
+            bis sie stimmt, und begrüße den Nutzer dann.
+          </p>
+        </div>
+        <PythonRunner
+          rows={6}
+          initialCode={`richtige_pin = 4711
+# Dein Code:
+`}
+        />
+        <details className="pk-loesung">
+          <summary>Musterlösung anzeigen</summary>
+          <pre>{`richtige_pin = 4711
+eingabe = int(input("PIN eingeben: "))
+while eingabe != richtige_pin:
+    eingabe = int(input("Falsch! Nochmal: "))
+print("Willkommen!")`}</pre>
+        </details>
+
         {/* ─── AUSBLICK ──────────────────────────────────── */}
         <h2>Wie geht es weiter?</h2>
         <p>
-          In <strong>Lektion 3</strong> lernst du richtig rechnen und Texte
-          formatieren, danach kommen Entscheidungen und Schleifen, und in{" "}
-          <strong>Lektion 6</strong> baust du dein erstes Spiel: Zahlenraten,
-          komplett hier im Browser. Die Lektionen erscheinen nach und nach.
+          Du kannst jetzt rechnen, entscheiden und wiederholen. Das ist alles,
+          was du für dein <strong>erstes Spiel</strong> brauchst: In{" "}
+          <strong>Lektion 6</strong> baust du Zahlenraten, komplett hier im
+          Browser. Danach kommen Listen, Funktionen und Objektorientierung. Die
+          Lektionen erscheinen nach und nach.
         </p>
 
         <h2>Häufige Fragen</h2>
