@@ -54,8 +54,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.9,
     },
-    // Nur live geschaltete Lektionen — beim Freischalten neuer Lektionen erweitern!
-    ...[1, 2, 3, 4, 5, 6].map((nr) => ({
+    ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((nr) => ({
       url: `${baseUrl}/python-kurs/lektion-${nr}`,
       lastModified: now,
       changeFrequency: "monthly" as const,

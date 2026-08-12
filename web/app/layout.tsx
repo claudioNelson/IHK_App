@@ -112,6 +112,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de" suppressHydrationWarning>
+      <head>
+        {/* Gespeichertes Theme VOR dem ersten Paint anwenden — zentral für
+            alle Seiten (Startseite, /lernen/*, /python-kurs, ...), damit die
+            Hell/Dunkel-Wahl beim Seitenwechsel erhalten bleibt. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(localStorage.getItem("lernarena-theme")==="light"){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
