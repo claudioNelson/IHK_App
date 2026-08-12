@@ -134,7 +134,7 @@ Begründen Sie kurz Ihre Entscheidung.`,
                 },
                 {
                     id: "ap1-2-a1-b",
-                    title: "b) Laufende Monatskosten berechnen (7 Punkte)",
+                    title: "b) Laufende Monatskosten berechnen (5 Punkte)",
                     description: `Das ausgewählte Unternehmen legt folgendes Angebot vor:
 
 - Monitor: 520 EUR pro Stück
@@ -149,7 +149,7 @@ Berechnen Sie die **laufenden Kosten pro Monat** für die gesamten 4 Renderfarm-
 
 Geben Sie den Rechenweg an.`,
                     type: "calculation",
-                    points: 7,
+                    points: 5,
                     hint: "Berechnen Sie für Monitor und Workstation jeweils: rabattierter Preis × Anzahl ÷ Nutzungsdauer in Monaten. Dann Softwareleasing (× 4 Arbeitsplätze) + Wartung ÷ 12 Monate addieren.",
                     tags: ["kosten", "kalkulation", "wirtschaftlichkeit"],
                 },

@@ -13,12 +13,11 @@ final ae1Exam = IHKExam(
 
 Die TransLogic GmbH ist ein Logistikunternehmen, das Frachttransporte zwischen verschiedenen Standorten durchführt.
 
-Sie sollen vier der folgenden fünf Aufgaben erledigen:
+Sie sollen die folgenden vier Aufgaben erledigen:
 1. Ein UML-Aktivitätsdiagramm erstellen
 2. Einen Algorithmus zur Routenoptimierung entwickeln
-3. Einen Algorithmus zur Transportauswahl entwickeln
-4. Ein ER-Diagramm erstellen
-5. SQL-Anweisungen erstellen''',
+3. Ein ER-Diagramm erstellen
+4. SQL-Anweisungen erstellen''',
   sections: [
     ExamSection(
       id: 'hs1',
@@ -117,48 +116,8 @@ usw.''',
       ],
     ),
     ExamSection(
-      id: 'hs3',
-      title: 'Handlungsschritt 3: Algorithmus Transportauswahl (25 Punkte)',
-      totalPoints: 25,
-      questions: [
-        ExamQuestion(
-          id: 'hs3-q1',
-          title: 'Algorithmus - Optimale Transportverbindung',
-          description:
-              '''Ein Kunde möchte von Hamburg nach München reisen und sucht die beste Verbindung.
-
-KRITERIEN:
-- Abfahrtszeit möglichst früh am Tag
-- Ankunftszeit möglichst vor 18:00 Uhr
-- Preis möglichst günstig
-
-VERFÜGBARE TRANSPORTE (aus Datenbank):
-| Transport_ID | von     | nach    | Abfahrt | Ankunft | Preis |
-|--------------|---------|---------|---------|---------|-------|
-| 1            | Hamburg | München | 09:00   | 17:00   | 60.00 |
-| 2            | Hamburg | München | 11:00   | 19:00   | 50.00 |
-| 3            | Hamburg | München | 07:00   | 15:00   | 70.00 |
-| 4            | Hamburg | München | 13:00   | 21:00   | 40.00 |
-
-AUFGABE:
-Entwickeln Sie einen Algorithmus, der:
-1. Alle Transporte nach den Kriterien bewertet
-2. Eine Rangliste erstellt
-3. Die beste Verbindung vorschlägt
-
-Gewichtung:
-- Abfahrtszeit: 30%
-- Ankunftszeit: 40%
-- Preis: 30%''',
-          type: QuestionType.code,
-          points: 25,
-          hint: 'Nutzen Sie eine Punktevergabe für jedes Kriterium.',
-        ),
-      ],
-    ),
-    ExamSection(
       id: 'hs4',
-      title: 'Handlungsschritt 4: ER-Diagramm (25 Punkte)',
+      title: 'Handlungsschritt 3: ER-Diagramm (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
@@ -197,7 +156,7 @@ Hinweis: Verwenden Sie die Chen-Notation oder die Krähenfuß-Notation.''',
     ),
     ExamSection(
       id: 'hs5',
-      title: 'Handlungsschritt 5: SQL-Abfragen (25 Punkte)',
+      title: 'Handlungsschritt 4: SQL-Abfragen (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(

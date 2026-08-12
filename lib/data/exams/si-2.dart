@@ -13,90 +13,15 @@ final si2Exam = IHKExam(
 
 Im Rahmen der Weiterentwicklung der IT-Infrastruktur sind Sie an verschiedenen Maßnahmen beteiligt.
 
-Sie sollen vier der folgenden fünf Handlungsschritte bearbeiten:
-1. Beschaffung und Konfiguration eines Servers
-2. Einrichtung eines E-Mail-Servers und des DHCP-Dienstes
-3. Einrichtung und Dokumentation einer Firewall
-4. Rechtevergabe an Benutzer
-5. Einführung von IPv6''',
+Sie sollen die folgenden vier Handlungsschritte bearbeiten:
+1. Einrichtung eines E-Mail-Servers und des DHCP-Dienstes
+2. Einrichtung und Dokumentation einer Firewall
+3. Rechtevergabe an Benutzer
+4. Einführung von IPv6''',
   sections: [
     ExamSection(
-      id: 'hs1',
-      title: 'Handlungsschritt 1: Server-Beschaffung (25 Punkte)',
-      totalPoints: 25,
-      questions: [
-        ExamQuestion(
-          id: 'hs1-intro',
-          title: 'Server-Angebot',
-          description: '''Folgendes Angebot liegt vor:
-
-SERVERKOMPONENTEN:
-- Position 1: Dual-Socket Intel Xeon E5-2620v4, 64 GB DDR4 ECC
-- Position 2: LTO-Bandlaufwerk, 160 Mbit/s, 2.500 GB, SAS 6 Gbit/s
-- Position 3: 2x SSD SATA, 6 Gbit/s, 480 GB, hot-plug, 2,5"
-- Position 4: 6x HDD SAS, 12 Gbit/s, 900 GB, hot-plug, 2,5"
-- Position 5: Hardware-RAID-Controller, RAID 0,1,10,5,50,6,60
-- Position 6: 2x hot-plug-Netzteil''',
-          type: QuestionType.info,
-          points: 0,
-        ),
-        ExamQuestion(
-          id: 'hs1-a',
-          title: 'Aufgabe a) Speichertypen (8 Punkte)',
-          description: '''Erläutern Sie die vier genannten Speicher:
-
-1. LTO (Langform + Technologie)
-2. SSD (Langform + Technologie)
-3. HDD (Langform + Technologie)
-4. DDR4 (Langform + Technologie)''',
-          type: QuestionType.freeText,
-          points: 8,
-          hint:
-              'Linear Tape-Open, Solid State Drive, Hard Disk Drive, Double Data Rate 4',
-        ),
-        ExamQuestion(
-          id: 'hs1-b',
-          title: 'Aufgabe b) RAID-Konfiguration (8 Punkte)',
-          description:
-              '''Das Speichersystem soll aus zwei RAID-Verbünden bestehen:
-
-RAID 1: Für Betriebssystem (mit 2x SSD)
-RAID 5: Für Daten (mit 6x HDD)
-
-a) Berechnen Sie die nutzbare Kapazität für beide RAIDs
-b) Wie viele Festplatten dürfen pro RAID ausfallen?
-c) Welche Vorteile bietet diese Konfiguration?''',
-          type: QuestionType.freeText,
-          points: 8,
-          hint: 'RAID 1: 480 GB nutzbar, RAID 5: 5x900GB = 4,5 TB',
-        ),
-        ExamQuestion(
-          id: 'hs1-c',
-          title: 'Aufgabe c) Hot-Plug Funktionalität (4 Punkte)',
-          description: '''a) Was bedeutet "hot-plug-fähig"?
-b) Warum ist dies bei Servern wichtig?
-c) Gilt dies auch für die Netzteile?''',
-          type: QuestionType.freeText,
-          points: 4,
-          hint: 'Tausch im laufenden Betrieb ohne Neustart',
-        ),
-        ExamQuestion(
-          id: 'hs1-d',
-          title: 'Aufgabe d) ECC-RAM (5 Punkte)',
-          description: '''Der Server verwendet ECC-RAM.
-
-a) Wofür steht ECC?
-b) Welchen Vorteil bietet ECC-RAM?
-c) Warum wird dies bei Servern eingesetzt?''',
-          type: QuestionType.freeText,
-          points: 5,
-          hint: 'Error Correcting Code - erkennt und korrigiert Fehler',
-        ),
-      ],
-    ),
-    ExamSection(
       id: 'hs2',
-      title: 'Handlungsschritt 2: E-Mail & DHCP (25 Punkte)',
+      title: 'Handlungsschritt 1: E-Mail & DHCP (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
@@ -148,7 +73,7 @@ c) Was passiert nach Ablauf der Lease-Zeit?''',
     ),
     ExamSection(
       id: 'hs3',
-      title: 'Handlungsschritt 3: Firewall (25 Punkte)',
+      title: 'Handlungsschritt 2: Firewall (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
@@ -201,7 +126,7 @@ c) Geben Sie ein Beispiel''',
     ),
     ExamSection(
       id: 'hs4',
-      title: 'Handlungsschritt 4: Rechtevergabe (25 Punkte)',
+      title: 'Handlungsschritt 3: Rechtevergabe (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
@@ -251,7 +176,7 @@ c) Geben Sie zwei praktische Beispiele''',
     ),
     ExamSection(
       id: 'hs5',
-      title: 'Handlungsschritt 5: IPv6 (25 Punkte)',
+      title: 'Handlungsschritt 4: IPv6 (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(

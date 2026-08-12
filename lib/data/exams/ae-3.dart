@@ -13,88 +13,15 @@ final ae3Exam = IHKExam(
 
 Die Firma RadMobil GmbH betreibt einen E-Scooter-Verleih mit Werkstatt.
 
-Sie sollen vier der folgenden fünf Aufgaben in diesem Projekt erledigen:
-1. Beim Management für das Projekt Abrechnungssoftware mitwirken
-2. Programm zur Auswertung der Arbeitszeiterfassung anfertigen
-3. Objektorientierte Software für Ladegerät entwickeln
-4. Tabelle Wartung normalisieren
-5. SQL-Abfragen zur Verleihdatenbank formulieren''',
+Sie sollen die folgenden vier Aufgaben in diesem Projekt erledigen:
+1. Programm zur Auswertung der Arbeitszeiterfassung anfertigen
+2. Objektorientierte Software für Ladegerät entwickeln
+3. Tabelle Wartung normalisieren
+4. SQL-Abfragen zur Verleihdatenbank formulieren''',
   sections: [
     ExamSection(
-      id: 'hs1',
-      title: 'Handlungsschritt 1: Projektmanagement (25 Punkte)',
-      totalPoints: 25,
-      questions: [
-        ExamQuestion(
-          id: 'hs1-a',
-          title: 'Aufgabe a) Methoden der Anforderungsanalyse (6 Punkte)',
-          description:
-              '''Für die Abrechnung der Servicemitarbeiter der RadMobil GmbH soll eine Abrechnungssoftware eingeführt werden.
-
-Sie erhalten den Auftrag, eine Anforderungsanalyse für diese Software durchzuführen.
-
-a) Nennen Sie zwei Methoden, die Sie für eine Anforderungsanalyse anwenden können.
-
-b) Beschreiben Sie zwei Anforderungen an die neu einzuführende Software.''',
-          type: QuestionType.freeText,
-          points: 6,
-          hint:
-              'Methoden: z.B. Interview, Fragebogen, Workshop. Anforderungen: funktional und nicht-funktional.',
-        ),
-        ExamQuestion(
-          id: 'hs1-b',
-          title: 'Aufgabe b) Kick-off-Sitzung (8 Punkte)',
-          description:
-              '''Der Projektleiter Ihres Teams hat Ihnen mitgeteilt, dass das Projekt "Abrechnungssoftware" mit einer Kick-off-Sitzung begonnen wird.
-
-Nennen Sie jeweils vier auf der Sachebene und der Beziehungsebene liegende Aufgabenstellungen dieser Kick-off-Sitzung.
-
-SACHEBENE:
-1.
-2.
-3.
-4.
-
-BEZIEHUNGSEBENE:
-1.
-2.
-3.
-4.''',
-          type: QuestionType.freeText,
-          points: 8,
-          hint:
-              'Sachebene: Was wird gemacht? Beziehungsebene: Wie arbeiten wir zusammen?',
-        ),
-        ExamQuestion(
-          id: 'hs1-c',
-          title: 'Aufgabe c) Nutzwertanalyse (11 Punkte)',
-          description:
-              '''Es stehen drei Softwarelösungen zur Auswahl. Führen Sie eine Nutzwertanalyse durch.
-
-KRITERIEN UND GEWICHTUNG:
-- Benutzerfreundlichkeit: 40%
-- Kosten: 30%
-- Schnittstellen: 30%
-
-BEWERTUNG (1-10 Punkte):
-| Kriterium           | Lösung A | Lösung B | Lösung C |
-|---------------------|----------|----------|----------|
-| Benutzerfreundlichk.| 8        | 6        | 9        |
-| Kosten              | 5        | 9        | 6        |
-| Schnittstellen      | 7        | 7        | 8        |
-
-a) Berechnen Sie den Nutzwert für jede Lösung
-b) Welche Lösung empfehlen Sie?
-c) Nennen Sie einen Kritikpunkt an der Nutzwertanalyse''',
-          type: QuestionType.code,
-          points: 11,
-          hint: 'Nutzwert = Summe (Bewertung × Gewichtung)',
-        ),
-      ],
-    ),
-    ExamSection(
       id: 'hs2',
-      title: 'Handlungsschritt 2: Zeiterfassung (25 Punkte)',
+      title: 'Handlungsschritt 1: Zeiterfassung (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
@@ -129,7 +56,7 @@ Entwickeln Sie einen Algorithmus (Pseudocode oder Struktogramm), der diese Zeite
     ),
     ExamSection(
       id: 'hs3',
-      title: 'Handlungsschritt 3: OOP Ladegerät (25 Punkte)',
+      title: 'Handlungsschritt 2: OOP Ladegerät (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
@@ -158,7 +85,7 @@ Erstellen Sie ein UML-Klassendiagramm mit:
     ),
     ExamSection(
       id: 'hs4',
-      title: 'Handlungsschritt 4: Normalisierung (25 Punkte)',
+      title: 'Handlungsschritt 3: Normalisierung (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
@@ -209,7 +136,7 @@ Geben Sie alle Tabellen mit Primärschlüsseln und Fremdschlüsseln an.''',
     ),
     ExamSection(
       id: 'hs5',
-      title: 'Handlungsschritt 5: SQL-Abfragen (25 Punkte)',
+      title: 'Handlungsschritt 4: SQL-Abfragen (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(

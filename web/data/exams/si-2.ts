@@ -17,97 +17,15 @@ export const si2: Exam = {
 
 Im Rahmen der Weiterentwicklung der IT-Infrastruktur sind Sie an verschiedenen Maßnahmen beteiligt.
 
-Sie sollen vier der folgenden fünf Handlungsschritte bearbeiten:
-1. Beschaffung und Konfiguration eines Servers
-2. Einrichtung eines E-Mail-Servers und des DHCP-Dienstes
-3. Einrichtung und Dokumentation einer Firewall
-4. Rechtevergabe an Benutzer
-5. Einführung von IPv6`,
+Sie sollen die folgenden vier Handlungsschritte bearbeiten:
+1. Einrichtung eines E-Mail-Servers und des DHCP-Dienstes
+2. Einrichtung und Dokumentation einer Firewall
+3. Rechtevergabe an Benutzer
+4. Einführung von IPv6`,
     sections: [
         {
-            id: "hs1",
-            title: "Handlungsschritt 1: Server-Beschaffung (25 Punkte)",
-            totalPoints: 25,
-            questions: [
-                {
-                    id: "hs1-intro",
-                    title: "Ausgangssituation - Virtualisierungsserver",
-                    description: `In der DataCenter Solutions AG soll ein weiterer Server als Virtualisierungsplattform angeschafft werden.
-
-Folgendes Angebot liegt vor (Ausschnitt):
-
-SERVERKOMPONENTEN:
-- Position 1: Dual-Socket-Rack-Server Intel Xeon E5-2620v4, 64 GiByte DDR4 ECC registered
-- Position 2: LTO-Bandlaufwerk, 160 Mbit/s, 2.500 GiByte, SAS 6 Gbit/s
-- Position 3: 2x SSD SATA, 6 Gbit/s, 480 GiByte, hot-plug-fähig, 2,5 Zoll
-- Position 4: 6x HDD SAS, 12 Gbit/s, 900 GiByte, hot-plug-fähig, 2,5 Zoll
-- Position 5: Hardware-RAID-Controller, SAS/SATA 12 Gbit/s, RAID-Level: 0, 1, 10, 5, 50, 6, 60
-- Position 6: 2x hot-plug-Netzteil`,
-                    type: "info",
-                    points: 0,
-                    hint: "Dies ist die Ausgangssituation für die folgenden Aufgaben.",
-                },
-                {
-                    id: "hs1-a",
-                    title: "Aufgabe a) Speichertypen erläutern (8 Punkte)",
-                    description: `Im Angebot werden die folgenden Speicher genannt.
-
-Erläutern Sie die vier genannten Speicher, indem Sie die Langform der Bezeichnung nennen und die Speichertechnik beschreiben.
-
-Speichertypen:
-- LTO
-- SSD
-- HDD
-- DDR4`,
-                    type: "freeText",
-                    points: 8,
-                    hint: "Wofür stehen die Abkürzungen? Welches physikalische Prinzip nutzt jeder Speichertyp?",
-                    tags: ["hardware", "speicher", "theorie"],
-                },
-                {
-                    id: "hs1-b",
-                    title: "Aufgabe b) RAID-Verbund konfigurieren (8 Punkte)",
-                    description: `Das Speichersystem des Servers soll aus zwei RAID-Verbünden bestehen. Es stehen die Festplatten aus dem Angebot zur Verfügung.
-
-ANFORDERUNGEN:
-- Der RAID-Verbund für das Betriebssystem soll Ausfallsicherheit gewährleisten
-- Der RAID-Verbund für die Datenspeicherung soll Ausfallsicherheit gewährleisten und zusätzlich größtmögliche Speicherkapazität bieten
-
-Geben Sie zu jedem RAID-Verbund den entsprechenden RAID-Level und die dazugehörige Netto-Speicherkapazität an.
-
-Der Rechenweg ist anzugeben.`,
-                    type: "freeText",
-                    points: 8,
-                    hint: "Welche RAID-Level bieten Ausfallsicherheit? Welcher davon maximiert zusätzlich die Kapazität?",
-                    tags: ["raid", "speicher", "ausfallsicherheit"],
-                },
-                {
-                    id: "hs1-c",
-                    title: "Aufgabe c) ECC-RAM erklären (3 Punkte)",
-                    description: `Ein ECC-fähiger RAM kann Speicherfehler erkennen und korrigieren.
-
-Nennen Sie die Speicherfehler, die erkannt werden können und die Speicherfehler, die erkannt und korrigiert werden können.`,
-                    type: "freeText",
-                    points: 3,
-                    hint: "Unterscheiden Sie zwischen 1-Bit-Fehlern und Mehrbit-Fehlern.",
-                    tags: ["hardware", "ecc", "ram", "fehlerkorrektur"],
-                },
-                {
-                    id: "hs1-d",
-                    title: "Aufgabe d) Vorteile virtueller Server (6 Punkte)",
-                    description: `Der Server dient als Virtualisierungsplattform für verschiedene Anwendungsserver.
-
-Erläutern Sie drei Vorteile von virtuellen Servern gegenüber physischen Servern.`,
-                    type: "freeText",
-                    points: 6,
-                    hint: "Denken Sie an Ressourcennutzung, Flexibilität und Wartung.",
-                    tags: ["virtualisierung", "server", "theorie"],
-                },
-            ],
-        },
-        {
             id: "hs2",
-            title: "Handlungsschritt 2: E-Mail und DHCP (25 Punkte)",
+            title: "Handlungsschritt 1: E-Mail und DHCP (25 Punkte)",
             totalPoints: 25,
             questions: [
                 {
@@ -201,7 +119,7 @@ Erläutern Sie die Funktionsweise eines Honeypots.`,
         },
         {
             id: "hs3",
-            title: "Handlungsschritt 3: Firewall-Konfiguration (25 Punkte)",
+            title: "Handlungsschritt 2: Firewall-Konfiguration (25 Punkte)",
             totalPoints: 25,
             questions: [
                 {
@@ -278,7 +196,7 @@ Erläutern Sie eine grundsätzliche Funktion eines HTTP Proxy.`,
         },
         {
             id: "hs4",
-            title: "Handlungsschritt 4: Rechtevergabe (25 Punkte)",
+            title: "Handlungsschritt 3: Rechtevergabe (25 Punkte)",
             totalPoints: 25,
             questions: [
                 {
@@ -391,7 +309,7 @@ Verwenden Sie dazu:
         },
         {
             id: "hs5",
-            title: "Handlungsschritt 5: IPv6-Einführung (25 Punkte)",
+            title: "Handlungsschritt 4: IPv6-Einführung (25 Punkte)",
             totalPoints: 25,
             questions: [
                 {

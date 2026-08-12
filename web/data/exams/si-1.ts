@@ -17,12 +17,11 @@ export const si1: Exam = {
 
 Das Unternehmen ist in ein neues Bürogebäude umgezogen und Sie sollen die IT-Infrastruktur aufbauen und optimieren.
 
-Sie sollen vier der folgenden fünf Handlungsschritte bearbeiten:
+Sie sollen die folgenden vier Handlungsschritte bearbeiten:
 1. Das Netzwerk segmentieren und absichern
 2. Eine WLAN-Infrastruktur für Mitarbeiter und Besucher einrichten
-3. Die Benutzerverwaltung im Active Directory automatisieren
-4. Ein IT-Sicherheitskonzept umsetzen
-5. Ein zentrales Storage-System planen und konfigurieren`,
+3. Ein IT-Sicherheitskonzept umsetzen
+4. Ein zentrales Storage-System planen und konfigurieren`,
     sections: [
         {
             id: "hs1",
@@ -254,85 +253,8 @@ Beschreiben Sie, wo Sie einen WLAN-Repeater oder zusätzlichen Access Point posi
             ],
         },
         {
-            id: "hs3",
-            title: "Handlungsschritt 3: Benutzerverwaltung (25 Punkte)",
-            totalPoints: 25,
-            questions: [
-                {
-                    id: "hs3-intro",
-                    title: "Ausgangssituation - Active Directory Automatisierung",
-                    description: `Bei der MediTech Solutions GmbH sollen neue Mitarbeiter automatisiert im Active Directory angelegt werden. Die Personalabteilung stellt eine Excel-Datei mit den Mitarbeiterdaten bereit.
-
-ANFORDERUNGEN AN DAS SKRIPT:
-- Aus Vor- und Nachname wird der Benutzername gebildet: erster Buchstabe Vorname + Nachname (kleingeschrieben)
-- Die E-Mail-Adresse folgt dem gleichen Schema: benutzername@meditech-solutions.de
-- Umlaute werden ersetzt: ä→ae, ö→oe, ü→ue, ß→ss
-- Initiales Passwort: "Willkommen2024!"
-- Benutzer wird der Abteilungsgruppe zugeordnet
-- Passwortänderung bei erster Anmeldung erzwingen
-
-BEISPIEL:
-Eingabe: Thomas Müller, Abteilung: Entwicklung
-→ Benutzername: tmueller
-→ E-Mail: tmueller@meditech-solutions.de
-→ Gruppe: GRP_Entwicklung`,
-                    type: "info",
-                    points: 0,
-                    hint: "Dies ist die Ausgangssituation für die folgenden Aufgaben.",
-                },
-                {
-                    id: "hs3-a",
-                    title: "Aufgabe a) Algorithmus für Benutzeranlage (14 Punkte)",
-                    description: `Entwickeln Sie einen Algorithmus (Pseudocode, Struktogramm oder Flussdiagramm) für das Skript zur automatischen Benutzeranlage.
-
-Berücksichtigen Sie:
-1. Einlesen der Mitarbeiterdaten aus der Datei
-2. Umwandlung der Umlaute
-3. Generierung von Benutzername und E-Mail
-4. Anlegen des Benutzers mit Passwort
-5. Hinzufügen zur Abteilungsgruppe
-6. Fehlerbehandlung bei doppelten Benutzernamen`,
-                    type: "code",
-                    points: 14,
-                    hint: "Verwenden Sie eine Schleife über alle Zeilen. Was passiert bei Namenskollisionen (z.B. zwei Max Müller)?",
-                    tags: ["active-directory", "scripting", "pseudocode", "automatisierung"],
-                },
-                {
-                    id: "hs3-b",
-                    title: "Aufgabe b) Umlaute in Benutzernamen (4 Punkte)",
-                    description: `Erklären Sie, warum Umlaute und Sonderzeichen in Benutzernamen und E-Mail-Adressen vermieden werden sollten.`,
-                    type: "freeText",
-                    points: 4,
-                    hint: "Denken Sie an Kompatibilität, internationale Tastaturen und technische Standards.",
-                    tags: ["active-directory", "benutzernamen", "umlaute"],
-                },
-                {
-                    id: "hs3-c",
-                    title: "Aufgabe c) Vorteile von Sicherheitsgruppen (4 Punkte)",
-                    description: `Im Active Directory sollen die Benutzer abteilungsspezifischen Sicherheitsgruppen zugeordnet werden (z.B. GRP_Entwicklung, GRP_Vertrieb).
-
-Erläutern Sie vier Vorteile dieser Gruppenstruktur für die Administration.`,
-                    type: "freeText",
-                    points: 4,
-                    hint: "Vergleichen Sie: Rechte pro Benutzer vs. Rechte pro Gruppe. Was passiert bei Abteilungswechsel?",
-                    tags: ["active-directory", "sicherheitsgruppen", "berechtigungen"],
-                },
-                {
-                    id: "hs3-d",
-                    title: "Aufgabe d) Passwortrichtlinien definieren (3 Punkte)",
-                    description: `Für das Active Directory sollen Passwortrichtlinien definiert werden.
-
-Nennen Sie drei sinnvolle Regeln für sichere Passwörter und begründen Sie diese kurz.`,
-                    type: "freeText",
-                    points: 3,
-                    hint: "Welche Faktoren machen ein Passwort schwer zu erraten oder zu knacken?",
-                    tags: ["active-directory", "passwort", "sicherheit", "richtlinien"],
-                },
-            ],
-        },
-        {
             id: "hs4",
-            title: "Handlungsschritt 4: IT-Sicherheitskonzept (25 Punkte)",
+            title: "Handlungsschritt 3: IT-Sicherheitskonzept (25 Punkte)",
             totalPoints: 25,
             questions: [
                 {
@@ -420,7 +342,7 @@ Erläutern Sie die Vorteile dieser kombinierten Strategie.`,
         },
         {
             id: "hs5",
-            title: "Handlungsschritt 5: Storage-System (25 Punkte)",
+            title: "Handlungsschritt 4: Storage-System (25 Punkte)",
             totalPoints: 25,
             questions: [
                 {
