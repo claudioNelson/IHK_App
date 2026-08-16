@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>ihk_app</string>
+	<string>Lernarena</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -22,6 +22,40 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+
+	<!-- App-Sprache: App-Inhalte sind deutsch -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>de</string>
+	</array>
+
+	<!-- Deep Links: Custom-Scheme app.lernarena (Passwort-Reset / E-Mail-Bestaetigung via Supabase) -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>app.lernarena</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>app.lernarena</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- App Store: keine proprietaere Verschluesselung, nur Standard-HTTPS/TLS.
+	     Verhindert den Export-Compliance-Dialog bei jedem TestFlight-Build. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
+	<!-- Berechtigungen: werden von lib/widgets/photo_upload_widget.dart (image_picker)
+	     fuer Kamera UND Galerie tatsaechlich genutzt. Ohne diese Texte -> Crash + App-Store-Reject. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Lernarena nutzt die Kamera, damit du deine handschriftlichen Loesungen zu Pruefungsaufgaben abfotografieren und hochladen kannst.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Lernarena greift auf deine Fotos zu, damit du ein gespeichertes Bild deiner Loesung zu einer Pruefungsaufgabe hochladen kannst.</string>
+
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
