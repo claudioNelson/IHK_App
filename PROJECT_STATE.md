@@ -69,7 +69,14 @@ Codemagic-Workflow-Editor (UI). Neu angelegt im Repo-Root, mit zwei Workflows:
 > Ergebnis 1 und Apple lehnt den Upload ab mit *„The provided entity includes an
 > attribute with a value that has already been used"*. Deshalb `tr -dc '0-9'` als
 > Filter und `PROJECT_BUILD_NUMBER` als zweite, immer hochzählende Quelle.
-- Publishing: `submit_to_testflight: true`, `submit_to_app_store: false`
+- Publishing: `submit_to_testflight: **false**`, `submit_to_app_store: false`
+
+> **Warum `submit_to_testflight: false`?** Der Build wird trotzdem hochgeladen und steht
+> **internen** Testern sofort zur Verfügung. `true` reicht ihn zusätzlich zur
+> **Beta-Prüfung** für externe Tester ein — und die scheitert, solange unter
+> *TestFlight → Testinformationen* Feedback-E-Mail, Kontaktdaten und ein Demo-Login
+> fehlen (*„Complete test information is required…"*). Auf `true` stellen, sobald
+> die Testinformationen gepflegt **und** die iOS-In-App-Käufe eingerichtet sind.
 
 > **⚠️ Kein `beta_groups:` im Publishing.** Das Feld gilt nur für **externe**
 > Tester-Gruppen. Interne Gruppen wie `Internal Testers` bekommen jeden Build
@@ -262,7 +269,7 @@ Auf Android gilt dasselbe über Google Play Billing.
 
 ---
 
-*Zuletzt aktualisiert: 16.08.2026 — Build-Nummer-Ermittlung kollisionssicher gemacht*
+*Zuletzt aktualisiert: 16.08.2026 — Beta-Review deaktiviert, iOS-IAP als offener Punkt erfasst*
 
 ---
 
@@ -275,3 +282,46 @@ Workflows `ios-release` / `ios-unsigned` in Codemagic nicht und die Umstellung v
 
 Vor dem ersten signierten Build also committen und pushen — die Datei enthält
 bewusst keine Secrets, nur Referenzen auf Codemagic-Variablen.
+
+---
+
+## In-App-Käufe auf iOS — noch offen
+
+Die App nutzt `in_app_purchase` (`lib/services/billing_service.dart`, in `main.dart`
+beim Start initialisiert). Das ist der richtige Ansatz — dieselbe Bibliothek deckt
+auch Apple ab. **Aktuell ist aber nur Google Play umgesetzt.**
+
+**Stand heute auf iOS:** `queryProductDetails({'lernarena_premium'})` findet nichts,
+`_basePlanIdOf()` castet auf `GooglePlayProductDetails` und liefert `null`. Die Paywall
+zeigt die Fallback-Preise, der Kauf schlägt fehl. Für internes Testen unkritisch, für
+den Store ein sicherer Reject (Richtlinie 2.1 — nicht funktionsfähiges Feature).
+
+### Was für iOS nötig ist
+
+**1. Produktmodell umbauen.** Google Play: ein Abo `lernarena_premium` mit drei Base
+Plans. Apple kennt keine Base Plans — dort braucht es eine **Abo-Gruppe** mit drei
+eigenständigen Produkten, Vorschlag:
+
+```
+app.lernarena.premium.monthly
+app.lernarena.premium.halfyear
+app.lernarena.premium.annual
+```
+
+`billing_service.dart` muss die Produkt-IDs plattformabhängig wählen und die
+Zuordnung Plan → Produkt auf iOS über die Product-ID statt über `basePlanId` machen.
+
+**2. Kaufprüfung erweitern.** Die Edge Function `verify-purchase` prüft den
+`purchaseToken` gegen die Google Play Developer API. Apple liefert stattdessen eine
+signierte Transaktion (JWS), die gegen die **App Store Server API** verifiziert wird —
+eigener Zweig, gleiche Aufgabe.
+
+**3. Paid Applications Agreement.** In App Store Connect → **Business** abschließen,
+inklusive Bank- und Steuerdaten. Ohne ihn lassen sich keine Abos anlegen und auch im
+Sandbox-Test nichts kaufen. Freigabe durch Apple dauert einige Tage — deshalb früh
+anstoßen.
+
+**4. Sandbox-Tester** in App Store Connect anlegen zum Testen der Kauf-Flows.
+
+Die Capability „In-App Purchase" muss **nicht** in der App-ID aktiviert werden — die
+ist bei Apple für jede App-ID standardmäßig an.

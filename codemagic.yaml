@@ -164,12 +164,25 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
-        submit_to_testflight: true
+
+        # false = Build wird hochgeladen und steht INTERNEN Testern sofort
+        # zur Verfuegung, wird aber NICHT zur TestFlight-Beta-Pruefung
+        # eingereicht. Die Pruefung braucht es nur fuer EXTERNE Tester und
+        # verlangt vollstaendige Testinformationen.
+        #
+        # Auf true stellen, sobald:
+        #   - In-App-Kaeufe fuer iOS eingerichtet sind (aktuell nur Google Play,
+        #     auf iOS schlaegt der Kauf fehl -> Reject-Risiko), und
+        #   - unter TestFlight -> Testinformationen Feedback-E-Mail,
+        #     Kontaktdaten und ein Demo-Login hinterlegt sind.
+        submit_to_testflight: false
+
         # KEIN "beta_groups:" hier!
         # Das Feld gilt nur fuer EXTERNE Tester-Gruppen. Interne Gruppen
         # (wie "Internal Testers") bekommen jeden Build automatisch; die API
         # lehnt eine Zuweisung ab mit:
         #   "Builds cannot be assigned to this internal group."
+
         submit_to_app_store: false
 
       email:
