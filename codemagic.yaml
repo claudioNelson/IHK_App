@@ -38,8 +38,11 @@ workflows:
 
       vars:
         BUNDLE_ID: "app.lernarena"
-        # Numerische Apple-ID der App aus App Store Connect (NICHT geheim).
-        APP_STORE_APPLE_ID: "6748392017"
+        # Numerische Apple-ID der App (NICHT geheim).
+        # ACHTUNG: Das ist die "Id" aus dem App-Store-Connect-API-Objekt,
+        # NICHT zwingend die Zahl aus der Browser-URL. Steht im Build-Log
+        # unter "Find application entry from App Store Connect".
+        APP_STORE_APPLE_ID: "6802045311"
 
       # KEIN "ios_signing:" hier!
       # Das ist der manuelle Signing-Weg und vertraegt sich nicht mit
@@ -68,6 +71,36 @@ workflows:
       - name: CocoaPods installieren
         script: |
           find . -name "Podfile" -execdir pod install \;
+
+      - name: Signing-Voraussetzungen pruefen
+        script: |
+          fehler=0
+          if [ -z "$CERTIFICATE_PRIVATE_KEY" ]; then
+            echo "FEHLER: CERTIFICATE_PRIVATE_KEY ist nicht gesetzt."
+            echo "  -> Codemagic: App IHK_App -> Environment variables"
+            echo "     Name  : CERTIFICATE_PRIVATE_KEY"
+            echo "     Group : appstore_credentials"
+            echo "     Secure: angehakt"
+            fehler=1
+          else
+            echo "CERTIFICATE_PRIVATE_KEY gesetzt (${#CERTIFICATE_PRIVATE_KEY} Zeichen)"
+            echo "Erste Zeile: $(echo "$CERTIFICATE_PRIVATE_KEY" | head -1)"
+            if echo "$CERTIFICATE_PRIVATE_KEY" | head -3 | grep -q "ENCRYPTED"; then
+              echo "FEHLER: Der Schluessel hat eine Passphrase (Proc-Type: 4,ENCRYPTED)."
+              echo "  -> Ohne Passphrase neu erzeugen: ssh-keygen -t rsa -b 2048 -m PEM -f ios_cert_key"
+              fehler=1
+            fi
+          fi
+          for v in APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY_IDENTIFIER APP_STORE_CONNECT_PRIVATE_KEY; do
+            eval "wert=\$$v"
+            if [ -z "$wert" ]; then
+              echo "FEHLER: $v fehlt -> Integration 'Lernarena API Key' pruefen."
+              fehler=1
+            else
+              echo "$v ist gesetzt"
+            fi
+          done
+          exit $fehler
 
       - name: Keychain vorbereiten
         script: |
@@ -113,8 +146,11 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        beta_groups:
-          - Internal Testers
+        # KEIN "beta_groups:" hier!
+        # Das Feld gilt nur fuer EXTERNE Tester-Gruppen. Interne Gruppen
+        # (wie "Internal Testers") bekommen jeden Build automatisch; die API
+        # lehnt eine Zuweisung ab mit:
+        #   "Builds cannot be assigned to this internal group."
         submit_to_app_store: false
 
       email:

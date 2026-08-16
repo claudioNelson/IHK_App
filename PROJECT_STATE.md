@@ -52,41 +52,74 @@ Hinweise:
 > Ecken). Wurde korrigiert. **`flutter pub run flutter_launcher_icons` nie ohne
 > `image_path_ios` ausführen.**
 
-### ✅ Schritt 3 — Codemagic-Signing vorbereitet (16.08.2026)
+### ✅ Schritt 3 — Codemagic-Signing eingerichtet (16.08.2026)
 
 Im Repo lag **keine** `codemagic.yaml` — der erste (unsignierte) Build lief über den
-Codemagic-Workflow-Editor (UI). Neu angelegt: **`codemagic.yaml`** im Repo-Root mit
-zwei Workflows.
+Codemagic-Workflow-Editor (UI). Neu angelegt im Repo-Root, mit zwei Workflows:
 
-**Workflow `ios-release` (iOS Release → TestFlight)**
+**`ios-release` — iOS Release → TestFlight**
 
-- Instanz: `mac_mini_m2`, Flutter `stable`, Xcode `latest`
-- Automatisches Code Signing über **App Store Connect API Key**
-  (`ios_signing: distribution_type: app_store`, `bundle_identifier: app.lernarena`)
-- Build-Nummer wird automatisch aus der letzten TestFlight-Build-Nummer hochgezählt
-- Build-Kommando: `flutter build ipa --release`
-- Publishing: **TestFlight-Upload aktiv** (`submit_to_testflight: true`),
-  `submit_to_app_store: false` (bewusst noch aus)
-- Trigger: Git-Tags nach dem Muster `ios-v*`
-- E-Mail-Benachrichtigung an info@lernarena.app
+- Instanz `mac_mini_m2`, Flutter `stable`, Xcode `latest`
+- Build-Kommando `flutter build ipa --release`
+- Build-Nummer wird aus der letzten TestFlight-Nummer hochgezählt
+- Publishing: `submit_to_testflight: true`, `submit_to_app_store: false`
 
-**Workflow `ios-unsigned`** — unsignierter Smoke-Build ohne Upload (wie bisher).
+> **⚠️ Kein `beta_groups:` im Publishing.** Das Feld gilt nur für **externe**
+> Tester-Gruppen. Interne Gruppen wie `Internal Testers` bekommen jeden Build
+> automatisch; die API antwortet sonst mit
+> *„Builds cannot be assigned to this internal group."* und der Post-Processing-Schritt
+> „App Store distribution" schlägt fehl — obwohl der Upload längst geklappt hat.
+- Trigger: Git-Tags `ios-v*`; manueller Start jederzeit möglich
 
-**Secrets — NICHT im Repo, und keine Variablengruppe nötig.**
-Die Datei nutzt `auth: integration`. Damit stellt die App Store Connect **Integration**
-die Variablen `APP_STORE_CONNECT_ISSUER_ID`, `_KEY_IDENTIFIER` und `_PRIVATE_KEY`
-automatisch im Build bereit. Eine zusätzliche Variablengruppe `appstore_credentials`
-wäre nicht nur überflüssig, sondern würde den Build fehlschlagen lassen, wenn sie
-nicht existiert — sie wurde am 16.08. wieder entfernt.
+**`ios-unsigned`** — unsignierter Smoke-Build ohne Upload.
 
-Einmalig in Codemagic einzutragen:
-**Settings → Integrations → App Store Connect → Add key**, Name exakt
-**`Lernarena API Key`**, dazu Issuer ID, Key ID und die `.p8`-Datei.
+#### Code Signing — so läuft es wirklich
 
-`APP_STORE_APPLE_ID` (`6748392017`) steht fest in der `codemagic.yaml` — kein Secret.
+Automatisches Signing über den App Store Connect API Key, umgesetzt als
+explizite Schritte im Workflow:
 
-Danach die App in Codemagic (heißt dort **IHK_App**) von „Workflow Editor" auf
-**„codemagic.yaml"** umstellen.
+```
+keychain initialize
+app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+keychain add-certificates
+xcode-project use-profiles
+```
+
+`--create` legt Distributionszertifikat und Provisioning-Profil bei Apple an,
+falls sie fehlen.
+
+> **⚠️ Kein `ios_signing:` im Workflow!** Das ist Codemagics *manueller* Signing-Weg.
+> Er erwartet fertig hinterlegte Zertifikate und legt selbst nichts an. Zusammen mit
+> `fetch-signing-files` ergibt das den Fehler
+> *„No matching profiles found for bundle identifier app.lernarena and distribution
+> type app_store"*. Am 16.08. genau daran gescheitert — nicht wieder einbauen.
+
+**Konfiguration in Codemagic (einmalig):**
+
+| Ort | Inhalt |
+|---|---|
+| Settings → Integrations → **Developer Portal** | Key „Lernarena API Key": Issuer ID, Key ID, `.p8`-Datei |
+| App IHK_App → Environment variables | `CERTIFICATE_PRIVATE_KEY`, Group **`appstore_credentials`**, *Secure* |
+
+`APP_STORE_APPLE_ID` (`6802045311`) und `BUNDLE_ID` stehen fest in der
+`codemagic.yaml` — keine Secrets.
+
+> **⚠️ Vorsicht bei der Apple-ID.** Die Zahl in der Browser-URL von App Store Connect
+> (`/apps/6748392017/...`) war **nicht** die richtige. Maßgeblich ist die `Id` aus dem
+> API-Objekt, die im Build-Log unter *„Find application entry from App Store Connect"*
+> steht: **`6802045311`**. Mit der falschen ID findet
+> `get-latest-testflight-build-number` nichts, fällt auf 0 zurück und vergibt beim
+> zweiten Build erneut die Nummer 1 — Apple lehnt den Upload dann ab.
+
+> **⚠️ Der RSA-Schlüssel darf keine Passphrase haben.** Zeile 2 mit
+> `Proc-Type: 4,ENCRYPTED` → Codemagic bricht ab mit
+> *„argument --certificate-key: Not a valid certificate private key"*.
+> Erzeugen mit: `ssh-keygen -t rsa -b 2048 -m PEM -f ios_cert_key -N '""'`
+> Immer denselben Schlüssel weiterverwenden — Apple begrenzt die Zahl aktiver
+> Distributionszertifikate. Liegt in `Desktop\Lernarena\Apple` samt `LIESMICH.txt`.
+
+Ein Prüfschritt „Signing-Voraussetzungen prüfen" im Workflow meldet fehlende
+Variablen und verschlüsselte Schlüssel im Klartext, bevor der Build weiterläuft.
 
 ### ✅ Schritt 4 — Info.plist auf App-Store-Pflichtangaben geprüft (16.08.2026)
 
@@ -130,23 +163,44 @@ gehen ausschließlich nach Codemagic — **nie ins Repo, nie in einen Chat.**
 | Primärsprache | Deutsch |
 | Bundle-ID | `app.lernarena` |
 | SKU | `LERNARENA-IOS-001` |
-| Apple-ID (numerisch) | **`6748392017`** — steht fest in `codemagic.yaml`, kein Secret |
+| Apple-ID (numerisch) | **`6802045311`** — steht fest in `codemagic.yaml`, kein Secret |
 | Status | iOS 1.0 — In Vorbereitung zur Übermittlung |
 
-### ⬜ Offen — muss bei Apple / App Store Connect erledigt werden
+### ✅ Schritt 8 — Erster signierter Build in TestFlight (16.08.2026)
 
-1. **Codemagic konfigurieren** — Settings → Integrations → App Store Connect →
-   Add key, Name exakt `Lernarena API Key` (Issuer ID, Key ID, `.p8`).
-   Danach App **IHK_App** von „Workflow Editor" auf **`codemagic.yaml`** umstellen.
-   Keine Variablengruppe nötig.
-2. **Interne Tester-Gruppe „Internal Testers"** in App Store Connect → TestFlight anlegen
-   (der Workflow referenziert sie unter `beta_groups`).
-3. **Händlerstatus (EU Digital Services Act)** — App Store Connect zeigt dafür einen
+Der Workflow `ios-release` läuft durch: Signing, IPA-Build, Upload nach App Store
+Connect, Verarbeitung abgeschlossen. Distributionszertifikat und Provisioning-Profil
+wurden automatisch bei Apple angelegt und werden ab jetzt wiederverwendet.
+
+Build-UUID des ersten Uploads: `0c69473d-d242-4901-b838-11477b2cac41`
+
+Der Post-Processing-Schritt meldete danach noch einen Fehler beim Zuweisen der
+Tester-Gruppe (siehe `beta_groups`-Hinweis oben) — der Build selbst war zu dem
+Zeitpunkt bereits erfolgreich in TestFlight.
+
+### ⚠️ Testen ohne eigenes iPhone
+
+TestFlight läuft nur auf iOS/iPadOS — es gibt keine Windows- oder Web-Variante.
+Zum Installieren wird ein echtes Gerät gebraucht. Möglichkeiten:
+
+- Person mit iPhone in App Store Connect → *Users and Access* einladen (Rolle
+  „Developer" genügt), dann als internen Tester hinzufügen. Bis zu 100 Personen,
+  keine Prüfung durch Apple nötig.
+- Codemagic **App Preview** für einen groben Funktionscheck im Browser — ersetzt aber
+  kein echtes Gerät (Kamera, Deep Links, Sounds verhalten sich anders).
+
+Mindestens ein Durchlauf auf echtem Gerät vor dem Store-Release ist dringend zu
+empfehlen: die App nutzt Kamera, Deep Links für den Passwort-Reset und Audio.
+
+### ⬜ Offen
+
+1. **Build in TestFlight prüfen** — Verarbeitung abwarten, dann auf dem iPhone über die
+   TestFlight-App installieren und testen.
+2. **Händlerstatus (EU Digital Services Act)** — App Store Connect zeigt dafür einen
    Banner. Ohne Händlerstatus dürfen neue Apps nicht in der EU veröffentlicht werden.
    Muss vom Accountinhaber ausgefüllt werden; die Angaben (Name, Adresse, Kontakt)
    erscheinen später öffentlich im App-Store-Eintrag.
    Für TestFlight mit **internen** Testern noch nicht nötig.
-4. Danach: Tag `ios-v1.0.0` pushen → Build läuft → TestFlight.
 
 ### ⬜ Später (vor dem öffentlichen Store-Release)
 - App-Store-Screenshots (iPhone 6.7" und 6.5" Pflicht), Beschreibung, Keywords
@@ -201,7 +255,7 @@ Auf Android gilt dasselbe über Google Play Billing.
 
 ---
 
-*Zuletzt aktualisiert: 16.08.2026 — Icon-Regression behoben, Version auf 1.2.0+9 korrigiert*
+*Zuletzt aktualisiert: 16.08.2026 — Build in TestFlight; Apple-ID korrigiert, beta_groups entfernt*
 
 ---
 
