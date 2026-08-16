@@ -269,7 +269,7 @@ Auf Android gilt dasselbe über Google Play Billing.
 
 ---
 
-*Zuletzt aktualisiert: 16.08.2026 — Beta-Review deaktiviert, iOS-IAP als offener Punkt erfasst*
+*Zuletzt aktualisiert: 16.08.2026 — Paid Applications Agreement eingereicht, Bankdaten in Bearbeitung*
 
 ---
 
@@ -316,10 +316,16 @@ Zuordnung Plan → Produkt auf iOS über die Product-ID statt über `basePlanId`
 signierte Transaktion (JWS), die gegen die **App Store Server API** verifiziert wird —
 eigener Zweig, gleiche Aufgabe.
 
-**3. Paid Applications Agreement.** In App Store Connect → **Business** abschließen,
-inklusive Bank- und Steuerdaten. Ohne ihn lassen sich keine Abos anlegen und auch im
-Sandbox-Test nichts kaufen. Freigabe durch Apple dauert einige Tage — deshalb früh
-anstoßen.
+**3. Paid Applications Agreement** — *am 16.08.2026 angestoßen.*
+
+- Bedingungen akzeptiert ✅
+- Steuerformulare übermittelt: *U.S. Certificate of Foreign Status* und *W-8BEN*
+  (Zeile 9 angehakt = Ansässigkeit Deutschland, Zeile 10 bewusst leer gelassen,
+  Foreign TIN = deutsche Steuer-Identifikationsnummer) ✅
+- Bankdaten übermittelt, **Bearbeitung durch Apple läuft (bis zu 24 Stunden)** ⏳
+
+Erst wenn der Vertrag auf **Aktiv** steht, lassen sich Abo-Produkte anlegen und im
+Sandbox testen. Status prüfen unter App Store Connect → Business.
 
 **4. Sandbox-Tester** in App Store Connect anlegen zum Testen der Kauf-Flows.
 
