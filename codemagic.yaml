@@ -2,15 +2,23 @@
 # Lernarena - Codemagic CI/CD
 #
 # WICHTIG: In diese Datei kommen NIEMALS Schluessel oder Passwoerter.
-# Der App Store Connect API Key liegt ausschliesslich in Codemagic unter
-#   Settings -> Integrations -> Developer Portal  (Name: "Lernarena API Key")
+#
+# Code Signing laeuft AUTOMATISCH ueber den App Store Connect API Key:
+# "app-store-connect fetch-signing-files ... --create" legt Zertifikat und
+# Provisioning Profile bei Apple an, falls sie noch nicht existieren.
+#
+# Voraussetzungen in Codemagic:
+#  1) Settings -> Integrations -> Developer Portal -> Add key
+#     Name: "Lernarena API Key"  (liefert ISSUER_ID / KEY_IDENTIFIER / PRIVATE_KEY)
+#  2) Environment variables -> Gruppe "appstore_credentials" mit EINER Variablen:
+#     CERTIFICATE_PRIVATE_KEY  = RSA-Private-Key im PEM-Format, als "Secure"
+#     (einmalig erzeugen; daraus baut Apple das Distributionszertifikat)
 ########################################################################
 
 workflows:
 
   ####################################################################
   # 1) iOS Release -> TestFlight
-  #    Signiert ueber App Store Connect API Key (automatic signing)
   ####################################################################
   ios-release:
     name: iOS Release (TestFlight)
@@ -18,8 +26,6 @@ workflows:
     max_build_duration: 60
 
     integrations:
-      # Name der Integration in Codemagic:
-      # Settings -> Integrations -> Developer Portal -> Add key
       app_store_connect: Lernarena API Key
 
     environment:
@@ -27,25 +33,18 @@ workflows:
       xcode: latest
       cocoapods: default
 
-      # ---- Secrets --------------------------------------------------
-      # KEINE Secrets in dieser Datei und KEINE Variablengruppe noetig.
-      # Die Integration oben stellt diese Variablen automatisch bereit:
-      #   APP_STORE_CONNECT_ISSUER_ID
-      #   APP_STORE_CONNECT_KEY_IDENTIFIER
-      #   APP_STORE_CONNECT_PRIVATE_KEY
+      groups:
+        - appstore_credentials     # enthaelt nur CERTIFICATE_PRIVATE_KEY
 
       vars:
         BUNDLE_ID: "app.lernarena"
         # Numerische Apple-ID der App aus App Store Connect (NICHT geheim).
-        # Steht in der App-Store-Connect-URL: /apps/6748392017/...
         APP_STORE_APPLE_ID: "6748392017"
 
-      # ---- Automatisches Code Signing -------------------------------
-      # Codemagic erzeugt/holt Zertifikat + Provisioning Profile
-      # ueber den App Store Connect API Key.
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: app.lernarena
+      # KEIN "ios_signing:" hier!
+      # Das ist der manuelle Signing-Weg und vertraegt sich nicht mit
+      # fetch-signing-files. Beides zusammen ergibt
+      # "No matching profiles found for bundle identifier".
 
     cache:
       cache_paths:
@@ -66,22 +65,35 @@ workflows:
           flutter --version
           flutter pub get
 
+      - name: CocoaPods installieren
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+
+      - name: Keychain vorbereiten
+        script: |
+          keychain initialize
+
+      - name: Zertifikat und Provisioning Profile holen bzw. anlegen
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+
+      - name: Zertifikat in die Keychain legen
+        script: |
+          keychain add-certificates
+
+      - name: Xcode-Projekt auf die Profile umstellen
+        script: |
+          xcode-project use-profiles
+
       - name: Build-Nummer aus TestFlight hochzaehlen
         script: |
-          # Verhindert "build number already used" beim Upload
           LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" --warn-on-not-found || echo 0)
           if [ -z "$LATEST" ]; then LATEST=0; fi
           BUILD_NUMBER=$(($LATEST + 1))
           echo "Naechste Build-Nummer: $BUILD_NUMBER"
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $CM_ENV
-
-      - name: CocoaPods installieren
-        script: |
-          find . -name "Podfile" -execdir pod install \;
-
-      - name: Xcode-Signing-Konfiguration anwenden
-        script: |
-          xcode-project use-profiles
 
       - name: Statische Analyse
         script: |
@@ -101,10 +113,8 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        # Gruppe muss in App Store Connect existieren (TestFlight -> Interne Tests)
         beta_groups:
           - Internal Testers
-        # Auf true setzen, sobald die App wirklich in den Store soll:
         submit_to_app_store: false
 
       email:
@@ -115,7 +125,7 @@ workflows:
           failure: true
 
   ####################################################################
-  # 2) iOS Smoke-Build (unsigniert) - fuer schnelle Checks
+  # 2) iOS Smoke-Build (unsigniert) - kein Signing, kein Upload
   ####################################################################
   ios-unsigned:
     name: iOS Build (unsigniert, ohne Upload)
