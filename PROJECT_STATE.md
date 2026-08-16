@@ -1,213 +1,216 @@
-# Projektstatus — Lernarena (ihk_app)
+# Projektstatus — Lernarena
 
-Aktualisiert: **2026-08-09**
-Repo: **github.com/claudioNelson/IHK_App** · Branch **main**
-Lokal: **C:\Users\cnm89\Desktop\Projekte\IHK\ihk_app**
-App-Version im Store: **1.1.0+7** (Closed Track, approved, bei Testern) · lokal bereit: **v8-Stand** mit Flutter 3.44.8 + neuer Billing-Lib (NICHT hochladen bis nach dem Launch)
-
-> Hinweis: Diese Datei wurde bis 09/2025 automatisch von `Update-ProjectState.ps1` erzeugt (nur Git-/Datei-Metadaten). Seit 07/2026 wird sie manuell als echte Projekt-Übersicht gepflegt. Das alte Skript spiegelt den Stand nicht mehr wider.
-
----
-
-## 1. Was ist Lernarena?
-
-Eine **Lern- und Prüfungsvorbereitungs-App für angehende Fachinformatiker** (Ausbildung & Umschulung), Fachrichtungen **Anwendungsentwicklung (AE)** und **Systemintegration (SI)**. Ziel: gezielte Vorbereitung auf **AP1** und **AP2** (gestreckte Abschlussprüfung, Gewichtung 20 % / 80 %).
-
-Zwei Produkte, ein Projekt:
-- **Mobile App** (Flutter, Android) — das eigentliche Lernprodukt: Kernthemen, Karteikarten, Level-Modus, echte IHK-Prüfungssimulation, KI-Tutor „Ada", Zertifikate, Statistiken.
-- **Web** (`lernarena.app`, Next.js auf Vercel) — Marketing- + SEO-Seite mit eigenen Lernseiten, Prüfungs-Guide und einem Web-Prüfungstutor.
+**Stand:** 2026-08-16
+**Repo:** `C:/Users/cnm89/Desktop/Lernarena/ihk_app`
+**Remote:** https://github.com/claudioNelson/ihk_app.git
+**Apple Team ID:** `C4S4889PBN`
+**Produkt:** Lernarena — IHK-Prüfungsvorbereitung für Fachinformatiker:innen (AE & SI)
+**Domain:** lernarena.app · **Kontakt:** info@lernarena.app
 
 ---
 
-## 2. Tech-Stack
+## Plattform-Übersicht
 
-**Mobile App**
-- **Flutter 3.44.8 / Dart 3.12.2** (Upgrade 01.08.2026; pubspec-SDK `^3.8.1`)
-- State-Management: **provider**
-- Backend & Auth: **Supabase** (`supabase_flutter`), inkl. Sign in with Apple (`sign_in_with_apple`), Deep Links (`app_links`)
-- KI-Tutor „Ada": Supabase Edge Function `ai-tutor` → **Claude Haiku 4.5** (Failover Groq → Gemini). Aufruf aus `lib/services/gemini_service.dart` (Name historisch, Keys liegen nur serverseitig)
-- Billing: `in_app_purchase ^3.3.0` + `in_app_purchase_android ^0.5.2` (**neue Play-Billing-Bibliothek, Google-Frist 31.08.2026 erfüllt**)
-- UI/Extras: `google_fonts`, `confetti` (Badges), `audioplayers` (Sound), `flutter_highlight` (Code), `flutter_markdown_plus`, `image_picker`, `url_launcher`
-- Config: `dotenv` (API-Keys aus `.env`), Icons via `flutter_launcher_icons`, Paketname via `change_app_package_name`
-
-**Android / Release**
-- `applicationId = app.lernarena`, `compileSdk = 36`, `targetSdk = 36` (Android 16, hart gesetzt), `minSdk = 23`
-- AGP 8.9.1 / Gradle 8.12, NDK 27 · Flutter-Tool hat beim Upgrade `build.gradle.kts` + `gradle.properties` automatisch angepasst
-- ⚠️ Nicht blockierende „will soon be dropped"-Warnungen: Gradle → ≥8.14, AGP → ≥8.11.1, Kotlin → ≥2.2.20 (später zusammen erledigen)
-- Lokales SDK-Setup komplett: cmdline-tools + NDK installiert, alle Lizenzen akzeptiert (`flutter doctor`: No issues)
-- Build: `flutter build appbundle --release` → `.aab`
-
-**Web**
-- **Next.js (App Router, TypeScript)**, Deployment **Vercel**
-- Web-Prüfungstutor: API-Route `web/app/api/ki-korrektur/route.ts` → **Claude Haiku 4.5** (Fallback Groq `llama-3.3-70b-versatile`), strukturierte JSON-Korrektur
-- SEO-Cluster (Details siehe Claude-Projekt-Doc `claude/seo-status-web.md`) · MailerLite wurde komplett entfernt
-- `public/.well-known/assetlinks.json` live (Digital Asset Links für App-Deep-Links, SHA-256 aus Play App Signing)
-
-**Infrastruktur / Konten**
-- E-Mail: `admin@lernarena.app` + `info@lernarena.app` (Zoho)
-- Domain: lernarena.app
-- KI-Anbieter: **Claude Haiku 4.5 (primär, App + Web)** mit Failover: Web-Tutor Claude→Groq; Ada (Edge Function ai-tutor) Claude→Groq→Gemini.
+| Plattform | Bundle/Package-ID | Status |
+|---|---|---|
+| Android (Flutter) | `app.lernarena` | Live / Play Store |
+| iOS (Flutter) | `app.lernarena` | **In Vorbereitung → TestFlight** |
+| Web (Next.js, Vercel) | — | Live |
+| Backend | Supabase (PostgreSQL + RLS, Auth, Edge Functions) | Live |
 
 ---
 
-## 3. App-Aufbau (`lib/`)
+## App Store Release (iOS)
 
-`main.dart` wurde von einem 184-KB-Monolithen (jetzt nur noch als `main.dart.BACKUP*` vorhanden) auf **~4,6 KB** refaktoriert; die Logik liegt in strukturierten Ordnern:
+### ✅ Schritt 1 — Apple Developer Account (16.08.2026)
+Der Apple Developer Account ist seit dem **16.08.2026 AKTIV**.
 
-- **`services/`** — Auth, App-Cache, Progress, Level, Streak, Daily-Goal, Spaced-Repetition, Flashcards, Badges, Subscription, Usage-Tracker (Limits Free/Premium), Sound, Report, Deep-Link, Gemini (KI), Telegram, Async-Duel, Exam, Question-Validator
-- **`screens/`** — auth, onboarding, splash, learning (Hub, Flashcards, Review, Core-Topics, KI-Tutor-Chat), levels (Level-Play, Pfad, Ada-Sheet, Result), module (Modul-/Themen-/Testfragen), pruefen, simulation (Async-Match/Duell, Leaderboard), zertifikate, profile, legal
-- **`pages/pruefung/`** — IHK-Prüfung: Liste, Detail, Exam-Screen
-- **`widgets/`** — Fragen-Router + viele Fragetypen: Multiple-Choice, Freitext, Code/Code-Editor, Tabellen-Vervollständigung, Diagramm, **Binär-**, **Netzwerk-/Subnetting-**, **RAID-Rechner**, **DNS-/Port-Zuordnung**, **ER→Tabellen**, Lückentext, Sequenz, Rechenaufgaben, Foto-Upload; dazu Premium-Lock, Limit-Dialoge/-Pille, Streak-Kalender, Badge-Dialog, Navigation
-- **`data/`** — `exam_data.dart`, `themen_summaries.dart` (~108 KB Lerninhalte) und Prüfungssätze `exams/` (**ae-1/2/3**, **si-1/2**)
-- **`models/`**, **`theme/`** (app_colors/text_styles/theme/provider), **`mixins/`**
+### ✅ Schritt 2 — Lokaler iOS-Stand verifiziert (16.08.2026)
 
-**Kern-Features:** Modul-/Themen-Lernpfade, Karteikarten mit Spaced Repetition, gamifizierter Level-Modus, echte IHK-Prüfungssimulation mit KI-Korrektur, Async-Duell + Leaderboard, Zertifikate, Streaks/Tagesziele, Badges, Premium-Abo mit Nutzungslimits, Report-Funktion.
+| Prüfpunkt | Vorher | Jetzt |
+|---|---|---|
+| `PRODUCT_BUNDLE_IDENTIFIER` (project.pbxproj) | `app.lernarena` ✅ | unverändert ✅ |
+| `CFBundleDisplayName` (Info.plist) | ❌ `Ihk App` | ✅ `Lernarena` |
+| `CFBundleName` (Info.plist) | ❌ `ihk_app` | ✅ `Lernarena` |
+| iOS App-Icons (Assets.xcassets) | ❌ Flutter-Default (blaues Logo) | ✅ Lernarena-Icon, 15 Größen |
+| Alpha-Kanal / runde Ecken im Icon | ❌ schwarze Ecken im Quell-PNG | ✅ vollflächig, RGB ohne Alpha |
 
-**Neu (06.08.2026) — Anschlüsse-Quiz (erster SI-Baustein):** 16 selbst erstellte, lizenzfreie Anschluss-Illustrationen (`assets/anschluesse/`, je labeled + quiz-Variante; Quelle: SVG-Generator, reproduzierbar). Lern-Modus (Karten) + Quiz (Bild ohne Label, 4 Optionen, Feedback mit Erklärung) in `anschluesse_quiz_screen.dart`, Daten in `data/anschluesse_data.dart`, Einstieg im Learning Hub (Tag „SI", cyan). Läuft komplett offline, kein Supabase. Geplant: eigener AE/SI-Fachrichtungs-Bereich (AP1 gemeinsam, AP2 getrennt), Fachrichtungs-Wahl im Onboarding/Profil.
+Hinweise:
+- `RunnerTests` nutzt korrekt `app.lernarena.RunnerTests`.
+- In `pubspec.yaml` stand `flutter_launcher_icons: ios: false` — deshalb waren nur die
+  Android-Icons erzeugt. Jetzt auf `ios: true` + `remove_alpha_ios: true` umgestellt.
+- Neues, für iOS bereinigtes Quellbild: `assets/icon/app_icon_ios.png`
+  (1254×1254, RGB, keine eigenen runden Ecken — iOS legt die Maske selbst an).
 
-**Neu (06.08.2026) — Eigene lokale Sounds:** `assets/sounds/` (correct, wrong, victory, defeat, click, timeup) — selbst synthetisiert, lizenzfrei. SoundService von freesound-Streaming-URLs auf `AssetSource` umgestellt → offline-fähig, keine Latenz. Anschlüsse-Quiz spielt richtig/falsch + Victory ab ≥80 %.
+> **⚠️ Stolperfalle — nicht vergessen:** `assets/icon/app_icon.png` hat **schwarze**
+> abgerundete Ecken (kein Alpha, echtes Schwarz). iOS legt seine Maske selbst an, das
+> ergibt schwarze Ränder im fertigen Icon. Deshalb steht in `pubspec.yaml` zwingend
+> `image_path_ios: "assets/icon/app_icon_ios.png"`.
+> Am 16.08. ist diese Zeile bei einer Wiederherstellung des Arbeitsverzeichnisses
+> verlorengegangen; der anschließende Lauf von `flutter_launcher_icons` hat alle 15
+> Icons wieder aus der falschen Quelle erzeugt (dunkelster Pixelwert 0 = pechschwarze
+> Ecken). Wurde korrigiert. **`flutter pub run flutter_launcher_icons` nie ohne
+> `image_path_ios` ausführen.**
 
----
+### ✅ Schritt 3 — Codemagic-Signing vorbereitet (16.08.2026)
 
-## 4. Release-Status (Google Play)
+Im Repo lag **keine** `codemagic.yaml` — der erste (unsignierte) Build lief über den
+Codemagic-Workflow-Editor (UI). Neu angelegt: **`codemagic.yaml`** im Repo-Root mit
+zwei Workflows.
 
-- 🚀 **DIE APP IST LIVE IM PLAY STORE (seit 02.08.2026)!** Produktionszugriff genehmigt, Production-Release (v7, Länder DE/AT/CH) eingereicht und von Google freigegeben. Store-Link: https://play.google.com/store/apps/details?id=app.lernarena — Suche nach „Fachinformatiker" findet die App bereits.
-- Launch-Entscheidung: **Option A** — mit v7 (clientseitige Freischaltung) launchen, serverseitige Belegprüfung sofort nachrüsten (in v8 fertig gebaut, siehe 4b).
-- Wichtig fürs Bewertungs-Thema: **Eingetragene Closed-Tester können NICHT öffentlich bewerten** (sie sehen nur „privates Feedback an den Entwickler" + „interne Betaversion"-Label). Zum öffentlichen Bewerten müssen sie das Testprogramm verlassen: https://play.google.com/apps/testing/app.lernarena
-- Historie: 14-Tage-Test abgeschlossen, Produktionszugriff-Fragebogen bestanden.
-- Aktueller Track-Release: **versionCode 7 (1.1.0+7)** — approved & bei den Testern. Enthält das komplette Kauf-System (Kauf-Sheet, BillingService, In-App-Navigation statt Website-Links). Historie: v4/v5 Fehlversuche ohne Billing (hängender Gradle-Daemon), v6 = Billing-Lib ohne Kauf-UI.
-- ⚠️ Gelernte Lektion: In der Play Console reicht **Save nicht** — ein Release braucht **Edit → Rollout → Publishing overview → Submit for review**, sonst bleibt es als Draft liegen.
-- **v8 (1.1.1+8) am 07.08. in den Closed Track hochgeladen & submitted** — Inhalt: serverseitige Belegprüfung (end-to-end getestet), Anschlüsse-Quiz, lokale Sounds, neue Billing-Lib (Flutter 3.44.8). Nach Googles Freigabe: als Tester kurz aus dem Store prüfen → **„Promote release" → Production**.
-- Play-Policy „target Android 16 (API 36)" ✅ · Edge-to-edge-Hinweise (Android 15) durch Flutter-Upgrade erledigt.
-- Open Testing bewusst NICHT genutzt (erst nach Produktionszugriff möglich; offene Tester würden echt zahlen).
+**Workflow `ios-release` (iOS Release → TestFlight)**
 
----
+- Instanz: `mac_mini_m2`, Flutter `stable`, Xcode `latest`
+- Automatisches Code Signing über **App Store Connect API Key**
+  (`ios_signing: distribution_type: app_store`, `bundle_identifier: app.lernarena`)
+- Build-Nummer wird automatisch aus der letzten TestFlight-Build-Nummer hochgezählt
+- Build-Kommando: `flutter build ipa --release`
+- Publishing: **TestFlight-Upload aktiv** (`submit_to_testflight: true`),
+  `submit_to_app_store: false` (bewusst noch aus)
+- Trigger: Git-Tags nach dem Muster `ios-v*`
+- E-Mail-Benachrichtigung an info@lernarena.app
 
-## 4b. Monetarisierung (Stand 31.07.2026 — FUNKTIONIERT end-to-end)
+**Workflow `ios-unsigned`** — unsignierter Smoke-Build ohne Upload (wie bisher).
 
-**Google Payments-Profil:** Unternehmensprofil (Einzelunternehmer/Kleingewerbe, rechtl. Name = eigener Name, Statement-Name LERNARENA), Bankkonto per Cent-Gutschrift verifiziert.
+**Secrets — NICHT im Repo, und keine Variablengruppe nötig.**
+Die Datei nutzt `auth: integration`. Damit stellt die App Store Connect **Integration**
+die Variablen `APP_STORE_CONNECT_ISSUER_ID`, `_KEY_IDENTIFIER` und `_PRIVATE_KEY`
+automatisch im Build bereit. Eine zusätzliche Variablengruppe `appstore_credentials`
+wäre nicht nur überflüssig, sondern würde den Build fehlschlagen lassen, wenn sie
+nicht existiert — sie wurde am 16.08. wieder entfernt.
 
-**Produkte (Play Console):** Abo `lernarena_premium` mit 3 aktiven Base Plans: `monthly` · `half-year` · `annual` (je Auto-renewing, Grace 7 Tage). ⚠️ Toter Base Plan `yearly` existiert deaktiviert (war versehentlich monatlich — Base Plans sind unveränderlich, ID verbrannt). KEIN Lifetime mehr.
+Einmalig in Codemagic einzutragen:
+**Settings → Integrations → App Store Connect → Add key**, Name exakt
+**`Lernarena API Key`**, dazu Issuer ID, Key ID und die `.p8`-Datei.
 
-**Preise (deutsche Endpreise inkl. 19 % MwSt.):** 11,99 €/M · 47,99 €/6M · 84,99 €/Jahr. (Ursprünglich 9,99/39,99/69,99 netto eingegeben; Google hat MwSt. aufgeschlagen — bewusst so belassen.) Alle Texte in App (Kauf-Sheet, PremiumLock, In-App-AGB) und Web (Startseite, /upgrade, AGB) auf die Endpreise aktualisiert; €/Monat-Anzeige im Kauf-Sheet rechnet dynamisch aus echten Google-Preisen.
+`APP_STORE_APPLE_ID` (`6748392017`) steht fest in der `codemagic.yaml` — kein Secret.
 
-**App-Integration:** `lib/services/billing_service.dart` (in_app_purchase ^3.3.0, Produkt-Mapping über basePlanId, Kauf, Restore, completePurchase) + `lib/widgets/premium_kauf_sheet.dart` (Bottom Sheet, 3 Pläne). Verdrahtet an: IHK-Prüfungs-Paywall, beide Zertifikat-Paywalls, KI-Tutor-Limit, Modul-Fragen-Limit (practice_limit_mixin). Init in main.dart + restorePurchases nach Login. Prüfungs-Karten in pruefen_screen navigieren jetzt **in-App** zur Detailseite (Website-Link entfernt — Play-Policy: keine externen Kaufwege; Website-Stripe bleibt separat geplant).
+Danach die App in Codemagic (heißt dort **IHK_App**) von „Workflow Editor" auf
+**„codemagic.yaml"** umstellen.
 
-**Supabase:** Schutz-Trigger `trg_protect_premium` (blockt direkte Premium-Feld-Änderungen durch User) wurde erweitert um Sitzungs-Schalter `app.premium_grant`; neue RPC `activate_premium_purchase(p_tier, p_days)` (SECURITY DEFINER, validiert Tier/Laufzeit, verkürzt nie) ist der einzige Kauf-Schreibweg. App und Web lesen dasselbe `profiles.is_premium` → **einmal kaufen = überall Premium**.
+### ✅ Schritt 4 — Info.plist auf App-Store-Pflichtangaben geprüft (16.08.2026)
 
-**Getestet:** Lizenz-Tester eingerichtet (Testkarten sieht NUR, wer in Play Console → Einstellungen → License testing eingetragen ist — alle anderen zahlen echt); Testkauf mit Testkarte aus der Store-Version v7 auf echtem Gerät erfolgreich: purchased → RPC → `isPremium=true`. Free-Limits im Code verifiziert: 5 Modul-Fragen/Modul/Tag, 5 KI-Fragen, 5 Duelle; Karteikarten bewusst unbegrenzt (Konstante 30 existiert, wird nicht durchgesetzt).
+| Key | Wert | Grund |
+|---|---|---|
+| `ITSAppUsesNonExemptEncryption` | `false` | nur Standard-HTTPS/TLS — spart den Export-Compliance-Dialog bei jedem TestFlight-Build |
+| `NSCameraUsageDescription` | gesetzt (DE) | `lib/widgets/photo_upload_widget.dart` nutzt `ImageSource.camera` — ohne Text: Crash + Reject |
+| `NSPhotoLibraryUsageDescription` | gesetzt (DE) | dasselbe Widget nutzt `ImageSource.gallery` |
+| `CFBundleURLTypes` → `app.lernarena` | neu ergänzt | Deep Links (Passwort-Reset / E-Mail-Bestätigung über Supabase) — `deep_link_service.dart` erwartet dieses Scheme; fehlte auf iOS komplett |
+| `CFBundleLocalizations` | `["de"]` | App-Inhalte sind deutsch |
 
-**Gebühren:** ✅ 15-%-Service-Fee-Programm enrolled (31.07.).
+Nicht ergänzt (bewusst): Mikrofon, Standort, Kontakte, Tracking — werden von der App
+nicht genutzt. **Sign in with Apple wird nicht benötigt**: die App hat ausschließlich
+E-Mail/Passwort-Login, keine Social-Logins (Apple verlangt Sign in with Apple nur,
+wenn andere Drittanbieter-Logins angeboten werden).
 
-**✅ Serverseitige Belegprüfung (07.08.2026, END-TO-END GETESTET):** Edge Function `verify-purchase` (holt Google-Token via Service-Account `lernarena-play-verify@gen-lang-client-0675834051`, prüft Abo bei Google, Base Plan → Tier, echtes Ablaufdatum) + DB-Funktion `grant_premium_from_server` (nur service_role). App (v8) schickt nur noch den purchaseToken; Restore läuft über denselben Weg (Auto-Restore beim App-Start). Getestet: Frischkauf + Restore, beides fehlerfrei. Gefundener & behobener Bug: Secret `GOOGLE_PLAY_SERVICE_ACCOUNT` war beim ersten Einfügen kein valides JSON (SyntaxError in den Function-Logs) → Secret neu eingefügt. Alte RPC `activate_premium_purchase` bleibt aktiv, bis v7-Nutzer auf v8 sind — DANN dichtmachen (revoke execute from authenticated).
+### ✅ Schritt 5 — App-ID bei Apple registriert (16.08.2026)
 
----
+Im Apple Developer Portal unter Identifiers angelegt:
 
-## 4c. App Store Release (iOS) — in Vorbereitung
+| Feld | Wert |
+|---|---|
+| Description | Lernarena |
+| Bundle ID | **Explicit** `app.lernarena` |
+| App ID Prefix / Team ID | `C4S4889PBN` |
+| Capabilities | **keine aktiviert** — bewusst, die App braucht keine |
 
-**Schritt 1 — Apple Developer Account:** bezahlt am 03.08.2026, wartet auf Apples Freischaltung (dauert meist 1–2 Tage, manchmal bis 48 h nach Zahlungseingang).
+### ✅ Schritt 6 — App Store Connect API Key erzeugt (16.08.2026)
 
-**Schritt 2 — Projekt-Check (03.08.2026):**
-- `ios/`-Ordner existiert ✅ (inkl. Runner.xcodeproj, xcworkspace, RunnerTests)
-- Bundle-ID: **`app.lernarena`** — identisch mit der Android applicationId ✅ (keine Änderung nötig; RunnerTests: app.lernarena.RunnerTests)
-- App-Name (CFBundleDisplayName in Info.plist): war „Ihk App" → auf **„Lernarena"** korrigiert ✅
-- App-Icons: waren noch **Flutter-Standard** ❌ → `flutter_launcher_icons` in pubspec auf `ios: true` + `remove_alpha_ios: true` umgestellt (App Store lehnt Alpha-Kanal ab). **TODO:** `dart run flutter_launcher_icons` ausführen, dann sind die iOS-Icons generiert.
-- in_app_purchase: Plugin ist föderiert — iOS-Unterstützung (in_app_purchase_storekit) kommt automatisch mit `in_app_purchase ^3.3.0`. Kein Podfile vorhanden — normal, wird beim ersten iOS-Build erzeugt. Pods/CocoaPods lassen sich **nur auf einem Mac** prüfen.
+Team Key mit Rolle **App Manager**, Name „Codemagic Lernarena". Die `.p8`-Datei liegt
+lokal außerhalb des Repos (nur einmal herunterladbar). Issuer ID, Key ID und Private Key
+gehen ausschließlich nach Codemagic — **nie ins Repo, nie in einen Chat.**
 
-**Schritt 3 — Codemagic eingerichtet (04.08.2026):** ✅ Account (GitHub-Login), Repo claudioNelson/IHK_App verbunden, Default Workflow auf iOS/macOS M2. **Erster unsignierter iOS-Build ERFOLGREICH** — das Projekt kompiliert für iOS (inkl. StoreKit/Billing-Pods). Free-Tier: 500 macOS-M2-Minuten/Monat.
+### ✅ Schritt 7 — App in App Store Connect angelegt (16.08.2026)
 
-**Offene Punkte / Realität-Check:**
-- iOS-Builds laufen über **Codemagic** (Mac in der Cloud) — kein eigener Mac nötig. Testen ohne iPhone: Appetize.io (Simulator im Browser); für Kauf-Tests + TestFlight-Endtest einmal ein echtes iPhone leihen.
-- App Store Connect: App anlegen, Abo-Produkte (monthly/half-year/annual) NEU anlegen — Apple hat eigenes Abo-System, Preise/Produkte aus der Play Console gelten dort nicht.
-- Belegprüfung: `verify-purchase` prüft nur Google-Käufe. Für iOS braucht es einen zweiten Prüfweg (App Store Server API) — bauen, wenn iOS-Version konkret wird.
-- Apple-Abos: Kommission ebenfalls 15 % (Small Business Program, muss nach Freischaltung beantragt werden).
-- Sign in with Apple ist Pflicht, wenn Google-Login angeboten wird — `sign_in_with_apple` ist schon im Projekt ✅.
+| Feld | Wert |
+|---|---|
+| App-Name (Store) | **Lernarena: Fachinformatiker** (27 von 30 Zeichen) |
+| Anzeigename (Homescreen) | **Lernarena** (aus `CFBundleDisplayName`) |
+| Plattform | iOS |
+| Primärsprache | Deutsch |
+| Bundle-ID | `app.lernarena` |
+| SKU | `LERNARENA-IOS-001` |
+| Apple-ID (numerisch) | **`6748392017`** — steht fest in `codemagic.yaml`, kein Secret |
+| Status | iOS 1.0 — In Vorbereitung zur Übermittlung |
 
----
+### ⬜ Offen — muss bei Apple / App Store Connect erledigt werden
 
-## 4d. Gast-Modus (Branch `feature/gast-modus`, Stand 08.08.2026) — wird **v9**
+1. **Codemagic konfigurieren** — Settings → Integrations → App Store Connect →
+   Add key, Name exakt `Lernarena API Key` (Issuer ID, Key ID, `.p8`).
+   Danach App **IHK_App** von „Workflow Editor" auf **`codemagic.yaml`** umstellen.
+   Keine Variablengruppe nötig.
+2. **Interne Tester-Gruppe „Internal Testers"** in App Store Connect → TestFlight anlegen
+   (der Workflow referenziert sie unter `beta_groups`).
+3. **Händlerstatus (EU Digital Services Act)** — App Store Connect zeigt dafür einen
+   Banner. Ohne Händlerstatus dürfen neue Apps nicht in der EU veröffentlicht werden.
+   Muss vom Accountinhaber ausgefüllt werden; die Angaben (Name, Adresse, Kontakt)
+   erscheinen später öffentlich im App-Store-Eintrag.
+   Für TestFlight mit **internen** Testern noch nicht nötig.
+4. Danach: Tag `ios-v1.0.0` pushen → Build läuft → TestFlight.
 
-Anonymes Ausprobieren ohne Registrierung, damit Neugierige die App sofort testen können.
-
-- **Supabase Anonymous Sign-ins aktiviert** (Dashboard: Authentication → Sign In/Up).
-- **Trigger `handle_new_user` anonym-sicher gemacht:** Username-Fallback „Gast-XXXX", E-Mail-Fallback `<user-id>@gast.lernarena.app` (nötig, weil `profiles.email` NOT NULL ist).
-- **Login-Screen:** Button „Ohne Account ausprobieren" → `signInAnonymously()` → NavRoot.
-- **Paket-Migration mitgezogen:** `supabase_flutter` 1.10.3 → 2.17.1, `app_links` 3.5.1 → 7.x. Nötige Code-Fixes: `.in_` → `.inFilter` (6 Stellen), `getInitialAppLink` → `getInitialLink`, Future.wait-Typfix in `new_profile_page.dart`.
-- **✅ Getestet (Windows-Desktop):** Gast-Login, Profil „Gast-1758", Ada, Logout → Login-Screen, normaler Login nach Migration — alles fehlerfrei.
-
-**Android App Links eingerichtet (09.08.2026):** Damit die Auth-Mails (Bestätigung + Passwort-Reset) direkt in der App landen statt im Browser.
-- `web/public/.well-known/assetlinks.json`: Package `app.lernarena`, **zwei** SHA-256-Fingerprints — `02:5F:…:00:35` (Play-App-Signing-Key, Store-Builds) **und** `B5:12:…:37:61` (lokaler Debug/Upload-Key, `flutter run`-Builds). Beide nötig, weil Debug-Installs mit dem lokalen Key signiert sind und die Verifizierung sonst mit Status `1024` (failed) scheitert.
-- ⚠️ **Gefundener & behobener Bug:** `web/vercel.json` leitete `/.well-known/assetlinks.json` per Rewrite auf die API-Route `/api/assetlinks` um, die einen **veralteten Fingerprint** (`B5:12:…`) auslieferte → live wurde der falsche Wert serviert. Rewrite entfernt (statische Datei wird jetzt direkt ausgeliefert), API-Route-Fingerprint zur Sicherheit ebenfalls korrigiert, `.well-known/` aus dem `proxy.ts`-Matcher (Next-16-Middleware) ausgeschlossen.
-- `AndroidManifest.xml`: HTTPS-Intent-Filter (`autoVerify="true"`) auf `android:pathPrefix="/auth/callback"` eingeschränkt — nur Auth-Callbacks öffnen die App, normale Website-/SEO-Links bleiben im Browser. Custom-Scheme `app.lernarena://` bleibt.
-- `auth_service.dart` nutzte bereits `https://lernarena.app/auth/callback` (signUp + resetPassword) → konsistent, keine Änderung.
-- **Deploy-Weg:** assetlinks-Fix (nur die 4 Web-Dateien) per Cherry-Pick auf `main` gebracht (Commit `2ce9c9e`, gepusht) — Produktion `lernarena.app` deployt von `main`, nicht vom Feature-Branch. Die Manifest-/AuthService-Änderungen bleiben auf `feature/gast-modus`.
-- **✅ App Links live & verifiziert (09.08.2026):** Live-Datei liefert beide Fingerprints aus; `adb pm get-app-links app.lernarena` zeigt `lernarena.app: verified` (vorher `1024`). Debug-Build ist mit `B5:12:…` signiert, daher der zweite Fingerprint nötig.
-- **✅ Mail-Flow end-to-end getestet (09.08.2026):** Registrierungs-Bestätigungsmail öffnet auf dem echten Android-Gerät direkt die App und loggt den User ein. Supabase Redirect URLs eingetragen (`https://lernarena.app/auth/callback` + `…/auth/callback**`). Passwort-Reset-Mail noch nicht separat gegengetestet, sollte über denselben Callback laufen.
-- ⚠️ **Lesson learned (Git):** Beim Cherry-Pick auf `main` blockierte eine uncommittete `.claude/settings.local.json` den `checkout`; ein `git stash pop` popte danach versehentlich einen **alten, vergessenen Stash** (`WIP on main: 3fc4680`) und riss ~40 Dateien in Merge-Konflikte. Behoben via `git reset --hard HEAD` (HEAD war unberührt `4705095`, `.env` vorher aus dem Index genommen → blieb erhalten). Kein Datenverlust. Merke: alten Stash nicht blind poppen.
-
-**Gast → Account-Umwandlung gebaut & ✅ getestet (09.08.2026):**
-- `auth_service.dart`: neuer Getter `isGuest` (`currentUser.isAnonymous`) + `convertGuestToAccount()` — setzt E-Mail/Passwort/Username per `updateUser()` auf dem **anonymen** User (KEIN neuer Account, User-ID + Fortschritt bleiben), Redirect über `https://lernarena.app/auth/callback`; danach werden `profiles.username`/`email` vom Platzhalter auf die echten Werte geupdatet.
-- `lib/screens/auth/upgrade_account_screen.dart` (NEU): Formular Username/E-Mail/Passwort/Bestätigen im register_screen-Stil, Fehlertext bei bereits vergebener E-Mail, Erfolgsansicht „Fast geschafft!" mit Bestätigungsmail-Hinweis, `pop(true)` zurück zum Profil.
-- `new_profile_page.dart`: Für Gäste auffällige Karte „Account erstellen & Fortschritt sichern" (Accent-Gradient, Hinweis „Fortschritt geht bei Deinstallation verloren") oben im Profil; im ACCOUNT-Block ersetzt „Account erstellen" das „Passwort ändern"-Tile für Gäste; nach erfolgreicher Umwandlung wird der Profil-Cache verworfen und neu geladen.
-- ✅ **Auf echtem Gerät getestet (09.08.2026):** Gast-Login → Karte → Formular → Bestätigungsmail → App Link → Account umgewandelt, Fortschritt erhalten, Profil zeigt echte Daten.
-
-**Noch offen vor Release:**
-1. **Deep Links auf echtem Gerät** — ✅ E-Mail-Bestätigung getestet, öffnet App + loggt ein (App Links `verified`). **✅ Passwort-Reset komplett gebaut & Ende-zu-Ende getestet (09.08.2026):** neuer `lib/screens/auth/reset_password_screen.dart` (Formular neues Passwort + Bestätigen, Stil wie change_password_screen, Erfolgsansicht „Passwort gesetzt."); `main.dart` bekam globalen `navigatorKey` + Behandlung von `AuthChangeEvent.passwordRecovery` (öffnet den Screen mit 800 ms Verzögerung, damit der Navigator nach Kaltstart bereit ist). Drei Stolpersteine, alle behoben: (a) Auth-Listener muss VOR `DeepLinkService().initialize()` registriert sein, sonst geht das Event beim Kaltstart über den Mail-Link verloren; (b) das Supabase-Mail-Template „Reset Password" zeigte auf `{{ .SiteURL }}/reset-confirm` — App Link greift aber nur auf `/auth/callback`, Template korrigiert auf `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery`; (c) Bug in `deep_link_service.dart`: `verifyOTP(token: …)` statt `verifyOTP(tokenHash: …)` → Assertion „email or phone needs to be specified", gefixt. Getestet: Mail-Link öffnet App → Reset-Screen → neues Passwort gesetzt.
-2. ~~Gast → Account-Umwandlung~~ — ✅ gebaut & Ende-zu-Ende getestet (siehe oben).
-3. ~~Premium-Kauf für Gäste blockieren~~ — ✅ gebaut & getestet (09.08.2026): `premium_kauf_sheet.dart` zeigt Gästen statt der Pläne ein Gate „Sichere zuerst deinen Account." mit Button zur Account-Erstellung (UpgradeAccountScreen); zusätzlich Sicherheitsnetz in `billing_service.dart` `buy()` (anonymer User → Fehlermeldung statt Kaufdialog). Gate erscheint beim Gast auf dem Gerät ✅ (normaler Kauf-Flow wird vor v9 sowieso nochmal regressionsgetestet).
-4. ~~„Profil bearbeiten" beim Gast prüfen~~ — ✅ getestet (09.08.2026): Benutzername ändern funktioniert auch als Gast.
-5. ~~Cleanup-Job für verwaiste Gast-Accounts~~ — ✅ eingerichtet (09.08.2026): SQL-Funktion `public.cleanup_guest_accounts()` (security definer, löscht `auth.users` mit `is_anonymous = true` und >30 Tage inaktiv, pro User mit Exception-Handling, execute für anon/authenticated revoked) + pg_cron-Job `cleanup-guest-accounts` täglich 03:00 UTC (`cron.job` zeigt active=true; Testlauf lief fehlerfrei, 0 Löschungen wie erwartet). Captcha bleibt optional für später.
-6. ~~BillingService: Platform-Check~~ — ✅ gefixt & getestet (09.08.2026): `_iap` ist jetzt `late final` mit Initializer (wird erst beim ersten Zugriff erzeugt) + neuer Getter `platformSupported` (Android/iOS/macOS); `init()` überspringt Billing auf Windows/Linux/Web sauber mit Log statt LateInitializationError („Plattform nicht unterstützt — übersprungen" auf Windows verifiziert). Alle übrigen Methoden sind über `_available == false` automatisch abgesichert.
-7. ~~Kauf-Flow-Regressionstest~~ — ✅ bestanden (09.08.2026): Mit echtem Account zeigt das Kauf-Sheet die drei Pläne mit echten Google-Preisen; Neukauf (monthly, Lizenztester) lief komplett durch inkl. serverseitiger Belegprüfung → Premium aktiviert. Anmerkung: Das alte Test-Abo war zuvor abgelaufen (Lizenztester-Abos laufen stark verkürzt), daher fand „Käufe wiederherstellen" korrekt nichts — Restore hat aktuell kein UI-Feedback (kosmetisch, evtl. später Snackbar).
-
-**➡️ Damit ist die v9-Feature-Liste KOMPLETT — der Branch ist inhaltlich releasefertig.** Vor dem v9-Release noch: Version in `pubspec.yaml` auf 1.2.0+9 bumpen, `flutter build appbundle`, in Play Console Closed Track hochladen.
-
----
-
-## 5. Web / SEO (Kurzfassung)
-
-Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpage-Cluster unter `/lernen/*` (10 Themen), Pillar-Seite `/fachinformatiker-pruefung`, Sitemap, strukturierte Daten, OG-Bild, 301-Redirect, Hell/Dunkel-Theme. **07/2026:** alle 10 Lernseiten inhaltlich vertieft (Alltags-Vergleiche, Prüfungstipp- & „Häufige Fehler"-Kästen, sichtbarer FAQ, je 5 Quizfragen; RAID auf themefähiges System umgebaut) — ✅ **live deployt und verifiziert**. MailerLite komplett entfernt. Neue strukturierte Prüfungs-Ergebnisseite (`ExamResult.tsx`) live.
-
----
-
-## 6. Offene Punkte / Nächste Schritte
-
-**App**
-- ✅ **v8 (1.1.1+8) LIVE IN PRODUKTION** (09.08.2026, 16:14 — Submission activity „Published"): Belegprüfung, Anschlüsse-Quiz, eigene Sounds, neue Billing-Lib für alle Store-Nutzer. (Warnung beim Promote „1.022 Geräte nicht mehr unterstützt" = Uralt-Androids durch Flutter-Upgrade-minSdk, unkritisch akzeptiert.)
-- ✅ **v9 (1.2.0+9, Gast-Modus) LIVE IN PRODUKTION** (10.08.2026): Closed-Track-Review bestanden → Promote to Production → Rollout. Alle Nutzer haben jetzt Gast-Modus, Gast→Account-Umwandlung, Kauf-Sperre für Gäste, Passwort-Reset-Flow. (Hinweis: Tester bekommen Closed-Track-Updates im Store z. T. mit Stunden Verzögerung — nur Propagation, kein Fehler.)
-- ✅ **Ada-Limit gilt automatisch auch für Gäste** (10.08.2026 verifiziert): serverseitiges `FREE_LIMIT = 5`/Tag in Edge Function `ai-tutor` (usage_tracking pro User+Tag) — Gäste sind normale (anonyme) User und laufen durch denselben Check; Block nach 5 Fragen auf Gerät getestet. Bekanntes Schlupfloch: Gast könnte sich neu einloggen (neue User-ID = frisches Limit) — bewusst akzeptiert; Optionen falls KI-Kosten steigen: Gäste-Limit auf 3 senken (`user.is_anonymous` in der Function) oder Ada für Gäste sperren.
-- **TODO nach v9-Verbreitung:** alte RPC `activate_premium_purchase` dichtmachen (`revoke execute from authenticated`), wenn v7/v8-Nutzer migriert sind.
-- ✅ **`feature/gast-modus` in `main` gemergt** (10.08.2026, Fast-Forward auf `794beeb`, gepusht): main = kompletter v9-Stand. Neue Features starten ab jetzt frisch von `main`. (Beim ersten Merge-Versuch scheiterte `git checkout main` an uncommitteten Dateien — die Folge-Kommandos sahen erfolgreich aus, waren es aber nicht. Merke: nach checkout-Fehler erst committen, dann von vorn.)
-- Später: Gradle ≥8.14, AGP ≥8.11.1, Kotlin ≥2.2.20 (nicht blockierende Flutter-Warnungen) + `withOpacity`→`withValues`-Aufräum-Session (384 Analyzer-Infos).
-- KI-Kosten im Blick behalten (Ada läuft über Claude Haiku; Nutzungslimits über `usage_tracker`).
-
-**Web**
-- ✅ Play-Store-Badge live auf der Startseite (Hero, Schluss-CTA, Footer).
-- ✅ **Prüfungs-ASCII-Diagramme durch SVG-Grafiken ersetzt** (10.08.2026, mit dem Merge live): 7 SVGs in `web/public/images/` (ap1-netzplan mit Vorgangsliste+Ablauf, ae1-streckennetz mit Routentabelle, ae1-klasse-transport, ae2-klasse-scan, ae2-treffer-beispiel, ae2-treffer-min, ae3-zeiterfassung) — einheitlicher Stil (dunkler Hintergrund #1a1a2e, Zebra-Tabellen, Pfeil-Marker). `image`-Feld der Fragen genutzt (Lightbox vorhanden); `.q-image` in ExamContent.tsx auf volle Breite umgestellt. Einfache `|`-Texttabellen bewusst gelassen (Monospace richtet sauber aus). Altes hs2-graph.png (ohne Kanten-Gewichte) durch ae1-streckennetz.svg ersetzt.
-- ✅ **Vercel-Preview-Builds gefixt** (10.08.2026): Branch-Previews schlugen fehl, weil `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` nur für Production hinterlegt waren → in Vercel auch für die Preview-Umgebung freigegeben. Production war nie betroffen.
-- ✅ **Python-Kurs: Lektionen 1–6 fertig + Umbau auf Einzelseiten** (10.08.2026): Inhalte: 1 Start/print, 2 Variablen/input, 3 Rechnen/Modulo/f-Strings, 4 if/elif/else (echter IHK-Notenschlüssel), 5 Schleifen, 6 🎮 Zahlenraten (Baustein-Prinzip, binäre-Suche-Tipp). **Struktur:** `/python-kurs` = Übersicht (Kursplan-Kacheln als Links, FAQ, CTA); jede Lektion eigene Seite `/python-kurs/lektion-N` mit eigenem SEO-Metadata und Vor/Zurück-Navigation. Gemeinsames CSS in `_components/kursTheme.ts`, Lektionsliste in `_components/lektionen.ts`, Rahmen in `_components/LektionLayout.tsx`. Sitemap um /python-kurs + 6 Lektions-URLs erweitert (⚠️ beim Freischalten neuer Lektionen: Status in lektionen.ts auf live + sitemap.ts erweitern). Noch offen: Lektionen 7–12; auf `/lernen` + Startseite verlinken.
-- ✅ **Python-Editor Terminal-Look** (10.08.2026): Editor hat jetzt eine eigene dunkle Farbwelt (GitHub-Dark-Palette #0D1117, hellere Kopfleiste, Schatten, abgesetzter Ausgabe-Bereich) — hebt sich in beiden Themes klar vom Seitenhintergrund ab.
-- ✅ **Theme-Persistenz gefixt & getestet** (10.08.2026): Hell/Dunkel-Wahl (`localStorage lernarena-theme`) wird jetzt zentral im Root-`layout.tsx` per Inline-Script VOR dem ersten Paint angewendet — gilt damit auf allen Seiten (vorher fiel z. B. /lernen/* beim Seitenwechsel auf Dunkel zurück).
-- **KI-Korrektur verbessert (07.08.):** Gesamtergebnis wird jetzt clientseitig aus den Einzelbewertungen summiert (Fix für „0/100 trotz Punkten"-Widerspruch), Konsistenz-Regeln im Prompt, große farbige Noten-Karte in `ExamResult.tsx`.
-- `/upgrade` (Web-Stripe-Checkout) fertig bauen; Play-Premium-Nutzern dort keinen Doppelkauf anbieten.
-- Nach 2–3 Wochen Search-Console-Daten prüfen → Seiten mit Impressionen weiter ausbauen; ggf. neue Themenseiten (VLAN, DHCP/DNS, USV, Scrum, …).
-
-**KI / Kosten**
-- ✅ ERLEDIGT (31.07.): Anthropic-Zahlung erfolgreich (Blocker war der VPN). Beide KI-Anbindungen auf **Claude Haiku 4.5** umgestellt:
-  - Web-Tutor (`web/app/api/ki-korrektur/route.ts`): Claude primär → Groq-Fallback. Liefert jetzt **strukturiertes JSON**; neue Ergebnis-Ansicht in `ExamResult.tsx` (Punkte-Header, Note/Bestanden-Badges, Aufgaben-Karten mit Farbpunkten, Stärken/Verbesserungen/Lernempfehlungen). Fallback auf Rohtext, falls JSON-Parse scheitert.
-  - Ada in der App (`supabase/functions/ai-tutor/index.ts`): Claude → Groq → Gemini. Edge Function deployed.
-  - Keys: ANTHROPIC_API_KEY in Vercel-Env + Supabase-Secrets (nie im Code/Repo).
-- Anthropic-Guthaben im Blick behalten (Start: 20 $; Haiku ≈ 1–2 Cent pro Prüfungskorrektur).
-
-**Social / Marketing**
-- Fertiges Subnetting-Video auf TikTok + Instagram Reels posten.
-- Social-Accounts nach Account-Checkliste vervollständigen (siehe `claude/account-checkliste.md`).
+### ⬜ Später (vor dem öffentlichen Store-Release)
+- App-Store-Screenshots (iPhone 6.7" und 6.5" Pflicht), Beschreibung, Keywords
+- Datenschutz-Angaben („App Privacy" / Nutrition Label) — Supabase-Auth, Fotos, KI-Tutor
+- Altersfreigabe, Kategorie, Support- und Datenschutz-URL (lernarena.app)
+- `submit_to_app_store: true` in `codemagic.yaml` setzen
 
 ---
 
-## 7. Arbeitsweise / Konventionen
+### ⚠️ Wichtig für später — In-App-Purchase / Richtlinie 3.1.1
 
-- Ordner-Freigabe via Device-Bridge (pro Sitzung neu erteilen) — Claude liest/schreibt direkt in `web/` bzw. `ihk_app/`.
-- `git commit` / `push` führt der User selbst aus.
-- **Secrets** (API-Keys) kommen in `.env` / Vercel-Env, **nie** in den Chat oder ins Repo. `.env.old` bleibt in `.gitignore`.
-- Projekt-Regel: **Schritt für Schritt arbeiten, Chat nicht überfüllen. Antworten auf Deutsch.**
+`lib/widgets/premium_lock.dart` (Preise „Ab 9,99€/M · 59€/J · 99€ Lifetime") und
+`lib/widgets/limit_reached_dialog.dart` existieren, werden aber **aktuell nirgends
+verwendet** — im gesamten `lib/` gibt es keinen `launchUrl`-Aufruf und keinen Kauf-Flow.
+Bezahlt wird nur in der Web-App über Stripe. Für den ersten TestFlight-Build ist das
+unkritisch.
+
+**Sobald die Paywall in der iOS-App aktiviert wird:** Apple verlangt für digitale Inhalte
+zwingend native **In-App-Purchases** (App Store Review Guideline 3.1.1). Stripe-Checkout
+in der App oder ein Link nach außen zum Kaufen führt zum Reject. Dann nötig:
+`in_app_purchase`-Paket, Produkte in App Store Connect anlegen, Capability
+„In-App Purchase" in der App-ID aktivieren, und `subscription_service.dart` muss beide
+Quellen (Stripe für Web, StoreKit für iOS) zusammenführen.
+Auf Android gilt dasselbe über Google Play Billing.
+
+---
+
+## Technischer Stand (Flutter-App)
+
+- **Framework:** Flutter (stable, Dart 3.8), State-Management: Provider
+- **Version:** `1.2.0+9` (pubspec)
+- **Backend:** `supabase_flutter`, Auth per E-Mail/Passwort, RLS auf Nutzer-Tabellen
+- **Wichtige Pakete:** `image_picker`, `audioplayers`, `confetti`, `google_fonts`,
+  `url_launcher`, `app_links` (Deep Links), `google_generative_ai` (KI-Tutor),
+  `flutter_highlight` / `flutter_markdown_plus`, `flutter_dotenv`
+- **Struktur:** `lib/screens` (auth, learning, levels, module, pruefen, simulation,
+  zertifikate, profile, legal, onboarding), `lib/services` (22 Services),
+  `lib/widgets` (Fragetypen, Dialoge, Navigation), `lib/data` (Prüfungen AE 1–3, SI 1–2)
+
+---
+
+## Bekannte offene Punkte / Aufräumen
+
+- `lib/main.dart.BACKUP` und `lib/main.dart.BACKUP_20251128` (je 185 KB) liegen noch im
+  Repo — sollten gelöscht oder in `backups/` verschoben werden.
+- `keys.txt` und `.env` liegen im Projektordner — prüfen, dass beide in `.gitignore`
+  stehen und nie committet wurden.
+- `README.md` ist UTF-16-kodiert und beschreibt nur Android als mobile Plattform —
+  auf UTF-8 umstellen und iOS ergänzen.
+- `Update-ProjectState.ps1` überschreibt diese Datei mit einem generierten Kurzstatus —
+  vor dem nächsten Lauf anpassen, sonst geht der Release-Abschnitt oben verloren.
+
+---
+
+*Zuletzt aktualisiert: 16.08.2026 — Icon-Regression behoben, Version auf 1.2.0+9 korrigiert*
+
+---
+
+## Wichtig: `codemagic.yaml` muss ins Repo
+
+Codemagic liest die Workflow-Definition **aus dem Repository**, nicht aus dem lokalen
+Ordner. Solange `codemagic.yaml` nicht committet und gepusht ist, erscheinen die
+Workflows `ios-release` / `ios-unsigned` in Codemagic nicht und die Umstellung von
+„Workflow Editor" auf „codemagic.yaml" bleibt wirkungslos.
+
+Vor dem ersten signierten Build also committen und pushen — die Datei enthält
+bewusst keine Secrets, nur Referenzen auf Codemagic-Variablen.
