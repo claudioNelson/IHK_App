@@ -61,7 +61,14 @@ Codemagic-Workflow-Editor (UI). Neu angelegt im Repo-Root, mit zwei Workflows:
 
 - Instanz `mac_mini_m2`, Flutter `stable`, Xcode `latest`
 - Build-Kommando `flutter build ipa --release`
-- Build-Nummer wird aus der letzten TestFlight-Nummer hochgezählt
+- Build-Nummer: Maximum aus Codemagics `PROJECT_BUILD_NUMBER` und der höchsten
+  bereits in TestFlight vorhandenen Nummer
+
+> **⚠️ Build-Nummer nie allein aus `get-latest-testflight-build-number` ableiten.**
+> Die Ausgabe ist nicht garantiert eine reine Zahl; landet Text darin, wird das
+> Ergebnis 1 und Apple lehnt den Upload ab mit *„The provided entity includes an
+> attribute with a value that has already been used"*. Deshalb `tr -dc '0-9'` als
+> Filter und `PROJECT_BUILD_NUMBER` als zweite, immer hochzählende Quelle.
 - Publishing: `submit_to_testflight: true`, `submit_to_app_store: false`
 
 > **⚠️ Kein `beta_groups:` im Publishing.** Das Feld gilt nur für **externe**
@@ -255,7 +262,7 @@ Auf Android gilt dasselbe über Google Play Billing.
 
 ---
 
-*Zuletzt aktualisiert: 16.08.2026 — Build in TestFlight; Apple-ID korrigiert, beta_groups entfernt*
+*Zuletzt aktualisiert: 16.08.2026 — Build-Nummer-Ermittlung kollisionssicher gemacht*
 
 ---
 

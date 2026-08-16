@@ -120,12 +120,31 @@ workflows:
         script: |
           xcode-project use-profiles
 
-      - name: Build-Nummer aus TestFlight hochzaehlen
+      - name: Build-Nummer bestimmen
         script: |
-          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" --warn-on-not-found || echo 0)
-          if [ -z "$LATEST" ]; then LATEST=0; fi
-          BUILD_NUMBER=$(($LATEST + 1))
-          echo "Naechste Build-Nummer: $BUILD_NUMBER"
+          # Zwei Quellen, das Maximum gewinnt:
+          #  1) PROJECT_BUILD_NUMBER - Codemagics eigener Zaehler pro App,
+          #     zaehlt bei jedem Build hoch, kann nicht kollidieren.
+          #  2) hoechste bereits in TestFlight vorhandene Nummer.
+          # "tr -dc 0-9" filtert Warntexte heraus - genau daran ist es vorher
+          # gescheitert: die Ausgabe war keine reine Zahl, das Ergebnis wurde 1
+          # und Apple antwortete mit
+          # "The provided entity includes an attribute with a value that has
+          #  already been used".
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" --warn-on-not-found 2>/dev/null | tr -dc '0-9')
+          [ -z "$LATEST" ] && LATEST=0
+          CM=${PROJECT_BUILD_NUMBER:-0}
+          [ -z "$CM" ] && CM=0
+
+          if [ "$LATEST" -ge "$CM" ]; then
+            BUILD_NUMBER=$((LATEST + 1))
+          else
+            BUILD_NUMBER=$CM
+          fi
+
+          echo "TestFlight bisher: $LATEST"
+          echo "Codemagic-Zaehler: $CM"
+          echo "Gewaehlte Build-Nummer: $BUILD_NUMBER"
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $CM_ENV
 
       - name: Statische Analyse
