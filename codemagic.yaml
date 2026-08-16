@@ -3,21 +3,8 @@
 #
 # WICHTIG: In diese Datei kommen NIEMALS Schluessel oder Passwoerter.
 # Der App Store Connect API Key liegt ausschliesslich in Codemagic unter
-#   Settings -> Integrations -> App Store Connect  (Name: "Lernarena API Key")
+#   Settings -> Integrations -> Developer Portal  (Name: "Lernarena API Key")
 ########################################################################
-
-definitions:
-  # ---------------------------------------------------------------
-  # Wiederverwendbare Bausteine
-  # ---------------------------------------------------------------
-  instance_ios: &instance_ios
-    instance_type: mac_mini_m2
-    max_build_duration: 60
-
-  flutter_cache: &flutter_cache
-    cache_paths:
-      - ~/.pub-cache
-      - $FLUTTER_ROOT/.pub-cache
 
 workflows:
 
@@ -27,7 +14,13 @@ workflows:
   ####################################################################
   ios-release:
     name: iOS Release (TestFlight)
-    <<: *instance_ios
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    integrations:
+      # Name der Integration in Codemagic:
+      # Settings -> Integrations -> Developer Portal -> Add key
+      app_store_connect: Lernarena API Key
 
     environment:
       flutter: stable
@@ -36,14 +29,10 @@ workflows:
 
       # ---- Secrets --------------------------------------------------
       # KEINE Secrets in dieser Datei und KEINE Variablengruppe noetig.
-      # Die App Store Connect Integration (siehe "integrations:" unten)
-      # stellt diese drei Variablen automatisch im Build bereit:
-      #      APP_STORE_CONNECT_ISSUER_ID
-      #      APP_STORE_CONNECT_KEY_IDENTIFIER
-      #      APP_STORE_CONNECT_PRIVATE_KEY
-      # Eingetragen werden sie EINMALIG in Codemagic unter
-      #   Settings -> Integrations -> App Store Connect -> Add key
-      # mit dem Namen "Lernarena API Key".
+      # Die Integration oben stellt diese Variablen automatisch bereit:
+      #   APP_STORE_CONNECT_ISSUER_ID
+      #   APP_STORE_CONNECT_KEY_IDENTIFIER
+      #   APP_STORE_CONNECT_PRIVATE_KEY
 
       vars:
         BUNDLE_ID: "app.lernarena"
@@ -58,10 +47,10 @@ workflows:
         distribution_type: app_store
         bundle_identifier: app.lernarena
 
-    integrations:
-      app_store_connect: Lernarena API Key   # Name der Integration in Codemagic
-
-    <<: *flutter_cache
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
 
     triggering:
       events:
@@ -79,8 +68,10 @@ workflows:
 
       - name: Build-Nummer aus TestFlight hochzaehlen
         script: |
-          # Verhindert "This bundle is invalid - build number already used"
-          BUILD_NUMBER=$(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" --warn-on-not-found) + 1))
+          # Verhindert "build number already used" beim Upload
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" --warn-on-not-found || echo 0)
+          if [ -z "$LATEST" ]; then LATEST=0; fi
+          BUILD_NUMBER=$(($LATEST + 1))
           echo "Naechste Build-Nummer: $BUILD_NUMBER"
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $CM_ENV
 
@@ -105,16 +96,15 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
 
     publishing:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        # Interne Tester-Gruppen; muessen in App Store Connect existieren.
+        # Gruppe muss in App Store Connect existieren (TestFlight -> Interne Tests)
         beta_groups:
           - Internal Testers
-        # Auf true setzen, sobald ihr wirklich in den Store wollt:
+        # Auf true setzen, sobald die App wirklich in den Store soll:
         submit_to_app_store: false
 
       email:
@@ -125,18 +115,22 @@ workflows:
           failure: true
 
   ####################################################################
-  # 2) iOS Debug/Smoke-Build (unsigniert) - fuer schnelle Checks
+  # 2) iOS Smoke-Build (unsigniert) - fuer schnelle Checks
   ####################################################################
   ios-unsigned:
     name: iOS Build (unsigniert, ohne Upload)
-    <<: *instance_ios
+    instance_type: mac_mini_m2
+    max_build_duration: 60
 
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
 
-    <<: *flutter_cache
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
 
     scripts:
       - name: Flutter-Abhaengigkeiten holen
