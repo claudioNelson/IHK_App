@@ -131,7 +131,7 @@ class AsyncDuelService {
     final profiles = await c
         .from('profiles')
         .select('id, is_premium, premium_tier')
-        .in_('id', userIds);
+        .inFilter('id', userIds);
 
     // Map für schnelles Lookup
     final premiumMap = <String, Map<String, dynamic>>{};
@@ -225,7 +225,7 @@ class AsyncDuelService {
         .select(
           'match_id, player1_id, player2_id, player1_score, player2_score',
         )
-        .in_('match_id', matchIds);
+        .inFilter('match_id', matchIds);
 
     final Map<String, Map<String, dynamic>> scores = {};
     for (var row in result) {
@@ -245,7 +245,7 @@ class AsyncDuelService {
         .from('match_answers')
         .select('match_id')
         .eq('user_id', userId)
-        .in_('match_id', matchIds);
+        .inFilter('match_id', matchIds);
 
     final Map<String, int> counts = {};
     for (final row in result) {

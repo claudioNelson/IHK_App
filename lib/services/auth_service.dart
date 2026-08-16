@@ -8,6 +8,52 @@ class AuthService {
   bool get isAuthenticated => currentUser != null;
   Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
 
+  /// True, wenn der aktuelle Nutzer ein anonymer Gast ist.
+  bool get isGuest => currentUser?.isAnonymous ?? false;
+
+  /// Wandelt einen Gast-Account in einen richtigen Account um.
+  ///
+  /// WICHTIG: Es wird KEIN neuer Account erstellt — E-Mail, Passwort und
+  /// Username werden auf dem bestehenden anonymen User gesetzt. Die User-ID
+  /// bleibt gleich, damit bleibt der komplette Fortschritt erhalten.
+  /// Die E-Mail ist erst nach Klick auf die Bestätigungsmail aktiv
+  /// (Redirect läuft über den verifizierten App Link /auth/callback).
+  Future<void> convertGuestToAccount({
+    required String email,
+    required String password,
+    required String username,
+  }) async {
+    if (!isGuest) {
+      throw Exception('Aktueller Nutzer ist kein Gast-Account');
+    }
+
+    try {
+      print('🔄 Wandle Gast-Account um: ${currentUser!.id}');
+
+      // 1. E-Mail + Passwort + Metadaten auf dem anonymen User setzen
+      await _supabase.auth.updateUser(
+        UserAttributes(
+          email: email,
+          password: password,
+          data: {'username': username},
+        ),
+        emailRedirectTo: 'https://lernarena.app/auth/callback',
+      );
+
+      // 2. Platzhalter im Profil (Gast-XXXX / @gast.lernarena.app) ersetzen
+      await _supabase.from('profiles').update({
+        'username': username,
+        'email': email,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', currentUser!.id);
+
+      print('✅ Umwandlung angestoßen — Bestätigungsmail an $email gesendet');
+    } catch (e) {
+      print('❌ Gast-Umwandlung fehlgeschlagen: $e');
+      rethrow;
+    }
+  }
+
   // Registrierung - Profil wird vom Trigger erstellt
   Future<AuthResponse> signUp({
     required String email,

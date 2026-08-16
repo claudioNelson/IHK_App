@@ -509,7 +509,7 @@ export default function PruefungenPage() {
       <div className="content-wrap">
 
         {/* ============================================ */}
-        {/* AP1 — HALBJAHRESPRÜFUNG */}
+        {/* AP1: HALBJAHRESPRÜFUNG */}
         {/* ============================================ */}
         {ap1Exams.length > 0 && (
           <>
@@ -537,7 +537,7 @@ export default function PruefungenPage() {
         )}
 
         {/* ============================================ */}
-        {/* AP2 — ABSCHLUSSPRÜFUNG */}
+        {/* AP2: ABSCHLUSSPRÜFUNG */}
         {/* ============================================ */}
         {(ap2AeExams.length > 0 || ap2SiExams.length > 0) && (
           <>

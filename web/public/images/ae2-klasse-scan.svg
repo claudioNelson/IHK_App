@@ -1,0 +1,12 @@
+<svg width="860" height="300" viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<rect width="860" height="300" fill="#1a1a2e"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker></defs>
+<text x="40" y="46" fill="#ffffff" font-size="18" font-weight="bold" letter-spacing="1">VORHANDENE KLASSE (UML)</text>
+<rect x="260.0" y="70" width="340" height="140" fill="#1e293b" stroke="#3b82f6" stroke-width="2" rx="6"/>
+<text x="430.0" y="94" text-anchor="middle" fill="#ffffff" font-size="17" font-weight="bold">Scan</text>
+<line x1="260.0" y1="106" x2="600.0" y2="106" stroke="#3b82f6" stroke-width="2"/>
+<text x="276.0" y="128" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">- bild: Bild</text>
+<text x="276.0" y="156" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">- merkmal: String</text>
+<line x1="260.0" y1="172" x2="600.0" y2="172" stroke="#3b82f6" stroke-width="2"/>
+<text x="276.0" y="194" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">+ berechneMerkmal()</text>
+</svg>

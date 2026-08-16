@@ -10,6 +10,7 @@ import '../../theme/theme_provider.dart';
 import '../../services/question_validator.dart';
 import '../../services/subscription_service.dart';
 import '../../widgets/premium_lock.dart';
+import '../../widgets/premium_kauf_sheet.dart';
 
 class CertificatePracticeScreen extends StatefulWidget {
   final int zertifikatId;
@@ -286,10 +287,11 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen> {
         description:
             'Mit Premium bereitest du dich auf alle Cloud-Zertifikate vor: AWS, Azure, GCP und SAP.',
         icon: Icons.workspace_premium_outlined,
-        onUpgrade: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Stripe-Checkout kommt bald!')),
-          );
+        onUpgrade: () async {
+          final ok = await showPremiumKaufSheet(context);
+          if (ok == true && context.mounted) {
+            (context as Element).markNeedsBuild();
+          }
         },
       );
     }

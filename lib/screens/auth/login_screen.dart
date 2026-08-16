@@ -97,6 +97,25 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  Future<void> _handleGuestLogin() async {
+    FocusScope.of(context).unfocus();
+    setState(() => _isLoading = true);
+
+    try {
+      await Supabase.instance.client.auth.signInAnonymously();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const NavRoot()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showError('Gast-Zugang fehlgeschlagen. Bitte versuche es erneut.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -435,7 +454,22 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ),
 
-                            const SizedBox(height: 48),
+                            const SizedBox(height: 16),
+
+                            // Als Gast fortfahren
+                            Center(
+                              child: TextButton(
+                                onPressed: _isLoading
+                                    ? null
+                                    : _handleGuestLogin,
+                                child: Text(
+                                  'Ohne Account ausprobieren  →',
+                                  style: AppTextStyles.labelLarge(textMid),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 32),
 
                             // Version
                             Center(

@@ -17,135 +17,15 @@ export const ae3: Exam = {
 
 Die Firma RadMobil GmbH betreibt einen E-Scooter-Verleih mit Werkstatt.
 
-Sie sollen vier der folgenden fünf Aufgaben in diesem Projekt erledigen:
-1. Beim Management für das Projekt Abrechnungssoftware mitwirken
-2. Programm zur Auswertung der Arbeitszeiterfassung anfertigen
-3. Objektorientierte Software für Ladegerät entwickeln
-4. Tabelle Wartung normalisieren
-5. SQL-Abfragen zur Verleihdatenbank formulieren`,
+Sie sollen die folgenden vier Aufgaben in diesem Projekt erledigen:
+1. Programm zur Auswertung der Arbeitszeiterfassung anfertigen
+2. Objektorientierte Software für Ladegerät entwickeln
+3. Tabelle Wartung normalisieren
+4. SQL-Abfragen zur Verleihdatenbank formulieren`,
     sections: [
         {
-            id: "hs1",
-            title: "Handlungsschritt 1: Projektmanagement (25 Punkte)",
-            totalPoints: 25,
-            questions: [
-                {
-                    id: "hs1-aa",
-                    title: "Aufgabe a-aa) Methoden der Anforderungsanalyse (2 Punkte)",
-                    description: `Für die Abrechnung der Servicemitarbeiter der RadMobil GmbH soll eine Abrechnungssoftware eingeführt werden.
-
-Sie erhalten den Auftrag, eine Anforderungsanalyse für diese Software durchzuführen.
-
-Nennen Sie zwei Methoden, die Sie für eine Anforderungsanalyse anwenden können.`,
-                    type: "freeText",
-                    points: 2,
-                    hint: "Wie können Sie Informationen von Stakeholdern sammeln?",
-                    tags: ["projektmanagement", "anforderungsanalyse"],
-                },
-                {
-                    id: "hs1-ab",
-                    title: "Aufgabe a-ab) Anforderungen an die Software (4 Punkte)",
-                    description: `Beschreiben Sie zwei Anforderungen an die neu einzuführende Software.`,
-                    type: "freeText",
-                    points: 4,
-                    hint: "Unterscheiden Sie funktionale und nicht-funktionale Anforderungen.",
-                    tags: ["projektmanagement", "anforderungen", "funktional"],
-                },
-                {
-                    id: "hs1-ba",
-                    title: "Aufgabe b-a) Kick-off-Sitzung: Sach- und Beziehungsebene (8 Punkte)",
-                    description: `Der Projektleiter Ihres Teams hat Ihnen mitgeteilt, dass das Projekt "Abrechnungssoftware" mit einer Kick-off-Sitzung begonnen wird.
-
-Nennen Sie jeweils vier auf der Sachebene und der Beziehungsebene liegende Aufgabenstellungen dieser Kick-off-Sitzung.`,
-                    type: "tableInput",
-                    points: 8,
-                    table: {
-                        rowHeaderLabel: "Nr.",
-                        columns: [
-                            { key: "sach", label: "Sachebene", placeholder: "z.B. Projektziel festlegen", align: "left" },
-                            { key: "bez",  label: "Beziehungsebene", placeholder: "z.B. Kennenlernen im Team", align: "left" },
-                        ],
-                        rows: [
-                            { id: "row-1", label: "1" },
-                            { id: "row-2", label: "2" },
-                            { id: "row-3", label: "3" },
-                            { id: "row-4", label: "4" },
-                        ],
-                    },
-                    hint: "Sachebene = Was wird besprochen? Beziehungsebene = Wie arbeiten wir zusammen?",
-                    tags: ["projektmanagement", "kommunikation", "kick-off"],
-                },
-                {
-                    id: "hs1-bb",
-                    title: "Aufgabe b-b) Befugnisse des Projektleiters (3 Punkte)",
-                    description: `Nennen Sie drei Befugnisse, die der Projektleiter zur Wahrnehmung seiner Leitungsaufgaben haben muss.`,
-                    type: "freeText",
-                    points: 3,
-                    hint: "Welche Rechte braucht ein Projektleiter, um Entscheidungen durchzusetzen?",
-                    tags: ["projektmanagement", "projektleitung", "befugnisse"],
-                },
-                {
-                    id: "hs1-ca",
-                    title: "Aufgabe c-a) Nutzwertanalyse erweitern (6 Punkte)",
-                    description: `Ihr Projektteam ist mit der Auswahl weiterer Softwarekomponenten beauftragt. Nach einer umfangreichen Marktanalyse haben Sie Ihre Auswahl auf zwei Softwarelösungen begrenzt. Um eine endgültige Entscheidung zu treffen, sollen Sie die Alternativen in einer Nutzwertanalyse vergleichen.
-
-Ergänzen Sie die Nutzwertanalyse um weitere fünf Kriterien mit sinnvoller Gewichtung. Tragen Sie für jeden Anbieter den Erfüllungsgrad und den daraus berechneten Nutzwert ein.
-
-Formel: Nutzwert (N) = Gewichtung (G) × Erfüllung (E)
-Erfüllungsgrad: 1 = schlecht, 2 = mittel, 3 = gut
-Summe der Gewichtungen muss 100 ergeben.`,
-                    type: "tableInput",
-                    points: 6,
-                    table: {
-                        rowHeaderLabel: "Kriterium",
-                        columns: [
-                            { key: "g",   label: "G",     placeholder: "Gew.", align: "center", width: "70px" },
-                            { key: "e-a", label: "E (A)", placeholder: "1-3",  align: "center", width: "75px" },
-                            { key: "n-a", label: "N (A)", placeholder: "G×E",  align: "center", width: "75px" },
-                            { key: "e-b", label: "E (B)", placeholder: "1-3",  align: "center", width: "75px" },
-                            { key: "n-b", label: "N (B)", placeholder: "G×E",  align: "center", width: "75px" },
-                        ],
-                        rows: [
-                            {
-                                id: "k1",
-                                label: "Image des Softwareanbieters",
-                                values: { g: "25", "e-a": "1", "n-a": "25", "e-b": "3", "n-b": "75" },
-                            },
-                            { id: "k2", label: "Kriterium 2" },
-                            { id: "k3", label: "Kriterium 3" },
-                            { id: "k4", label: "Kriterium 4" },
-                            { id: "k5", label: "Kriterium 5" },
-                            { id: "k6", label: "Kriterium 6" },
-                            {
-                                id: "summe",
-                                label: "Σ Summe",
-                                sublabel: "Σ G muss 100 ergeben",
-                                values: { g: "100" },
-                            },
-                            {
-                                id: "zuschlag",
-                                label: "Zuschlag erhält",
-                                sublabel: "Anbieter A oder B?",
-                            },
-                        ],
-                    },
-                    hint: "Welche Kriterien sind bei Softwareauswahl wichtig? Die Gewichtungen müssen 100 ergeben.",
-                    tags: ["projektmanagement", "nutzwertanalyse", "entscheidung"],
-                },
-                {
-                    id: "hs1-cb",
-                    title: "Aufgabe c-b) Kritikpunkt Nutzwertanalyse (2 Punkte)",
-                    description: `Nennen Sie einen möglichen Kritikpunkt an der Nutzwertanalyse.`,
-                    type: "freeText",
-                    points: 2,
-                    hint: "Wie objektiv sind die Bewertungen in einer Nutzwertanalyse?",
-                    tags: ["projektmanagement", "nutzwertanalyse", "kritik"],
-                },
-            ],
-        },
-        {
             id: "hs2",
-            title: "Handlungsschritt 2: Algorithmus Zeiterfassung (25 Punkte)",
+            title: "Handlungsschritt 1: Algorithmus Zeiterfassung (25 Punkte)",
             totalPoints: 25,
             questions: [
                 {
@@ -165,26 +45,7 @@ REGELN FÜR DIE ZEITERFASSUNGSLISTE:
 - Liegt keine Zeitbuchung vor → Anwesenheit 00:00 und "nicht anwesend" ausgeben
 - Am Ende: Summe der Anwesenheitszeiten ausgeben
 
-BEISPIEL - Zeiterfassungsliste:
-┌─────────────────────────────────────────────────────────────┐
-│ Mitarbeiter: 12345                    Oktober 2024         │
-│                                                             │
-│ Tag  Kommen  Gehen   Anwesenheit  Bemerkung                │
-│ ═══════════════════════════════════════════════════════════│
-│ 1                    00:00        nicht anwesend           │
-│ 2    08:10   17:20   09:10                                 │
-│ 3    07:50           00:00        Buchung fehlt            │
-│ 4                    00:00        nicht anwesend           │
-│ 5                    00:00        nicht anwesend           │
-│ 6    08:00   16:00   08:00                                 │
-│ 7    16:30           00:00        Buchung fehlt            │
-│ 8    08:20   16:40   08:20                                 │
-│ ...                                                         │
-│ 30   08:10           00:00        Buchung fehlt            │
-│ 31                   00:00        nicht anwesend           │
-│ ═══════════════════════════════════════════════════════════│
-│ Summe Anwesenheit: 43:10                                   │
-└─────────────────────────────────────────────────────────────┘
+Ein Beispiel der fertigen Zeiterfassungsliste zeigt die Abbildung.
 
 ZEITERFASSUNGSTABELLE (2D-Array "zeiten"):
 | Tag | Stunde | Minute |
@@ -216,6 +77,7 @@ Funktionssignatur:
     erzeugeListe(persnr: int, zeiten: int[][], jahr: int, monat: int)`,
                     type: "code",
                     points: 25,
+                    image: "/images/ae3-zeiterfassung.svg",
                     hint: "Durchlaufen Sie jeden Tag des Monats und prüfen Sie, wie viele Buchungen vorliegen.",
                     tags: ["algorithmen", "pseudocode", "schleife", "zeiterfassung"],
                 },
@@ -223,7 +85,7 @@ Funktionssignatur:
         },
         {
             id: "hs3",
-            title: "Handlungsschritt 3: UML-Zustandsdiagramm & State Pattern (25 Punkte)",
+            title: "Handlungsschritt 2: UML-Zustandsdiagramm & State Pattern (25 Punkte)",
             totalPoints: 25,
             questions: [
                 {
@@ -366,7 +228,7 @@ Formulieren Sie die Kontrollstruktur mit entsprechender Anweisung.
         },
         {
             id: "hs4",
-            title: "Handlungsschritt 4: Normalisierung (25 Punkte)",
+            title: "Handlungsschritt 3: Normalisierung (25 Punkte)",
             totalPoints: 25,
             questions: [
                 {
@@ -443,7 +305,7 @@ NORMALFORMEN-DEFINITIONEN:
         },
         {
             id: "hs5",
-            title: "Handlungsschritt 5: SQL-Abfragen (25 Punkte)",
+            title: "Handlungsschritt 4: SQL-Abfragen (25 Punkte)",
             totalPoints: 25,
             questions: [
                 {

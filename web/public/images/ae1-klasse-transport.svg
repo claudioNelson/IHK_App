@@ -1,0 +1,23 @@
+<svg width="860" height="560" viewBox="0 0 860 560" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<rect width="860" height="560" fill="#1a1a2e"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker></defs>
+<text x="40" y="46" fill="#ffffff" font-size="18" font-weight="bold" letter-spacing="1">KLASSE TRANSPORT (UML)</text>
+<rect x="240.0" y="70" width="380" height="448" fill="#1e293b" stroke="#3b82f6" stroke-width="2" rx="6"/>
+<text x="430.0" y="94" text-anchor="middle" fill="#ffffff" font-size="17" font-weight="bold">Transport</text>
+<line x1="240.0" y1="106" x2="620.0" y2="106" stroke="#3b82f6" stroke-width="2"/>
+<text x="256.0" y="128" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">- id: String</text>
+<text x="256.0" y="156" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">- transportDatum: Date</text>
+<text x="256.0" y="184" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">- abfahrtZeit: Date</text>
+<text x="256.0" y="212" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">- ankunftZeit: Date</text>
+<text x="256.0" y="240" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">- preis: Double</text>
+<text x="256.0" y="268" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">- freiePlaetze: Integer</text>
+<text x="256.0" y="296" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">...</text>
+<line x1="240.0" y1="312" x2="620.0" y2="312" stroke="#3b82f6" stroke-width="2"/>
+<text x="256.0" y="334" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">+ getId(): String</text>
+<text x="256.0" y="362" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">+ getTransportDatum(): Date</text>
+<text x="256.0" y="390" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">+ getAbfahrtZeit(): Date</text>
+<text x="256.0" y="418" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">+ getAnkunftZeit(): Date</text>
+<text x="256.0" y="446" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">+ getPreis(): Double</text>
+<text x="256.0" y="474" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">+ getFreiePlaetze(): Integer</text>
+<text x="256.0" y="502" fill="#e2e8f0" font-size="15" font-family="Consolas, monospace">...</text>
+</svg>

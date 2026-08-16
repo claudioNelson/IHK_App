@@ -11,12 +11,11 @@ final ae2Exam = IHKExam(
   scenario:
       '''Sie sind Mitarbeiter/-in der SecureID GmbH, Darmstadt, einem Softwaredienstleister im Bereich biometrische Sicherheitssysteme. Die SecureID GmbH erstellt Software zur Erfassung und Auswertung verschiedener biometrischer Daten.
 
-Sie sollen vier der folgenden fünf Aufgaben erledigen:
+Sie sollen die folgenden vier Aufgaben erledigen:
 1. Ein UML-Klassendiagramm erstellen
 2. Eine Funktion zur Auswertung von Iris-Scans erstellen
-3. Ein UML-Aktivitätsdiagramm erstellen
-4. Ein relationales Datenmodell erstellen
-5. SQL-Anweisungen für eine Datenbank erstellen''',
+3. Ein relationales Datenmodell erstellen
+4. SQL-Anweisungen für eine Datenbank erstellen''',
   sections: [
     ExamSection(
       id: 'hs1',
@@ -102,49 +101,8 @@ Ergebnis: "Normaler Scan"''',
       ],
     ),
     ExamSection(
-      id: 'hs3',
-      title: 'Handlungsschritt 3: UML-Aktivitätsdiagramm (25 Punkte)',
-      totalPoints: 25,
-      questions: [
-        ExamQuestion(
-          id: 'hs3-q1',
-          title: 'UML-Aktivitätsdiagramm - Authentifizierung',
-          description:
-              '''Modellieren Sie den Authentifizierungsprozess mit biometrischen Daten.
-
-ABLAUF:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Benutzer startet Login
-2. System fordert biometrischen Scan an
-3. Benutzer wählt: Iris-Scan ODER Fingerabdruck
-4. Bei Iris-Scan:
-   - Kamera aktivieren
-   - Scan durchführen
-   - Qualität prüfen (wenn schlecht → zurück zu Schritt 2)
-5. Bei Fingerabdruck:
-   - Scanner aktivieren
-   - Scan durchführen
-6. System vergleicht mit Datenbank
-7. Bei Übereinstimmung > 95%: Zugang gewähren
-8. Sonst: Zugang verweigern
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-AUFGABE:
-Erstellen Sie ein UML-Aktivitätsdiagramm mit:
-- Start/Endknoten
-- Entscheidungen
-- Aktivitäten
-- Schleifen (für Qualitätsprüfung)''',
-          type: QuestionType.diagram,
-          points: 25,
-          hint:
-              'Nutzen Sie eine Raute für die Scan-Auswahl und eine weitere für die Qualitätsprüfung.',
-        ),
-      ],
-    ),
-    ExamSection(
       id: 'hs4',
-      title: 'Handlungsschritt 4: Datenmodell (25 Punkte)',
+      title: 'Handlungsschritt 3: Datenmodell (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
@@ -180,7 +138,7 @@ Erstellen Sie ein ER-Diagramm mit allen Entitäten, Beziehungen und Kardinalitä
     ),
     ExamSection(
       id: 'hs5',
-      title: 'Handlungsschritt 5: SQL-Abfragen (25 Punkte)',
+      title: 'Handlungsschritt 4: SQL-Abfragen (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(

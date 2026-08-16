@@ -258,7 +258,7 @@ class ProgressService {
       final allQuestions = await _client
           .from('fragen')
           .select('id')
-          .in_('modul_id', moduleIds);
+          .inFilter('modul_id', moduleIds);
 
       final totalQuestions = allQuestions.length;
 
@@ -267,7 +267,7 @@ class ProgressService {
           .from('user_progress') // ← user_progress statt user_answers
           .select('frage_id, is_correct')
           .eq('user_id', _userId!)
-          .in_('modul_id', moduleIds);
+          .inFilter('modul_id', moduleIds);
 
       final answeredCount = answers.length;
       final correctCount = answers.where((a) => a['is_correct'] == true).length;

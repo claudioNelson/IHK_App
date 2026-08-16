@@ -90,7 +90,7 @@ class _RegisterScreenState extends State<RegisterScreen>
               ),
             ],
           ),
-          backgroundColor: AppColors.success,
+          backgroundColor: const Color.fromARGB(255, 60, 107, 91),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),

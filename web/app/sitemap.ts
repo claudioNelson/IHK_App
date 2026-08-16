@@ -4,6 +4,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://lernarena.app";
   const now = new Date();
 
+  const lernThemen = [
+    "subnetting",
+    "ip-adressen",
+    "osi-modell",
+    "raid",
+    "zahlensysteme",
+    "sql",
+    "er-diagramm",
+    "normalisierung",
+    "sortieralgorithmen",
+    "nutzwertanalyse",
+  ];
+
   return [
     {
       url: baseUrl,
@@ -18,11 +31,35 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/pruefung`,
+      url: `${baseUrl}/lernen`,
       lastModified: now,
       changeFrequency: "weekly",
-      priority: 0.8,
+      priority: 0.9,
     },
+    {
+      url: `${baseUrl}/fachinformatiker-pruefung`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    ...lernThemen.map((slug) => ({
+      url: `${baseUrl}/lernen/${slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+    {
+      url: `${baseUrl}/python-kurs`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((nr) => ({
+      url: `${baseUrl}/python-kurs/lektion-${nr}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
     {
       url: `${baseUrl}/impressum`,
       lastModified: now,

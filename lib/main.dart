@@ -1,20 +1,24 @@
 import 'widgets/auth_wrapper.dart';
 import 'widgets/navigation/nav_root.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/auth/reset_password_screen.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/app_cache_service.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_provider.dart';
 import 'services/subscription_service.dart';
 import 'services/deep_link_service.dart';
+import 'services/billing_service.dart';
+
+/// Globaler Navigator-Key: erlaubt Navigation außerhalb des Widget-Baums
+/// (z. B. Passwort-Reset-Screen öffnen, wenn der Mail-Link die App öffnet).
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,9 +30,6 @@ void main() async {
       systemNavigationBarColor: Colors.transparent,
     ),
   );
-
-  await Hive.initFlutter();
-  await dotenv.load(fileName: ".env");
 
   final themeProvider = ThemeProvider();
   await themeProvider.loadTheme();
@@ -45,6 +46,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Lernarena',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
@@ -65,6 +67,11 @@ class AppInitializer extends StatefulWidget {
 class _AppInitializerState extends State<AppInitializer> {
   bool _initialized = false;
 
+  // Einmalig erzeugen: sonst startet jeder Rebuild (z.B. Theme-Wechsel)
+  // den FutureBuilder neu und der Screen springt kurz auf den Splash.
+  late final Future<bool> _onboardingFuture = SharedPreferences.getInstance()
+      .then((p) => p.getBool('hasSeenOnboarding') ?? false);
+
   @override
   void initState() {
     super.initState();
@@ -83,18 +90,37 @@ class _AppInitializerState extends State<AppInitializer> {
 
       print('✅ Supabase initialisiert');
 
+      // Auf Auth-Änderungen reagieren (Login/Logout/Passwort-Reset).
+      // WICHTIG: Muss VOR DeepLinkService().initialize() registriert sein —
+      // sonst geht das passwordRecovery-Event verloren, wenn die App erst
+      // durch den Mail-Link gestartet wird (Kaltstart).
+      Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+        if (data.event == AuthChangeEvent.signedIn) {
+          SubscriptionService().load();
+          // Aktive Abos wiederherstellen/verlängern
+          BillingService().restorePurchases();
+        } else if (data.event == AuthChangeEvent.signedOut) {
+          SubscriptionService().clear();
+        } else if (data.event == AuthChangeEvent.passwordRecovery) {
+          // User hat den Link aus der Passwort-vergessen-Mail geöffnet:
+          // Supabase hat eine Recovery-Session erstellt → Screen zum
+          // Setzen des neuen Passworts öffnen (leicht verzögert, damit
+          // der Navigator nach einem Kaltstart sicher bereit ist).
+          Future.delayed(const Duration(milliseconds: 800), () {
+            navigatorKey.currentState?.push(
+              MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+            );
+          });
+        }
+      });
+
       // Deep Links aktivieren (für Email-Bestätigungs-Links)
       await DeepLinkService().initialize();
       print('✅ Deep Link Service aktiv');
 
-      // Auf Auth-Änderungen reagieren (Login/Logout)
-      Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-        if (data.event == AuthChangeEvent.signedIn) {
-          SubscriptionService().load();
-        } else if (data.event == AuthChangeEvent.signedOut) {
-          SubscriptionService().clear();
-        }
-      });
+      // Google Play Billing initialisieren (Kauf-Events, Produkte)
+      await BillingService().init();
+      print('✅ Billing Service aktiv');
 
       final session = Supabase.instance.client.auth.currentSession;
       print(
@@ -104,6 +130,8 @@ class _AppInitializerState extends State<AppInitializer> {
       if (session != null) {
         await AppCacheService().preloadAllData();
         await SubscriptionService().load();
+        // Aktive Abos wiederherstellen/verlängern (still im Hintergrund)
+        BillingService().restorePurchases();
       }
 
       await Future.delayed(const Duration(milliseconds: 500));
@@ -135,9 +163,7 @@ class _AppInitializerState extends State<AppInitializer> {
     }
 
     return FutureBuilder<bool>(
-      future: SharedPreferences.getInstance().then(
-        (p) => p.getBool('hasSeenOnboarding') ?? false,
-      ),
+      future: _onboardingFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const SplashScreen();
         if (snapshot.data == true) return const LoginScreen();

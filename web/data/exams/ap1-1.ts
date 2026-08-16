@@ -61,33 +61,7 @@ T — _______________`,
                     title: "c) Netzplan vervollständigen (14 Punkte)",
                     description: `Für das Projekt wurde der folgende Netzplan vorbereitet. Ihre Kollegin hat bereits begonnen und bittet Sie, ihn zu vervollständigen.
 
-VORGANGSLISTE:
-
-┌─────────┬─────────────────────────────────┬───────┬───────────┐
-│ Vorgang │ Beschreibung                    │ Dauer │ Vorgänger │
-├─────────┼─────────────────────────────────┼───────┼───────────┤
-│   A     │ Ist-Analyse                     │   3   │    –      │
-│   B     │ Soll-Konzept                    │   5   │    A      │
-│   C     │ Beschaffung neuer Geräte        │   4   │    B      │
-│   D     │ Verkabelung erneuern            │   6   │    B      │
-│   E     │ Datensicherung der Altsysteme   │   3   │    B      │
-│   F     │ Installation Praxis-Server      │   4   │   C, D    │
-│   G     │ Installation Arbeitsplatz-PCs   │   5   │   C, D    │
-│   H     │ Abbau Altgeräte                 │   2   │    E      │
-│   I     │ Funktionstest                   │   2   │   F, G    │
-│   J     │ Mitarbeiter-Schulung            │   3   │   I, H    │
-└─────────┴─────────────────────────────────┴───────┴───────────┘
-
-ABLAUF DER VORGÄNGE:
-
-                                  ┌───→ F ──┐
-                ┌──→ C ──┐         │         │
-                │         │         │         │
-   A ──→ B ─────┼──→ D ──┼─────────┘         ├──→ I ──→ J
-                │         │                   │           ↑
-                │         └───→ G ────────────┘           │
-                │                                          │
-                └──→ E ──→ H ─────────────────────────────┘
+Die Abbildung zeigt die Vorgangsliste (Vorgang, Beschreibung, Dauer, Vorgänger) und den Ablauf der Vorgänge. Zum Vergrößern anklicken.
 
 LEGENDE der Spalten:
 - FAZ = Frühester Anfangszeitpunkt
@@ -100,6 +74,7 @@ AUFGABE:
 Tragen Sie für jeden Vorgang die Werte FAZ, FEZ, SAZ, SEZ und GP in die Tabelle ein.
 
 Hinweis: Beginnen Sie bei A mit FAZ = 0 und rechnen Sie sich vorwärts durch (FEZ = FAZ + Dauer). Anschließend ermitteln Sie SEZ und SAZ durch Rückwärtsrechnung vom letzten Vorgang.`,
+                    image: "/images/ap1-netzplan.svg",
                     type: "tableInput",
                     points: 14,
                     table: {

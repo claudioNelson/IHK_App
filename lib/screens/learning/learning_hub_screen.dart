@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../screens/module/modul_liste_screen.dart';
+import '../../services/app_cache_service.dart';
+import '../../services/auth_service.dart';
 import '../../services/spaced_repetition_service.dart';
 import '../../services/flashcard_service.dart';
 import '../../theme/app_colors.dart';
@@ -8,6 +10,7 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import 'review_screen.dart';
 //import 'core_topics_screen.dart';
+import 'anschluesse_quiz_screen.dart';
 import 'flashcard_screen.dart';
 import '../zertifikate/certificate_overview_screen.dart';
 import '../levels/level_module_screen.dart';
@@ -25,11 +28,27 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   int _dueCount = 0;
   int _flashcardCount = 0;
   bool _loading = true;
+  String? _username;
 
   @override
   void initState() {
     super.initState();
     _loadCounts();
+    _loadUsername();
+  }
+
+  Future<void> _loadUsername() async {
+    // Erst aus dem Cache (sofort da), sonst frisch laden.
+    final cached = AppCacheService().cachedMyProfile;
+    var name = cached?['username'] as String?;
+    if (name == null || name.trim().isEmpty) {
+      final profile = await AuthService().getProfile();
+      name = profile?['username'] as String?;
+    }
+    if (!mounted) return;
+    if (name != null && name.trim().isNotEmpty) {
+      setState(() => _username = name!.trim());
+    }
   }
 
   @override
@@ -51,10 +70,19 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 11) return 'Guten Morgen.';
-    if (hour < 17) return 'Hey.';
-    if (hour < 22) return 'Guten Abend.';
-    return 'Spät noch wach?';
+    final name = _username;
+
+    if (name == null) {
+      if (hour < 11) return 'Guten Morgen.';
+      if (hour < 17) return 'Hey.';
+      if (hour < 22) return 'Guten Abend.';
+      return 'Spät noch wach?';
+    }
+
+    if (hour < 11) return 'Guten Morgen, $name.';
+    if (hour < 17) return 'Hey $name.';
+    if (hour < 22) return 'Guten Abend, $name.';
+    return 'Spät noch wach, $name?';
   }
 
   String _getDateLabel() {
@@ -246,6 +274,26 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                       );
                       _loadCounts();
                     },
+                  ),
+                  const SizedBox(height: 10),
+
+                  _buildCategoryRow(
+                    tag: 'SI',
+                    tagColor: AppColors.accentCyan,
+                    title: 'Anschlüsse',
+                    sub: 'Hardware erkennen · Systemintegration',
+                    count: '16',
+                    surface: surface,
+                    border: border,
+                    text: text,
+                    textMid: textMid,
+                    textDim: textDim,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AnschluesseQuizScreen(),
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 36),

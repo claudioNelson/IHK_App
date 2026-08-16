@@ -103,7 +103,7 @@ export default function LandingPage() {
       { role: "user", text: adaInput },
       {
         role: "ada",
-        text: "Das ist eine Demo-Chat-Vorschau. In der App antworte ich dir natürlich echt — mit Beispielen, Eselsbrücken und Prüfungsfragen zum Üben.",
+        text: "Das ist eine Demo-Chat-Vorschau. In der App antworte ich dir natürlich echt: mit Beispielen, Eselsbrücken und Prüfungsfragen zum Üben.",
       },
     ]);
     setAdaInput("");
@@ -126,10 +126,6 @@ export default function LandingPage() {
       ? "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E\")"
       : "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E\")",
   };
-
-  if (!mounted) {
-    return <div style={{ minHeight: "100vh", background: "#08080C" }} />;
-  }
 
   return (
     <div
@@ -1248,6 +1244,7 @@ export default function LandingPage() {
             <a href="#product">Produkt</a>
             <a href="#ada">Ada</a>
             <a href="#pricing">Preise</a>
+            <Link href="/lernen">Lernen</Link>
             <Link href="/pruefungen">Prüfungen</Link>
           </div>
           <div className="nav-actions">
@@ -1312,7 +1309,7 @@ export default function LandingPage() {
           </div>
           <h1 className="hero-title">
             Prüfungsangst war<br />
-            gestern — heute <em>übst du smart.</em>
+            gestern. Heute <em>übst du smart.</em>
           </h1>
           <p className="hero-sub">
             Lernarena ist die Prüfungsvorbereitung für Fachinformatiker. Strukturierte
@@ -1323,14 +1320,25 @@ export default function LandingPage() {
             <Link href="/signup" className="btn-primary">
               Kostenlos starten →
             </Link>
-            <a href="#product" className="btn-secondary">
-              Produkt ansehen
+            <a
+              href="https://play.google.com/store/apps/details?id=app.lernarena"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Lernarena bei Google Play herunterladen"
+              style={{ display: "inline-flex", alignItems: "center" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://play.google.com/intl/de_de/badges/static/images/badges/de_badge_web_generic.png"
+                alt="Jetzt bei Google Play"
+                style={{ height: 62, margin: "-6px 0" }}
+              />
             </a>
           </div>
           <div className="hero-meta">
             <span><span className="check">✓</span> Keine Kreditkarte</span>
             <span><span className="check">✓</span> Free-Tier dauerhaft</span>
-            <span><span className="check">✓</span> Web & Mobile</span>
+            <span><span className="check">✓</span> Android-App & Web</span>
           </div>
         </div>
 
@@ -1403,7 +1411,7 @@ export default function LandingPage() {
             Drei Werkzeuge. <em>Eine Prüfung.</em>
           </h2>
           <p className="section-desc">
-            Keine aufgeblähte Feature-Liste — nur die drei Dinge, die in der
+            Keine aufgeblähte Feature-Liste, nur die drei Dinge, die in der
             Prüfung wirklich den Unterschied machen.
           </p>
         </div>
@@ -1419,7 +1427,7 @@ export default function LandingPage() {
               {
                 num: "02",
                 title: "Echte Prüfungssimulation",
-                desc: "Timer, Fragenübersicht, Flagging — so wie am Prüfungstag.",
+                desc: "Timer, Fragenübersicht, Flagging. So wie am Prüfungstag.",
               },
               {
                 num: "03",
@@ -1598,14 +1606,14 @@ export default function LandingPage() {
             </h2>
             <p className="section-desc">
               Benannt nach Ada Lovelace. Ein Sprachmodell mit Prüfungswissen,
-              das auf deinem Level antwortet — und nachfragt, wenn du eine
+              das auf deinem Level antwortet und nachfragt, wenn du eine
               falsche Annahme triffst. Direkt verfügbar in jedem Level, jeder
               Frage und jedem Match.
             </p>
             <div className="ada-quote">
               &ldquo;The more I study, the more insatiable do I feel my
               genius for it to be.&rdquo;
-              <div className="ada-quote-by">— Ada Lovelace, 1843</div>
+              <div className="ada-quote-by">Ada Lovelace, 1843</div>
             </div>
           </div>
 
@@ -1659,7 +1667,7 @@ export default function LandingPage() {
             IHK geschafft. <em>Was kommt danach?</em>
           </h2>
           <p className="section-desc">
-            Vier Cloud-Zertifizierungen — in zwei Modi: erst in Ruhe verstehen,
+            Vier Cloud-Zertifizierungen in zwei Modi: erst in Ruhe verstehen,
             dann unter Prüfungsbedingungen testen.
           </p>
         </div>
@@ -1745,7 +1753,7 @@ export default function LandingPage() {
               <ul className="mode-list">
                 <li>17 Module · alle Prüfungsbereiche</li>
                 <li>Erklärungen zu jeder Antwort</li>
-                <li>Kein Zeitdruck — Gold zum Lernen</li>
+                <li>Kein Zeitdruck: Gold zum Lernen</li>
               </ul>
             </div>
 
@@ -1834,10 +1842,10 @@ export default function LandingPage() {
             <div className="plan-name">Premium</div>
             <div className="plan-tag">Für Prüflinge</div>
             <div className="plan-price">
-              <span className="plan-amount">9,99€</span>
+              <span className="plan-amount">11,99€</span>
               <span className="plan-period">/ Monat</span>
             </div>
-            <div className="plan-note">Oder 69,99€/Jahr · 42% sparen</div>
+            <div className="plan-note">Oder 84,99€/Jahr · 41% sparen</div>
             <Link href="/upgrade" className="plan-cta primary">
               Premium starten
             </Link>
@@ -1856,10 +1864,10 @@ export default function LandingPage() {
             <div className="plan-name">Halbjahr</div>
             <div className="plan-tag">Prüfungsphase</div>
             <div className="plan-price">
-              <span className="plan-amount">39,99€</span>
+              <span className="plan-amount">47,99€</span>
               <span className="plan-period">/ 6 Monate</span>
             </div>
-            <div className="plan-note">≈ 6,67€/Monat · deckt die heiße Phase ab</div>
+            <div className="plan-note">≈ 8,00€/Monat · deckt die heiße Phase ab</div>
             <Link href="/upgrade" className="plan-cta outline">
               Halbjahr starten
             </Link>
@@ -1877,10 +1885,10 @@ export default function LandingPage() {
             <div className="plan-name">Jährlich</div>
             <div className="plan-tag">Bestpreis</div>
             <div className="plan-price">
-              <span className="plan-amount">69,99€</span>
+              <span className="plan-amount">84,99€</span>
               <span className="plan-period">/ Jahr</span>
             </div>
-            <div className="plan-note">≈ 5,83€/Monat · 42% sparen</div>
+            <div className="plan-note">≈ 7,08€/Monat · 41% sparen</div>
             <Link href="/upgrade" className="plan-cta outline">
               Jährlich starten
             </Link>
@@ -1914,8 +1922,19 @@ export default function LandingPage() {
             <Link href="/signup" className="btn-primary">
               Kostenlos registrieren →
             </Link>
-            <a href="#pricing" className="btn-secondary">
-              Preise ansehen
+            <a
+              href="https://play.google.com/store/apps/details?id=app.lernarena"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Lernarena bei Google Play herunterladen"
+              style={{ display: "inline-flex", alignItems: "center" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://play.google.com/intl/de_de/badges/static/images/badges/de_badge_web_generic.png"
+                alt="Jetzt bei Google Play"
+                style={{ height: 62, margin: "-6px 0" }}
+              />
             </a>
           </div>
         </div>
@@ -1940,12 +1959,23 @@ export default function LandingPage() {
               <li><a href="#product">Features</a></li>
               <li><a href="#pricing">Preise</a></li>
               <li><Link href="/pruefungen">Prüfungen</Link></li>
+              <li><Link href="/fachinformatiker-pruefung">Prüfungs-Guide</Link></li>
               <li><a href="#ada">Ada KI-Tutor</a></li>
             </ul>
           </div>
           <div className="footer-col">
             <h4>Ressourcen</h4>
             <ul>
+              <li><Link href="/lernen">Alle Lernthemen</Link></li>
+              <li>
+                <a
+                  href="https://play.google.com/store/apps/details?id=app.lernarena"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Android-App im Play Store
+                </a>
+              </li>
               <li><Link href="/login">Login</Link></li>
               <li><Link href="/signup">Registrieren</Link></li>
               <li><a href="mailto:info@lernarena.app">Kontakt</a></li>

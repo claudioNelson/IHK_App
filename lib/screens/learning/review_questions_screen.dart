@@ -75,7 +75,7 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen> {
           .select(
             'id, frage, question_type, calculation_data, antworten(id, text, ist_richtig, erklaerung)',
           )
-          .in_('id', widget.frageIds);
+          .inFilter('id', widget.frageIds);
       if (!mounted) return;
       final list = List<dynamic>.from(res);
       for (final frage in list) {

@@ -2,279 +2,450 @@ import '../../models/ihk_exam_model.dart';
 
 final si1Exam = IHKExam(
   id: 'si-1',
-  title: 'AE Prüfung 3 - Winter 2019/20',
-  year: 2019,
-  season: 'Winter',
+  title: 'SI Prüfung 1 - Sommer 2017',
+  year: 2017,
+  season: 'Sommer',
   duration: 90,
   totalPoints: 100,
-  company: 'RadMobil GmbH',
+  company: 'MediTech Solutions GmbH',
   scenario:
-      '''Sie arbeiten in der CodeWorks GmbH, die Softwarelösungen für Handel und Dienstleistungen zur Verfügung stellt und verwaltet.
+      '''Sie sind Mitarbeiter/-in der MediTech Solutions GmbH in Hannover, einem mittelständischen Unternehmen für Medizintechnik-Software.
 
-Die Firma RadMobil GmbH betreibt einen E-Scooter-Verleih mit Werkstatt.
+Das Unternehmen ist in ein neues Bürogebäude umgezogen und Sie sollen die IT-Infrastruktur aufbauen und optimieren.
 
-Sie sollen vier der folgenden fünf Aufgaben in diesem Projekt erledigen:
-1. Beim Management für das Projekt Abrechnungssoftware mitwirken
-2. Programm zur Auswertung der Arbeitszeiterfassung anfertigen
-3. Objektorientierte Software für Ladegerät entwickeln
-4. Tabelle Wartung normalisieren
-5. SQL-Abfragen zur Verleihdatenbank formulieren''',
+Sie sollen die folgenden vier Handlungsschritte bearbeiten:
+1. Das Netzwerk segmentieren und absichern
+2. Eine WLAN-Infrastruktur für Mitarbeiter und Besucher einrichten
+3. Ein IT-Sicherheitskonzept umsetzen
+4. Ein zentrales Storage-System planen und konfigurieren''',
   sections: [
     ExamSection(
       id: 'hs1',
-      title: 'Handlungsschritt 1: Projektmanagement (25 Punkte)',
+      title: 'Handlungsschritt 1: Netzwerksegmentierung (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
-          id: 'hs1-a',
-          title: 'Aufgabe a) Methoden der Anforderungsanalyse (6 Punkte)',
+          id: 'hs1-intro',
+          title: 'Ausgangssituation - Netzwerkplanung',
           description:
-              '''Für die Abrechnung der Servicemitarbeiter der RadMobil GmbH soll eine Abrechnungssoftware eingeführt werden.
+              '''Für das neue Gebäude soll das Netzwerk in verschiedene Segmente aufgeteilt werden.
 
-Sie erhalten den Auftrag, eine Anforderungsanalyse für diese Software durchzuführen.
+Die geplante VLAN-Struktur und der Netzwerkaufbau:
 
-a) Nennen Sie zwei Methoden, die Sie für eine Anforderungsanalyse anwenden können.
+FIREWALL-ZONE:
+- Firewall mit drei Zonen: LAN | DMZ | WAN
+- WAN (Internet-Anbindung): 203.0.113.2/30
+- DMZ (Webserver, Mailgateway): 10.20.2.0/29
+- Verbindung Firewall zu Core-Switch: 10.20.1.1/30
 
-b) Beschreiben Sie zwei Anforderungen an die neu einzuführende Software.''',
+CORE LAYER (Serverraum):
+- Core-Switch (Layer 3), übernimmt das Inter-VLAN-Routing
+
+ACCESS LAYER:
+- Access-Switch (Layer 2) im Erdgeschoss
+- Access-Switch (Layer 2) im 1. Obergeschoss
+
+VLAN-SEGMENTE:
+- VLAN 10 - Büro (Verwaltung & Vertrieb): 10.10.10.0/24
+- VLAN 20 - Entwicklung (Software-Entwickler & QA): 10.10.20.0/24
+- VLAN 30 - Server (Server & IT-Admin): 10.10.30.0/27, hier steht der DHCP-Server
+- VLAN 40 - Besucher (Gäste-WLAN & Besprechung): 10.10.40.0/24''',
+          type: QuestionType.info,
+          points: 0,
+        ),
+        ExamQuestion(
+          id: 'hs1-a',
+          title: 'Aufgabe a) Verfügbare Hosts im Server-VLAN (3 Punkte)',
+          description:
+              '''Berechnen Sie, wie viele Hosts im VLAN 30 (Server) adressiert werden können.
+
+Gegeben: 10.10.30.0/27
+
+Geben Sie den Rechenweg an.''',
           type: QuestionType.freeText,
-          points: 6,
-          hint:
-              'Methoden: z.B. Interview, Fragebogen, Workshop. Anforderungen: funktional und nicht-funktional.',
+          points: 3,
+          hint: 'Wie viele Bits bleiben für den Hostanteil? Welche Adressen sind reserviert?',
         ),
         ExamQuestion(
           id: 'hs1-b',
-          title: 'Aufgabe b) Kick-off-Sitzung (8 Punkte)',
+          title: 'Aufgabe b) Trunk-Verbindungen erklären (4 Punkte)',
           description:
-              '''Der Projektleiter Ihres Teams hat Ihnen mitgeteilt, dass das Projekt "Abrechnungssoftware" mit einer Kick-off-Sitzung begonnen wird.
+              '''Die Access-Switches sind über Uplinks mit dem Core-Switch verbunden. Auf diesen Verbindungen müssen die Ethernet-Frames mit VLAN-Tags versehen werden.
 
-Nennen Sie jeweils vier auf der Sachebene und der Beziehungsebene liegende Aufgabenstellungen dieser Kick-off-Sitzung.
-
-SACHEBENE:
-1.
-2.
-3.
-4.
-
-BEZIEHUNGSEBENE:
-1.
-2.
-3.
-4.''',
+Erklären Sie, warum das Tagging auf den Uplink-Verbindungen notwendig ist und welcher Standard dafür verwendet wird.''',
           type: QuestionType.freeText,
-          points: 8,
-          hint:
-              'Sachebene: Was wird gemacht? Beziehungsebene: Wie arbeiten wir zusammen?',
+          points: 4,
+          hint: 'Was passiert, wenn Frames aus verschiedenen VLANs über eine gemeinsame Leitung transportiert werden?',
         ),
         ExamQuestion(
-          id: 'hs1-c',
-          title: 'Aufgabe c) Nutzwertanalyse (11 Punkte)',
+          id: 'hs1-ca',
+          title: 'Aufgabe c-a) DHCP-Problem analysieren (2 Punkte)',
           description:
-              '''Es stehen drei Softwarelösungen zur Auswahl. Führen Sie eine Nutzwertanalyse durch.
+              '''Der DHCP-Server befindet sich im VLAN 30. Bei einem Test-PC im VLAN 20 (Entwicklung) zeigt die IP-Konfiguration:
 
-KRITERIEN UND GEWICHTUNG:
-- Benutzerfreundlichkeit: 40%
-- Kosten: 30%
-- Schnittstellen: 30%
+IPv4-Adresse: 169.254.178.55
+Subnetzmaske: 255.255.0.0
 
-BEWERTUNG (1-10 Punkte):
-| Kriterium           | Lösung A | Lösung B | Lösung C |
-|---------------------|----------|----------|----------|
-| Benutzerfreundlichk.| 8        | 6        | 9        |
-| Kosten              | 5        | 9        | 6        |
-| Schnittstellen      | 7        | 7        | 8        |
+Die PCs in VLAN 30 erhalten ihre IP-Konfiguration problemlos per DHCP.
 
-a) Berechnen Sie den Nutzwert für jede Lösung
-b) Welche Lösung empfehlen Sie?
-c) Nennen Sie einen Kritikpunkt an der Nutzwertanalyse''',
-          type: QuestionType.code,
-          points: 11,
-          hint: 'Nutzwert = Summe (Bewertung × Gewichtung)',
+Erklären Sie die Ursache für die angezeigte IP-Adresse.''',
+          type: QuestionType.freeText,
+          points: 2,
+          hint: 'Was bedeutet eine 169.254.x.x Adresse? Was passiert mit Broadcasts an VLAN-Grenzen?',
+        ),
+        ExamQuestion(
+          id: 'hs1-cb',
+          title: 'Aufgabe c-b) Lösungsvorschlag DHCP (2 Punkte)',
+          description:
+              '''Beschreiben Sie eine Lösung, damit PCs im VLAN 20 ihre IP-Konfiguration vom zentralen DHCP-Server erhalten können.''',
+          type: QuestionType.freeText,
+          points: 2,
+          hint: 'Wie können Broadcasts über VLAN-Grenzen hinweg weitergeleitet werden?',
+        ),
+        ExamQuestion(
+          id: 'hs1-da',
+          title: 'Aufgabe d-a) Routing-Tabelle vervollständigen (3 Punkte)',
+          description:
+              '''Auf dem Core-Switch wurde folgende Routing-Tabelle eingerichtet:
+
+ROUTING-TABELLE CORE-SWITCH:
+- 10.10.10.0/24 → Interface VLAN10
+- 10.10.20.0/24 → Interface VLAN20
+- 10.10.30.0/27 → Interface VLAN30
+- 10.10.40.0/24 → Interface VLAN40
+
+Für den Internetzugang fehlt noch ein Eintrag.
+
+Ergänzen Sie die Default-Route mit:
+- Zielnetzwerk
+- Subnetzmaske
+- Next-Hop-Adresse''',
+          type: QuestionType.freeText,
+          points: 3,
+          hint: 'Welche Route fängt alle Pakete auf, die nicht explizit geroutet werden können?',
+        ),
+        ExamQuestion(
+          id: 'hs1-db',
+          title: 'Aufgabe d-b) Routing-Problem beheben (4 Punkte)',
+          description:
+              '''Ein PC im Büro-VLAN (10.10.10.50) kann den Webserver in der DMZ (10.20.2.2) nicht erreichen. Ein Ping zur Firewall (10.20.1.1) funktioniert.
+
+Die Routing-Tabelle der Firewall zeigt:
+- 10.20.1.0/30 → LAN-Interface
+- 10.20.2.0/29 → DMZ-Interface
+- 10.10.20.0/24 → Gateway 10.20.1.2
+- 10.10.30.0/27 → Gateway 10.20.1.2
+- 10.10.40.0/24 → Gateway 10.20.1.2
+- 0.0.0.0/0 → WAN-Interface
+
+Analysieren Sie das Problem und beschreiben Sie die Lösung.''',
+          type: QuestionType.freeText,
+          points: 4,
+          hint: 'Vergleichen Sie die vorhandenen Routen mit allen VLANs. Kann die Antwort zurück zum Absender finden?',
+        ),
+        ExamQuestion(
+          id: 'hs1-e',
+          title: 'Aufgabe e) Firewall-Regeln interpretieren (7 Punkte)',
+          description:
+              '''Auf der Firewall wurden folgende Regeln für ausgehenden Traffic aus dem Büro-VLAN konfiguriert:
+
+FIREWALL-REGELN (VLAN 10 → Internet):
+Nr | Aktion | Proto | Quelle         | Ziel | Quell-Port | Ziel-Port
+---|--------|-------|----------------|------|------------|----------
+1  | ALLOW  | TCP   | 10.10.10.0/24  | any  | >1023      | 443
+2  | ALLOW  | TCP   | 10.10.10.0/24  | any  | >1023      | 80
+3  | ALLOW  | UDP   | 10.10.10.0/24  | any  | >1023      | 53
+4  | ALLOW  | TCP   | 10.10.10.0/24  | any  | >1023      | 587
+5  | ALLOW  | TCP   | 10.10.10.0/24  | any  | >1023      | 993
+99 | DENY   | any   | any            | any  | any        | any
+
+Erläutern Sie jede Regel (1-5 und 99) mit eigenen Worten. Nennen Sie bei den Regeln 1-5 auch den typischen Anwendungsfall.''',
+          type: QuestionType.freeText,
+          points: 7,
+          hint: 'Welche Dienste nutzen diese Standard-Ports? Was bedeutet die letzte Regel für nicht aufgeführte Verbindungen?',
         ),
       ],
     ),
     ExamSection(
       id: 'hs2',
-      title: 'Handlungsschritt 2: Zeiterfassung (25 Punkte)',
+      title: 'Handlungsschritt 2: WLAN-Infrastruktur (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
-          id: 'hs2-q1',
-          title: 'Algorithmus - Zeiterfassungsliste erstellen',
+          id: 'hs2-a',
+          title: 'Aufgabe a) WLAN-Betriebsmodi unterscheiden (3 Punkte)',
           description:
-              '''Die RadMobil GmbH möchte eine Auswertung der erfassten Arbeitszeiten eines Monats.
+              '''Für das Unternehmen sollen mehrere WLAN-Access-Points installiert werden.
 
-REGELN:
-- Kommen- und Gehen-Buchungen vorhanden → Anwesenheit berechnen
-- Nur Kommen-Zeit vorhanden → Anwesenheit 00:00, "Buchung fehlt"
-- Keine Zeitbuchung → Anwesenheit 00:00, "nicht anwesend"
-- Am Ende: Summe der Anwesenheitszeiten
-
-ZEITERFASSUNGSTABELLE (Beispiel):
-| Tag | Stunde | Minute |
-|-----|--------|--------|
-| 2   | 8      | 10     |
-| 2   | 17     | 20     |
-| 3   | 7      | 50     |
-| 6   | 8      | 00     |
-| 6   | 16     | 00     |
-
-AUFGABE:
-Entwickeln Sie einen Algorithmus (Pseudocode oder Struktogramm), der diese Zeiterfassungsliste erstellt.''',
-          type: QuestionType.code,
-          points: 25,
-          hint:
-              'Schleife über alle Tage, prüfe ob 0, 1 oder 2 Buchungen vorhanden sind.',
+Erklären Sie den Unterschied zwischen dem Infrastruktur-Modus und dem Ad-hoc-Modus bei WLAN-Netzwerken.''',
+          type: QuestionType.freeText,
+          points: 3,
+          hint: 'Welche Rolle spielt der Access Point bei den beiden Modi?',
         ),
-      ],
-    ),
-    ExamSection(
-      id: 'hs3',
-      title: 'Handlungsschritt 3: OOP Ladegerät (25 Punkte)',
-      totalPoints: 25,
-      questions: [
         ExamQuestion(
-          id: 'hs3-q1',
-          title: 'UML-Klassendiagramm - Ladegerät',
+          id: 'hs2-b',
+          title: 'Aufgabe b) RADIUS-Authentifizierung - AAA (3 Punkte)',
           description:
-              '''Die RadMobil GmbH benötigt Software für intelligente E-Scooter-Ladegeräte.
+              '''Die Mitarbeiter sollen sich am WLAN mit ihren Active-Directory-Zugangsdaten anmelden. Dafür wird ein RADIUS-Server eingesetzt.
 
-ANFORDERUNGEN:
-- Klasse Ladegerät mit Attributen: ID, Standort, Leistung (Watt)
-- Klasse Ladevorgang mit: Ladevorgang_ID, Startzeit, Endzeit, Energie (kWh)
-- Ein Ladegerät hat viele Ladevorgänge
-- Methode berechneLadekosten() berechnet Kosten = Energie × 0.30€
+RADIUS implementiert das AAA-Prinzip. Nennen Sie die drei Komponenten, für die AAA steht, und erklären Sie diese kurz.''',
+          type: QuestionType.freeText,
+          points: 3,
+          hint: 'AAA beschreibt drei zentrale Sicherheitsfunktionen: Wer bist du? Was darfst du? Was hast du getan?',
+        ),
+        ExamQuestion(
+          id: 'hs2-c',
+          title: 'Aufgabe c) Versteckte SSID bewerten (3 Punkte)',
+          description:
+              '''Ein Kollege schlägt vor, die SSID des Mitarbeiter-WLANs zu verstecken, um die Sicherheit zu erhöhen.
+
+Bewerten Sie diesen Vorschlag und begründen Sie Ihre Einschätzung.''',
+          type: QuestionType.freeText,
+          points: 3,
+          hint: 'Wird die SSID wirklich komplett versteckt? Was passiert bei der Verbindungsaufnahme?',
+        ),
+        ExamQuestion(
+          id: 'hs2-d',
+          title: 'Aufgabe d) 802.1X-Komponenten zuordnen (7 Punkte)',
+          description:
+              '''Bei der WLAN-Authentifizierung nach IEEE 802.1X sind drei Rollen beteiligt:
+
+- Supplicant - Das Gerät, das Zugang zum Netzwerk möchte
+- Authenticator - Das Gerät, das den Zugang kontrolliert
+- Authentication Server - Der Server, der die Anmeldedaten prüft
+
+Der Ablauf ist wie folgt:
+1. Der Supplicant sendet seine Anmeldedaten an den Authenticator
+2. Der Authenticator leitet die Daten an den Authentication Server weiter
+3. Der Authentication Server prüft die Daten und sendet das Ergebnis zurück
+4. Bei Erfolg schaltet der Authenticator den Port frei
 
 AUFGABE:
-Erstellen Sie ein UML-Klassendiagramm mit:
-- Beiden Klassen
-- Allen Attributen und Datentypen
-- Der Methode berechneLadekosten()
-- Der Beziehung mit Kardinalität''',
-          type: QuestionType.diagram,
-          points: 25,
-          hint: '1 Ladegerät : n Ladevorgänge',
+Ordnen Sie die drei Rollen den Geräten in Ihrem Netzwerk zu und beschreiben Sie den Kommunikationsablauf mit den verwendeten Protokollen.
+
+Verfügbare Geräte:
+- Notebook des Mitarbeiters
+- WLAN-Access-Point
+- RADIUS-Server''',
+          type: QuestionType.freeText,
+          points: 7,
+          hint: 'Welches Gerät möchte Zugang, welches kontrolliert und welches entscheidet? Welches Protokoll wird zwischen AP und RADIUS verwendet?',
+        ),
+        ExamQuestion(
+          id: 'hs2-ea',
+          title: 'Aufgabe e-a) WLAN-Störquellen identifizieren (4 Punkte)',
+          description:
+              '''In einem Besprechungsraum ist der WLAN-Empfang trotz nahem Access Point schlecht. 
+
+Nennen Sie vier mögliche Ursachen, die den WLAN-Empfang negativ beeinflussen können.''',
+          type: QuestionType.freeText,
+          points: 4,
+          hint: 'Denken Sie an bauliche, elektronische und funktechnische Störquellen.',
+        ),
+        ExamQuestion(
+          id: 'hs2-eb',
+          title: 'Aufgabe e-b) WLAN-Optimierung vorschlagen (3 Punkte)',
+          description:
+              '''Nennen Sie drei Maßnahmen, um den WLAN-Empfang im Besprechungsraum zu verbessern.''',
+          type: QuestionType.freeText,
+          points: 3,
+          hint: 'Welche Hardware-Lösungen und Konfigurationsänderungen könnten helfen?',
+        ),
+        ExamQuestion(
+          id: 'hs2-ec',
+          title: 'Aufgabe e-c) Optimale AP-Position bestimmen (2 Punkte)',
+          description:
+              '''Sie haben einen Grundriss mit drei Bereichen:
+- Bereich A: Guter Empfang (nähe zum Router)
+- Bereich B: Mäßiger Empfang (durch eine Trockenbauwand)
+- Bereich C: Schlechter Empfang (durch zwei Wände)
+
+Beschreiben Sie, wo Sie einen WLAN-Repeater oder zusätzlichen Access Point positionieren würden, um Bereich C optimal zu versorgen.''',
+          type: QuestionType.freeText,
+          points: 2,
+          hint: 'Ein Repeater benötigt selbst ein gutes Signal. Wo ist der beste Kompromiss?',
         ),
       ],
     ),
     ExamSection(
       id: 'hs4',
-      title: 'Handlungsschritt 4: Normalisierung (25 Punkte)',
+      title: 'Handlungsschritt 3: IT-Sicherheitskonzept (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
-          id: 'hs4-intro',
-          title: 'Ausgangstabelle Wartung',
-          description: '''TABELLE: Wartung (nicht normalisiert)
-| Wartung_ID | Scooter_ID | Scooter_Typ | Werkstatt_Name | Werkstatt_PLZ | Datum      | Kosten |
-|------------|------------|-------------|----------------|---------------|------------|--------|
-| 1          | 100        | Cruiser     | Fix-Werk       | 10115         | 2024-01-10 | 50     |
-| 2          | 101        | Sport       | Fix-Werk       | 10115         | 2024-01-15 | 80     |
-| 3          | 100        | Cruiser     | Mobil-Service  | 20095         | 2024-02-01 | 40     |
-
-Hinweis: Ein Scooter hat immer denselben Typ. Eine Werkstatt hat immer dieselbe PLZ.''',
-          type: QuestionType.info,
-          points: 0,
-        ),
-        ExamQuestion(
           id: 'hs4-a',
-          title: 'Aufgabe a) Erste Normalform (5 Punkte)',
+          title: 'Aufgabe a) Schutzmaßnahmen kategorisieren (8 Punkte)',
           description:
-              '''Prüfen Sie, ob die Tabelle in der ersten Normalform ist. Wenn nein, überführen Sie sie.''',
+              '''IT-Sicherheitsmaßnahmen lassen sich in vier Kategorien einteilen:
+
+- Technisch-logisch (Software, Konfiguration)
+- Technisch-physisch (Hardware, Gebäude)
+- Organisatorisch (Prozesse, Richtlinien)
+- Personell (Schulung, Awareness)
+
+Für jede Kategorie ist bereits ein Beispiel gegeben. Ergänzen Sie jeweils eine weitere Maßnahme mit Erläuterung.
+
+BEISPIELE:
+Technisch-logisch: Firewall
+→ Kontrolliert Netzwerkverkehr nach definierten Regeln
+
+Technisch-physisch: USV (Unterbrechungsfreie Stromversorgung)
+→ Überbrückt Stromausfälle, ermöglicht sicheres Herunterfahren
+
+Organisatorisch: Backup-Konzept
+→ Regelmäßige Datensicherung nach definiertem Plan
+
+Personell: Security-Awareness-Training
+→ Mitarbeiter erkennen Phishing und Social Engineering''',
           type: QuestionType.freeText,
-          points: 5,
-          hint: 'Sind alle Attribute atomar?',
+          points: 8,
+          hint: 'Überlegen Sie für jede Kategorie: Welche anderen Bedrohungen gibt es und wie schützt man sich davor?',
         ),
         ExamQuestion(
           id: 'hs4-b',
-          title: 'Aufgabe b) Zweite Normalform (10 Punkte)',
-          description: '''Überführen Sie die Tabelle in die zweite Normalform.
+          title: 'Aufgabe b) Datenschutzschulung planen (5 Punkte)',
+          description:
+              '''Sie sollen eine Schulung zum Thema "Umgang mit personenbezogenen Daten" für alle Mitarbeiter vorbereiten.
 
-Geben Sie die entstehenden Tabellen mit ihren Primärschlüsseln an.''',
-          type: QuestionType.diagram,
-          points: 10,
-          hint: 'Entfernen Sie partielle Abhängigkeiten vom Primärschlüssel.',
+Nennen Sie fünf Aspekte, die Sie bei Planung und Durchführung berücksichtigen sollten.''',
+          type: QuestionType.freeText,
+          points: 5,
+          hint: 'Denken Sie an Zielgruppe, Inhalte, Format, Materialien und Erfolgskontrolle.',
         ),
         ExamQuestion(
           id: 'hs4-c',
-          title: 'Aufgabe c) Dritte Normalform (10 Punkte)',
+          title: 'Aufgabe c) USV-Dimensionierung berechnen (6 Punkte)',
           description:
-              '''Überführen Sie den Datenbestand abschließend in die dritte Normalform.
+              '''Ein Server wird mit einer USV abgesichert. Die USV kann den Ladestand des Akkus auslesen.
 
-Geben Sie alle Tabellen mit Primärschlüsseln und Fremdschlüsseln an.''',
-          type: QuestionType.diagram,
-          points: 10,
-          hint: 'Entfernen Sie transitive Abhängigkeiten.',
+GEGEBENE WERTE:
+- USV-Kapazität: 1000 VA bei vollem Akku für 30 Minuten
+- Server-Leistungsaufnahme: 400 W
+- Zeit für sauberes Herunterfahren: 8 Minuten
+- Minimaler Akku-Ladestand zum Schutz des Akkus: 30%
+
+Berechnen Sie, bei welchem Akku-Ladestand (in Prozent) der Shutdown automatisch eingeleitet werden muss.
+
+Hinweis: Rechnen Sie mit 1 VA = 1 W. Geben Sie den Rechenweg an.''',
+          type: QuestionType.freeText,
+          points: 6,
+          hint: 'Berechnen Sie zuerst die Gesamtkapazität in Wh, dann den Energiebedarf für den Shutdown.',
+        ),
+        ExamQuestion(
+          id: 'hs4-da',
+          title: 'Aufgabe d-a) Snapshot-Limitierung erklären (2 Punkte)',
+          description:
+              '''Für die Datensicherung wird vorgeschlagen, täglich einen Snapshot des Dateiservers zu erstellen.
+
+Erklären Sie, warum Snapshots allein keine vollwertige Backup-Strategie darstellen.''',
+          type: QuestionType.freeText,
+          points: 2,
+          hint: 'Wo wird ein Snapshot gespeichert? Was passiert bei einem Hardware-Defekt des Storage-Systems?',
+        ),
+        ExamQuestion(
+          id: 'hs4-db',
+          title: 'Aufgabe d-b) Backup-Strategie mit Snapshots (4 Punkte)',
+          description:
+              '''Es wird vorgeschlagen, Snapshots mit einer anschließenden Sicherung auf ein separates System zu kombinieren.
+
+Erläutern Sie die Vorteile dieser kombinierten Strategie.''',
+          type: QuestionType.freeText,
+          points: 4,
+          hint: 'Welche Vorteile bietet der Snapshot während des Backups? Was erreicht man durch die räumliche Trennung?',
         ),
       ],
     ),
     ExamSection(
       id: 'hs5',
-      title: 'Handlungsschritt 5: SQL-Abfragen (25 Punkte)',
+      title: 'Handlungsschritt 4: Storage-System (25 Punkte)',
       totalPoints: 25,
       questions: [
         ExamQuestion(
           id: 'hs5-intro',
-          title: 'Datenbankschema - Verleihdatenbank',
-          description: '''TABELLEN:
-- Kunde (KdID, KdName, KdOrt)
-- VerleihScoot (VScootID, VScootFarbe, ScootTypID, StdID)
-- ScootTyp (ScootTypID, ScootTypBez, ScootTypPreis)
-- Standort (StdID, StdName, StdOrt)
-- Buchung (KdID, VScootID, Datum, Tage)''',
+          title: 'Ausgangssituation - NAS-Systeme',
+          description:
+              '''Für die MediTech Solutions GmbH sollen zwei NAS-Systeme beschafft werden:
+
+- NAS-A: Hochperformanter Speicher für aktive Projektdaten
+- NAS-B: Kosteneffizienter Speicher für Archivierung und Backup''',
           type: QuestionType.info,
           points: 0,
+          hint: 'Dies ist die Ausgangssituation für die folgenden Aufgaben.',
         ),
         ExamQuestion(
-          id: 'hs5-a',
-          title: 'Aufgabe a) CREATE TABLE DefektBuchung (3 Punkte)',
+          id: 'hs5-aa',
+          title: 'Aufgabe a-a) RAID-10 Kosten berechnen (4 Punkte)',
           description:
-              '''Erstellen Sie die Tabelle "DefektBuchung", welche alle Attribute der Tabelle "Buchung" außer "Tage" enthält, plus eine DefektId.''',
-          type: QuestionType.code,
-          points: 3,
-          hint: 'Nutzen Sie CREATE TABLE mit entsprechenden Attributen.',
+              '''NAS-A soll als RAID-10-Verbund mit einer Nettokapazität von 8 TiB konfiguriert werden. Dafür sind vier identische Festplatten vorgesehen.
+
+Das Budget für die Festplatten beträgt maximal 25 Cent pro GiB Nettokapazität.
+
+Berechnen Sie den maximalen Preis pro Festplatte.
+Der Rechenweg ist anzugeben.''',
+          type: QuestionType.freeText,
+          points: 4,
+          hint: 'Wie viel Prozent der Bruttokapazität steht bei RAID-10 als Nettokapazität zur Verfügung?',
+        ),
+        ExamQuestion(
+          id: 'hs5-ab',
+          title: 'Aufgabe a-b) RAID-6 Kosten berechnen (4 Punkte)',
+          description:
+              '''NAS-B soll als RAID-6-Verbund mit einer Nettokapazität von 32 TiB konfiguriert werden. Dafür sind acht identische Festplatten vorgesehen.
+
+Das Budget für die Festplatten beträgt maximal 8 Cent pro GiB Nettokapazität.
+
+Berechnen Sie den maximalen Preis pro Festplatte.
+Der Rechenweg ist anzugeben.''',
+          type: QuestionType.freeText,
+          points: 4,
+          hint: 'Bei RAID-6 gehen zwei Festplatten für Parität verloren. Wie groß muss jede Festplatte sein?',
         ),
         ExamQuestion(
           id: 'hs5-b',
-          title: 'Aufgabe b) Buchungen pro ScootTyp ≥ 10 (5 Punkte)',
+          title: 'Aufgabe b) Energieeffizienz bei NAS-Systemen (4 Punkte)',
           description:
-              '''Listen Sie alle Scooter-Typen auf, zu denen mindestens 10 Buchungen vorliegen.
+              '''NAS-B soll besonders energieeffizient betrieben werden, da es primär als Archivspeicher dient.
 
-AUSGABE: ScootTypID, Anzahl''',
-          type: QuestionType.code,
-          points: 5,
-          hint: 'GROUP BY mit HAVING COUNT(*) >= 10',
+Nennen Sie zwei technische Maßnahmen, um den Energieverbrauch des NAS-Systems zu reduzieren, und erläutern Sie diese.''',
+          type: QuestionType.freeText,
+          points: 4,
+          hint: 'Was verbraucht bei einem NAS am meisten Strom? Wie kann man das bei seltenen Zugriffen optimieren?',
         ),
         ExamQuestion(
           id: 'hs5-c',
-          title: 'Aufgabe c) Kundenumsatz absteigend (5 Punkte)',
+          title: 'Aufgabe c) Deduplizierung erklären (5 Punkte)',
           description:
-              '''Erstellen Sie eine Liste mit dem Gesamtumsatz pro Kunde (Tage × Preis).
+              '''Auf NAS-B soll zur Speicherplatzoptimierung Deduplizierung aktiviert werden.
 
-Sortiert absteigend nach Umsatz.''',
-          type: QuestionType.code,
+Erklären Sie das Prinzip der Datendeduplizierung und nennen Sie einen typischen Anwendungsfall, bei dem besonders hohe Einsparungen erzielt werden.''',
+          type: QuestionType.freeText,
           points: 5,
-          hint: 'JOIN, SUM(Tage * Preis), ORDER BY DESC',
+          hint: 'Wie werden identische Datenblöcke erkannt? Bei welchen Daten gibt es viele Duplikate?',
         ),
         ExamQuestion(
           id: 'hs5-d',
-          title: 'Aufgabe d) Scooter teurer als Cruiser (5 Punkte)',
+          title: 'Aufgabe d) Speicheroptimierungs-Algorithmus (8 Punkte)',
           description:
-              '''Geben Sie alle Scooter-Typen aus, die teurer als der Typ "Cruiser" (ScootTypID = 1001) sind.''',
-          type: QuestionType.code,
-          points: 5,
-          hint: 'Unterabfrage für Preis von Cruiser',
-        ),
-        ExamQuestion(
-          id: 'hs5-e',
-          title:
-              'Aufgabe e) Prozentualer Anteil Buchungen pro Monat (7 Punkte)',
-          description:
-              '''Geben Sie für jeden Monat den prozentualen Anteil der Buchungen an der Gesamtanzahl für 2024 an.
+              '''Um den Speicherplatz auf NAS-A (Hochleistung) zu optimieren, sollen selten genutzte Daten automatisch auf NAS-B (Archiv) verschoben werden.
 
-Hinweis: Datumsfeld ist String im Format "YYYY-MM-DD"''',
+REGELN:
+- Bei weniger als 40% Belegung auf NAS-A:
+  → Dateien verschieben, auf die seit 180 Tagen nicht zugegriffen wurde
+
+- Bei Belegung zwischen 40% und 70% auf NAS-A:
+  → Dateien verschieben, auf die seit 60 Tagen nicht zugegriffen wurde
+
+- Bei mehr als 70% Belegung auf NAS-A:
+  → Dateien verschieben, auf die seit 14 Tagen nicht zugegriffen wurde
+
+Entwickeln Sie einen Algorithmus (Pseudocode oder Struktogramm), der diese Regeln umsetzt.
+
+Verwenden Sie diese vordefinierten Anweisungen:
+1. ErmittleBelegung(NAS-A)
+2. VerschiebeDateien(Quelle, Ziel, MaxAlterInTagen)''',
           type: QuestionType.code,
-          points: 7,
-          hint: 'Nutzen Sie SUBSTRING() und Unterabfrage für Gesamtanzahl',
+          points: 8,
+          hint: 'Nutzen Sie verschachtelte Wenn-Dann-Bedingungen basierend auf dem Belegungswert.',
         ),
       ],
     ),

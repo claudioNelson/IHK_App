@@ -248,7 +248,7 @@ const sections = [
         <p>
           Datenschutzerklärung von Stripe:{" "}
           
-            href="https://stripe.com/de/privacy"
+            <a href="https://stripe.com/de/privacy"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-700 hover:underline"

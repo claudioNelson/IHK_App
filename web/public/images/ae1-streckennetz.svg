@@ -1,0 +1,60 @@
+<svg width="860" height="745" viewBox="0 0 860 745" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<rect width="860" height="745" fill="#1a1a2e"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker></defs>
+<text x="40" y="46" fill="#ffffff" font-size="18" font-weight="bold" letter-spacing="1">STRECKENNETZ</text>
+<circle cx="110" cy="240" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="110" y="247" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">A</text>
+<circle cx="400" cy="110" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="400" y="117" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">C</text>
+<circle cx="730" cy="240" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="730" y="247" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">B</text>
+<circle cx="400" cy="330" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="400" y="337" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">D</text>
+<circle cx="560" cy="450" r="26" fill="#2563eb" stroke="#1d4ed8" stroke-width="3"/>
+<text x="560" y="457" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold">E</text>
+<line x1="136.5" y1="228.1" x2="368.1" y2="124.3" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="427.0" y1="120.6" x2="697.4" y2="227.2" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="137.7" y1="248.6" x2="366.6" y2="319.6" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="428.0" y1="322.4" x2="696.2" y2="249.2" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="423.2" y1="347.4" x2="532.0" y2="429.0" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<line x1="578.2" y1="427.5" x2="708.0" y2="267.2" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr)"/>
+<rect x="197" y="140" width="77" height="22" fill="#1a1a2e" opacity="0.85" rx="4"/>
+<text x="235" y="155" text-anchor="middle" fill="#facc15" font-size="13" font-family="Consolas, monospace">[10t, 5€]</text>
+<rect x="550" y="140" width="70" height="22" fill="#1a1a2e" opacity="0.85" rx="4"/>
+<text x="585" y="155" text-anchor="middle" fill="#facc15" font-size="13" font-family="Consolas, monospace">[8t, 3€]</text>
+<rect x="197" y="290" width="77" height="22" fill="#1a1a2e" opacity="0.85" rx="4"/>
+<text x="235" y="305" text-anchor="middle" fill="#facc15" font-size="13" font-family="Consolas, monospace">[15t, 4€]</text>
+<rect x="547" y="290" width="77" height="22" fill="#1a1a2e" opacity="0.85" rx="4"/>
+<text x="585" y="305" text-anchor="middle" fill="#facc15" font-size="13" font-family="Consolas, monospace">[12t, 6€]</text>
+<rect x="377" y="385" width="77" height="22" fill="#1a1a2e" opacity="0.85" rx="4"/>
+<text x="415" y="400" text-anchor="middle" fill="#facc15" font-size="13" font-family="Consolas, monospace">[20t, 2€]</text>
+<rect x="642" y="375" width="77" height="22" fill="#1a1a2e" opacity="0.85" rx="4"/>
+<text x="680" y="390" text-anchor="middle" fill="#facc15" font-size="13" font-family="Consolas, monospace">[10t, 4€]</text>
+<text x="40" y="530" fill="#94a3b8" font-size="13">Jede Strecke: [maximale Kapazität in Tonnen, Preis pro Tonne]</text>
+<text x="40" y="575" fill="#ffffff" font-size="18" font-weight="bold" letter-spacing="1">ROUTENTABELLE (von A nach B)</text>
+<rect x="40" y="590" width="540" height="32" fill="#1e293b"/>
+<rect x="40" y="654" width="540" height="32" fill="#20263c"/>
+<rect x="40" y="590" width="540" height="128" fill="none" stroke="#334155" stroke-width="2"/>
+<line x1="40" y1="622" x2="580" y2="622" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="654" x2="580" y2="654" stroke="#334155" stroke-width="1"/>
+<line x1="40" y1="686" x2="580" y2="686" stroke="#334155" stroke-width="1"/>
+<line x1="130" y1="590" x2="130" y2="718" stroke="#334155" stroke-width="1"/>
+<line x1="280" y1="590" x2="280" y2="718" stroke="#334155" stroke-width="1"/>
+<line x1="430" y1="590" x2="430" y2="718" stroke="#334155" stroke-width="1"/>
+<text x="85.0" y="612" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Route</text>
+<text x="205.0" y="612" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Strecke 1</text>
+<text x="355.0" y="612" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Strecke 2</text>
+<text x="505.0" y="612" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Strecke 3</text>
+<text x="85.0" y="644" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">1</text>
+<text x="205.0" y="644" fill="#e2e8f0" font-size="14" text-anchor="middle">A → C</text>
+<text x="355.0" y="644" fill="#e2e8f0" font-size="14" text-anchor="middle">C → B</text>
+<text x="505.0" y="644" fill="#e2e8f0" font-size="14" text-anchor="middle">–</text>
+<text x="85.0" y="676" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">2</text>
+<text x="205.0" y="676" fill="#e2e8f0" font-size="14" text-anchor="middle">A → D</text>
+<text x="355.0" y="676" fill="#e2e8f0" font-size="14" text-anchor="middle">D → B</text>
+<text x="505.0" y="676" fill="#e2e8f0" font-size="14" text-anchor="middle">–</text>
+<text x="85.0" y="708" fill="#3b82f6" font-size="14" font-weight="bold" text-anchor="middle">3</text>
+<text x="205.0" y="708" fill="#e2e8f0" font-size="14" text-anchor="middle">A → D</text>
+<text x="355.0" y="708" fill="#e2e8f0" font-size="14" text-anchor="middle">D → E</text>
+<text x="505.0" y="708" fill="#e2e8f0" font-size="14" text-anchor="middle">E → B</text>
+</svg>

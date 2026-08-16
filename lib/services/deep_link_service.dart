@@ -20,7 +20,7 @@ class DeepLinkService {
 
     // 1. Falls die App durch einen Link erst gestartet wurde:
     try {
-      final initialUri = await _appLinks.getInitialAppLink();
+      final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
         print('🔗 App durch Link gestartet: $initialUri');
         await _handleUri(initialUri);
@@ -65,9 +65,11 @@ class DeepLinkService {
     print('🔑 Verifiziere Token (type: $type)');
 
     try {
-      // OTP-Token verifizieren → erstellt Session automatisch
+      // OTP-Token verifizieren → erstellt Session automatisch.
+      // WICHTIG: tokenHash (nicht token) — token würde zusätzlich
+      // eine E-Mail/Telefonnummer verlangen.
       await Supabase.instance.client.auth.verifyOTP(
-        token: tokenHash,
+        tokenHash: tokenHash,
         type: _parseOtpType(type),
       );
       print('✅ Session erfolgreich erstellt - User ist eingeloggt!');

@@ -21,9 +21,87 @@ interface ExamResultProps {
   answers: Record<string, string>;
 }
 
+// Strukturiertes Bewertungs-Ergebnis von der KI (Adas Korrektur)
+interface KiTeilaufgabe {
+  titel: string;
+  punkte: number;
+  maxPunkte: number;
+  beantwortet?: boolean;
+  kommentar?: string;
+}
+interface KiAufgabe {
+  titel: string;
+  punkte: number;
+  maxPunkte: number;
+  teilaufgaben: KiTeilaufgabe[];
+}
+interface KiResult {
+  gesamt: {
+    punkte: number;
+    maxPunkte: number;
+    prozent: number;
+    note: number;
+    noteText: string;
+    bestanden: boolean;
+    kommentar?: string;
+  };
+  aufgaben: KiAufgabe[];
+  staerken?: string[];
+  verbesserungen?: string[];
+  lernempfehlungen?: string[];
+}
+
+// Sicherheitsnetz: Die KI bewertet die Aufgaben einzeln meist korrekt,
+// verrechnet sich aber gelegentlich im Gesamt-Block (oder behauptet
+// "nichts beantwortet", obwohl Teilaufgaben Punkte bekommen haben).
+// Deshalb rechnen wir das Gesamtergebnis selbst aus den Einzelbewertungen
+// zusammen und leiten Prozent, Note und Bestanden daraus ab.
+function reconcileKiResult(result: KiResult): KiResult {
+  if (!Array.isArray(result.aufgaben) || result.aufgaben.length === 0) {
+    return result;
+  }
+
+  const punkte = result.aufgaben.reduce(
+    (sum, a) => sum + (Number(a.punkte) || 0),
+    0
+  );
+  const maxPunkte =
+    result.aufgaben.reduce((sum, a) => sum + (Number(a.maxPunkte) || 0), 0) ||
+    result.gesamt?.maxPunkte ||
+    100;
+
+  const prozent = Math.round((punkte / maxPunkte) * 100);
+
+  let note = 6;
+  let noteText = "ungenügend";
+  if (prozent >= 92) { note = 1; noteText = "sehr gut"; }
+  else if (prozent >= 81) { note = 2; noteText = "gut"; }
+  else if (prozent >= 67) { note = 3; noteText = "befriedigend"; }
+  else if (prozent >= 50) { note = 4; noteText = "ausreichend"; }
+  else if (prozent >= 30) { note = 5; noteText = "mangelhaft"; }
+
+  const bestanden = prozent >= 50;
+
+  // Kommentar nur übernehmen, wenn er nicht offensichtlich widerspricht
+  const kommentar =
+    punkte > 0 &&
+    result.gesamt?.kommentar &&
+    /keine aufgaben|nicht beantwortet|nichts beantwortet/i.test(
+      result.gesamt.kommentar
+    )
+      ? undefined
+      : result.gesamt?.kommentar;
+
+  return {
+    ...result,
+    gesamt: { punkte, maxPunkte, prozent, note, noteText, bestanden, kommentar },
+  };
+}
+
 export default function ExamResult({ exam, completed, answers, onReset }: ExamResultProps) {
   const [kiLoading, setKiLoading] = useState(false);
   const [kiFeedback, setKiFeedback] = useState<string | null>(null);
+  const [kiResult, setKiResult] = useState<KiResult | null>(null);
   const [kiError, setKiError] = useState<string | null>(null);
 
   const allQuestions = exam.sections.flatMap((s) => s.questions);
@@ -43,7 +121,13 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unbekannter Fehler");
-      setKiFeedback(data.feedback);
+      if (data.result) {
+        setKiResult(reconcileKiResult(data.result as KiResult));
+        setKiFeedback(null);
+      } else {
+        setKiFeedback(data.feedback ?? "Keine Antwort erhalten");
+        setKiResult(null);
+      }
     } catch (error) {
       setKiError(error instanceof Error ? error.message : "Fehler bei der KI-Korrektur");
     } finally {
@@ -52,6 +136,14 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
   };
 
   const pointsPercent = exam.totalPoints > 0 ? Math.round((completedPoints / exam.totalPoints) * 100) : 0;
+
+  // Farbe/Status einer Teilaufgabe für den Punkt links
+  const subStatus = (t: KiTeilaufgabe): "full" | "part" | "zero" | "skip" => {
+    if (t.beantwortet === false) return "skip";
+    if (t.maxPunkte > 0 && t.punkte >= t.maxPunkte) return "full";
+    if (t.punkte > 0) return "part";
+    return "zero";
+  };
 
   return (
     <div className="result-page">
@@ -221,6 +313,7 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
           font-size: 18px;
           font-weight: 600;
           display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
         }
         .ki-card-meta-name {
           font-size: 14px;
@@ -283,7 +376,7 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
           word-break: break-word;
         }
 
-        /* KI FEEDBACK */
+        /* KI FEEDBACK (Fallback: roher Text) */
         .ki-feedback {
           background: #FFFFFF;
           border: 1px solid rgba(124,109,255,0.20);
@@ -318,6 +411,245 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
           white-space: pre-wrap;
           font-family: 'Inter Tight', system-ui, sans-serif;
         }
+
+        /* ─── STRUKTURIERTES KI-ERGEBNIS ─── */
+        .kir-summary {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+          flex-wrap: wrap;
+          padding: 4px 0 18px;
+        }
+        .kir-score-big {
+          font-family: 'Instrument Serif', serif;
+          font-size: 52px;
+          letter-spacing: -1.5px;
+          line-height: 1;
+          color: #0A0A0F;
+        }
+        .kir-score-big em {
+          font-style: italic;
+          color: #7C6DFF;
+        }
+        .kir-score-max {
+          font-size: 24px;
+          color: #8A8A92;
+        }
+        .kir-score-sub {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          color: #8A8A92;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          margin-top: 6px;
+        }
+        .kir-badges {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-left: auto;
+          align-items: flex-end;
+        }
+        .kir-badge {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          padding: 6px 12px;
+          border-radius: 7px;
+          border: 1px solid;
+          white-space: nowrap;
+        }
+        .kir-badge.pass {
+          color: #047857;
+          background: rgba(16,185,129,0.08);
+          border-color: rgba(16,185,129,0.35);
+        }
+        .kir-badge.fail {
+          color: #B91C1C;
+          background: rgba(220,38,38,0.06);
+          border-color: rgba(220,38,38,0.30);
+        }
+        .kir-note-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 10px 26px 12px;
+          border-radius: 14px;
+          border: 1.5px solid;
+          min-width: 110px;
+        }
+        .kir-note-label {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          opacity: 0.75;
+        }
+        .kir-note-num {
+          font-size: 44px;
+          font-weight: 800;
+          line-height: 1.1;
+          letter-spacing: -1px;
+        }
+        .kir-note-text {
+          font-size: 13px;
+          font-weight: 600;
+          text-transform: capitalize;
+        }
+        .kir-note-card.n12 {
+          color: #047857;
+          background: rgba(16,185,129,0.08);
+          border-color: rgba(16,185,129,0.4);
+        }
+        .kir-note-card.n34 {
+          color: #B45309;
+          background: rgba(245,158,11,0.08);
+          border-color: rgba(245,158,11,0.4);
+        }
+        .kir-note-card.n56 {
+          color: #B91C1C;
+          background: rgba(220,38,38,0.07);
+          border-color: rgba(220,38,38,0.35);
+        }
+        .kir-progress {
+          height: 8px;
+          border-radius: 4px;
+          background: rgba(10,10,15,0.06);
+          overflow: hidden;
+          margin-bottom: 14px;
+        }
+        .kir-progress-fill {
+          height: 100%;
+          border-radius: 4px;
+          background: linear-gradient(90deg, #7C6DFF, #22D3EE);
+          transition: width 0.6s ease;
+        }
+        .kir-comment {
+          font-size: 14px;
+          line-height: 1.65;
+          color: #55555F;
+          background: #FAFAF9;
+          border: 1px solid rgba(10,10,15,0.06);
+          border-radius: 10px;
+          padding: 14px 16px;
+          margin-bottom: 4px;
+        }
+
+        .kir-task {
+          border: 1px solid rgba(10,10,15,0.08);
+          border-radius: 12px;
+          background: #FAFAF9;
+          padding: 16px 18px;
+          margin-top: 12px;
+        }
+        .kir-task-head {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 10px;
+        }
+        .kir-task-title {
+          font-size: 14px;
+          font-weight: 600;
+          color: #0A0A0F;
+        }
+        .kir-task-pts {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 13px;
+          font-weight: 700;
+          color: #0A0A0F;
+          white-space: nowrap;
+        }
+        .kir-task-bar {
+          height: 5px;
+          border-radius: 3px;
+          background: rgba(10,10,15,0.07);
+          overflow: hidden;
+          margin-bottom: 12px;
+        }
+        .kir-task-bar-fill {
+          height: 100%;
+          border-radius: 3px;
+          background: #7C6DFF;
+        }
+        .kir-sub {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 7px 0;
+          border-top: 1px solid rgba(10,10,15,0.05);
+        }
+        .kir-sub:first-of-type { border-top: none; }
+        .kir-sub-dot {
+          width: 8px; height: 8px;
+          border-radius: 50%;
+          margin-top: 5px;
+          flex-shrink: 0;
+        }
+        .kir-sub-dot.full { background: #10B981; }
+        .kir-sub-dot.part { background: #F59E0B; }
+        .kir-sub-dot.zero { background: #EF4444; }
+        .kir-sub-dot.skip { background: #C9C9CF; }
+        .kir-sub-main { flex: 1; min-width: 0; }
+        .kir-sub-title {
+          font-size: 13px;
+          font-weight: 500;
+          color: #1F1F2A;
+        }
+        .kir-sub-note {
+          display: block;
+          font-size: 12px;
+          color: #8A8A92;
+          line-height: 1.5;
+          margin-top: 1px;
+        }
+        .kir-sub-pts {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 12px;
+          font-weight: 600;
+          color: #55555F;
+          white-space: nowrap;
+        }
+        .kir-sub.skip .kir-sub-title,
+        .kir-sub.skip .kir-sub-pts { color: #B0B0B6; }
+
+        .kir-tips {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          margin-top: 14px;
+        }
+        .kir-tip-box {
+          border-radius: 12px;
+          border: 1px solid rgba(10,10,15,0.08);
+          background: #FAFAF9;
+          padding: 16px 18px;
+        }
+        .kir-tip-box.wide { grid-column: 1 / -1; }
+        .kir-tip-title {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          margin-bottom: 10px;
+        }
+        .kir-tip-title.good { color: #047857; }
+        .kir-tip-title.warn { color: #B45309; }
+        .kir-tip-title.learn { color: #7C6DFF; }
+        .kir-tip-item {
+          display: flex;
+          gap: 8px;
+          font-size: 13px;
+          line-height: 1.55;
+          color: #1F1F2A;
+          padding: 3px 0;
+        }
+        .kir-tip-item span:first-child { flex-shrink: 0; }
 
         /* DETAILS PER SECTION */
         .details-card {
@@ -449,6 +781,8 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
           .result-hero { padding: 36px 20px; }
           .result-stats { grid-template-columns: 1fr; }
           .actions-row { flex-direction: column; }
+          .kir-badges { margin-left: 0; align-items: flex-start; }
+          .kir-tips { grid-template-columns: 1fr; }
         }
       `}</style>
 
@@ -531,8 +865,123 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
           )}
         </div>
 
-        {/* KI Feedback */}
-        {kiFeedback && (
+        {/* KI Feedback: strukturiert */}
+        {kiResult && (
+          <div className="ki-feedback">
+            <div className="ki-feedback-head">
+              <div className="ki-card-avatar">A</div>
+              <div>
+                <div className="ki-feedback-title">Adas Rückmeldung</div>
+                <div className="ki-card-meta-sub">Persönliche Korrektur</div>
+              </div>
+            </div>
+
+            {/* Gesamtergebnis */}
+            <div className="kir-summary">
+              <div>
+                <div className="kir-score-big">
+                  <em>{kiResult.gesamt.punkte}</em>
+                  <span className="kir-score-max"> / {kiResult.gesamt.maxPunkte}</span>
+                </div>
+                <div className="kir-score-sub">{kiResult.gesamt.prozent}% erreicht</div>
+              </div>
+              <div className="kir-badges">
+                <span className={`kir-badge ${kiResult.gesamt.bestanden ? "pass" : "fail"}`}>
+                  {kiResult.gesamt.bestanden ? "✓ Bestanden" : "✗ Nicht bestanden"}
+                </span>
+                <div
+                  className={`kir-note-card ${
+                    kiResult.gesamt.note <= 2
+                      ? "n12"
+                      : kiResult.gesamt.note <= 4
+                        ? "n34"
+                        : "n56"
+                  }`}
+                >
+                  <span className="kir-note-label">Note</span>
+                  <span className="kir-note-num">{kiResult.gesamt.note}</span>
+                  <span className="kir-note-text">{kiResult.gesamt.noteText}</span>
+                </div>
+              </div>
+            </div>
+            <div className="kir-progress">
+              <div
+                className="kir-progress-fill"
+                style={{ width: `${Math.min(100, Math.max(0, kiResult.gesamt.prozent))}%` }}
+              />
+            </div>
+            {kiResult.gesamt.kommentar && (
+              <p className="kir-comment">{kiResult.gesamt.kommentar}</p>
+            )}
+
+            {/* Aufgaben im Detail */}
+            {kiResult.aufgaben.map((a, i) => {
+              const pct = a.maxPunkte > 0 ? Math.round((a.punkte / a.maxPunkte) * 100) : 0;
+              return (
+                <div key={i} className="kir-task">
+                  <div className="kir-task-head">
+                    <span className="kir-task-title">{a.titel}</span>
+                    <span className="kir-task-pts">{a.punkte} / {a.maxPunkte} Pkt</span>
+                  </div>
+                  <div className="kir-task-bar">
+                    <div className="kir-task-bar-fill" style={{ width: `${pct}%` }} />
+                  </div>
+                  {a.teilaufgaben?.map((t, j) => {
+                    const st = subStatus(t);
+                    return (
+                      <div key={j} className={`kir-sub ${st}`}>
+                        <span className={`kir-sub-dot ${st}`} />
+                        <div className="kir-sub-main">
+                          <span className="kir-sub-title">{t.titel}</span>
+                          {t.kommentar && st !== "skip" && (
+                            <span className="kir-sub-note">{t.kommentar}</span>
+                          )}
+                          {st === "skip" && (
+                            <span className="kir-sub-note">Nicht beantwortet</span>
+                          )}
+                        </div>
+                        <span className="kir-sub-pts">{t.punkte}/{t.maxPunkte}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+
+            {/* Tipps */}
+            {(kiResult.staerken?.length || kiResult.verbesserungen?.length || kiResult.lernempfehlungen?.length) ? (
+              <div className="kir-tips">
+                {kiResult.staerken && kiResult.staerken.length > 0 && (
+                  <div className="kir-tip-box">
+                    <div className="kir-tip-title good">Das war gut</div>
+                    {kiResult.staerken.map((s, i) => (
+                      <div key={i} className="kir-tip-item"><span>✓</span><span>{s}</span></div>
+                    ))}
+                  </div>
+                )}
+                {kiResult.verbesserungen && kiResult.verbesserungen.length > 0 && (
+                  <div className="kir-tip-box">
+                    <div className="kir-tip-title warn">Hier geht mehr</div>
+                    {kiResult.verbesserungen.map((s, i) => (
+                      <div key={i} className="kir-tip-item"><span>→</span><span>{s}</span></div>
+                    ))}
+                  </div>
+                )}
+                {kiResult.lernempfehlungen && kiResult.lernempfehlungen.length > 0 && (
+                  <div className="kir-tip-box wide">
+                    <div className="kir-tip-title learn">Lernempfehlungen</div>
+                    {kiResult.lernempfehlungen.map((s, i) => (
+                      <div key={i} className="kir-tip-item"><span>📚</span><span>{s}</span></div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {/* KI Feedback: Fallback als Text */}
+        {!kiResult && kiFeedback && (
           <div className="ki-feedback">
             <div className="ki-feedback-head">
               <div className="ki-card-avatar">A</div>

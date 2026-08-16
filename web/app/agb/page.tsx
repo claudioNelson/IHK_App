@@ -112,9 +112,9 @@ const sections = [
             folgenden Varianten erhältlich:
           </p>
           <ul className="list-disc list-inside text-gray-600 space-y-1 mt-2">
-            <li>Monatlich: 9,99 € / Monat</li>
-            <li>Halbjährlich: 39,99 € / 6 Monate (entspricht ca. 6,67 € / Monat)</li>
-            <li>Jährlich: 69,99 € / Jahr (entspricht ca. 5,83 € / Monat)</li>
+            <li>Monatlich: 11,99 € / Monat</li>
+            <li>Halbjährlich: 47,99 € / 6 Monate (entspricht ca. 8,00 € / Monat)</li>
+            <li>Jährlich: 84,99 € / Jahr (entspricht ca. 7,08 € / Monat)</li>
           </ul>
           <p className="mt-2">
             Alle Preise sind Endpreise. Die Umsatzsteuer-Behandlung hängt vom

@@ -8,6 +8,7 @@ import 'ihk_pruefung_exam_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/subscription_service.dart';
 import '../../widgets/premium_lock.dart';
+import '../../widgets/premium_kauf_sheet.dart';
 
 class IHKPruefungDetailScreen extends StatelessWidget {
   final IHKExam exam;
@@ -32,11 +33,11 @@ class IHKPruefungDetailScreen extends StatelessWidget {
         description:
             'Mit Premium hast du Zugriff auf alle IHK-Prüfungen aus Frühjahr und Herbst.',
         icon: Icons.assignment_outlined,
-        onUpgrade: () {
-          // TODO: Stripe Checkout starten
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Stripe-Checkout kommt bald!')),
-          );
+        onUpgrade: () async {
+          final ok = await showPremiumKaufSheet(context);
+          if (ok == true && context.mounted) {
+            (context as Element).markNeedsBuild();
+          }
         },
       );
     }
