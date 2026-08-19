@@ -103,7 +103,17 @@ Zwei Produkte, ein Projekt:
 
 ---
 
-## 4c. App Store Release (iOS) — in Vorbereitung
+## 4c. App Store Release (iOS) — TestFlight-Builds LAUFEN (Stand 19.08.2026)
+
+**Update 16.–19.08. (aus den Merge-Commits der Lernarena-Kopie, jetzt in main):**
+- Apple Developer Account AKTIV (seit 16.08.). App-ID `app.lernarena` registriert, App in App Store Connect angelegt.
+- **Korrekte numerische Apple-ID: `6802045311`** (in codemagic.yaml; ein früherer Wert war falsch).
+- **Signierte iOS-Builds laufen über Codemagic**: Tags `ios-v1.2.1` bis `ios-v1.2.4`. Signing über `fetch-signing-files` (App Store Connect Integration), Build-Nummer kollisionssicher (PROJECT_BUILD_NUMBER + TestFlight-Maximum), `beta_groups` entfernt.
+- **Beta-Review/TestFlight-Submission DEAKTIVIERT, bis das iOS-IAP steht** (Apple-Regel 3.1.1: Paywall in der App braucht StoreKit).
+- Info.plist komplett (Display-Name, Kamera/Foto-Texte, Deep-Link-Scheme, ITSAppUsesNonExemptEncryption=false), iOS-Icons generiert.
+- **Repo-Zusammenführung 19.08.:** iOS-Arbeit (aus Desktop\Lernarena\ihk_app gepusht) und Kurs-/Bot-Arbeit (Desktop\Projekte\IHK\ihk_app) per Merge vereint, Konflikt nur in PROJECT_STATE.md (ours). Ab jetzt gilt: NUR NOCH in `Desktop\Projekte\IHK\ihk_app` arbeiten, die Lernarena-Kopie ist Alt-Stand.
+
+*Historie (03.–04.08., Vorbereitung):*
 
 **Schritt 1 — Apple Developer Account:** bezahlt am 03.08.2026, wartet auf Apples Freischaltung (dauert meist 1–2 Tage, manchmal bis 48 h nach Zahlungseingang).
 
@@ -264,6 +274,6 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 ## 7. Arbeitsweise / Konventionen
 
 - Ordner-Freigabe via Device-Bridge (pro Sitzung neu erteilen) — Claude liest/schreibt direkt in `web/` bzw. `ihk_app/`.
-- `git commit` / `push` führt der User selbst aus.
+- **Commit-Regel (ab 19.08.2026):** Nach jedem wichtigen Arbeitspaket wird SOFORT committet und gepusht, nicht erst am Ende. Claude kann Git nicht selbst ausführen (Device-Bridge überträgt nur Dateien) und liefert deshalb nach jedem Paket die fertigen Befehle zum Kopieren; der User führt sie aus. GitHub-Konto für Pushes: claudioNelson.
 - **Secrets** (API-Keys) kommen in `.env` / Vercel-Env, **nie** in den Chat oder ins Repo. `.env.old` bleibt in `.gitignore`.
 - Projekt-Regel: **Schritt für Schritt arbeiten, Chat nicht überfüllen. Antworten auf Deutsch.**
