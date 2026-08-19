@@ -1,0 +1,221 @@
+########################################################################
+# Lernarena - Codemagic CI/CD
+#
+# WICHTIG: In diese Datei kommen NIEMALS Schluessel oder Passwoerter.
+#
+# Code Signing laeuft AUTOMATISCH ueber den App Store Connect API Key:
+# "app-store-connect fetch-signing-files ... --create" legt Zertifikat und
+# Provisioning Profile bei Apple an, falls sie noch nicht existieren.
+#
+# Voraussetzungen in Codemagic:
+#  1) Settings -> Integrations -> Developer Portal -> Add key
+#     Name: "Lernarena API Key"  (liefert ISSUER_ID / KEY_IDENTIFIER / PRIVATE_KEY)
+#  2) Environment variables -> Gruppe "appstore_credentials" mit EINER Variablen:
+#     CERTIFICATE_PRIVATE_KEY  = RSA-Private-Key im PEM-Format, als "Secure"
+#     (einmalig erzeugen; daraus baut Apple das Distributionszertifikat)
+########################################################################
+
+workflows:
+
+  ####################################################################
+  # 1) iOS Release -> TestFlight
+  ####################################################################
+  ios-release:
+    name: iOS Release (TestFlight)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    integrations:
+      app_store_connect: Lernarena API Key
+
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+      groups:
+        - appstore_credentials     # enthaelt nur CERTIFICATE_PRIVATE_KEY
+
+      vars:
+        BUNDLE_ID: "app.lernarena"
+        # Numerische Apple-ID der App (NICHT geheim).
+        # ACHTUNG: Das ist die "Id" aus dem App-Store-Connect-API-Objekt,
+        # NICHT zwingend die Zahl aus der Browser-URL. Steht im Build-Log
+        # unter "Find application entry from App Store Connect".
+        APP_STORE_APPLE_ID: "6802045311"
+
+      # KEIN "ios_signing:" hier!
+      # Das ist der manuelle Signing-Weg und vertraegt sich nicht mit
+      # fetch-signing-files. Beides zusammen ergibt
+      # "No matching profiles found for bundle identifier".
+
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
+
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'ios-v*'
+          include: true
+      cancel_previous_builds: true
+
+    scripts:
+      - name: Flutter-Abhaengigkeiten holen
+        script: |
+          flutter --version
+          flutter pub get
+
+      - name: CocoaPods installieren
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+
+      - name: Signing-Voraussetzungen pruefen
+        script: |
+          fehler=0
+          if [ -z "$CERTIFICATE_PRIVATE_KEY" ]; then
+            echo "FEHLER: CERTIFICATE_PRIVATE_KEY ist nicht gesetzt."
+            echo "  -> Codemagic: App IHK_App -> Environment variables"
+            echo "     Name  : CERTIFICATE_PRIVATE_KEY"
+            echo "     Group : appstore_credentials"
+            echo "     Secure: angehakt"
+            fehler=1
+          else
+            echo "CERTIFICATE_PRIVATE_KEY gesetzt (${#CERTIFICATE_PRIVATE_KEY} Zeichen)"
+            echo "Erste Zeile: $(echo "$CERTIFICATE_PRIVATE_KEY" | head -1)"
+            if echo "$CERTIFICATE_PRIVATE_KEY" | head -3 | grep -q "ENCRYPTED"; then
+              echo "FEHLER: Der Schluessel hat eine Passphrase (Proc-Type: 4,ENCRYPTED)."
+              echo "  -> Ohne Passphrase neu erzeugen: ssh-keygen -t rsa -b 2048 -m PEM -f ios_cert_key"
+              fehler=1
+            fi
+          fi
+          for v in APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY_IDENTIFIER APP_STORE_CONNECT_PRIVATE_KEY; do
+            eval "wert=\$$v"
+            if [ -z "$wert" ]; then
+              echo "FEHLER: $v fehlt -> Integration 'Lernarena API Key' pruefen."
+              fehler=1
+            else
+              echo "$v ist gesetzt"
+            fi
+          done
+          exit $fehler
+
+      - name: Keychain vorbereiten
+        script: |
+          keychain initialize
+
+      - name: Zertifikat und Provisioning Profile holen bzw. anlegen
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+
+      - name: Zertifikat in die Keychain legen
+        script: |
+          keychain add-certificates
+
+      - name: Xcode-Projekt auf die Profile umstellen
+        script: |
+          xcode-project use-profiles
+
+      - name: Build-Nummer bestimmen
+        script: |
+          # Zwei Quellen, das Maximum gewinnt:
+          #  1) PROJECT_BUILD_NUMBER - Codemagics eigener Zaehler pro App,
+          #     zaehlt bei jedem Build hoch, kann nicht kollidieren.
+          #  2) hoechste bereits in TestFlight vorhandene Nummer.
+          # "tr -dc 0-9" filtert Warntexte heraus - genau daran ist es vorher
+          # gescheitert: die Ausgabe war keine reine Zahl, das Ergebnis wurde 1
+          # und Apple antwortete mit
+          # "The provided entity includes an attribute with a value that has
+          #  already been used".
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" --warn-on-not-found 2>/dev/null | tr -dc '0-9')
+          [ -z "$LATEST" ] && LATEST=0
+          CM=${PROJECT_BUILD_NUMBER:-0}
+          [ -z "$CM" ] && CM=0
+
+          if [ "$LATEST" -ge "$CM" ]; then
+            BUILD_NUMBER=$((LATEST + 1))
+          else
+            BUILD_NUMBER=$CM
+          fi
+
+          echo "TestFlight bisher: $LATEST"
+          echo "Codemagic-Zaehler: $CM"
+          echo "Gewaehlte Build-Nummer: $BUILD_NUMBER"
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $CM_ENV
+
+      - name: Statische Analyse
+        script: |
+          flutter analyze --no-fatal-infos || true
+
+      - name: IPA bauen
+        script: |
+          flutter build ipa --release \
+            --build-number=$BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+
+        # false = Build wird hochgeladen und steht INTERNEN Testern sofort
+        # zur Verfuegung, wird aber NICHT zur TestFlight-Beta-Pruefung
+        # eingereicht. Die Pruefung braucht es nur fuer EXTERNE Tester und
+        # verlangt vollstaendige Testinformationen.
+        #
+        # Auf true stellen, sobald:
+        #   - In-App-Kaeufe fuer iOS eingerichtet sind (aktuell nur Google Play,
+        #     auf iOS schlaegt der Kauf fehl -> Reject-Risiko), und
+        #   - unter TestFlight -> Testinformationen Feedback-E-Mail,
+        #     Kontaktdaten und ein Demo-Login hinterlegt sind.
+        submit_to_testflight: false
+
+        # KEIN "beta_groups:" hier!
+        # Das Feld gilt nur fuer EXTERNE Tester-Gruppen. Interne Gruppen
+        # (wie "Internal Testers") bekommen jeden Build automatisch; die API
+        # lehnt eine Zuweisung ab mit:
+        #   "Builds cannot be assigned to this internal group."
+
+        submit_to_app_store: false
+
+      email:
+        recipients:
+          - info@lernarena.app
+        notify:
+          success: true
+          failure: true
+
+  ####################################################################
+  # 2) iOS Smoke-Build (unsigniert) - kein Signing, kein Upload
+  ####################################################################
+  ios-unsigned:
+    name: iOS Build (unsigniert, ohne Upload)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
+
+    scripts:
+      - name: Flutter-Abhaengigkeiten holen
+        script: flutter pub get
+      - name: Unsignierten Build erzeugen
+        script: flutter build ios --release --no-codesign
+
+    artifacts:
+      - build/ios/iphoneos/*.app
+      - /tmp/xcodebuild_logs/*.log
