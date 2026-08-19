@@ -33,12 +33,18 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // Dialog folgt dem App-Theme, statt im Dark Mode grell weiss zu sein.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hintergrund = isDark ? const Color(0xFF12121C) : Colors.white;
+    final textFarbe = isDark ? const Color(0xFFF5F5F7) : Colors.black87;
+    final nebentext = isDark ? const Color(0xFFA0A0B0) : Colors.grey.shade700;
+
     return Stack(
       children: [
         // Dialog
         AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          backgroundColor: Colors.white,
+          backgroundColor: hintergrund,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -60,7 +66,12 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.amber.shade100, Colors.amber.shade50],
+                    colors: isDark
+                        ? [
+                            Colors.amber.withValues(alpha: 0.18),
+                            Colors.amber.withValues(alpha: 0.06),
+                          ]
+                        : [Colors.amber.shade100, Colors.amber.shade50],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.amber, width: 2),
@@ -81,10 +92,10 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog> {
                     const SizedBox(height: 8),
                     Text(
                       badge['name'] ?? '',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: textFarbe,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -93,7 +104,7 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade700,
+                        color: nebentext,
                       ),
                     ),
                   ],

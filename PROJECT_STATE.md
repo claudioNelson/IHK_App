@@ -1,6 +1,6 @@
 # Projektstatus — Lernarena (ihk_app)
 
-Aktualisiert: **2026-08-09**
+Aktualisiert: **2026-08-19**
 Repo: **github.com/claudioNelson/IHK_App** · Branch **main**
 Lokal: **C:\Users\cnm89\Desktop\Projekte\IHK\ihk_app**
 App-Version im Store: **1.1.0+7** (Closed Track, approved, bei Testern) · lokal bereit: **v8-Stand** mit Flutter 3.44.8 + neuer Billing-Lib (NICHT hochladen bis nach dem Launch)
@@ -164,6 +164,53 @@ Anonymes Ausprobieren ohne Registrierung, damit Neugierige die App sofort testen
 
 ---
 
+## 4e. Telegram-Bot (Stand 17.08.2026 — LÄUFT)
+
+Bot **@lernarena_admin_bot** meldet Registrierungen und liefert Kennzahlen auf Abruf. Baut auf den vorhandenen Secrets `TELEGRAM_BOT_TOKEN` / `TELEGRAM_ADMIN_CHAT_ID` auf (wie `report-bug`).
+
+**Automatische Meldung bei Registrierung** (inkl. Gäste, als solche markiert):
+- Trigger `on_auth_user_created_notify` auf `auth.users` → pg_net → Edge Function `notify-signup` (Deploy mit `--no-verify-jwt`; Schutz über Header `x-signup-secret`).
+- Secret liegt doppelt: Supabase Vault (`notify_signup_secret`, für den Trigger) + Function-Secret `NOTIFY_SIGNUP_SECRET`. Trigger ist fehlertolerant (EXCEPTION-Block): eine kaputte Meldung kann NIE eine Registrierung verhindern.
+- Migrationen: `20260816170000_notify_new_signup.sql`, `20260816180000_admin_user_stats.sql`, `20260817090000_stats_exclusions.sql` (alle im SQL Editor eingespielt; `db push` wegen unsynchronem migrations-Ordner bewusst vermieden).
+
+**Befehle** (Edge Function `telegram-bot`, Webhook mit `secret_token`, antwortet NUR im Admin-Chat; dauerhafte Button-Tastatur „📊 Nutzer" / „▶️ Play Store"):
+- `/stats`: DB-Kennzahlen aus `public.admin_user_stats()` (nur service_role). Zählt „echte Nutzer" = nicht anonym + E-Mail bestätigt + kein Muster in `public.stats_exclusions` (ILIKE-Tabelle; aktuell %@bot.internal, %@test.com, %@example.com). Zeigt zusätzlich Roh-/Gefiltert-Zahl. Stand 17.08.: 31 echte von 50 roh, 2 Premium.
+- `/play`: Play-Store-Installationszahlen aus dem GCS-Bucket `pubsite_prod_9123174190363235283` (`stats/installs/*_country.csv`, UTF-16). Nutzt das vorhandene Dienstkonto (`GOOGLE_PLAY_SERVICE_ACCOUNT`) mit Scope `devstorage.read_only`; Secret `PLAY_REPORT_BUCKET`. Nimmt die neuesten Dateien im Bucket (nicht nach Kalender geraten).
+- `/play debug` (Dateiliste im Bucket) und `/play raw` (Rohinhalt der neuesten CSV) zur Diagnose.
+- ⚠️ OFFEN: Bucket-Reports hingen zuletzt auf Stand 03.08. (Datei zuletzt 09.08. geschrieben, nur ~300 B). `/play raw` klärt, ob Google die Monatsdatei wirklich so selten füllt — Play Developer Reporting API ist KEIN Ersatz (kann nur Vitals, keine Installs).
+- Hilfsskripte: `tools/test-notify-signup.ps1` (Function-Test ohne echten User, Testfall 3 = 403-Check), `tools/set-telegram-webhook.ps1` (setWebhook + Gegenprobe).
+
+## 4f. SQL-Kurs in der App (FEATURE-KOMPLETT 19.08.2026, 14 Lektionen / 81 Aufgaben)
+
+**Zusatz-Features (19.08., abends):**
+- **Freispiel-Logik AKTIV**: Lektion N öffnet erst, wenn alle Aufgaben von Lektion N-1 gelöst sind. Verriegelte Kacheln abgedunkelt mit grauem Schloss; Tipp darauf → Snackbar „Löse erst Lektion X, es fehlen noch Y Aufgaben". Schalter `kursReihenfolgeAktiv` in `kurs_config.dart` (zum Testen auf false).
+- **Premium-Gate GEBAUT, ABER AUS** (Entscheidung: Kurs startet komplett kostenlos als Wachstums-Zugpferd): Schalter `kursPremiumAktiv` in `kurs_config.dart`. Bei true: Lektion 8–14 (premium: true) zeigen violettes Schloss → `showPremiumKaufSheet`; Check über SubscriptionService. Umschalten = eine Konstante + Release. Merkhilfe: graues Schloss = freispielen, violettes = kaufen; Freispiel-Check kommt zuerst.
+- **Kurs-Badges** (in badges-Tabelle EINGETRAGEN, inkl. category='kurs', requirement_type/value): `kurs_sql_start` 🌱 (1 Lektion) · `kurs_sql_haelfte` ⚡ (7) · `kurs_sql_meister` 🏆 (14). Vergabe nach jeder Lektion über `BadgeService.checkKursBadges`, Feier über BadgeCelebrationDialog.
+- **BadgeService generalüberholt** (API unverändert): 8x kopierte Vergabe-Logik → einmal `_pruefeUndVergebe()`; upsert mit ignoreDuplicates (earned_at wird nicht mehr überschrieben); debugPrint statt print; `oderId`→`userId`; neu `getBadgeDetails()`. BadgeCelebrationDialog ist jetzt theme-fähig (vorher grell weiß im Dark Mode).
+
+Interaktive Kurse in der Flutter-App (der Web-Python-Kurs bleibt unberührt). SQL fertig geschrieben, Python folgt auf derselben Engine.
+
+**Stand 19.08.:** Alle 14 Lektionen geschrieben (1 SELECT · 2 AS/DISTINCT · 3 WHERE/NULL · 4 ORDER BY/LIMIT · 5 Aggregate · 6 GROUP BY · 7 HAVING · 8 Schlüssel/Beziehungen · 9 INNER JOIN · 10 LEFT JOIN · 11 Unterabfragen · 12 INSERT/UPDATE/DELETE · 13 CREATE TABLE · 14 Normalisierung/ER). Einstieg über den Lern-Hub (Sektion KURSE, NEU-Badge). Eigenes Kurs-Theme aus den AppColors (`lib/theme/kurs_theme.dart`), Screens sehen aus wie der Rest der App. **Ada im Kurs:** Knopf oben rechts in jeder Lektion, bekommt Lektions- und Aufgabenkontext, darf laut Prompt keine Lösungen verraten, läuft über `GeminiService`/ai-tutor (5er-Limit greift). Vorstellungs-Fix in `gemini_service.dart`: Ada stellt sich nur noch beim ersten Austausch vor (wirkt app-weit). Migration `kurs_fortschritt` ist eingespielt, Sync läuft. `lib/kurs_test.dart` ist obsolet (kein ThemeProvider mehr) und kann gelöscht werden.
+
+**Architektur — Inhalte sind Daten, keine Screens:**
+- `lib/models/kurs_aufgabe.dart`: Kurs → Lektion → Blöcke (Text/Überschrift/Code/Hinweis/Aufgabe). Aufgabentypen: Lückentext, Reihenfolge (Drag & Drop/Parsons), Fehler-finden+korrigieren, Auswahl, SQL mit echter Ausführung.
+- `lib/services/sql_sandbox.dart`: führt Nutzer-SQL gegen **SQLite in-memory auf dem Gerät** aus (Pakete `sqlite3` + `sqlite3_flutter_libs`, in pubspec). DB wird pro Ausführung frisch aufgebaut (DELETE-Übungen gefahrlos). Geprüft wird das ERGEBNIS gegen die Musterlösung, nicht der Wortlaut. Fehlermeldungen ins Deutsche übersetzt.
+- `lib/data/kurse/sql_datensaetze.dart`: durchgehendes Szenario „Nordwind GmbH" (6 Tabellen: kunden, artikel, bestellungen, positionen, mitarbeiter, abteilungen; deutsche Namen wie in IHK-Aufgaben).
+- `lib/data/kurse/sql_kurs.dart`: alle 14 Lektionen, 81 Aufgaben, ca. 3,5 h. Rote Fäden: Lektion 8 macht den Join VON HAND (zwei Abfragen), 9 löst ihn auf; Lena Fricke (abteilung_id NULL) und Kunde 12 (nie bestellt) sind die Cliffhanger für LEFT JOIN; Lektion 11 löst das MAX-Versprechen aus Lektion 5 ein; 14 erklärt 2NF an positionen und 3NF an abteilungen.
+- `lib/widgets/kurs/`: `kurs_aufgaben_widgets.dart` + `sql_aufgabe_widget.dart` (Editor, Ergebnistabelle, „Tabellen"-Sheet, Tipp erst ab 2. Versuch; drei Rückmeldungen: läuft nicht / läuft aber falsches Ergebnis / richtig).
+- `lib/screens/kurse/`: Übersicht (Kacheln + Fortschritt) und Lektions-Screen als **PageView-Schritte** (eine Aufgabe pro Bildschirm; Texte werden an Überschriften automatisch geteilt; ungelöste Aufgaben blockieren nicht → Knopf heißt dann „Überspringen").
+- Fortschritt: `lib/services/kurs_fortschritt_service.dart` — lokal (shared_preferences) sofort, Supabase-Sync wenn eingeloggt (Tabelle `kurs_fortschritt`, RLS eigener Fortschritt, kein UPDATE). Migration eingespielt.
+
+**Didaktik-Regeln (aus Nutzertest mit dem Entwickler):**
+- Langsam ansteigend: neue Sache immer allein einführen (ohne Fallen), dann Wiederholung mit anderer Tabelle, DANN Distraktoren. Lektion 2+3 starten mit „Kurz zurückblicken"-Aufgabe aus der Vorlektion.
+- SQL-Aufgaben früh im **Baustein-Modus** (antippen statt tippen, wie Mimo), mit gezielt falschen Bausteinen (==, 'Köln' ohne Quotes, artikeln, UNIQUE statt DISTINCT …); Umschalter „Selbst tippen" vorhanden. Ab ca. Lektion 6 ohne Bausteine.
+- KEINE Gedankenstriche (—) in sichtbaren Texten (KI-Erkennungsmerkmal, gleiche Regel wie Social Media). Kein Jargon ohne Erklärung („teuer" für Laufzeit o. Ä.).
+- Erklärung nach jeder Aufgabe sagt, was das Ergebnis BEDEUTET, nicht nur ob es stimmt.
+
+**Nächste Schritte Kurs:** `flutter analyze lib` + Durchspiel-Test auf dem Gerät (Lektion 1 komplett lösen → prüft Freischaltung von L2 UND 🌱-Badge mit Konfetti) · `lib/kurs_test.dart` löschen · Verlinkung von der Lektions-Abschlussseite ins Level-Modul „Datenbanken & SQL" (Kurs lehrt, Level drillt; bewusste Entscheidung: Kurs ERSETZT die Levels nicht) · Python-Kurs auf derselben Engine · Release (Versions-Bump, Closed Track) · Marketing: „Kompletter SQL-Kurs, kostenlos" zur AP1-Saison · später: Premium-Gate einschalten (kursPremiumAktiv), Kursinhalte nach Supabase umziehen (Fixes ohne App-Release).
+
+---
+
 ## 5. Web / SEO (Kurzfassung)
 
 Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpage-Cluster unter `/lernen/*` (10 Themen), Pillar-Seite `/fachinformatiker-pruefung`, Sitemap, strukturierte Daten, OG-Bild, 301-Redirect, Hell/Dunkel-Theme. **07/2026:** alle 10 Lernseiten inhaltlich vertieft (Alltags-Vergleiche, Prüfungstipp- & „Häufige Fehler"-Kästen, sichtbarer FAQ, je 5 Quizfragen; RAID auf themefähiges System umgebaut) — ✅ **live deployt und verifiziert**. MailerLite komplett entfernt. Neue strukturierte Prüfungs-Ergebnisseite (`ExamResult.tsx`) live.
@@ -185,7 +232,7 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 - ✅ Play-Store-Badge live auf der Startseite (Hero, Schluss-CTA, Footer).
 - ✅ **Prüfungs-ASCII-Diagramme durch SVG-Grafiken ersetzt** (10.08.2026, mit dem Merge live): 7 SVGs in `web/public/images/` (ap1-netzplan mit Vorgangsliste+Ablauf, ae1-streckennetz mit Routentabelle, ae1-klasse-transport, ae2-klasse-scan, ae2-treffer-beispiel, ae2-treffer-min, ae3-zeiterfassung) — einheitlicher Stil (dunkler Hintergrund #1a1a2e, Zebra-Tabellen, Pfeil-Marker). `image`-Feld der Fragen genutzt (Lightbox vorhanden); `.q-image` in ExamContent.tsx auf volle Breite umgestellt. Einfache `|`-Texttabellen bewusst gelassen (Monospace richtet sauber aus). Altes hs2-graph.png (ohne Kanten-Gewichte) durch ae1-streckennetz.svg ersetzt.
 - ✅ **Vercel-Preview-Builds gefixt** (10.08.2026): Branch-Previews schlugen fehl, weil `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` nur für Production hinterlegt waren → in Vercel auch für die Preview-Umgebung freigegeben. Production war nie betroffen.
-- ✅ **Python-Kurs: Lektionen 1–6 fertig + Umbau auf Einzelseiten** (10.08.2026): Inhalte: 1 Start/print, 2 Variablen/input, 3 Rechnen/Modulo/f-Strings, 4 if/elif/else (echter IHK-Notenschlüssel), 5 Schleifen, 6 🎮 Zahlenraten (Baustein-Prinzip, binäre-Suche-Tipp). **Struktur:** `/python-kurs` = Übersicht (Kursplan-Kacheln als Links, FAQ, CTA); jede Lektion eigene Seite `/python-kurs/lektion-N` mit eigenem SEO-Metadata und Vor/Zurück-Navigation. Gemeinsames CSS in `_components/kursTheme.ts`, Lektionsliste in `_components/lektionen.ts`, Rahmen in `_components/LektionLayout.tsx`. Sitemap um /python-kurs + 6 Lektions-URLs erweitert (⚠️ beim Freischalten neuer Lektionen: Status in lektionen.ts auf live + sitemap.ts erweitern). Noch offen: Lektionen 7–12; auf `/lernen` + Startseite verlinken.
+- ✅ **Python-Kurs KOMPLETT: alle 12 Lektionen** (10.08.2026): 1 Start/print, 2 Variablen/input, 3 Rechnen/Modulo/f-Strings, 4 if/elif/else (echter IHK-Notenschlüssel), 5 Schleifen, 6 🎮 Zahlenraten (binäre-Suche-Tipp), 7 Listen/Dictionaries, 8 Funktionen (DRY-Tipp), 9 Fehler/Tracebacks/try-except, 10 OOP (Klassen, Vererbung, UML-Brücke), 11 🎮 Snake (Abschlussprojekt LOKAL: Python-Installation + komplettes turtle-Snake mit Verweisen auf alle Kurslektionen, 3 Erweiterungs-Übungen), 12 Abschluss mit Python↔IHK-Pseudocode-Übersetzungstabelle, Minimum-Aufgabe in beiden Schreibweisen, Off-by-one-Warnung (IHK-Arrays oft ab Index 1). **Struktur:** `/python-kurs` = Übersicht (Kacheln als Links, FAQ, CTA); jede Lektion eigene Seite `/python-kurs/lektion-N` mit SEO-Metadata + Vor/Zurück-Navigation. Gemeinsames CSS `_components/kursTheme.ts`, Liste `_components/lektionen.ts`, Rahmen `_components/LektionLayout.tsx`. Sitemap: /python-kurs + alle 12 Lektions-URLs. Noch offen: auf `/lernen` + Startseite verlinken.
 - ✅ **Python-Editor Terminal-Look** (10.08.2026): Editor hat jetzt eine eigene dunkle Farbwelt (GitHub-Dark-Palette #0D1117, hellere Kopfleiste, Schatten, abgesetzter Ausgabe-Bereich) — hebt sich in beiden Themes klar vom Seitenhintergrund ab.
 - ✅ **Theme-Persistenz gefixt & getestet** (10.08.2026): Hell/Dunkel-Wahl (`localStorage lernarena-theme`) wird jetzt zentral im Root-`layout.tsx` per Inline-Script VOR dem ersten Paint angewendet — gilt damit auf allen Seiten (vorher fiel z. B. /lernen/* beim Seitenwechsel auf Dunkel zurück).
 - **KI-Korrektur verbessert (07.08.):** Gesamtergebnis wird jetzt clientseitig aus den Einzelbewertungen summiert (Fix für „0/100 trotz Punkten"-Widerspruch), Konsistenz-Regeln im Prompt, große farbige Noten-Karte in `ExamResult.tsx`.
@@ -198,6 +245,15 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
   - Ada in der App (`supabase/functions/ai-tutor/index.ts`): Claude → Groq → Gemini. Edge Function deployed.
   - Keys: ANTHROPIC_API_KEY in Vercel-Env + Supabase-Secrets (nie im Code/Repo).
 - Anthropic-Guthaben im Blick behalten (Start: 20 $; Haiku ≈ 1–2 Cent pro Prüfungskorrektur).
+
+**Telegram-Bot / Zahlen**
+- `/play raw` ausführen → klären, warum die Play-CSV auf Stand 03.08. hängt.
+- Eigene Accounts ggf. in `stats_exclusions` eintragen (eine INSERT-Zeile, kein Deploy).
+- Auffällig (17.08.): seit 7 Tagen keine echte Registrierung; „aktiv 7 Tage" misst nur Neu-Logins (last_sign_in_at), nicht echte Nutzung — bei Bedarf auf ein echtes Aktivitätssignal umbauen.
+
+**Repo-Hygiene**
+- ⚠️ ZWEI Repo-Kopien: `Desktop\Projekte\IHK\ihk_app` (dieses, aktiv, web/public vollständig) und `Desktop\Lernarena\ihk_app` (iOS-Arbeit vom 16.08.: codemagic.yaml, Info.plist, iOS-Icons; web/public LEER). Die "deleted:"-Einträge im git status der Lernarena-Kopie waren nur die unvollständige Kopie, nichts wurde gelöscht. TODO: iOS-Änderungen hierher übernehmen, danach eine Kopie stilllegen.
+- `Desktop\Projekte\IHK\ihk_pruefung_widget` = toter Flach-Export vom 17.12.2025 (13 Dateien, ohne pub get nie lauffähig; verursachte 106 Analyzer-Fehler, solange er im VS-Code-Workspace hing). Kann archiviert/gelöscht werden.
 
 **Social / Marketing**
 - Fertiges Subnetting-Video auf TikTok + Instagram Reels posten.

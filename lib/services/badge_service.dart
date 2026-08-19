@@ -1,177 +1,188 @@
+// lib/services/badge_service.dart
+//
+// Badges laden und vergeben.
+//
+// Überarbeitet 08/2026:
+// - Die achtfach kopierte Lade-Prüf-Vergib-Logik steckt jetzt einmal in
+//   _pruefeUndVergebe(). Neue Badge-Gruppen sind damit drei Zeilen.
+// - Upsert mit ignoreDuplicates: das ursprüngliche earned_at bleibt
+//   erhalten, wenn ein Badge doppelt vergeben würde.
+// - debugPrint statt print (nichts loggt mehr im Release-Build).
+// - Neu: Kurs-Badges (checkKursBadges) und getBadgeDetails() für den
+//   Feier-Dialog.
+//
+// Die öffentlichen Methoden und ihre Signaturen sind unverändert,
+// bestehende Aufrufer brauchen keine Anpassung.
+
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BadgeService {
   final _client = Supabase.instance.client;
 
-  /// Lädt alle verfügbaren Badges
+  String? get _userId => _client.auth.currentUser?.id;
+
+  // ─── Laden ──────────────────────────────────────────────────────────
+
+  /// Alle verfügbaren Badges (für die Übersichtsseite).
   Future<List<Map<String, dynamic>>> getAllBadges() async {
     final result = await _client.from('badges').select().order('sort_order');
     return List<Map<String, dynamic>>.from(result);
   }
 
-  /// Lädt die Badges eines Users
-  Future<List<Map<String, dynamic>>> getUserBadges(String oderId) async {
+  /// Badges eines bestimmten Users.
+  Future<List<Map<String, dynamic>>> getUserBadges(String userId) async {
     final result = await _client
         .from('user_badges')
         .select('badge_id, earned_at, badges(*)')
-        .eq('user_id', oderId)
+        .eq('user_id', userId)
         .order('earned_at', ascending: false);
     return List<Map<String, dynamic>>.from(result);
   }
 
-  /// Lädt eigene Badges
+  /// Eigene Badges.
   Future<List<Map<String, dynamic>>> getMyBadges() async {
-    final oderId = _client.auth.currentUser?.id;
-    if (oderId == null) return [];
-    return getUserBadges(oderId);
+    final userId = _userId;
+    if (userId == null) return [];
+    return getUserBadges(userId);
   }
 
-  /// Vergibt ein Badge an den aktuellen User
+  /// Details (Name, Icon, Beschreibung) zu einer Liste von Badge-IDs,
+  /// z. B. für den BadgeCelebrationDialog.
+  Future<List<Map<String, dynamic>>> getBadgeDetails(
+    List<String> badgeIds,
+  ) async {
+    if (badgeIds.isEmpty) return [];
+    final result = await _client
+        .from('badges')
+        .select()
+        .inFilter('id', badgeIds);
+    return List<Map<String, dynamic>>.from(result);
+  }
+
+  // ─── Vergeben ───────────────────────────────────────────────────────
+
+  /// Vergibt ein Badge an den aktuellen User.
+  /// ignoreDuplicates: ein bereits vergebenes Badge behält sein
+  /// ursprüngliches earned_at, statt es zu überschreiben.
   Future<bool> awardBadge(String badgeId) async {
-    final oderId = _client.auth.currentUser?.id;
-    if (oderId == null) return false;
+    final userId = _userId;
+    if (userId == null) return false;
 
     try {
-      await _client.from('user_badges').upsert({
-        'user_id': oderId,
-        'badge_id': badgeId,
-      });
-      print('🏆 Badge vergeben: $badgeId');
+      await _client.from('user_badges').upsert(
+        {'user_id': userId, 'badge_id': badgeId},
+        onConflict: 'user_id,badge_id',
+        ignoreDuplicates: true,
+      );
+      debugPrint('🏆 Badge vergeben: $badgeId');
       return true;
     } catch (e) {
-      print('❌ Badge-Fehler: $e');
+      debugPrint('❌ Badge-Fehler ($badgeId): $e');
       return false;
     }
   }
 
-  /// Prüft und vergibt Match-Badges
+  /// Kern der Vergabe: prüft eine Menge von Bedingungen gegen die schon
+  /// verdienten Badges und vergibt alles Neue.
+  ///
+  /// [bedingungen] bildet Badge-ID auf "verdient ja/nein" ab.
+  /// Zurück kommen die IDs der NEU vergebenen Badges.
+  Future<List<String>> _pruefeUndVergebe(
+    Map<String, bool> bedingungen,
+  ) async {
+    if (_userId == null) return [];
+
+    final vorhandene = await getMyBadges();
+    final schonVerdient = vorhandene.map((b) => b['badge_id']).toSet();
+
+    final neu = <String>[];
+    for (final eintrag in bedingungen.entries) {
+      if (!eintrag.value) continue;
+      if (schonVerdient.contains(eintrag.key)) continue;
+      if (await awardBadge(eintrag.key)) neu.add(eintrag.key);
+    }
+    return neu;
+  }
+
+  // ─── Badge-Gruppen ──────────────────────────────────────────────────
+
+  /// Match-Badges (Duelle): Teilnahme, Siege, Elo.
   Future<List<String>> checkMatchBadges() async {
-    final oderId = _client.auth.currentUser?.id;
-    print('🏆 checkMatchBadges() für User: $oderId');
-    if (oderId == null) return [];
+    final userId = _userId;
+    if (userId == null) return [];
 
-    final awarded = <String>[];
-
-    // Stats laden
     final stats = await _client
         .from('player_stats')
         .select('wins, losses, elo_rating')
-        .eq('user_id', oderId)
+        .eq('user_id', userId)
         .maybeSingle();
-
     if (stats == null) return [];
 
-    final wins = stats['wins'] ?? 0;
-    final total = wins + (stats['losses'] ?? 0);
-    final elo = stats['elo_rating'] ?? 1000;
+    final wins = (stats['wins'] ?? 0) as int;
+    final total = wins + ((stats['losses'] ?? 0) as int);
+    final elo = (stats['elo_rating'] ?? 1000) as int;
 
-    // Bereits verdiente Badges laden
-    final existing = await getMyBadges();
-    final earnedIds = existing.map((b) => b['badge_id']).toSet();
-
-    // Match Badges prüfen
-    if (total >= 1 && !earnedIds.contains('match_first')) {
-      if (await awardBadge('match_first')) awarded.add('match_first');
-    }
-    if (wins >= 1 && !earnedIds.contains('match_win_first')) {
-      if (await awardBadge('match_win_first')) awarded.add('match_win_first');
-    }
-    if (wins >= 10 && !earnedIds.contains('match_win_10')) {
-      if (await awardBadge('match_win_10')) awarded.add('match_win_10');
-    }
-    if (wins >= 50 && !earnedIds.contains('match_win_50')) {
-      if (await awardBadge('match_win_50')) awarded.add('match_win_50');
-    }
-
-    // ELO Badges prüfen
-    if (elo >= 1100 && !earnedIds.contains('elo_1100')) {
-      if (await awardBadge('elo_1100')) awarded.add('elo_1100');
-    }
-    if (elo >= 1250 && !earnedIds.contains('elo_1250')) {
-      if (await awardBadge('elo_1250')) awarded.add('elo_1250');
-    }
-    if (elo >= 1500 && !earnedIds.contains('elo_1500')) {
-      if (await awardBadge('elo_1500')) awarded.add('elo_1500');
-    }
-
-    return awarded;
+    return _pruefeUndVergebe({
+      'match_first': total >= 1,
+      'match_win_first': wins >= 1,
+      'match_win_10': wins >= 10,
+      'match_win_50': wins >= 50,
+      'elo_1100': elo >= 1100,
+      'elo_1250': elo >= 1250,
+      'elo_1500': elo >= 1500,
+    });
   }
 
-  /// Prüft und vergibt Modul-Badges
-  Future<List<String>> checkModuleBadges(int completedModules) async {
-    final oderId = _client.auth.currentUser?.id;
-    if (oderId == null) return [];
-
-    final awarded = <String>[];
-    final existing = await getMyBadges();
-    final earnedIds = existing.map((b) => b['badge_id']).toSet();
-
-    if (completedModules >= 1 && !earnedIds.contains('module_first')) {
-      if (await awardBadge('module_first')) awarded.add('module_first');
-    }
-    if (completedModules >= 5 && !earnedIds.contains('module_5')) {
-      if (await awardBadge('module_5')) awarded.add('module_5');
-    }
-    if (completedModules >= 10 && !earnedIds.contains('module_10')) {
-      if (await awardBadge('module_10')) awarded.add('module_10');
-    }
-    if (completedModules >= 17 && !earnedIds.contains('module_all')) {
-      if (await awardBadge('module_all')) awarded.add('module_all');
-    }
-
-    return awarded;
+  /// Modul-Badges (freies Üben).
+  Future<List<String>> checkModuleBadges(int completedModules) {
+    return _pruefeUndVergebe({
+      'module_first': completedModules >= 1,
+      'module_5': completedModules >= 5,
+      'module_10': completedModules >= 10,
+      'module_all': completedModules >= 17,
+    });
   }
 
-  /// Prüft und vergibt Prüfungs-Badges
+  /// Prüfungs-Badges (IHK-Simulationen).
   Future<List<String>> checkExamBadges({
     required int passed,
     bool? scoreOver90,
-  }) async {
-    final oderId = _client.auth.currentUser?.id;
-    if (oderId == null) return [];
-
-    final awarded = <String>[];
-    final existing = await getMyBadges();
-    final earnedIds = existing.map((b) => b['badge_id']).toSet();
-
-    if (passed >= 1 && !earnedIds.contains('exam_first')) {
-      if (await awardBadge('exam_first')) awarded.add('exam_first');
-    }
-    if (scoreOver90 == true && !earnedIds.contains('exam_perfect')) {
-      if (await awardBadge('exam_perfect')) awarded.add('exam_perfect');
-    }
-    if (passed >= 5 && !earnedIds.contains('exam_all')) {
-      if (await awardBadge('exam_all')) awarded.add('exam_all');
-    }
-
-    return awarded;
+  }) {
+    return _pruefeUndVergebe({
+      'exam_first': passed >= 1,
+      'exam_perfect': scoreOver90 == true,
+      'exam_all': passed >= 5,
+    });
   }
 
-  /// Prüft und vergibt Zertifikat-Badges
-  Future<List<String>> checkCertificateBadges(List<String> earnedCerts) async {
-    final oderId = _client.auth.currentUser?.id;
-    if (oderId == null) return [];
+  /// Zertifikat-Badges (AWS/Azure/GCP-Übungen).
+  Future<List<String>> checkCertificateBadges(List<String> earnedCerts) {
+    return _pruefeUndVergebe({
+      'cert_first': earnedCerts.isNotEmpty,
+      'cert_aws': earnedCerts.contains('aws'),
+      'cert_azure': earnedCerts.contains('azure'),
+      'cert_gcp': earnedCerts.contains('gcp'),
+      'cert_multi': earnedCerts.length >= 3,
+    });
+  }
 
-    final awarded = <String>[];
-    final existing = await getMyBadges();
-    final earnedIds = existing.map((b) => b['badge_id']).toSet();
-
-    if (earnedCerts.isNotEmpty && !earnedIds.contains('cert_first')) {
-      if (await awardBadge('cert_first')) awarded.add('cert_first');
-    }
-    if (earnedCerts.contains('aws') && !earnedIds.contains('cert_aws')) {
-      if (await awardBadge('cert_aws')) awarded.add('cert_aws');
-    }
-    if (earnedCerts.contains('azure') && !earnedIds.contains('cert_azure')) {
-      if (await awardBadge('cert_azure')) awarded.add('cert_azure');
-    }
-    if (earnedCerts.contains('gcp') && !earnedIds.contains('cert_gcp')) {
-      if (await awardBadge('cert_gcp')) awarded.add('cert_gcp');
-    }
-    if (earnedCerts.length >= 3 && !earnedIds.contains('cert_multi')) {
-      if (await awardBadge('cert_multi')) awarded.add('cert_multi');
-    }
-
-    return awarded;
+  /// Kurs-Badges (SQL-Kurs, später auch Python auf denselben Stufen).
+  ///
+  /// [kursSlug] ist z. B. 'sql'. Die Badge-IDs heißen
+  /// kurs_<slug>_start / _haelfte / _meister und müssen in der
+  /// badges-Tabelle existieren.
+  Future<List<String>> checkKursBadges({
+    required String kursSlug,
+    required int abgeschlosseneLektionen,
+    required int lektionenGesamt,
+  }) {
+    final haelfte = (lektionenGesamt / 2).ceil();
+    return _pruefeUndVergebe({
+      'kurs_${kursSlug}_start': abgeschlosseneLektionen >= 1,
+      'kurs_${kursSlug}_haelfte': abgeschlosseneLektionen >= haelfte,
+      'kurs_${kursSlug}_meister':
+          lektionenGesamt > 0 && abgeschlosseneLektionen >= lektionenGesamt,
+    });
   }
 }

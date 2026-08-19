@@ -27,6 +27,10 @@ dependencies:
   in_app_purchase: ^3.3.0
   in_app_purchase_android: ^0.5.2
 
+  # SQL-Kurs: echte SQLite-Datenbank im Gerät
+  sqlite3: ^2.4.0
+  sqlite3_flutter_libs: ^0.5.24
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

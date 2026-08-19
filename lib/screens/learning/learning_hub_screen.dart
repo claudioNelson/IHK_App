@@ -14,6 +14,8 @@ import 'anschluesse_quiz_screen.dart';
 import 'flashcard_screen.dart';
 import '../zertifikate/certificate_overview_screen.dart';
 import '../levels/level_module_screen.dart';
+import '../kurse/kurs_uebersicht_screen.dart';
+import '../../data/kurse/sql_kurs.dart';
 
 class LearningHubScreen extends StatefulWidget {
   const LearningHubScreen({super.key});
@@ -294,6 +296,35 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                         builder: (_) => const AnschluesseQuizScreen(),
                       ),
                     ),
+                  ),
+
+                  const SizedBox(height: 36),
+
+                  // SECTION: KURSE (interaktive Kurse mit echter Ausführung)
+                  _buildSectionLabel('KURSE', textDim),
+                  const SizedBox(height: 14),
+                  _buildKursRow(
+                    tag: 'SQL',
+                    tagColor: AppColors.accentCyan,
+                    title: sqlKurs.titel,
+                    sub: 'Interaktiver Kurs mit echter Datenbank',
+                    count: '${sqlKurs.lektionen.length}',
+                    neu: true,
+                    surface: surface,
+                    border: border,
+                    text: text,
+                    textMid: textMid,
+                    textDim: textDim,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const KursUebersichtScreen(kurs: sqlKurs),
+                        ),
+                      );
+                      _loadCounts();
+                    },
                   ),
 
                   const SizedBox(height: 36),
@@ -610,6 +641,108 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: AppTextStyles.h3(text)),
+                  const SizedBox(height: 2),
+                  Text(sub, style: AppTextStyles.bodySmall(textMid)),
+                ],
+              ),
+            ),
+            Text(
+              count,
+              style: AppTextStyles.mono(
+                size: 14,
+                color: textMid,
+                weight: FontWeight.w600,
+                letterSpacing: 0,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.arrow_forward_ios_rounded, color: textDim, size: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── KURS ROW (wie CategoryRow, plus NEU-Badge) ─────
+  Widget _buildKursRow({
+    required String tag,
+    required Color tagColor,
+    required String title,
+    required String sub,
+    required String count,
+    required bool neu,
+    required Color surface,
+    required Color border,
+    required Color text,
+    required Color textMid,
+    required Color textDim,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: neu ? tagColor.withOpacity(0.35) : border,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: tagColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: tagColor.withOpacity(0.3)),
+              ),
+              child: Center(
+                child: Text(
+                  tag,
+                  style: AppTextStyles.mono(
+                    size: 12,
+                    color: tagColor,
+                    weight: FontWeight.w700,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(child: Text(title, style: AppTextStyles.h3(text))),
+                      if (neu) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: tagColor.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'NEU',
+                            style: AppTextStyles.mono(
+                              size: 9,
+                              color: tagColor,
+                              weight: FontWeight.w700,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 2),
                   Text(sub, style: AppTextStyles.bodySmall(textMid)),
                 ],

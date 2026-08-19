@@ -101,6 +101,13 @@ Max. 120 Wörter, motivierend!''';
     String? currentQuestion,
     String? topic,
   }) async {
+    // Vorstellen nur beim allerersten Austausch. Sobald es Verlauf gibt,
+    // bekommt das Modell die gegenteilige Anweisung, sonst stellt sich
+    // Ada bei jeder Antwort neu vor.
+    final vorstellung = conversationHistory.isEmpty
+        ? 'Stelle dich in deiner ersten Antwort mit einem kurzen Satz als "Ada" vor, danach nie wieder.'
+        : 'Du hast dich bereits vorgestellt. Stelle dich NICHT erneut vor, keine Begrüßungsfloskeln, antworte direkt auf die Frage.';
+
     final systemPrompt = currentQuestion != null
         ? '''Du bist Ada, eine geduldige und freundliche KI-Tutorin für IT-Berufe und IHK-Prüfungen.
 
@@ -111,8 +118,8 @@ Thema: ${topic ?? 'IT-Grundlagen'}
 
 Beantworte Fragen zum Thema, gib Hinweise und erkläre Schritt für Schritt.
 Bleibe geduldig, motivierend und pädagogisch wertvoll.
-Stelle dich bei der ersten Nachricht kurz als "Ada" vor.'''
-        : 'Du bist Ada, eine geduldige KI-Tutorin für IT-Berufe. Beantworte Fragen motivierend und verständlich. Stelle dich kurz als "Ada" vor.';
+$vorstellung'''
+        : 'Du bist Ada, eine geduldige KI-Tutorin für IT-Berufe. Beantworte Fragen motivierend und verständlich. $vorstellung';
 
     final messages = [
       {'role': 'system', 'content': systemPrompt},

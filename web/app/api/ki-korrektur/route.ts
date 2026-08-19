@@ -33,6 +33,74 @@ function tryParseResult(text: string): unknown | null {
   }
 }
 
+// Erzwingt konsistente Zahlen, egal was die KI liefert:
+// - Teilaufgaben-Punkte werden auf [0, maxPunkte] begrenzt
+// - Aufgaben- und Gesamtpunkte werden aus den Teilaufgaben neu summiert
+// - Prozent, Note und Bestanden werden serverseitig neu berechnet
+type TeilaufgabeResult = { punkte?: number; maxPunkte?: number; [k: string]: unknown };
+type AufgabeResult = { punkte?: number; maxPunkte?: number; teilaufgaben?: TeilaufgabeResult[]; [k: string]: unknown };
+type KorrekturResult = {
+  gesamt?: { punkte?: number; maxPunkte?: number; prozent?: number; note?: number; noteText?: string; bestanden?: boolean; [k: string]: unknown };
+  aufgaben?: AufgabeResult[];
+  [k: string]: unknown;
+};
+
+function normalizeResult(raw: unknown, examTotalPoints: number): unknown {
+  const result = raw as KorrekturResult;
+  if (!result || !Array.isArray(result.aufgaben)) return raw;
+
+  let gesamtPunkte = 0;
+  let gesamtMax = 0;
+
+  for (const aufgabe of result.aufgaben) {
+    let aufgabePunkte = 0;
+    let aufgabeMax = 0;
+    if (Array.isArray(aufgabe.teilaufgaben)) {
+      for (const teil of aufgabe.teilaufgaben) {
+        const max = Math.max(0, Number(teil.maxPunkte) || 0);
+        const punkte = Math.min(max, Math.max(0, Number(teil.punkte) || 0));
+        teil.maxPunkte = max;
+        teil.punkte = punkte;
+        aufgabePunkte += punkte;
+        aufgabeMax += max;
+      }
+      aufgabe.punkte = aufgabePunkte;
+      aufgabe.maxPunkte = aufgabeMax;
+    } else {
+      aufgabeMax = Math.max(0, Number(aufgabe.maxPunkte) || 0);
+      aufgabePunkte = Math.min(aufgabeMax, Math.max(0, Number(aufgabe.punkte) || 0));
+      aufgabe.punkte = aufgabePunkte;
+      aufgabe.maxPunkte = aufgabeMax;
+    }
+    gesamtPunkte += aufgabePunkte;
+    gesamtMax += aufgabeMax;
+  }
+
+  const maxPunkte = examTotalPoints > 0 ? examTotalPoints : gesamtMax;
+  gesamtPunkte = Math.min(gesamtPunkte, maxPunkte);
+  const prozent = maxPunkte > 0 ? Math.round((gesamtPunkte / maxPunkte) * 100) : 0;
+
+  let note = 6;
+  let noteText = "ungenügend";
+  if (prozent >= 92) { note = 1; noteText = "sehr gut"; }
+  else if (prozent >= 81) { note = 2; noteText = "gut"; }
+  else if (prozent >= 67) { note = 3; noteText = "befriedigend"; }
+  else if (prozent >= 50) { note = 4; noteText = "ausreichend"; }
+  else if (prozent >= 30) { note = 5; noteText = "mangelhaft"; }
+
+  result.gesamt = {
+    ...(result.gesamt ?? {}),
+    punkte: gesamtPunkte,
+    maxPunkte,
+    prozent,
+    note,
+    noteText,
+    bestanden: prozent >= 50,
+  };
+
+  return result;
+}
+
 export async function POST(request: NextRequest) {
   if (!ANTHROPIC_API_KEY && !GROQ_API_KEY) {
     return NextResponse.json({ error: "API Key nicht konfiguriert" }, { status: 500 });
@@ -143,7 +211,7 @@ WICHTIGE KONSISTENZ-REGELN:
             const result = tryParseResult(feedback);
             return NextResponse.json(
               result
-                ? { result, provider: "claude" }
+                ? { result: normalizeResult(result, exam.totalPoints), provider: "claude" }
                 : { feedback, provider: "claude" }
             );
           }
@@ -181,7 +249,9 @@ WICHTIGE KONSISTENZ-REGELN:
       const result = tryParseResult(feedback);
 
       return NextResponse.json(
-        result ? { result, provider: "groq" } : { feedback, provider: "groq" }
+        result
+          ? { result: normalizeResult(result, exam.totalPoints), provider: "groq" }
+          : { feedback, provider: "groq" }
       );
     }
 
