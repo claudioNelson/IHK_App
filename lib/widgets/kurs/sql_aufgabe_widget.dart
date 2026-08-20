@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/kurse/sql_datensaetze.dart';
 import '../../models/kurs_aufgabe.dart';
+import '../../services/sound_service.dart';
 import '../../services/sql_sandbox.dart';
 
 class SqlAufgabeWidget extends StatefulWidget {
@@ -76,6 +77,7 @@ class _SqlAufgabeWidgetState extends State<SqlAufgabeWidget> {
     // Läuft die Abfrage nicht, gibt es noch nichts zu vergleichen —
     // dann zeigen wir nur den Fehler und lassen es weiter versuchen.
     if (meins.istFehler) {
+      SoundService().playSound(SoundType.wrong);
       setState(() {
         _ergebnis = meins;
         _richtig = null;
@@ -88,6 +90,7 @@ class _SqlAufgabeWidgetState extends State<SqlAufgabeWidget> {
     final passt =
         meins.gleichWie(soll, reihenfolgeZaehlt: a.reihenfolgeZaehlt);
 
+    SoundService().playSound(passt ? SoundType.correct : SoundType.wrong);
     setState(() {
       _ergebnis = meins;
       _richtig = passt;

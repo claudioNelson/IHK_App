@@ -167,6 +167,15 @@ class BadgeService {
     });
   }
 
+  /// Anschluss-Badges (Steckertypen im Quiz erkennen).
+  /// [prozent] ist das Quiz-Ergebnis in Prozent (0 bis 100).
+  Future<List<String>> checkAnschlussBadges({required int prozent}) {
+    return _pruefeUndVergebe({
+      'anschluss_kenner': prozent >= 80,
+      'anschluss_profi': prozent >= 100,
+    });
+  }
+
   /// Kurs-Badges (SQL-Kurs, später auch Python auf denselben Stufen).
   ///
   /// [kursSlug] ist z. B. 'sql'. Die Badge-IDs heißen

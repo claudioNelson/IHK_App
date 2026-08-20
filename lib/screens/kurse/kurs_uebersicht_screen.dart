@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/kurse/kurs_config.dart';
 import '../../models/kurs_aufgabe.dart';
@@ -97,18 +98,45 @@ class _KursUebersichtScreenState extends State<KursUebersichtScreen> {
     await _kursBadgesPruefen();
   }
 
+  // Diagnose-Snackbar: bei Badge-Problemen auf true stellen, dann zeigt
+  // die Kursuebersicht Login-Status und Lektionszaehler unten an.
+  static const bool _badgeDebug = false;
+
+  void _debugMeldung(String text) {
+    if (!_badgeDebug || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        duration: const Duration(seconds: 8),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   /// Nach jeder Lektion: Kurs-Badges pruefen und Neue feiern.
   /// Fehler (offline, Gast ohne Login) brechen nie den Ablauf.
   Future<void> _kursBadgesPruefen() async {
     try {
+      final nutzer = Supabase.instance.client.auth.currentUser;
       final fertige = widget.kurs.lektionen.where(_istKomplett).length;
+
+      _debugMeldung(
+        'DEBUG · Login: ${nutzer == null ? "KEINE SESSION" : (nutzer.email ?? "anonym/Gast ${nutzer.id.substring(0, 8)}")} '
+        '· fertige Lektionen: $fertige',
+      );
+
       final service = BadgeService();
       final neue = await service.checkKursBadges(
         kursSlug: widget.kurs.slug,
         abgeschlosseneLektionen: fertige,
         lektionenGesamt: widget.kurs.lektionen.length,
       );
-      if (neue.isEmpty || !mounted) return;
+
+      if (neue.isEmpty) {
+        _debugMeldung('DEBUG · Badge-Pruefung lief, nichts Neues vergeben');
+        return;
+      }
+      if (!mounted) return;
 
       final details = await service.getBadgeDetails(neue);
       if (!mounted) return;
@@ -121,6 +149,7 @@ class _KursUebersichtScreenState extends State<KursUebersichtScreen> {
       );
     } catch (e) {
       debugPrint('Kurs-Badges: $e');
+      _debugMeldung('DEBUG · Badge-Fehler: $e');
     }
   }
 

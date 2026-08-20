@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../models/kurs_aufgabe.dart';
+import '../../services/sound_service.dart';
 
 /// Einstiegspunkt: wählt anhand des Typs das passende Widget.
 class KursAufgabeWidget extends StatelessWidget {
@@ -44,6 +45,12 @@ class KursAufgabeWidget extends StatelessWidget {
 // ───────────────────────────────────────────────────────────────────────────
 
 enum _Stand { offen, richtig, falsch }
+
+/// Spielt den Richtig-/Falsch-Sound der App (SoundService, respektiert
+/// die Sound-Einstellung des Nutzers).
+void _ergebnisSound(bool richtig) {
+  SoundService().playSound(richtig ? SoundType.correct : SoundType.wrong);
+}
 
 class _AufgabenKarte extends StatelessWidget {
   final String frage;
@@ -292,6 +299,7 @@ class _LueckenWidgetState extends State<_LueckenWidget> {
     }
 
     setState(() => _stand = allesRichtig ? _Stand.richtig : _Stand.falsch);
+    _ergebnisSound(allesRichtig);
     widget.onErgebnis(allesRichtig);
   }
 
@@ -471,6 +479,7 @@ class _ReihenfolgeWidgetState extends State<_ReihenfolgeWidget> {
         .every((e) => e.key == e.value);
 
     setState(() => _stand = richtig ? _Stand.richtig : _Stand.falsch);
+    _ergebnisSound(richtig);
     widget.onErgebnis(richtig);
   }
 
@@ -608,6 +617,7 @@ class _FehlerWidgetState extends State<_FehlerWidget> {
 
     final richtig = zeileStimmt && textStimmt;
     setState(() => _stand = richtig ? _Stand.richtig : _Stand.falsch);
+    _ergebnisSound(richtig);
     widget.onErgebnis(richtig);
   }
 
@@ -739,6 +749,7 @@ class _AuswahlWidgetState extends State<_AuswahlWidget> {
   void _pruefen() {
     final richtig = _gewaehlt == widget.aufgabe.richtig;
     setState(() => _stand = richtig ? _Stand.richtig : _Stand.falsch);
+    _ergebnisSound(richtig);
     widget.onErgebnis(richtig);
   }
 

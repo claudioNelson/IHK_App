@@ -15,6 +15,7 @@ import 'theme/theme_provider.dart';
 import 'services/subscription_service.dart';
 import 'services/deep_link_service.dart';
 import 'services/billing_service.dart';
+import 'services/rating_service.dart';
 
 /// Globaler Navigator-Key: erlaubt Navigation außerhalb des Widget-Baums
 /// (z. B. Passwort-Reset-Screen öffnen, wenn der Mail-Link die App öffnet).
@@ -138,6 +139,17 @@ class _AppInitializerState extends State<AppInitializer> {
 
       if (mounted) {
         setState(() => _initialized = true);
+      }
+
+      // Store-Bewertung: Start zaehlen und nach ein paar Sekunden pruefen,
+      // ob die Abfrage faellig ist (erst ab dem 5. Start, siehe
+      // RatingService). Nur fuer eingeloggte Nutzer, damit das Fenster
+      // nicht ueber dem Login liegt.
+      await RatingService().appStartRegistrieren();
+      if (session != null) {
+        Future.delayed(const Duration(seconds: 10), () {
+          RatingService().vielleichtFragen();
+        });
       }
     } catch (e) {
       print('❌ Fehler bei Initialisierung: $e');

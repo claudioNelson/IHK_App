@@ -11,10 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/anschluesse_data.dart';
+import '../../services/badge_service.dart';
 import '../../services/sound_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
+import '../../widgets/badge_celebration_dialog.dart';
 
 enum _Phase { lernen, quiz, ergebnis }
 
@@ -80,11 +82,33 @@ class _AnschluesseQuizScreenState extends State<AnschluesseQuizScreen> {
         prozent >= 0.8 ? SoundType.victory : SoundType.click,
       );
       setState(() => _phase = _Phase.ergebnis);
+      _badgesPruefen((prozent * 100).round());
     } else {
       setState(() {
         _frageIndex++;
         _gewaehlt = null;
       });
+    }
+  }
+
+  /// Vergibt nach dem Quiz die Anschluss-Badges:
+  /// anschluss_kenner ab 80 Prozent, anschluss_profi bei 100 Prozent.
+  Future<void> _badgesPruefen(int prozent) async {
+    try {
+      final service = BadgeService();
+      final neue = await service.checkAnschlussBadges(prozent: prozent);
+      if (neue.isEmpty || !mounted) return;
+      final details = await service.getBadgeDetails(neue);
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        builder: (_) => BadgeCelebrationDialog(
+          badgeIds: neue,
+          badgeDetails: details,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Badge-Pruefung Anschluesse fehlgeschlagen: $e');
     }
   }
 

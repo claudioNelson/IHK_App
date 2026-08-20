@@ -54,6 +54,9 @@ class _NewProfilePageState extends State<NewProfilePage> {
       _profile = cacheService.cachedMyProfile;
       _myBadges = List.from(cacheService.cachedMyBadges);
       _loading = false;
+      // Der Cache stammt vom App-Start. Badges koennen seitdem neu
+      // dazugekommen sein, darum im Hintergrund frisch nachladen.
+      _loadBadges();
     } else {
       _loadProfile();
       _loadBadges();
@@ -79,6 +82,9 @@ class _NewProfilePageState extends State<NewProfilePage> {
   Future<void> _loadBadges() async {
     try {
       final badges = await _badgeService.getMyBadges();
+      // Cache aktualisieren, damit auch der naechste Profil-Besuch
+      // in dieser Sitzung den frischen Stand zeigt.
+      AppCacheService().cachedMyBadges = List.from(badges);
       if (!mounted) return;
       setState(() => _myBadges = badges);
     } catch (_) {}

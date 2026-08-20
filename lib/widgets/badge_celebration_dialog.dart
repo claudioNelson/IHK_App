@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
 
+import '../services/sound_service.dart';
+
 class BadgeCelebrationDialog extends StatefulWidget {
   final List<String> badgeIds;
   final List<Map<String, dynamic>> badgeDetails;
@@ -23,6 +25,8 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog> {
     super.initState();
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
     _confettiController.play();
+    // Fanfare zum Konfetti, egal aus welchem Screen der Dialog kommt.
+    SoundService().playSound(SoundType.victory);
   }
 
   @override
