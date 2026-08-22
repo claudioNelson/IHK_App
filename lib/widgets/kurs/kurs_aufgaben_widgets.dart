@@ -194,7 +194,10 @@ class _Rueckmeldung extends StatelessWidget {
             ),
           ],
         ),
-        if (erklaerung != null) ...[
+        // Die Erklärung enthält die Auflösung. Bei falscher Antwort würde
+        // sie die Lösung verraten (dann könnte man einfach nochmal tippen),
+        // deshalb erscheint sie erst nach der richtigen Antwort.
+        if (erklaerung != null && richtig) ...[
           const SizedBox(height: 10),
           Container(
             width: double.infinity,
