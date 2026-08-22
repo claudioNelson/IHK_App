@@ -261,12 +261,21 @@ class Kurs {
   final String beschreibung;
   final List<Lektion> lektionen;
 
+  /// Geplante Gesamtzahl der Lektionen, falls der Kurs noch im Aufbau ist.
+  /// Die Kurs-Badges (Haelfte/Meister) rechnen gegen diese Zahl, damit
+  /// niemand "Meister" wird, nur weil erst 3 von 14 Lektionen existieren.
+  final int? lektionenGeplant;
+
   const Kurs({
     required this.slug,
     required this.titel,
     required this.beschreibung,
     required this.lektionen,
+    this.lektionenGeplant,
   });
+
+  /// Bezugsgroesse fuer Badges: geplante Anzahl, sonst vorhandene.
+  int get lektionenFuerBadges => lektionenGeplant ?? lektionen.length;
 
   int get gesamtDauer =>
       lektionen.fold(0, (summe, l) => summe + l.dauerMinuten);

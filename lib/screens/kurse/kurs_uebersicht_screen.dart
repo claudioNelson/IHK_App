@@ -129,7 +129,9 @@ class _KursUebersichtScreenState extends State<KursUebersichtScreen> {
       final neue = await service.checkKursBadges(
         kursSlug: widget.kurs.slug,
         abgeschlosseneLektionen: fertige,
-        lektionenGesamt: widget.kurs.lektionen.length,
+        // Bei Kursen im Aufbau die GEPLANTE Lektionszahl, sonst wird man
+        // mit 3 von 14 Lektionen schon Meister.
+        lektionenGesamt: widget.kurs.lektionenFuerBadges,
       );
 
       if (neue.isEmpty) {

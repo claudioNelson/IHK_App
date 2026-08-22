@@ -265,15 +265,33 @@ class _LektionScreenState extends State<LektionScreen> {
             );
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(18, 20, 18, 28),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final block in _schritte[index])
-                  _BlockAnsicht(block: block, onErgebnis: _melden),
-              ],
-            ),
+          // Kurze Inhalte werden vertikal zentriert, statt oben zu kleben
+          // und den halben Bildschirm leer zu lassen. Lange Inhalte
+          // scrollen ganz normal.
+          final schmuckIcon =
+              !_istAufgabe(index) &&
+                  !_schritte[index].any((b) => b is UeberschriftBlock);
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(18, 20, 18, 28),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 48,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (schmuckIcon) const _SeitenIcon(),
+                      for (final block in _schritte[index])
+                        _BlockAnsicht(block: block, onErgebnis: _melden),
+                    ],
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -439,6 +457,27 @@ class _AbschlussSeite extends StatelessWidget {
 // Darstellung der einzelnen Blocktypen
 // ───────────────────────────────────────────────────────────────────────────
 
+/// Kleines Icon als Anker für Seiten, die nur aus Text bestehen.
+/// Ohne so einen Blickfang wirken reine Erklärseiten leer.
+class _SeitenIcon extends StatelessWidget {
+  const _SeitenIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Container(
+      width: 44,
+      height: 44,
+      margin: const EdgeInsets.only(bottom: 18),
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Icon(Icons.auto_stories_outlined, size: 22, color: primary),
+    );
+  }
+}
+
 class _BlockAnsicht extends StatelessWidget {
   final LektionsBlock block;
   final void Function(String id, bool richtig) onErgebnis;
@@ -450,11 +489,26 @@ class _BlockAnsicht extends StatelessWidget {
     return switch (block) {
       UeberschriftBlock b => Padding(
           padding: const EdgeInsets.only(bottom: 14),
-          child: Text(
-            b.text,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Kleiner Akzentbalken als Blickfang über der Überschrift.
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(2),
                 ),
+              ),
+              Text(
+                b.text,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
           ),
         ),
       TextBlock b => Padding(

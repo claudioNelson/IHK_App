@@ -117,20 +117,26 @@ class _AufgabenKarte extends StatelessWidget {
             Theme(
               data: Theme.of(context)
                   .copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
+              // Material dazwischen, weil das ExpansionTile sonst in der
+              // dekorierten Karte haengt und Flutter vor unsichtbaren
+              // Ink-Effekten warnt (Konsolen-Spam bei jedem Frame).
+              child: Material(
+                type: MaterialType.transparency,
+                child: ExpansionTile(
                 tilePadding: EdgeInsets.zero,
                 childrenPadding: const EdgeInsets.only(bottom: 8),
                 title: Text(
                   'Tipp anzeigen',
                   style: TextStyle(fontSize: 13, color: farben.primary),
                 ),
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(tipp!,
-                        style: Theme.of(context).textTheme.bodyMedium),
-                  ),
-                ],
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(tipp!,
+                          style: Theme.of(context).textTheme.bodyMedium),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -659,8 +665,20 @@ class _FehlerWidgetState extends State<_FehlerWidget> {
               children: [
                 for (var i = 0; i < widget.aufgabe.zeilen.length; i++)
                   InkWell(
-                    onTap:
-                        gesperrt ? null : () => setState(() => _markiert = i),
+                    onTap: gesperrt
+                        ? null
+                        : () => setState(() {
+                              _markiert = i;
+                              // Zeile vorausfuellen: korrigieren statt
+                              // komplett neu tippen. Auf dem Handy macht
+                              // das den Unterschied.
+                              _korrektur.value = TextEditingValue(
+                                text: widget.aufgabe.zeilen[i],
+                                selection: TextSelection.collapsed(
+                                  offset: widget.aufgabe.zeilen[i].length,
+                                ),
+                              );
+                            }),
                     borderRadius: BorderRadius.circular(4),
                     child: Container(
                       width: double.infinity,
@@ -706,7 +724,7 @@ class _FehlerWidgetState extends State<_FehlerWidget> {
           ),
           if (_markiert != null) ...[
             const SizedBox(height: 14),
-            Text('So muss Zeile ${_markiert! + 1} richtig lauten:',
+            Text('Korrigiere Zeile ${_markiert! + 1} direkt im Feld:',
                 style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(height: 6),
             TextField(
@@ -714,6 +732,8 @@ class _FehlerWidgetState extends State<_FehlerWidget> {
               enabled: !gesperrt,
               style: const TextStyle(fontFamily: 'monospace'),
               maxLines: null,
+              autocorrect: false,
+              enableSuggestions: false,
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
                 isDense: true,
