@@ -1233,6 +1233,706 @@ const _lektion7 = Lektion(
 );
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Lektion 8 — Die while-Schleife
+// ═══════════════════════════════════════════════════════════════════════════
+
+const _lektion8 = Lektion(
+  nr: 8,
+  slug: 'python-8',
+  titel: 'Die while-Schleife',
+  kurzbeschreibung:
+      'Wiederholen, solange eine Bedingung gilt, und die Endlosschleifen-Falle.',
+  dauerMinuten: 18,
+  premium: true,
+  bloecke: [
+    UeberschriftBlock('Kurz zurückblicken'),
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-8-1',
+      frage: 'Aufwärmen aus Lektion 7:\n'
+          'for i in range(3):\n    print(i)\n'
+          'Was wird ausgegeben?',
+      optionen: [
+        '0, 1, 2',
+        '1, 2, 3',
+        '0, 1, 2, 3',
+      ],
+      richtig: 0,
+      erklaerung:
+          'range(3) startet bei 0 und hört VOR der 3 auf. Die for-Schleife '
+          'kennt ihre Rundenzahl vorher. Jetzt kommt die Schleife für '
+          'Fälle, in denen man sie nicht kennt.',
+    )),
+
+    UeberschriftBlock('Solange, nicht x-mal'),
+    TextBlock(
+      'Die for-Schleife läuft eine feste Anzahl Runden. Die '
+      '**while-Schleife** läuft, SOLANGE eine Bedingung wahr ist. Wie ein '
+      'Wasserhahn: er läuft nicht dreimal, er läuft, solange er offen ist.',
+    ),
+    CodeBlock(
+      'restbestand = 3\nwhile restbestand > 0:\n'
+      '    print("Artikel verkauft")\n'
+      '    restbestand = restbestand - 1',
+      titel: 'Ausgabe: dreimal „Artikel verkauft"',
+    ),
+    TextBlock(
+      'Vor jeder Runde prüft Python die Bedingung. Ist sie wahr, läuft '
+      'der eingerückte Block. Ist sie falsch, geht es unter der Schleife '
+      'weiter. Doppelpunkt und Einrückung: gleiche Regeln wie bei if und '
+      'for.',
+    ),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-8-2',
+      frage: 'Die Schleife soll laufen, solange noch Vorrat da ist, also '
+          'solange vorrat größer als 0 ist.',
+      vorlage: 'while vorrat ___ 0:\n    print("verkauft")\n'
+          '    vorrat = vorrat - 1',
+      loesungen: [
+        ['>'],
+      ],
+      bausteine: ['>', '<', '=='],
+      erklaerung:
+          'Solange vorrat GRÖSSER als 0 ist, wird verkauft. Mit < würde '
+          'die Schleife bei vollem Lager gar nicht erst starten.',
+    )),
+
+    UeberschriftBlock('Der Zähler in der Schleife'),
+    TextBlock(
+      'Das Wichtigste an while: **in der Schleife muss sich etwas '
+      'ändern**, das die Bedingung irgendwann falsch macht. Meistens ist '
+      'das ein Zähler, der rauf- oder runterzählt.',
+    ),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-8-3',
+      frage: 'Bei jedem Verkauf soll der Vorrat um 1 sinken. '
+          'Vervollständige die Zeile.',
+      vorlage: 'while vorrat > 0:\n    print("verkauft")\n'
+          '    vorrat = vorrat ___ 1',
+      loesungen: [
+        ['-'],
+      ],
+      bausteine: ['-', '+', '='],
+      erklaerung:
+          'vorrat = vorrat - 1 zieht bei jeder Runde eins ab. Mit + würde '
+          'der Vorrat wachsen und die Schleife NIE enden. Genau das '
+          'schauen wir uns jetzt an.',
+    )),
+
+    UeberschriftBlock('Die Endlosschleife'),
+    TextBlock(
+      'Vergisst du die Änderung, bleibt die Bedingung für immer wahr und '
+      'das Programm hängt fest. Das nennt man **Endlosschleife**, und '
+      'jeder Entwickler hat schon versehentlich eine gebaut.',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-8-4',
+      frage: 'i = 1\nwhile i <= 3:\n    print(i)\n'
+          'Was passiert bei diesem Programm?',
+      optionen: [
+        'Es gibt endlos 1 aus und hängt fest',
+        'Es gibt 1, 2, 3 aus und endet',
+        'Es gibt nichts aus',
+      ],
+      richtig: 0,
+      erklaerung:
+          'i bleibt für immer 1, denn in der Schleife fehlt das '
+          'i = i + 1. Die Bedingung 1 <= 3 ist ewig wahr. In der Praxis '
+          'heißt das: Programm eingefroren, Lüfter dreht auf.',
+    )),
+
+    AufgabenBlock(FehlerAufgabe(
+      id: 'py-8-5',
+      frage: 'Dieses Programm soll 1, 2, 3 ausgeben, gibt aber NICHTS '
+          'aus. Finde die kaputte Zeile und schreib sie richtig.',
+      zeilen: [
+        'i = 1',
+        'while i >= 3:',
+        '    print(i)',
+        '    i = i + 1',
+      ],
+      fehlerZeile: 1,
+      korrekturen: [
+        'while i <= 3:',
+      ],
+      tipp: 'Prüf die Bedingung mit i = 1 im Kopf: ist 1 >= 3 wahr?',
+      erklaerung:
+          '1 >= 3 ist von Anfang an falsch, die Schleife startet nie. '
+          'Richtig ist i <= 3: laufen, solange i höchstens 3 ist. '
+          'Verdrehte Vergleiche sind der zweithäufigste while-Fehler nach '
+          'der Endlosschleife.',
+    )),
+
+    HinweisBlock(
+      'Faustregel für die Wahl der Schleife: Anzahl bekannt oder eine '
+      'Liste da? Nimm for. Läuft es „bis etwas passiert"? Nimm while. '
+      'Mit `break` kannst du übrigens jede Schleife sofort verlassen, '
+      'das brauchen wir später beim Suchen.',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-8-6',
+      frage: 'Die Nordwind GmbH will jeden Artikel einer Liste einmal '
+          'ausgeben. Welche Schleife passt am besten?',
+      optionen: [
+        'for, weil eine Liste mit bekannter Länge da ist',
+        'while, weil sie flexibler ist',
+        'Beide gehen überhaupt nicht',
+      ],
+      richtig: 0,
+      erklaerung:
+          'Für Listen ist for gebaut: kein Zähler, keine Bedingung, kein '
+          'Endlos-Risiko. while glänzt, wenn die Rundenzahl vorher '
+          'unbekannt ist, etwa „frage, bis die Eingabe passt".',
+    )),
+
+    AufgabenBlock(ReihenfolgeAufgabe(
+      id: 'py-8-7',
+      frage: 'Der Ausverkauf: solange Vorrat da ist, wird verkauft, '
+          'danach kommt die Meldung. Bring die Zeilen in die richtige '
+          'Reihenfolge.',
+      zeilen: [
+        'restbestand = 3',
+        'while restbestand > 0:',
+        'print("Artikel verkauft")',
+        'restbestand = restbestand - 1',
+        'print("Ausverkauft")',
+      ],
+      einrueckung: [0, 0, 1, 1, 0],
+      erklaerung:
+          'Der Zähler startet vor der Schleife, verkaufen und runterzählen '
+          'sind eingerückt, und das nicht eingerückte „Ausverkauft" läuft '
+          'genau einmal, wenn die Bedingung falsch geworden ist.',
+    )),
+  ],
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Lektion 9 — Funktionen, Teil 1
+// ═══════════════════════════════════════════════════════════════════════════
+
+const _lektion9 = Lektion(
+  nr: 9,
+  slug: 'python-9',
+  titel: 'Funktionen, Teil 1',
+  kurzbeschreibung:
+      'Code einmal schreiben, überall benutzen: def, Parameter und return.',
+  dauerMinuten: 20,
+  premium: true,
+  bloecke: [
+    UeberschriftBlock('Kurz zurückblicken'),
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-9-1',
+      frage: 'Aufwärmen aus Lektion 8:\n'
+          'i = 5\nwhile i > 0:\n    i = i - 1\n'
+          'Endet diese Schleife?',
+      optionen: [
+        'Ja, nach 5 Runden ist i gleich 0',
+        'Nein, sie läuft endlos',
+        'Sie startet gar nicht',
+      ],
+      richtig: 0,
+      erklaerung:
+          'i sinkt jede Runde, nach 5 Runden ist 0 > 0 falsch und die '
+          'Schleife endet sauber. Weiter zu einem der wichtigsten Themen '
+          'überhaupt.',
+    )),
+
+    UeberschriftBlock('Werkzeuge bauen'),
+    TextBlock(
+      'Stell dir vor, die Rabattberechnung der Nordwind GmbH wird an '
+      'zehn Stellen im Programm gebraucht. Zehnmal kopieren? Und wenn '
+      'sich der Rabatt ändert, zehn Stellen anfassen? Eine **Funktion** '
+      'löst das: Code bekommt einen Namen und wird bei Bedarf aufgerufen.',
+    ),
+    CodeBlock(
+      'def begruessung():\n    print("Willkommen bei Nordwind")\n\n'
+      'begruessung()\nbegruessung()',
+      titel: 'Ausgabe: zweimal „Willkommen bei Nordwind"',
+    ),
+    TextBlock(
+      '`def` heißt define, also festlegen. Danach kommt der selbst '
+      'gewählte Name, Klammern, Doppelpunkt, eingerückter Block. '
+      'Aufgerufen wird die Funktion über ihren Namen mit Klammern.',
+    ),
+    HinweisBlock(
+      'Die Definition allein TUT noch nichts. Sie legt das Werkzeug nur '
+      'in die Werkzeugkiste. Erst der Aufruf mit den Klammern holt es '
+      'raus und benutzt es.',
+    ),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-9-2',
+      frage: 'Definiere eine Funktion namens begruessung.',
+      vorlage: '___ begruessung():\n    print("Willkommen")',
+      loesungen: [
+        ['def'],
+      ],
+      bausteine: ['def', 'funktion', 'make'],
+      erklaerung:
+          'def ist das Schlüsselwort für neue Funktionen. Es gehört zu '
+          'den Wörtern, die in der AP1 gern abgefragt werden.',
+    )),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-9-3',
+      frage: 'def gruss():\n    print("Hallo")\n\n'
+          'Das ist das GANZE Programm. Was gibt es aus?',
+      optionen: [
+        'Nichts',
+        'Hallo',
+        'gruss',
+      ],
+      richtig: 0,
+      erklaerung:
+          'Die Funktion wird definiert, aber nie aufgerufen. Ohne '
+          'gruss() am Ende bleibt das Werkzeug in der Kiste. Dieser '
+          'Unterschied zwischen Definieren und Aufrufen ist die halbe '
+          'Miete beim Verstehen von Funktionen.',
+    )),
+
+    UeberschriftBlock('Parameter: Werte hineingeben'),
+    TextBlock(
+      'Richtig nützlich werden Funktionen mit **Parametern**: '
+      'Platzhaltern in den Klammern, die beim Aufruf gefüllt werden.',
+    ),
+    CodeBlock(
+      'def begruessung(name):\n    print(f"Hallo, {name}!")\n\n'
+      'begruessung("Frau Sommer")\nbegruessung("Herr Winter")',
+      titel: 'Ausgabe: Hallo, Frau Sommer! / Hallo, Herr Winter!',
+    ),
+
+    UeberschriftBlock('return: Werte herausgeben'),
+    TextBlock(
+      'print zeigt nur etwas an. **return** gibt einen Wert ans Programm '
+      'ZURÜCK, damit dort weitergerechnet werden kann. Das ist der '
+      'Unterschied zwischen „Ergebnis auf einen Zettel schreiben" und '
+      '„Ergebnis in die Hand drücken".',
+    ),
+    CodeBlock(
+      'def rabattpreis(preis):\n    return preis * 0.9\n\n'
+      'neu = rabattpreis(200)\nprint(neu)',
+      titel: 'Ausgabe: 180.0',
+    ),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-9-4',
+      frage: 'Die Funktion soll den Preis mit Mehrwertsteuer ans Programm '
+          'zurückgeben, nicht nur anzeigen.',
+      vorlage: 'def brutto(netto):\n    ___ netto * 1.19',
+      loesungen: [
+        ['return'],
+      ],
+      bausteine: ['return', 'print', 'ergebnis'],
+      erklaerung:
+          'return liefert den Wert an den Aufrufer, der damit '
+          'weiterarbeiten kann. Mit print würde die Zahl nur auf dem '
+          'Bildschirm landen und wäre fürs Programm verloren.',
+    )),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-9-5',
+      frage: 'def rabattpreis(preis):\n    return preis * 0.9\n\n'
+          'print(rabattpreis(100))\n'
+          'Was wird ausgegeben?',
+      optionen: [
+        '90.0',
+        '100',
+        '0.9',
+      ],
+      richtig: 0,
+      erklaerung:
+          'Der Aufruf füllt preis mit 100, die Funktion gibt 100 mal 0.9 '
+          'zurück, print zeigt 90.0. Das .0 kommt daher, dass beim '
+          'Rechnen mit Kommazahlen eine Kommazahl herauskommt.',
+    )),
+
+    AufgabenBlock(FehlerAufgabe(
+      id: 'py-9-6',
+      frage: 'Die Funktion soll den doppelten Wert ZURÜCKGEBEN, damit '
+          'die letzte Zeile funktioniert. Momentan kommt dort None an. '
+          'Repariere die kaputte Zeile.',
+      zeilen: [
+        'def doppelt(x):',
+        '    print(x * 2)',
+        '',
+        'ergebnis = doppelt(5)',
+        'print(ergebnis + 1)',
+      ],
+      fehlerZeile: 1,
+      korrekturen: [
+        'return x * 2',
+        '    return x * 2',
+      ],
+      tipp: 'Anzeigen und Zurückgeben sind zwei verschiedene Dinge.',
+      erklaerung:
+          'Eine Funktion ohne return liefert automatisch None, das '
+          'Python-Wort für „nichts". None + 1 stürzt ab. Mit return x * 2 '
+          'bekommt ergebnis die 10 und die Rechnung klappt. Merke: print '
+          'ist für Menschen, return ist fürs Programm.',
+    )),
+
+    AufgabenBlock(ReihenfolgeAufgabe(
+      id: 'py-9-7',
+      frage: 'Baue das komplette Programm: Funktion für den Gesamtpreis '
+          'definieren, dann aufrufen, dann das Ergebnis ausgeben.',
+      zeilen: [
+        'def gesamtpreis(preis, anzahl):',
+        'return preis * anzahl',
+        'betrag = gesamtpreis(45, 3)',
+        'print(f"Zu zahlen: {betrag} Euro")',
+      ],
+      einrueckung: [0, 1, 0, 0],
+      erklaerung:
+          'Erst die Definition, dann der Aufruf, dann die Ausgabe: 135 '
+          'Euro. Zwei Parameter werden beim Aufruf in derselben '
+          'Reihenfolge gefüllt: preis wird 45, anzahl wird 3. Mehr dazu '
+          'in der nächsten Lektion.',
+    )),
+  ],
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Lektion 10 — Funktionen, Teil 2
+// ═══════════════════════════════════════════════════════════════════════════
+
+const _lektion10 = Lektion(
+  nr: 10,
+  slug: 'python-10',
+  titel: 'Funktionen, Teil 2',
+  kurzbeschreibung:
+      'Mehrere Parameter, Standardwerte und was in der Funktion bleibt.',
+  dauerMinuten: 18,
+  premium: true,
+  bloecke: [
+    UeberschriftBlock('Kurz zurückblicken'),
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-10-1',
+      frage: 'Aufwärmen aus Lektion 9:\n'
+          'def halb(x):\n    return x / 2\n\nprint(halb(10))\n'
+          'Was wird ausgegeben?',
+      optionen: [
+        '5.0',
+        '10',
+        'None',
+      ],
+      richtig: 0,
+      erklaerung:
+          'x wird 10, zurück kommt 5.0. Teilen liefert in Python immer '
+          'eine Kommazahl, auch wenn es aufgeht.',
+    )),
+
+    UeberschriftBlock('Die Reihenfolge der Argumente'),
+    TextBlock(
+      'Bei mehreren Parametern füllt Python die Werte stur der Reihe '
+      'nach: erster Wert in ersten Parameter, zweiter in zweiten. '
+      'Vertauschen ändert das Ergebnis.',
+    ),
+    CodeBlock(
+      'def teile(a, b):\n    return a / b\n\n'
+      'print(teile(10, 2))\nprint(teile(2, 10))',
+      titel: 'Ausgabe: 5.0, dann 0.2',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-10-2',
+      frage: 'def abziehen(von, wert):\n    return von - wert\n\n'
+          'print(abziehen(100, 30))\n'
+          'Was wird ausgegeben?',
+      optionen: [
+        '70',
+        '-70',
+        '130',
+      ],
+      richtig: 0,
+      erklaerung:
+          'von wird 100, wert wird 30, also 100 minus 30. Bei '
+          'abziehen(30, 100) käme -70 heraus: gleiche Funktion, andere '
+          'Reihenfolge, anderes Ergebnis.',
+    )),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-10-3',
+      frage: 'Schreib eine Funktion, die den Lagerwert berechnet: '
+          'Stückpreis mal Stückzahl.',
+      vorlage: 'def lagerwert(stueckpreis, stueckzahl):\n'
+          '    return stueckpreis ___ stueckzahl',
+      loesungen: [
+        ['*'],
+      ],
+      bausteine: ['*', '+', '/'],
+      erklaerung:
+          'Wert im Lager heißt Preis mal Menge. lagerwert(249, 4) liefert '
+          '996. Die Funktion funktioniert für jeden Artikel, das ist der '
+          'ganze Sinn der Parameter.',
+    )),
+
+    UeberschriftBlock('Standardwerte'),
+    TextBlock(
+      'Ein Parameter kann einen **Standardwert** haben, der gilt, wenn '
+      'beim Aufruf nichts angegeben wird. Praktisch für Dinge, die '
+      'meistens gleich sind.',
+    ),
+    CodeBlock(
+      'def versandkosten(gewicht, express=False):\n'
+      '    if express:\n        return gewicht * 2.0\n'
+      '    return gewicht * 0.5\n\n'
+      'print(versandkosten(10))\nprint(versandkosten(10, True))',
+      titel: 'Ausgabe: 5.0, dann 20.0',
+    ),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-10-4',
+      frage: 'Die Begrüßung soll standardmäßig auf Deutsch laufen. Setz '
+          'den Standardwert.',
+      vorlage: 'def gruss(name, sprache___"de"):\n'
+          '    print(name, sprache)',
+      loesungen: [
+        ['='],
+      ],
+      bausteine: ['=', '==', ':'],
+      erklaerung:
+          'In der Klammer setzt das EINFACHE Gleichheitszeichen den '
+          'Standardwert. Das doppelte == wäre ein Vergleich und gehört '
+          'hier nicht hin. Ausnahmsweise ist also = richtig und == falsch.',
+    )),
+
+    UeberschriftBlock('Was in der Funktion bleibt'),
+    TextBlock(
+      'Variablen, die INNERHALB einer Funktion angelegt werden, '
+      'existieren nur dort. Von außen sind sie unsichtbar, wie Werkzeug, '
+      'das nach Feierabend wieder in der Kiste liegt. Der Fachbegriff '
+      'dafür ist Gültigkeitsbereich, englisch Scope.',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-10-5',
+      frage: 'def rechne():\n    zwischensumme = 50\n\nrechne()\n'
+          'print(zwischensumme)\n'
+          'Was passiert?',
+      optionen: [
+        'Fehlermeldung: zwischensumme ist außerhalb unbekannt',
+        'Es gibt 50 aus',
+        'Es gibt None aus',
+      ],
+      richtig: 0,
+      erklaerung:
+          'zwischensumme lebt nur innerhalb von rechne() und wird nach '
+          'dem Aufruf entsorgt. Wer den Wert draußen braucht, gibt ihn '
+          'mit return heraus. Genau dafür ist return da.',
+    )),
+
+    AufgabenBlock(FehlerAufgabe(
+      id: 'py-10-6',
+      frage: 'Dieses Programm stürzt mit einem SyntaxError ab. Finde die '
+          'kaputte Zeile und schreib sie richtig.',
+      zeilen: [
+        'def gesamt(preis anzahl):',
+        '    return preis * anzahl',
+        '',
+        'print(gesamt(89, 5))',
+      ],
+      fehlerZeile: 0,
+      korrekturen: [
+        'def gesamt(preis, anzahl):',
+      ],
+      tipp: 'Wie werden mehrere Parameter in der Klammer getrennt?',
+      erklaerung:
+          'Zwischen Parametern gehört ein Komma. Ohne Komma liest Python '
+          '„preis anzahl" als ein kaputtes Wort und bricht ab. Ergebnis '
+          'nach dem Fix: 445.',
+    )),
+
+    AufgabenBlock(ReihenfolgeAufgabe(
+      id: 'py-10-7',
+      frage: 'Das Kassenprogramm: Funktion mit Rabatt-Standardwert '
+          'definieren, normal aufrufen, Ergebnis ausgeben.',
+      zeilen: [
+        'def kasse(betrag, rabatt=0):',
+        'return betrag - rabatt',
+        'zu_zahlen = kasse(500, 50)',
+        'print(f"{zu_zahlen} Euro")',
+      ],
+      einrueckung: [0, 1, 0, 0],
+      erklaerung:
+          'kasse(500, 50) überschreibt den Standardwert 0 mit 50, es '
+          'bleiben 450 Euro. Bei kasse(500) hätte der Standardwert '
+          'gegriffen und es wären 500 geblieben.',
+    )),
+  ],
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Lektion 11 — Dictionaries
+// ═══════════════════════════════════════════════════════════════════════════
+
+const _lektion11 = Lektion(
+  nr: 11,
+  slug: 'python-11',
+  titel: 'Dictionaries',
+  kurzbeschreibung:
+      'Daten mit Namen statt Nummern: der Artikel-Steckbrief der Nordwind GmbH.',
+  dauerMinuten: 18,
+  premium: true,
+  bloecke: [
+    UeberschriftBlock('Kurz zurückblicken'),
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-11-1',
+      frage: 'Aufwärmen aus Lektion 10:\n'
+          'def netto(brutto, steuer=19):\n'
+          '    return brutto / (1 + steuer / 100)\n\n'
+          'Welcher Aufruf nutzt den Standardwert?',
+      optionen: [
+        'netto(119)',
+        'netto(119, 7)',
+        'netto()',
+      ],
+      richtig: 0,
+      erklaerung:
+          'netto(119) lässt steuer weg, also greifen die 19 Prozent. '
+          'netto() würde abstürzen, denn brutto hat KEINEN Standardwert.',
+    )),
+
+    UeberschriftBlock('Daten mit Namen'),
+    TextBlock(
+      'In einer Liste findest du Werte über ihre Position: lager[0], '
+      'lager[1]. Bei einem Artikel mit Name, Preis und Bestand sind '
+      'Nummern aber unhandlich. Was war nochmal Position 2?',
+    ),
+    TextBlock(
+      'Das **Dictionary** (englisch für Wörterbuch) speichert Werte '
+      'unter frei gewählten **Schlüsseln**, wie ein Steckbrief: jedes '
+      'Feld hat einen Namen.',
+    ),
+    CodeBlock(
+      'artikel = {\n    "name": "Monitor",\n    "preis": 249,\n'
+      '    "bestand": 12,\n}\nprint(artikel["preis"])',
+      titel: 'Ausgabe: 249',
+    ),
+    TextBlock(
+      'Geschweifte Klammern statt eckiger, und jeder Eintrag ist ein '
+      'Paar aus `"schluessel": wert`. Zugreifen funktioniert wie bei der '
+      'Liste, nur steht in den eckigen Klammern der Schlüssel statt '
+      'einer Nummer.',
+    ),
+    HinweisBlock(
+      'Kommt dir das bekannt vor? Ein Dictionary ist wie EINE ZEILE aus '
+      'einer SQL-Tabelle: Spaltenname und Wert. Wer den SQL-Kurs gemacht '
+      'hat, ist hier sofort zu Hause.',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-11-2',
+      frage: 'artikel = {"name": "Monitor", "preis": 249}\n'
+          'Was gibt print(artikel["name"]) aus?',
+      optionen: [
+        'Monitor',
+        'name',
+        '249',
+      ],
+      richtig: 0,
+      erklaerung:
+          'Der Schlüssel "name" führt zum Wert "Monitor". Der Schlüssel '
+          'ist die Beschriftung, der Wert ist der Inhalt.',
+    )),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-11-3',
+      frage: 'Gib den Bestand des Artikels aus.',
+      vorlage: 'artikel = {"name": "Monitor", "preis": 249, "bestand": 12}\n'
+          'print(artikel[___])',
+      loesungen: [
+        ['"bestand"', "'bestand'"],
+      ],
+      bausteine: ['"bestand"', 'bestand', '2'],
+      erklaerung:
+          'Der Schlüssel ist ein Text und braucht deshalb '
+          'Anführungszeichen. Ohne sie sucht Python eine Variable namens '
+          'bestand, und die Nummer 2 funktioniert nur bei Listen, nicht '
+          'bei Dictionaries.',
+    )),
+
+    UeberschriftBlock('Ändern und ergänzen'),
+    TextBlock(
+      'Werte änderst du per Zuweisung an den Schlüssel. Und weist du '
+      'einem NEUEN Schlüssel etwas zu, wird das Feld einfach angelegt.',
+    ),
+    CodeBlock(
+      'artikel["preis"] = 199\nartikel["lagerplatz"] = "B12"',
+      titel: 'Preis geändert, neues Feld angelegt',
+    ),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-11-4',
+      frage: 'Der Monitor ist im Angebot. Setz den Preis auf 199.',
+      vorlage: 'artikel["preis"] ___ 199',
+      loesungen: [
+        ['='],
+      ],
+      bausteine: ['=', '==', 'ist'],
+      erklaerung:
+          'Die Zuweisung mit einfachem = überschreibt den Wert hinter dem '
+          'Schlüssel, genau wie bei einer normalen Variablen. == wäre '
+          'wieder nur die Frage, ob der Preis 199 IST.',
+    )),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-11-5',
+      frage: 'kunde = {"name": "Sommer"}\nkunde["ort"] = "Berlin"\n'
+          'Was steht danach im Dictionary?',
+      optionen: [
+        'name Sommer und ort Berlin',
+        'Nur ort Berlin, name ist weg',
+        'Nichts, das Programm stürzt ab',
+      ],
+      richtig: 0,
+      erklaerung:
+          'Die Zuweisung an den neuen Schlüssel "ort" legt das Feld '
+          'zusätzlich an, vorhandene Felder bleiben unberührt. So wächst '
+          'ein Steckbrief Feld für Feld.',
+    )),
+
+    AufgabenBlock(FehlerAufgabe(
+      id: 'py-11-6',
+      frage: 'Dieses Programm stürzt mit einem KeyError ab. Finde die '
+          'kaputte Zeile und schreib sie richtig.',
+      zeilen: [
+        'artikel = {"name": "Monitor", "preis": 249}',
+        'print(artikel["Preis"])',
+      ],
+      fehlerZeile: 1,
+      korrekturen: [
+        'print(artikel["preis"])',
+      ],
+      tipp: 'Vergleich den Schlüssel im print ganz genau mit dem im '
+          'Dictionary. Auch die Groß- und Kleinschreibung.',
+      erklaerung:
+          '"Preis" mit großem P ist für Python ein KOMPLETT anderer '
+          'Schlüssel als "preis". KeyError heißt: diesen Schlüssel gibt '
+          'es hier nicht. Schlüssel müssen aufs Zeichen genau stimmen.',
+    )),
+
+    AufgabenBlock(ReihenfolgeAufgabe(
+      id: 'py-11-7',
+      frage: 'Der Artikel-Steckbrief: anlegen, Preis senken, dann Name '
+          'und neuer Preis in einem Satz ausgeben.',
+      zeilen: [
+        'artikel = {"name": "Webcam", "preis": 89}',
+        'artikel["preis"] = 79',
+        'print(f"{artikel[\'name\']} kostet jetzt {artikel[\'preis\']} Euro")',
+      ],
+      erklaerung:
+          'Anlegen, ändern, ausgeben: Webcam kostet jetzt 79 Euro. Im '
+          'f-String stehen die Schlüssel in EINFACHEN Anführungszeichen, '
+          'damit sie sich nicht mit den doppelten des f-Strings beißen. '
+          'Ein kleiner, aber wichtiger Praxis-Trick.',
+    )),
+  ],
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Der Kurs
 // ═══════════════════════════════════════════════════════════════════════════
 // Lektion 4 bis 14 folgen. Reihenfolge laut Plan:
@@ -1257,5 +1957,9 @@ const pythonKurs = Kurs(
     _lektion5,
     _lektion6,
     _lektion7,
+    _lektion8,
+    _lektion9,
+    _lektion10,
+    _lektion11,
   ],
 );
