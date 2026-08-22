@@ -1933,6 +1933,547 @@ const _lektion11 = Lektion(
 );
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Lektion 12 — Strings können mehr
+// ═══════════════════════════════════════════════════════════════════════════
+
+const _lektion12 = Lektion(
+  nr: 12,
+  slug: 'python-12',
+  titel: 'Strings können mehr',
+  kurzbeschreibung:
+      'Text untersuchen, zerlegen und umbauen: upper, in, split und Ausschnitte.',
+  dauerMinuten: 18,
+  premium: true,
+  bloecke: [
+    UeberschriftBlock('Kurz zurückblicken'),
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-12-1',
+      frage: 'Aufwärmen aus Lektion 11:\n'
+          'kunde = {"name": "Sommer", "ort": "Berlin"}\n'
+          'print(kunde["ort"])\n'
+          'Was wird ausgegeben?',
+      optionen: [
+        'Berlin',
+        'ort',
+        'Sommer',
+      ],
+      richtig: 0,
+      erklaerung:
+          'Der Schlüssel "ort" liefert seinen Wert. Jetzt schauen wir '
+          'uns an, was man mit den Werten anstellen kann, wenn sie Text '
+          'sind.',
+    )),
+
+    UeberschriftBlock('Text hat eingebaute Werkzeuge'),
+    TextBlock(
+      'Jeder String bringt eigene Fähigkeiten mit, die du mit einem '
+      'Punkt dahinter aufrufst. Solche angehängten Befehle heißen '
+      '**Methoden**. Die zwei bekanntesten:',
+    ),
+    CodeBlock(
+      'name = "Monitor"\nprint(name.upper())\nprint(name.lower())',
+      titel: 'Ausgabe: MONITOR, dann monitor',
+    ),
+    TextBlock(
+      'upper macht alles groß, lower alles klein. Der Wert in `name` '
+      'bleibt dabei unverändert, die Methode liefert eine NEUE Version '
+      'des Textes.',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-12-2',
+      frage: 'Was gibt print("Nordwind".upper()) aus?',
+      optionen: [
+        'NORDWIND',
+        'nordwind',
+        'Nordwind',
+      ],
+      richtig: 0,
+      erklaerung:
+          'upper wandelt jeden Buchstaben in einen Großbuchstaben um. '
+          'Praktisch zum Beispiel, um Eingaben zu vergleichen, ohne dass '
+          'die Schreibweise stört.',
+    )),
+
+    UeberschriftBlock('Ist etwas enthalten? Das in'),
+    TextBlock(
+      'Mit dem Schlüsselwort `in` prüfst du, ob ein Text in einem '
+      'anderen vorkommt. Heraus kommt True oder False, wie bei den '
+      'Vergleichen aus Lektion 3. Der Klassiker: die Mini-Prüfung, ob '
+      'eine E-Mail-Adresse echt aussehen KÖNNTE.',
+    ),
+    CodeBlock(
+      'email = "info@nordwind.de"\nprint("@" in email)',
+      titel: 'Ausgabe: True',
+    ),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-12-3',
+      frage: 'Prüfe, ob im eingegebenen Text ein @ vorkommt.',
+      vorlage: 'if "@" ___ eingabe:\n    print("Könnte eine E-Mail sein")',
+      loesungen: [
+        ['in'],
+      ],
+      bausteine: ['in', '==', 'hat'],
+      erklaerung:
+          'in kennst du schon aus der for-Schleife, hier prüft es das '
+          'Vorkommen. == würde fragen, ob die GANZE Eingabe nur aus dem '
+          '@ besteht, das ist etwas völlig anderes.',
+    )),
+
+    UeberschriftBlock('Zerlegen mit split'),
+    TextBlock(
+      '`split` zerschneidet einen Text an einem Trennzeichen und liefert '
+      'eine Liste der Teile. Damit landest du wieder in der Welt von '
+      'Lektion 6 und kannst mit for darüberlaufen.',
+    ),
+    CodeBlock(
+      'zeile = "Maus,Tastatur,Monitor"\nteile = zeile.split(",")\n'
+      'print(teile)',
+      titel: 'Ausgabe: [\'Maus\', \'Tastatur\', \'Monitor\']',
+    ),
+    HinweisBlock(
+      'Genau so liest man CSV-Dateien, das Standardformat für '
+      'Datenexporte: eine Zeile, Kommas dazwischen, split, fertig ist '
+      'die Liste. Das begegnet dir im Betrieb garantiert.',
+    ),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-12-4',
+      frage: 'Die Lagerliste kommt als ein langer Text mit Kommas. '
+          'Zerlege sie in einzelne Artikel.',
+      vorlage: 'zeile = "Maus,Tastatur,Monitor"\n'
+          'artikel = zeile.___(",")',
+      loesungen: [
+        ['split'],
+      ],
+      bausteine: ['split', 'cut', 'teilen'],
+      erklaerung:
+          'split heißt spalten. artikel ist danach eine Liste mit drei '
+          'Einträgen, und artikel[0] wäre wieder die Maus.',
+    )),
+
+    UeberschriftBlock('Ausschnitte: Slicing'),
+    TextBlock(
+      'Mit eckigen Klammern und Doppelpunkt schneidest du ein Stück aus '
+      'einem Text: `"Monitor"[0:3]` ergibt `"Mon"`. Start bei 0, Ende '
+      'VOR dem zweiten Index, dieselbe Logik wie bei range aus '
+      'Lektion 7.',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-12-5',
+      frage: 'Was gibt print("Tastatur"[0:4]) aus?',
+      optionen: [
+        'Tast',
+        'Tasta',
+        'astat',
+      ],
+      richtig: 0,
+      erklaerung:
+          'Die Zeichen auf Index 0, 1, 2 und 3, also Tast. Der Index 4 '
+          'ist wie bei range NICHT mehr dabei. Einmal verstanden, gilt '
+          'die Regel überall in Python.',
+    )),
+
+    AufgabenBlock(FehlerAufgabe(
+      id: 'py-12-6',
+      frage: 'Das Programm soll MONITOR ausgeben, zeigt aber etwas '
+          'Seltsames mit "built-in method" an. Repariere die kaputte '
+          'Zeile.',
+      zeilen: [
+        'name = "Monitor"',
+        'print(name.upper)',
+      ],
+      fehlerZeile: 1,
+      korrekturen: [
+        'print(name.upper())',
+      ],
+      tipp: 'Eine Methode ist wie eine Funktion. Was gehört bei jedem '
+          'Aufruf dahinter?',
+      erklaerung:
+          'Ohne Klammern wird die Methode nicht AUSGEFÜHRT, sondern nur '
+          'als Objekt angezeigt. Die Klammern sind der Startknopf, bei '
+          'Methoden genauso wie bei Funktionen.',
+    )),
+
+    AufgabenBlock(ReihenfolgeAufgabe(
+      id: 'py-12-7',
+      frage: 'Die Nordwind GmbH baut Kundenkürzel: die ersten drei '
+          'Buchstaben des Nachnamens, großgeschrieben. Bring die Zeilen '
+          'in die richtige Reihenfolge.',
+      zeilen: [
+        'nachname = "Sommer"',
+        'kuerzel = nachname[0:3].upper()',
+        'print(f"Kundenkürzel: {kuerzel}")',
+      ],
+      erklaerung:
+          'Erst der Ausschnitt Som, darauf direkt upper zu SOM: Methoden '
+          'lassen sich verketten, es wird von links nach rechts '
+          'abgearbeitet. Ausgabe: Kundenkürzel: SOM.',
+    )),
+  ],
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Lektion 13 — Fehler lesen und abfangen
+// ═══════════════════════════════════════════════════════════════════════════
+
+const _lektion13 = Lektion(
+  nr: 13,
+  slug: 'python-13',
+  titel: 'Fehler lesen und abfangen',
+  kurzbeschreibung:
+      'Fehlermeldungen verstehen statt fürchten, und mit try/except absichern.',
+  dauerMinuten: 20,
+  premium: true,
+  bloecke: [
+    UeberschriftBlock('Kurz zurückblicken'),
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-13-1',
+      frage: 'Aufwärmen aus Lektion 12:\n'
+          'print("Drucker"[0:2])\n'
+          'Was wird ausgegeben?',
+      optionen: [
+        'Dr',
+        'Dru',
+        'ru',
+      ],
+      richtig: 0,
+      erklaerung:
+          'Index 0 und 1, Schluss vor Index 2: Dr. Und jetzt zu dem '
+          'Thema, vor dem Anfänger am meisten Respekt haben, völlig '
+          'unnötigerweise.',
+    )),
+
+    UeberschriftBlock('Fehlermeldungen sind Wegweiser'),
+    TextBlock(
+      'Eine Fehlermeldung ist kein Vorwurf, sie ist eine Wegbeschreibung: '
+      'Sie nennt die **Zeilennummer** und den **Fehlertyp**. Die '
+      'wichtigste Zeile steht immer GANZ UNTEN.',
+    ),
+    CodeBlock(
+      'Traceback (most recent call last):\n'
+      '  File "programm.py", line 2\n'
+      'NameError: name \'anzhal\' is not defined',
+      titel: 'So sieht eine echte Fehlermeldung aus',
+      sprache: 'text',
+    ),
+    TextBlock(
+      'Die Fehlertypen kennst du fast alle schon aus diesem Kurs:\n'
+      '- `SyntaxError`: Tippfehler im Aufbau, oft fehlt ein Doppelpunkt\n'
+      '- `NameError`: unbekannter Name, oft ein Tippfehler\n'
+      '- `TypeError`: Typen passen nicht, etwa Text plus Zahl\n'
+      '- `IndexError`: Listenindex zu groß\n'
+      '- `KeyError`: Dictionary-Schlüssel gibt es nicht',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-13-2',
+      frage: 'preis = 249\nprint(pries)\n'
+          'Welcher Fehlertyp erscheint?',
+      optionen: [
+        'NameError, pries ist nicht definiert',
+        'SyntaxError',
+        'TypeError',
+      ],
+      richtig: 0,
+      erklaerung:
+          'pries statt preis: für Python ein unbekannter Name, also '
+          'NameError. Bei einem NameError lohnt IMMER der Blick auf '
+          'Tippfehler, das ist in neun von zehn Fällen die Ursache.',
+    )),
+
+    AufgabenBlock(FehlerAufgabe(
+      id: 'py-13-3',
+      frage: 'Das Programm bricht mit NameError: name \'anzhal\' is not '
+          'defined ab. Nutze die Meldung und repariere die kaputte Zeile.',
+      zeilen: [
+        'anzahl = 12',
+        'print(anzhal * 2)',
+      ],
+      fehlerZeile: 1,
+      korrekturen: [
+        'print(anzahl * 2)',
+      ],
+      tipp: 'Die Fehlermeldung nennt dir den falsch geschriebenen Namen '
+          'wörtlich.',
+      erklaerung:
+          'anzhal war ein Buchstabendreher. So arbeitet man mit '
+          'Fehlermeldungen: Typ lesen, genannten Namen suchen, mit der '
+          'Definition vergleichen. Ausgabe nach dem Fix: 24.',
+    )),
+
+    UeberschriftBlock('Der Fehler, der keiner sein muss'),
+    TextBlock(
+      'Manche Fehler entstehen nicht durch kaputten Code, sondern durch '
+      'Dinge von außen: der Benutzer tippt "abc", wo eine Zahl erwartet '
+      'wird. `int("abc")` stürzt mit einem **ValueError** ab, und dein '
+      'Programm ist raus, obwohl der Code korrekt war.',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-13-4',
+      frage: 'eingabe = input("Stückzahl: ")\nanzahl = int(eingabe)\n'
+          'Der Benutzer tippt "drei". Was passiert?',
+      optionen: [
+        'ValueError, "drei" lässt sich nicht in eine Zahl wandeln',
+        'anzahl wird 3',
+        'anzahl wird 0',
+      ],
+      richtig: 0,
+      erklaerung:
+          'int() versteht nur Ziffern, das Wort drei nicht. Ohne '
+          'Absicherung stürzt hier das ganze Programm ab, wegen einer '
+          'einzigen Eingabe. Dagegen gibt es das Sicherheitsnetz.',
+    )),
+
+    UeberschriftBlock('Das Sicherheitsnetz: try und except'),
+    TextBlock(
+      'Mit `try` sagst du: „versuch das hier". Geht dabei etwas schief, '
+      'springt Python in den `except`-Block, statt abzustürzen. Wie ein '
+      'Netz unter dem Hochseil: der Sturz passiert, aber er tut nicht '
+      'weh.',
+    ),
+    CodeBlock(
+      'try:\n    anzahl = int(eingabe)\n    print(anzahl * 89)\n'
+      'except ValueError:\n    print("Bitte eine Zahl eingeben")',
+      titel: 'Absturz abgefangen',
+    ),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-13-5',
+      frage: 'Sichere die Umwandlung der Benutzereingabe ab.',
+      vorlage: '___:\n    anzahl = int(eingabe)\n'
+          '___ ValueError:\n    print("Bitte eine Zahl eingeben")',
+      loesungen: [
+        ['try'],
+        ['except'],
+      ],
+      bausteine: ['try', 'except', 'if', 'else'],
+      erklaerung:
+          'try umschließt den riskanten Teil, except fängt den genannten '
+          'Fehler. if/else können das nicht: sie prüfen Bedingungen, '
+          'aber sie fangen keine Abstürze.',
+    )),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-13-6',
+      frage: 'try:\n    anzahl = int("7")\n    print("Alles gut")\n'
+          'except ValueError:\n    print("Keine Zahl")\n'
+          'Was wird ausgegeben?',
+      optionen: [
+        'Alles gut',
+        'Keine Zahl',
+        'Beides',
+      ],
+      richtig: 0,
+      erklaerung:
+          '"7" lässt sich problemlos umwandeln, es passiert kein Fehler, '
+          'und der except-Block wird komplett übersprungen. Er läuft NUR '
+          'im Fehlerfall, wie else beim if nur im Sonst-Fall.',
+    )),
+
+    AufgabenBlock(ReihenfolgeAufgabe(
+      id: 'py-13-7',
+      frage: 'Die abgesicherte Stückzahl-Abfrage der Nordwind GmbH: '
+          'bring die Zeilen in die richtige Reihenfolge.',
+      zeilen: [
+        'eingabe = input("Stückzahl: ")',
+        'try:',
+        'anzahl = int(eingabe)',
+        'print(f"Preis: {anzahl * 89} Euro")',
+        'except ValueError:',
+        'print("Bitte eine ganze Zahl eingeben")',
+      ],
+      einrueckung: [0, 0, 1, 1, 0, 1],
+      erklaerung:
+          'Die Eingabe selbst ist harmlos und steht vor dem try. '
+          'Riskant ist nur die Umwandlung, deshalb stehen int und die '
+          'Preisrechnung im try-Block, und except steht auf gleicher '
+          'Höhe wie try. Genau so sehen robuste Eingaben in der Praxis '
+          'aus.',
+    )),
+  ],
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Lektion 14 — Alles zusammen
+// ═══════════════════════════════════════════════════════════════════════════
+
+const _lektion14 = Lektion(
+  nr: 14,
+  slug: 'python-14',
+  titel: 'Alles zusammen',
+  kurzbeschreibung:
+      'Komplette Programme lesen, Pseudocode übersetzen und das große Finale.',
+  dauerMinuten: 22,
+  premium: true,
+  bloecke: [
+    UeberschriftBlock('Kurz zurückblicken'),
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-14-1',
+      frage: 'Aufwärmen aus Lektion 13: Wann läuft der except-Block?',
+      optionen: [
+        'Nur wenn im try-Block ein passender Fehler passiert',
+        'Immer, direkt nach dem try-Block',
+        'Nie, er ist nur Dokumentation',
+      ],
+      richtig: 0,
+      erklaerung:
+          'except ist das Sicherheitsnetz und bleibt unsichtbar, solange '
+          'nichts schiefgeht. Und jetzt: alles aus 13 Lektionen in einem '
+          'Finale.',
+    )),
+
+    UeberschriftBlock('Programme lesen wie ein Profi'),
+    TextBlock(
+      'In der AP1 bekommst du fertigen Code und die Frage: „Was gibt '
+      'dieses Programm aus?" Die Technik dafür heißt Trockenlauf: geh '
+      'Zeile für Zeile durch und führ Buch über jede Variable, wie '
+      'Python es tun würde.',
+    ),
+    CodeBlock(
+      'preise = [249, 89, 512]\nteuer = 0\n'
+      'for preis in preise:\n    if preis > 100:\n'
+      '        teuer = teuer + 1\nprint(teuer)',
+      titel: 'Schleife und if, ineinander verschachtelt',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-14-2',
+      frage: 'Geh das Programm oben im Kopf durch. Was gibt es aus?',
+      optionen: [
+        '2',
+        '3',
+        '761',
+      ],
+      richtig: 0,
+      erklaerung:
+          'Trockenlauf: 249 > 100, teuer wird 1. 89 nicht, bleibt 1. '
+          '512 > 100, teuer wird 2. Das if steckt IN der Schleife und '
+          'wird bei jedem Durchlauf neu geprüft. So löst man diese '
+          'Fragen sicher: mitschreiben statt raten.',
+    )),
+
+    UeberschriftBlock('Vom Pseudocode zu Python'),
+    TextBlock(
+      'Prüfungsaufgaben beschreiben Abläufe oft in **Pseudocode** oder '
+      'als Struktogramm: deutsche Wörter, keine echte Sprache. Die '
+      'Übersetzung ist ein Wörterbuch mit vier Einträgen:\n'
+      '- WENN / SONST wird zu `if` / `else`\n'
+      '- SOLANGE wird zu `while`\n'
+      '- FÜR JEDES wird zu `for ... in`\n'
+      '- GIB AUS wird zu `print`',
+    ),
+
+    AufgabenBlock(AuswahlAufgabe(
+      id: 'py-14-3',
+      frage: 'Im Struktogramm steht: „SOLANGE Vorrat größer 0: verkaufe". '
+          'Welche Python-Zeile passt?',
+      optionen: [
+        'while vorrat > 0:',
+        'if vorrat > 0:',
+        'for vorrat in range(0):',
+      ],
+      richtig: 0,
+      erklaerung:
+          'SOLANGE ist wörtlich das while: wiederholen, bis die '
+          'Bedingung kippt. Ein if würde nur EINMAL prüfen und genau '
+          'einmal verkaufen.',
+    )),
+
+    AufgabenBlock(LueckenAufgabe(
+      id: 'py-14-4',
+      frage: 'Übersetze den Pseudocode in Python: „WENN der Bestand '
+          'kleiner als 5 ist, GIB AUS: Nachbestellen"',
+      vorlage: '___ bestand ___ 5:\n    print("Nachbestellen")',
+      loesungen: [
+        ['if'],
+        ['<'],
+      ],
+      bausteine: ['if', 'while', '<', '>', '=='],
+      erklaerung:
+          'WENN ist eine einmalige Prüfung, also if, und „kleiner als" '
+          'ist das <. Mit while würde die Warnung endlos wiederholt, '
+          'denn in der Schleife ändert sich der Bestand nicht.',
+    )),
+
+    AufgabenBlock(FehlerAufgabe(
+      id: 'py-14-5',
+      frage: 'Das Programm soll die Summe ALLER Preise ausgeben, zeigt '
+          'aber nur 45. Finde die kaputte Zeile und schreib sie richtig.',
+      zeilen: [
+        'preise = [249, 89, 45]',
+        'summe = 0',
+        'for preis in preise:',
+        '    summe = preis',
+        'print(summe)',
+      ],
+      fehlerZeile: 3,
+      korrekturen: [
+        'summe = summe + preis',
+        '    summe = summe + preis',
+        'summe += preis',
+        '    summe += preis',
+      ],
+      tipp: 'Vergleich die Zeile mit dem Summen-Muster aus Lektion 7. '
+          'Was fehlt auf der rechten Seite?',
+      erklaerung:
+          'summe = preis ÜBERSCHREIBT die Summe bei jedem Durchlauf, am '
+          'Ende bleibt nur der letzte Preis übrig. summe = summe + preis '
+          'rechnet ihn DAZU. Ein einziger fehlender Ausdruck, ein völlig '
+          'anderes Programm. Übrigens: summe += preis ist die Kurzform '
+          'davon.',
+    )),
+
+    UeberschriftBlock('Das Finale'),
+    TextBlock(
+      'Zum Abschluss ein komplettes Programm mit allem, was du gelernt '
+      'hast: Funktion, Liste, Schleife, if und f-String. Die Nordwind '
+      'GmbH will wissen, wie viele Artikel nachbestellt werden müssen.',
+    ),
+
+    AufgabenBlock(ReihenfolgeAufgabe(
+      id: 'py-14-6',
+      frage: 'Bring das komplette Nachbestell-Programm in die richtige '
+          'Reihenfolge. Achte auf die Einrückung: das if steckt in der '
+          'Schleife.',
+      zeilen: [
+        'def ist_knapp(bestand):',
+        'return bestand < 5',
+        'bestaende = [12, 3, 7, 1]',
+        'knapp = 0',
+        'for bestand in bestaende:',
+        'if ist_knapp(bestand):',
+        'knapp = knapp + 1',
+        'print(f"{knapp} Artikel nachbestellen")',
+      ],
+      einrueckung: [0, 1, 0, 0, 0, 1, 2, 0],
+      erklaerung:
+          'Funktion definieren, Daten anlegen, Zähler auf 0, dann pro '
+          'Bestand prüfen und zählen: 3 und 1 sind knapp, Ausgabe: 2 '
+          'Artikel nachbestellen. Wenn du dieses Programm fließend lesen '
+          'kannst, hast du das Fundament von Python komplett.',
+    )),
+
+    UeberschriftBlock('Geschafft!'),
+    TextBlock(
+      'Das war der Python-Kurs: von print("Hallo") bis zu einem '
+      'Programm aus Funktion, Liste, Schleife und Bedingung. Damit '
+      'liest du den Python-Code der AP1 nicht mehr als Zeichensalat, '
+      'sondern als das, was er ist: eine Anleitung von oben nach unten.',
+    ),
+    HinweisBlock(
+      'So bleibt es hängen: übe die Muster regelmäßig in den Levels, '
+      'fordere andere im Duell heraus, und wenn du Datenbanken noch '
+      'nicht hattest, wartet der SQL-Kurs mit derselben Nordwind GmbH '
+      'auf dich.',
+    ),
+  ],
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Der Kurs
 // ═══════════════════════════════════════════════════════════════════════════
 // Lektion 4 bis 14 folgen. Reihenfolge laut Plan:
@@ -1961,5 +2502,8 @@ const pythonKurs = Kurs(
     _lektion9,
     _lektion10,
     _lektion11,
+    _lektion12,
+    _lektion13,
+    _lektion14,
   ],
 );
