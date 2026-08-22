@@ -16,6 +16,7 @@ import '../zertifikate/certificate_overview_screen.dart';
 import '../levels/level_module_screen.dart';
 import '../kurse/kurs_uebersicht_screen.dart';
 import '../../data/kurse/sql_kurs.dart';
+import '../../data/kurse/python_kurs.dart';
 
 class LearningHubScreen extends StatefulWidget {
   const LearningHubScreen({super.key});
@@ -321,6 +322,30 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                         MaterialPageRoute(
                           builder: (_) =>
                               const KursUebersichtScreen(kurs: sqlKurs),
+                        ),
+                      );
+                      _loadCounts();
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _buildKursRow(
+                    tag: 'PY',
+                    tagColor: AppColors.warning,
+                    title: pythonKurs.titel,
+                    sub: 'Interaktiver Kurs, im Aufbau',
+                    count: '${pythonKurs.lektionen.length}',
+                    neu: true,
+                    surface: surface,
+                    border: border,
+                    text: text,
+                    textMid: textMid,
+                    textDim: textDim,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const KursUebersichtScreen(kurs: pythonKurs),
                         ),
                       );
                       _loadCounts();
