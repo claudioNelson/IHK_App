@@ -80,8 +80,18 @@ class _LektionScreenState extends State<LektionScreen> {
 
     for (final block in lektion.bloecke) {
       if (block is AufgabenBlock) {
-        abschliessen();
-        schritte.add([block]);
+        // Steht vor der Aufgabe NUR eine Überschrift (z. B. „Kurz
+        // zurückblicken"), gehört sie mit auf die Aufgabenseite. Sonst
+        // entstünde eine leere Seite, auf der nur die Überschrift steht.
+        final nurUeberschrift =
+            aktuell.length == 1 && aktuell.first is UeberschriftBlock;
+        if (nurUeberschrift) {
+          aktuell.add(block);
+          abschliessen();
+        } else {
+          abschliessen();
+          schritte.add([block]);
+        }
       } else if (block is UeberschriftBlock) {
         abschliessen();
         aktuell.add(block);
@@ -94,12 +104,11 @@ class _LektionScreenState extends State<LektionScreen> {
     return schritte;
   }
 
-  bool _istAufgabe(int index) =>
-      _schritte[index].length == 1 && _schritte[index].first is AufgabenBlock;
+  bool _istAufgabe(int index) => _schritte[index].last is AufgabenBlock;
 
   KursAufgabe? _aufgabeVon(int index) {
     if (!_istAufgabe(index)) return null;
-    return (_schritte[index].first as AufgabenBlock).aufgabe;
+    return (_schritte[index].last as AufgabenBlock).aufgabe;
   }
 
   void _melden(String id, bool richtig) {
@@ -171,18 +180,47 @@ class _LektionScreenState extends State<LektionScreen> {
           // Ada ist auf jeder Seite erreichbar. Steht der Nutzer gerade
           // auf einer Aufgabe, bekommt sie deren Text als Kontext mit,
           // darf aber laut Prompt die Loesung nicht verraten.
-          IconButton(
-            tooltip: 'Ada fragen',
-            onPressed: () => zeigeAdaKursSheet(
-              context,
-              kursTitel: widget.kursTitel.isEmpty
-                  ? 'Kurs'
-                  : widget.kursTitel,
-              lektionsTitel:
-                  'Lektion ${widget.lektion.nr}: ${widget.lektion.titel}',
-              aufgabenText: istAbschluss ? null : _aufgabeVon(_aktuell)?.frage,
+          // Deutlich sichtbarer Ada-Knopf: Pill mit Symbol und Text,
+          // damit Azubis die Hilfe auch wirklich finden (ein nacktes
+          // Icon hat im Test niemand als Ada erkannt).
+          Center(
+            child: Material(
+              color: farben.primary.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () => zeigeAdaKursSheet(
+                  context,
+                  kursTitel: widget.kursTitel.isEmpty
+                      ? 'Kurs'
+                      : widget.kursTitel,
+                  lektionsTitel:
+                      'Lektion ${widget.lektion.nr}: ${widget.lektion.titel}',
+                  aufgabenText:
+                      istAbschluss ? null : _aufgabeVon(_aktuell)?.frage,
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.psychology_rounded,
+                          size: 18, color: farben.primary),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Ada',
+                        style: TextStyle(
+                          color: farben.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            icon: Icon(Icons.school_outlined, color: farben.primary),
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16),
