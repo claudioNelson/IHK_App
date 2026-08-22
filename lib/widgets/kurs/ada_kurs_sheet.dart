@@ -5,8 +5,9 @@
 // mitgibt. Läuft über GeminiService -> Edge Function ai-tutor, damit das
 // serverseitige Tageslimit (5 Fragen für Free-Nutzer) automatisch gilt.
 //
-// Ada verrät keine Lösungen: der Kontext-Prompt weist sie an, zum
-// Selbstdenken anzuleiten statt die fertige Abfrage zu liefern.
+// Ada erklärt einfach und mit Alltagsvergleichen. Ungefragt verrät sie
+// keine Lösungen, aber wer ausdrücklich danach fragt, bekommt sie samt
+// kurzer Erklärung (Entscheidung 21.08.: kein sturer Lösungs-Verweigerer).
 
 import 'package:flutter/material.dart';
 
@@ -65,19 +66,31 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
   final List<Map<String, String>> _historie = [];
   bool _laedt = false;
 
-  /// Kontext, den Ada zu jeder Frage bekommt. Wichtig: sie soll helfen,
-  /// nicht vorsagen. Sonst ist der Kurs ein Lösungsautomat.
+  /// Kontext, den Ada zu jeder Frage bekommt. Sie soll einfach erklären
+  /// und erst auf ausdrückliche Nachfrage die Lösung zeigen.
   String get _kontext {
+    const stil = '\nSO ERKLÄRST DU: Sprich so einfach, dass es ein '
+        '14-Jähriger ohne Vorwissen versteht. Kurze Sätze. Nutze einen '
+        'Alltagsvergleich, wenn er wirklich passt (eine Tabelle ist wie '
+        'eine Excel-Liste, WHERE ist wie ein Filter beim Online-Shop, '
+        'JOIN ist wie zwei Listen nebeneinanderlegen). Kein Fachwort ohne '
+        'sofortige Erklärung in Klammern. Antworte kurz, das ist ein Chat: '
+        'meist 3 bis 6 Sätze. Verwende keine Gedankenstriche.';
+
     final aufgabe = widget.aufgabenText != null
         ? '\nDer Azubi arbeitet gerade an dieser Aufgabe:\n'
             '${widget.aufgabenText}\n'
-            'WICHTIG: Nenne NIEMALS die fertige Lösung oder die komplette '
-            'Abfrage. Leite zum Selbstdenken an, erkläre Konzepte, gib '
-            'höchstens den nächsten Denkschritt.'
+            'LÖSUNGS-REGEL: Sag die fertige Lösung nicht ungefragt vor. '
+            'Erkläre zuerst das Konzept oder den nächsten Denkschritt. '
+            'ABER: Wenn der Azubi ausdrücklich nach der Lösung fragt '
+            '(zum Beispiel "zeig mir die Lösung", "wie lautet die Abfrage"), '
+            'dann gib sie ihm vollständig und erkläre in ein bis zwei '
+            'einfachen Sätzen, warum sie funktioniert. Niemals die Lösung '
+            'verweigern, wenn direkt danach gefragt wird.'
         : '';
 
     return 'Kurs: ${widget.kursTitel}, '
-        'Lektion: ${widget.lektionsTitel}.$aufgabe';
+        'Lektion: ${widget.lektionsTitel}.$stil$aufgabe';
   }
 
   @override
@@ -190,10 +203,7 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
                     child: Padding(
                       padding: const EdgeInsets.all(28),
                       child: Text(
-                        widget.aufgabenText != null
-                            ? 'Frag mich etwas zur Aufgabe. Ich helfe beim '
-                                'Verstehen, verrate aber nicht die Lösung.'
-                            : 'Frag mich etwas zu dieser Lektion.',
+                        'Hi, ich bin Ada, deine KI-Tutorin.',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: farben.onSurfaceVariant),
                       ),
