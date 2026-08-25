@@ -8,6 +8,7 @@ import '../../data/themen_summaries.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
+import '../../theme/modul_stil.dart';
 
 class ThemenListe extends StatefulWidget {
   final int modulId;
@@ -640,6 +641,8 @@ class _ThemenListeState extends State<ThemenListe> {
         : score > 0
         ? AppColors.warning
         : textDim;
+    // Akzentfarbe des Moduls, gleicher Look wie auf der Modul-Liste.
+    final stil = modulStil(widget.modulName);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -674,12 +677,12 @@ class _ThemenListeState extends State<ThemenListe> {
                     decoration: BoxDecoration(
                       color: !unlocked
                           ? border.withOpacity(0.5)
-                          : AppColors.accent.withOpacity(0.12),
+                          : stil.farbe.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: !unlocked
                             ? border
-                            : AppColors.accent.withOpacity(0.3),
+                            : stil.farbe.withOpacity(0.3),
                       ),
                     ),
                     child: Center(
@@ -688,7 +691,7 @@ class _ThemenListeState extends State<ThemenListe> {
                               '#${(index + 1).toString().padLeft(2, '0')}',
                               style: AppTextStyles.mono(
                                 size: 11,
-                                color: AppColors.accent,
+                                color: stil.farbe,
                                 weight: FontWeight.w700,
                                 letterSpacing: 0.5,
                               ),
@@ -726,18 +729,15 @@ class _ThemenListeState extends State<ThemenListe> {
 
                   const SizedBox(width: 8),
 
-                  // Right: Status-Badge oder Arrow
-                  if (unlocked && isPerfect)
-                    _statusBadge('100%', AppColors.accentCyan)
-                  else if (unlocked && isPassed)
-                    _statusBadge('✓', AppColors.success)
-                  else if (unlocked && score > 0)
-                    _scoreDisplay(score, scoreColor)
-                  else if (unlocked)
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: textDim,
-                      size: 12,
+                  // Right: Fortschrittsring (gleicher Look wie Modul-Liste)
+                  if (unlocked)
+                    FortschrittsRing(
+                      wert: score / 100,
+                      farbe: score > 0 ? scoreColor : stil.farbe,
+                      hintergrund: border,
+                      fertig: isPassed,
+                      textFarbe: textMid,
+                      klein: true,
                     ),
                 ],
               ),
@@ -894,42 +894,6 @@ class _ThemenListeState extends State<ThemenListe> {
     return Wrap(spacing: 12, runSpacing: 4, children: parts);
   }
 
-  Widget _statusBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.mono(
-          size: 10,
-          color: color,
-          weight: FontWeight.w700,
-          letterSpacing: 1,
-        ),
-      ),
-    );
-  }
-
-  Widget _scoreDisplay(double score, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          '${score.toInt()}%',
-          style: AppTextStyles.interTight(
-            size: 15,
-            weight: FontWeight.w700,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ─── EMPTY ───────────────────────────────────
   Widget _buildEmpty(Color textMid, Color textDim) {
     return Center(
       child: Column(
