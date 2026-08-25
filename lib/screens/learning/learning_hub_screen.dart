@@ -332,7 +332,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     tag: 'PY',
                     tagColor: AppColors.warning,
                     title: pythonKurs.titel,
-                    sub: 'Interaktiver Kurs, im Aufbau',
+                    sub: 'Interaktiver Kurs, ganz ohne Vorwissen',
                     count: '${pythonKurs.lektionen.length}',
                     neu: true,
                     surface: surface,

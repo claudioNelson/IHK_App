@@ -17,6 +17,7 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/question_validator.dart';
 import '../../mixins/practice_limit_mixin.dart';
+import '../../services/thema_score_service.dart';
 
 class TestFragen extends StatefulWidget {
   final int modulId;
@@ -42,6 +43,12 @@ class _TestFragenState extends State<TestFragen>
   int currentIndex = 0;
   bool loading = true;
   Set<int> beantworteteFragen = {};
+
+  /// Nur die in DIESER Runde richtig beantworteten Fragen. Der
+  /// Ergebnis-Dialog wertet ausschliesslich diese Menge, sonst zaehlen
+  /// richtige Antworten aus frueheren Sitzungen mit und jede Runde
+  /// zeigt 100 %.
+  final Set<int> _rundeRichtig = {};
   int? selectedAnswer;
   bool hasAnswered = false;
   String? generatedExplanation;
@@ -166,7 +173,10 @@ class _TestFragenState extends State<TestFragen>
         frageId: frageId,
         isCorrect: isCorrect,
       );
-      if (isCorrect) beantworteteFragen.add(frageId);
+      if (isCorrect) {
+        beantworteteFragen.add(frageId);
+        _rundeRichtig.add(frageId);
+      }
     } catch (e) {
       debugPrint('Fehler beim Speichern: $e');
     }
@@ -320,6 +330,16 @@ class _TestFragenState extends State<TestFragen>
     }
   }
 
+  /// Speichert das beste Runden-Ergebnis dieses Themas, lokal und in
+  /// der Cloud (ueberlebt damit Logout und Geraetewechsel).
+  Future<void> _besteScoreSpeichern(int prozent) async {
+    await ThemaScoreService().speichern(
+      modulId: widget.modulId,
+      themaId: widget.themaId,
+      prozent: prozent.toDouble(),
+    );
+  }
+
   void _showCompletionDialog() {
     final isDark = context.read<ThemeProvider>().isDark;
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
@@ -330,10 +350,16 @@ class _TestFragenState extends State<TestFragen>
 
     final allFragenIds = fragen.map((f) => f['id'] as int).toSet();
     final richtigInSession = allFragenIds
-        .intersection(beantworteteFragen)
+        .intersection(_rundeRichtig)
         .length;
     final gesamt = fragen.length;
     final prozent = ((richtigInSession / gesamt) * 100).toInt();
+
+    // Bestes Ergebnis sichern: Die Themenliste liest genau diesen
+    // Schluessel fuer "bestanden", Ø-Score und die Freischaltung des
+    // naechsten Themas. Ohne diese Zeile blieb der Score fuer immer 0
+    // (Kunden-Bugreport 22.08.2026).
+    _besteScoreSpeichern(prozent);
 
     Color color;
     String bewertung;

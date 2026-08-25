@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'test_fragen_screen.dart';
+import '../../services/thema_score_service.dart';
 import '../../services/app_cache_service.dart';
 import '../../data/themen_summaries.dart';
 import '../../theme/app_colors.dart';
@@ -98,12 +98,14 @@ class _ThemenListeState extends State<ThemenListe> {
 
   Future<void> _loadScores() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      for (final t in themen) {
-        final id = t['id'] as int;
-        final key = _scoreKey(widget.modulId, id);
-        cachedScores[id] = prefs.getDouble(key) ?? 0.0;
-      }
+      // Lokal plus Cloud (Maximum), damit der Fortschritt Logout und
+      // Geraetewechsel ueberlebt.
+      final ids = themen.map((t) => t['id'] as int).toList();
+      final scores =
+          await ThemaScoreService().ladeFuerModul(widget.modulId, ids);
+      cachedScores
+        ..clear()
+        ..addAll(scores);
       if (mounted) setState(() {});
     } catch (_) {}
   }
@@ -115,17 +117,19 @@ class _ThemenListeState extends State<ThemenListe> {
           .select('id, thema_id')
           .eq('modul_id', widget.modulId);
 
+      // Frisch zaehlen statt auf den alten Stand draufzuaddieren.
+      // Vorher summierte jeder Reload weiter auf, dadurch standen auf den
+      // Kacheln Vielfache der echten Fragenzahl (z. B. 77 statt 11).
+      final neu = <int, int>{};
       for (final frage in alleFragen) {
         final themaId = frage['thema_id'] as int;
-        fragenCount[themaId] = (fragenCount[themaId] ?? 0) + 1;
+        neu[themaId] = (neu[themaId] ?? 0) + 1;
       }
+      fragenCount = neu;
     } catch (e) {
       debugPrint('Fehler beim Laden der Fragen-Counts: $e');
     }
   }
-
-  static String _scoreKey(int modulId, int themaId) =>
-      'score_mod_${modulId}_thema_$themaId';
 
   bool _isUnlocked(Map<String, dynamic> thema) {
     final int? unlockedBy = thema['unlocked_by'] as int?;

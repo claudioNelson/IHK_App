@@ -80,12 +80,17 @@ class _ReportDialogState extends State<ReportDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final farben = Theme.of(context).colorScheme;
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 500),
-        padding: const EdgeInsets.all(24),
-        child: Column(
+        // Scrollbar statt Overflow: auf kleinen Schirmen oder mit offener
+        // Tastatur lief der Inhalt sonst unten aus dem Dialog heraus.
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -154,14 +159,18 @@ class _ReportDialogState extends State<ReportDialog> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
+                        // Theme-Farben statt fixem Hellgrau: im Dark Mode
+                        // war die weisse Schrift auf den hellen Karten
+                        // unsichtbar.
                         color: _selectedType == entry.key
-                            ? Colors.orange.shade50
-                            : Colors.grey.shade50,
+                            ? Colors.orange.withValues(alpha: 0.14)
+                            : farben.surfaceContainerHighest
+                                .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _selectedType == entry.key
                               ? Colors.orange
-                              : Colors.grey.shade300,
+                              : farben.outlineVariant,
                           width: 2,
                         ),
                       ),
@@ -211,7 +220,8 @@ class _ReportDialogState extends State<ReportDialog> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 filled: true,
-                fillColor: Colors.grey.shade50,
+                fillColor:
+                    farben.surfaceContainerHighest.withValues(alpha: 0.5),
               ),
             ),
 
@@ -263,6 +273,7 @@ class _ReportDialogState extends State<ReportDialog> {
               ],
             ),
           ],
+          ),
         ),
       ),
     );
