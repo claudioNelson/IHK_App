@@ -26,10 +26,14 @@ class _ModulListeState extends State<ModulListe> {
   bool loading = true;
   bool _showAsList = true;
 
+  /// Zuletzt geöffnetes Modul für die "Weiterlernen"-Karte.
+  int? _weiterModulId;
+
   @override
   void initState() {
     super.initState();
     _loadViewPreference();
+    _loadWeiterlernen();
     final cacheService = AppCacheService();
     if (cacheService.modulesLoaded && cacheService.cachedModule.isNotEmpty) {
       module = cacheService.cachedModule;
@@ -54,6 +58,63 @@ class _ModulListeState extends State<ModulListe> {
     final prefs = await SharedPreferences.getInstance();
     setState(() => _showAsList = !_showAsList);
     await prefs.setBool('module_view_as_list', _showAsList);
+  }
+
+  Future<void> _loadWeiterlernen() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() => _weiterModulId = prefs.getInt('weiterlernen_modul_id'));
+  }
+
+  Future<void> _merkeWeiterlernen(int modulId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('weiterlernen_modul_id', modulId);
+    if (mounted) setState(() => _weiterModulId = modulId);
+  }
+
+  /// Icon und Akzentfarbe je Modul, erkannt am Namen. Gibt der Liste
+  /// Gesichter statt sechzehn identischer Kacheln.
+  ({IconData icon, Color farbe}) _modulStil(String name) {
+    final n = name.toLowerCase();
+    if (n.contains('netzwerk')) {
+      return (icon: Icons.hub_outlined, farbe: AppColors.accentCyan);
+    }
+    if (n.contains('sicherheit') || n.contains('security')) {
+      return (icon: Icons.shield_outlined, farbe: AppColors.error);
+    }
+    if (n.contains('datenbank') || n.contains('sql')) {
+      return (icon: Icons.storage_rounded, farbe: AppColors.info);
+    }
+    if (n.contains('algorithm') || n.contains('datenstruktur')) {
+      return (icon: Icons.account_tree_outlined, farbe: AppColors.warning);
+    }
+    if (n.contains('programmier')) {
+      return (icon: Icons.code_rounded, farbe: AppColors.accent);
+    }
+    if (n.contains('linux') || n.contains('betriebssystem')) {
+      return (icon: Icons.terminal_rounded, farbe: AppColors.success);
+    }
+    if (n.contains('hardware') || n.contains('it-grundlagen')) {
+      return (icon: Icons.memory_rounded, farbe: AppColors.azureBlue);
+    }
+    if (n.contains('web')) {
+      return (icon: Icons.public_rounded, farbe: AppColors.gcpBlue);
+    }
+    if (n.contains('cloud') || n.contains('devops')) {
+      return (icon: Icons.cloud_outlined, farbe: AppColors.accentCyan);
+    }
+    if (n.contains('projekt')) {
+      return (icon: Icons.assignment_outlined, farbe: AppColors.sapBlue);
+    }
+    if (n.contains('wiso') ||
+        n.contains('wirtschaft') ||
+        n.contains('recht')) {
+      return (icon: Icons.gavel_rounded, farbe: AppColors.awsOrange);
+    }
+    if (n.contains('mathe') || n.contains('zahlensystem')) {
+      return (icon: Icons.calculate_outlined, farbe: AppColors.warning);
+    }
+    return (icon: Icons.school_outlined, farbe: AppColors.accent);
   }
 
   Future<void> ladeModule() async {
@@ -111,6 +172,7 @@ class _ModulListeState extends State<ModulListe> {
   }
 
   void _openModul(Map<String, dynamic> modul) {
+    _merkeWeiterlernen(modul['id'] as int);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -241,6 +303,10 @@ class _ModulListeState extends State<ModulListe> {
       children: [
         // Stats-Banner
         _buildStatsBanner(surface, border, text, textMid, textDim),
+
+        // Weiterlernen: eine Karte fuer das zuletzt geoeffnete Modul,
+        // damit der haeufigste Klick der bequemste ist.
+        ..._buildWeiterKarte(surface, border, text, textMid, textDim),
 
         const SizedBox(height: 32),
 
@@ -387,6 +453,76 @@ class _ModulListeState extends State<ModulListe> {
     );
   }
 
+  // ─── WEITERLERNEN-KARTE ──────────────────────
+  List<Widget> _buildWeiterKarte(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    if (_weiterModulId == null) return const [];
+    final treffer = module.where((m) => m['id'] == _weiterModulId).toList();
+    if (treffer.isEmpty) return const [];
+
+    final modul = treffer.first as Map<String, dynamic>;
+    final stil = _modulStil(modul['name'] ?? '');
+    final total = anzahlFragen[_weiterModulId!] ?? 0;
+    final answered = beantworteteFragen[_weiterModulId!] ?? 0;
+
+    return [
+      const SizedBox(height: 12),
+      GestureDetector(
+        onTap: () => _openModul(modul),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: stil.farbe.withOpacity(0.10),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: stil.farbe.withOpacity(0.35)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: stil.farbe.withOpacity(0.16),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.play_arrow_rounded,
+                    color: stil.farbe, size: 26),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('WEITERLERNEN',
+                        style: AppTextStyles.monoLabel(stil.farbe)),
+                    const SizedBox(height: 4),
+                    Text(
+                      modul['name'] ?? '',
+                      style: AppTextStyles.labelLarge(text),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (total > 0) ...[
+                      const SizedBox(height: 2),
+                      Text('$answered / $total Fragen',
+                          style: AppTextStyles.monoSmall(textDim)),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_rounded, color: stil.farbe, size: 20),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
   Widget _statMini(String value, String label, Color text, Color textDim) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,7 +569,7 @@ class _ModulListeState extends State<ModulListe> {
     final answered = beantworteteFragen[modulId] ?? 0;
     final progress = total > 0 ? answered / total : 0.0;
     final isComplete = total > 0 && answered >= total;
-    final isStarted = answered > 0;
+    final stil = _modulStil(modul['name'] ?? '');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -448,123 +584,49 @@ class _ModulListeState extends State<ModulListe> {
               color: isComplete ? AppColors.success.withOpacity(0.4) : border,
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  // Modul-ID Badge
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: isComplete
-                          ? AppColors.success.withOpacity(0.12)
-                          : AppColors.accent.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isComplete
-                            ? AppColors.success.withOpacity(0.3)
-                            : AppColors.accent.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Center(
-                      child: isComplete
-                          ? Icon(
-                              Icons.check_rounded,
-                              color: AppColors.success,
-                              size: 20,
-                            )
-                          : Text(
-                              _formatModulNumber(modulId),
-                              style: AppTextStyles.mono(
-                                size: 12,
-                                color: AppColors.accent,
-                                weight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  // Name
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          modul['name'] ?? '',
-                          style: AppTextStyles.labelLarge(text),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (isStarted) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            '$answered / $total Fragen',
-                            style: AppTextStyles.monoSmall(textDim),
-                          ),
-                        ] else ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            '$total Fragen',
-                            style: AppTextStyles.monoSmall(textDim),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  // Progress oder Badge
-                  if (isComplete)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'FERTIG',
-                        style: AppTextStyles.mono(
-                          size: 9,
-                          color: AppColors.success,
-                          weight: FontWeight.w700,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    )
-                  else if (isStarted)
-                    Text(
-                      '${(progress * 100).round()}%',
-                      style: AppTextStyles.interTight(
-                        size: 14,
-                        weight: FontWeight.w700,
-                        color: AppColors.accent,
-                      ),
-                    )
-                  else
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: textDim,
-                      size: 12,
-                    ),
-                ],
-              ),
-              // Progress Bar (nur wenn gestartet und nicht fertig)
-              if (isStarted && !isComplete) ...[
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: border,
-                    valueColor: const AlwaysStoppedAnimation(AppColors.accent),
-                    minHeight: 2,
-                  ),
+              // Themen-Icon in Modulfarbe
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: stil.farbe.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: stil.farbe.withOpacity(0.3)),
                 ),
-              ],
+                child: Icon(stil.icon, color: stil.farbe, size: 20),
+              ),
+              const SizedBox(width: 14),
+              // Name + Fragen
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      modul['name'] ?? '',
+                      style: AppTextStyles.labelLarge(text),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      answered > 0
+                          ? '$answered / $total Fragen'
+                          : '$total Fragen',
+                      style: AppTextStyles.monoSmall(textDim),
+                    ),
+                  ],
+                ),
+              ),
+              // Fortschrittsring
+              _FortschrittsRing(
+                wert: progress,
+                farbe: isComplete ? AppColors.success : stil.farbe,
+                hintergrund: border,
+                fertig: isComplete,
+                textFarbe: textMid,
+              ),
             ],
           ),
         ),
@@ -618,7 +680,7 @@ class _ModulListeState extends State<ModulListe> {
     final answered = beantworteteFragen[modulId] ?? 0;
     final progress = total > 0 ? answered / total : 0.0;
     final isComplete = total > 0 && answered >= total;
-    final isStarted = answered > 0;
+    final stil = _modulStil(modul['name'] ?? '');
 
     return GestureDetector(
       onTap: () => _openModul(modul),
@@ -641,46 +703,20 @@ class _ModulListeState extends State<ModulListe> {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: isComplete
-                        ? AppColors.success.withOpacity(0.12)
-                        : AppColors.accent.withOpacity(0.12),
+                    color: stil.farbe.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isComplete
-                          ? AppColors.success.withOpacity(0.3)
-                          : AppColors.accent.withOpacity(0.3),
-                    ),
+                    border: Border.all(color: stil.farbe.withOpacity(0.3)),
                   ),
-                  child: Center(
-                    child: isComplete
-                        ? Icon(
-                            Icons.check_rounded,
-                            color: AppColors.success,
-                            size: 16,
-                          )
-                        : Text(
-                            _formatModulNumber(modulId),
-                            style: AppTextStyles.mono(
-                              size: 10,
-                              color: AppColors.accent,
-                              weight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                  ),
+                  child: Icon(stil.icon, color: stil.farbe, size: 17),
                 ),
-                if (isComplete)
-                  Icon(Icons.star_rounded, color: AppColors.success, size: 16)
-                else if (isStarted)
-                  Text(
-                    '${(progress * 100).round()}%',
-                    style: AppTextStyles.mono(
-                      size: 11,
-                      color: AppColors.accent,
-                      weight: FontWeight.w700,
-                      letterSpacing: 0,
-                    ),
-                  ),
+                _FortschrittsRing(
+                  wert: progress,
+                  farbe: isComplete ? AppColors.success : stil.farbe,
+                  hintergrund: border,
+                  fertig: isComplete,
+                  textFarbe: textMid,
+                  klein: true,
+                ),
               ],
             ),
             const Spacer(),
@@ -699,7 +735,7 @@ class _ModulListeState extends State<ModulListe> {
                 value: progress,
                 backgroundColor: border,
                 valueColor: AlwaysStoppedAnimation(
-                  isComplete ? AppColors.success : AppColors.accent,
+                  isComplete ? AppColors.success : stil.farbe,
                 ),
                 minHeight: 2,
               ),
@@ -708,16 +744,6 @@ class _ModulListeState extends State<ModulListe> {
         ),
       ),
     );
-  }
-
-  // Formatiert Modul-IDs zu schönen 2-stelligen Labels
-  // 9001-9011 → 01-11, andere bleiben wie sie sind
-  String _formatModulNumber(int id) {
-    if (id >= 9001 && id <= 9099) {
-      return (id - 9000).toString().padLeft(2, '0');
-    }
-    if (id < 100) return id.toString().padLeft(2, '0');
-    return id.toString();
   }
 
   // ─── EMPTY ───────────────────────────────────
@@ -733,6 +759,60 @@ class _ModulListeState extends State<ModulListe> {
           Text(
             'Zieh runter um zu aktualisieren',
             style: AppTextStyles.bodySmall(textDim),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── FORTSCHRITTSRING ──────────────────────────
+/// Kleiner Kreisring mit Prozentzahl, bei fertigen Modulen ein Haken.
+class _FortschrittsRing extends StatelessWidget {
+  final double wert;
+  final Color farbe;
+  final Color hintergrund;
+  final bool fertig;
+  final Color textFarbe;
+  final bool klein;
+
+  const _FortschrittsRing({
+    required this.wert,
+    required this.farbe,
+    required this.hintergrund,
+    required this.fertig,
+    required this.textFarbe,
+    this.klein = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final groesse = klein ? 34.0 : 42.0;
+    return SizedBox(
+      width: groesse,
+      height: groesse,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CircularProgressIndicator(
+            value: wert.clamp(0.0, 1.0),
+            strokeWidth: klein ? 3 : 3.5,
+            backgroundColor: hintergrund,
+            valueColor: AlwaysStoppedAnimation(farbe),
+            strokeCap: StrokeCap.round,
+          ),
+          Center(
+            child: fertig
+                ? Icon(Icons.check_rounded, color: farbe, size: klein ? 15 : 18)
+                : Text(
+                    '${(wert * 100).round()}',
+                    style: AppTextStyles.mono(
+                      size: klein ? 9 : 11,
+                      color: wert > 0 ? farbe : textFarbe,
+                      weight: FontWeight.w700,
+                      letterSpacing: 0,
+                    ),
+                  ),
           ),
         ],
       ),
