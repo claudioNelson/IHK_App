@@ -15,6 +15,8 @@ import '../auth/upgrade_account_screen.dart';
 import '../../services/subscription_service.dart';
 import '../legal/legal_document_screen.dart';
 import '../../services/daily_goal_service.dart';
+import '../../services/bereitschafts_service.dart';
+import '../../theme/modul_stil.dart';
 import '../../widgets/streak_calendar.dart';
 
 class NewProfilePage extends StatefulWidget {
@@ -35,12 +37,14 @@ class _NewProfilePageState extends State<NewProfilePage> {
   List<Map<String, dynamic>> _myBadges = [];
 
   // Learning progress
-  int _questionsAnswered = 0;
-  int _correctAnswered = 0;
   int _streakDays = 0;
   int _certsPassed = 0;
   int _examsPassed = 0;
   Map<DateTime, int> _activeDayCounts = {};
+
+  // Pruefungsbereitschaft (gemeisterte Themen im Uebungsbereich)
+  Bereitschaft? _bereitschaft;
+  bool _bereitschaftOffen = false;
 
   bool _loading = true;
   bool _notificationsEnabled = true;
@@ -106,11 +110,6 @@ class _NewProfilePageState extends State<NewProfilePage> {
             )
             .eq('user_id', userId)
             .maybeSingle(),
-        // Learning Progress — Anzahl beantworteter Fragen
-        _supabase
-            .from('user_progress')
-            .select('is_correct')
-            .eq('user_id', userId),
         // Bestandene Zertifikate
         _supabase
             .from('user_certificates')
@@ -123,17 +122,14 @@ class _NewProfilePageState extends State<NewProfilePage> {
             .select('id')
             .eq('user_id', userId)
             .eq('passed', true),
+        // Pruefungsbereitschaft (Themen gemeistert je Modul)
+        BereitschaftsService().laden(),
       ]);
 
       final playerStats = results[0] as Map<String, dynamic>?;
-      final progressData = results[1] as List<dynamic>;
-      final certs = results[2] as List<dynamic>;
-      final exams = results[3] as List<dynamic>;
-
-      final totalAnswered = progressData.length;
-      final totalCorrect = progressData
-          .where((r) => (r as Map)['is_correct'] == true)
-          .length;
+      final certs = results[1] as List<dynamic>;
+      final exams = results[2] as List<dynamic>;
+      final bereitschaft = results[3] as Bereitschaft?;
 
       // Streak aus lokalen Prefs
       final streak = await _calcStreak();
@@ -144,10 +140,9 @@ class _NewProfilePageState extends State<NewProfilePage> {
       if (!mounted) return;
       setState(() {
         _playerStats = playerStats;
-        _questionsAnswered = totalAnswered;
-        _correctAnswered = totalCorrect;
         _certsPassed = certs.length;
         _examsPassed = exams.length;
+        _bereitschaft = bereitschaft;
         _streakDays = streak;
         _activeDayCounts = activeDays;
       });
@@ -457,11 +452,6 @@ class _NewProfilePageState extends State<NewProfilePage> {
     } catch (_) {
       return 'Unbekannt';
     }
-  }
-
-  int get _successRate {
-    if (_questionsAnswered == 0) return 0;
-    return ((_correctAnswered / _questionsAnswered) * 100).round();
   }
 
   @override
@@ -836,7 +826,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
     );
   }
 
-  // ─── PROGRESS GRID ────────────────────────────────
+  // ─── PROGRESS (Bereitschaft + Kennzahlen) ─────────
   Widget _buildProgressGrid(
     Color surface,
     Color border,
@@ -844,42 +834,18 @@ class _NewProfilePageState extends State<NewProfilePage> {
     Color textMid,
     Color textDim,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: border),
-      ),
-      child: Column(
-        children: [
-          Row(
+    return Column(
+      children: [
+        _buildBereitschaftsKarte(surface, border, text, textMid, textDim),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: border),
+          ),
+          child: Row(
             children: [
-              Expanded(
-                child: _statBox(
-                  value: '$_questionsAnswered',
-                  label: 'FRAGEN',
-                  text: text,
-                  textDim: textDim,
-                  rightBorder: true,
-                  border: border,
-                ),
-              ),
-              Expanded(
-                child: _statBox(
-                  value: '$_successRate',
-                  unit: '%',
-                  label: 'TREFFERQUOTE',
-                  text: text,
-                  textDim: textDim,
-                  rightBorder: true,
-                  border: border,
-                  valueColor: _successRate >= 70
-                      ? AppColors.success
-                      : _successRate >= 50
-                      ? AppColors.warning
-                      : AppColors.error,
-                ),
-              ),
               Expanded(
                 child: _statBox(
                   value: '$_streakDays',
@@ -887,15 +853,11 @@ class _NewProfilePageState extends State<NewProfilePage> {
                   label: 'STREAK',
                   text: text,
                   textDim: textDim,
+                  rightBorder: true,
                   border: border,
                   valueColor: _streakDays > 0 ? AppColors.accentCyan : text,
                 ),
               ),
-            ],
-          ),
-          Divider(height: 1, color: border),
-          Row(
-            children: [
               Expanded(
                 child: _statBox(
                   value: '$_certsPassed',
@@ -918,6 +880,197 @@ class _NewProfilePageState extends State<NewProfilePage> {
                 ),
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── PRÜFUNGSBEREITSCHAFT ─────────────────────────
+  //
+  // Das Herzstueck des Profils: EIN Wert, der die wichtigste Frage der
+  // Nutzer beantwortet ("Bin ich bereit fuer die IHK-Pruefung?").
+  // Grundlage: gemeisterte Themen im Uebungsbereich (best_score erreicht
+  // den required_score des Themas, Standard 80). Tippen klappt die
+  // Aufschluesselung je Modul auf.
+  Widget _buildBereitschaftsKarte(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    final b = _bereitschaft;
+    final prozent = b?.prozent ?? 0;
+    final farbe = prozent >= 100
+        ? AppColors.success
+        : prozent > 0
+        ? AppColors.accent
+        : textDim;
+
+    return Material(
+      color: surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: b == null || b.bereiche.isEmpty
+            ? null
+            : () => setState(() => _bereitschaftOffen = !_bereitschaftOffen),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: border),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  // Grosser Ring mit Prozentzahl
+                  SizedBox(
+                    width: 76,
+                    height: 76,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CircularProgressIndicator(
+                          value: (b?.anteil ?? 0).clamp(0.0, 1.0),
+                          strokeWidth: 6,
+                          backgroundColor: border,
+                          valueColor: AlwaysStoppedAnimation(farbe),
+                          strokeCap: StrokeCap.round,
+                        ),
+                        Center(
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '$prozent',
+                                  style: AppTextStyles.instrumentSerif(
+                                    size: 26,
+                                    color: text,
+                                    letterSpacing: -1.0,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: '%',
+                                  style: AppTextStyles.bodySmall(textDim),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'PRÜFUNGSBEREIT',
+                          style: AppTextStyles.monoLabel(AppColors.accent),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          b == null
+                              ? 'Fortschritt wird geladen'
+                              : 'Dein Lernstand über alle Bereiche',
+                          style: AppTextStyles.bodyMedium(text),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tippen für Details je Bereich',
+                          style: AppTextStyles.bodySmall(textDim),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    _bereitschaftOffen
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    color: textDim,
+                  ),
+                ],
+              ),
+
+              // Aufschluesselung je Bereich
+              if (_bereitschaftOffen && b != null) ...[
+                const SizedBox(height: 14),
+                Divider(height: 1, color: border),
+                const SizedBox(height: 6),
+                for (final bereich in b.bereiche)
+                  _bereitschaftsZeile(bereich, border, text, textDim),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Icon und Farbe je Bereich (bewusst fest verdrahtet, es sind nur vier).
+  ({IconData icon, Color farbe}) _bereichsStil(String schluessel) {
+    switch (schluessel) {
+      case 'module':
+        return (icon: Icons.school_outlined, farbe: AppColors.accent);
+      case 'levels':
+        return (icon: Icons.stairs_rounded, farbe: AppColors.warning);
+      case 'sql':
+        return (icon: Icons.storage_rounded, farbe: AppColors.info);
+      case 'python':
+        return (icon: Icons.code_rounded, farbe: AppColors.success);
+      default:
+        return (icon: Icons.school_outlined, farbe: AppColors.accent);
+    }
+  }
+
+  Widget _bereitschaftsZeile(
+    BereitschaftsBereich bereich,
+    Color border,
+    Color text,
+    Color textDim,
+  ) {
+    final stil = _bereichsStil(bereich.schluessel);
+    final fertig = bereich.gesamt > 0 && bereich.geschafft >= bereich.gesamt;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: stil.farbe.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Icon(stil.icon, color: stil.farbe, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              bereich.name,
+              style: AppTextStyles.bodyMedium(text),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${bereich.geschafft}/${bereich.gesamt}',
+            style: AppTextStyles.monoSmall(textDim),
+          ),
+          const SizedBox(width: 10),
+          FortschrittsRing(
+            wert: bereich.anteil,
+            farbe: bereich.geschafft > 0 ? stil.farbe : textDim,
+            hintergrund: border,
+            fertig: fertig,
+            textFarbe: textDim,
+            klein: true,
           ),
         ],
       ),

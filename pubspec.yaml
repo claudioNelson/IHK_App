@@ -1,11 +1,11 @@
 name: ihk_app
 description: "A new Flutter project."
 publish_to: 'none'
-# v12 (Hotfix, Ausloeser: Kunden-Bugreport Uebungsbereich): Themen-Scores
-# werden gespeichert UND in die Cloud synchronisiert (ueberleben Logout),
-# Fragenzaehler vervielfachte sich nicht mehr, Ergebnis-Dialog wertet nur
-# die aktuelle Runde, Report-Dialog scrollt und ist im Dark Mode lesbar
-version: 1.4.1+12
+# v13: Lernmodule-Redesign (Icons, Farben, Fortschrittsringe, Weiterlernen-
+# Karte), Arena-Fixes (Absturz bei Rechen-Fragen behoben, faire Timer je
+# Fragetyp: Reihenfolge/Luecken 60s, Freitext 120s), Ada als sichtbarer
+# Knopf mit Text im Kursbereich
+version: 1.5.0+13
 environment:
   sdk: ^3.8.1
 dependencies:

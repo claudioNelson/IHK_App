@@ -100,16 +100,27 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         return;
       }
 
+      // Der Server ist die Wahrheit: weiter bei der ersten Frage, fuer
+      // die dort noch KEINE Antwort von mir liegt.
       final answeredIdxs = myAnswers.map((a) => a['idx'] as int).toSet();
-      _idx = 0;
+      int? ersteOffene;
       for (int i = 0; i < _questions.length; i++) {
         final qIdx = _questions[i]['idx'] as int;
         if (!answeredIdxs.contains(qIdx)) {
-          _idx = i;
+          ersteOffene = i;
           break;
         }
       }
 
+      // Alle Frage-Idx sind schon beantwortet (frueher fiel dieser Fall
+      // stumm auf Frage 1 zurueck, die dann "nicht akzeptiert" wurde):
+      // Match direkt abschliessen bzw. auf den Gegner warten.
+      if (ersteOffene == null) {
+        await _tryFinalize();
+        return;
+      }
+
+      _idx = ersteOffene;
       _progress!.currentIdx = _idx;
       await _store!.save(_progress!);
 
@@ -191,19 +202,10 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       );
 
       if (!ok) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Antwort nicht akzeptiert'),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          setState(() {
-            _submitting = false;
-            _selectedAnswerId = null;
-          });
-        }
+        // "Nicht akzeptiert" heisst: die Antwort liegt serverseitig schon
+        // vor (oder das Match existiert nicht mehr). Statt rotem Fehler:
+        // Stand vom Server holen und zur naechsten offenen Frage springen.
+        await _nachAblehnungNeuSyncen();
         return;
       }
 
@@ -257,16 +259,9 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       );
 
       if (!ok) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Antwort nicht akzeptiert'),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          setState(() => _submitting = false);
-        }
+        // Gleiches Netz wie bei Multiple Choice: Server-Stand holen und
+        // weiterspringen statt Fehlermeldung.
+        await _nachAblehnungNeuSyncen();
         return;
       }
 
@@ -299,6 +294,79 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       setState(() => _submitting = false);
     } finally {
       if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  /// Der Server hat eine Antwort abgelehnt ("schon beantwortet" oder
+  /// Match existiert nicht mehr). Frischen Stand laden und den Nutzer
+  /// sinnvoll weiterbringen, statt ihn an der Frage festzunageln.
+  Future<void> _nachAblehnungNeuSyncen() async {
+    try {
+      final data = await _svc.loadMatch(widget.matchId);
+      final qs = (data['questions'] as List<dynamic>).toList()
+        ..sort((a, b) => (a['idx'] as int).compareTo(b['idx'] as int));
+
+      // Match ist serverseitig weg (z. B. aufgeraeumt): zurueck zur Liste.
+      if (qs.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Dieses Match existiert nicht mehr'),
+            backgroundColor: AppColors.warning,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.of(context).pop();
+        return;
+      }
+
+      _questions = qs;
+      final myAnswers = data['myAnswers'] as List<dynamic>;
+      final answeredIdxs = myAnswers.map((a) => a['idx'] as int).toSet();
+
+      int? ersteOffene;
+      for (int i = 0; i < _questions.length; i++) {
+        final qIdx = _questions[i]['idx'] as int;
+        if (!answeredIdxs.contains(qIdx)) {
+          ersteOffene = i;
+          break;
+        }
+      }
+
+      if (ersteOffene == null) {
+        // Alles beantwortet: abschliessen bzw. auf den Gegner warten.
+        if (mounted) setState(() => _submitting = false);
+        await _tryFinalize();
+        return;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _idx = ersteOffene!;
+        _submitting = false;
+        _answered = false;
+        _wasCorrect = false;
+        _selectedAnswerId = null;
+        _fillBlankAnswers = {};
+        _sequenceOrder = [];
+      });
+
+      _progress!.currentIdx = _idx;
+      await _store!.save(_progress!);
+      _startTimer();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler beim Abgleich: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() {
+        _submitting = false;
+        _selectedAnswerId = null;
+      });
     }
   }
 
