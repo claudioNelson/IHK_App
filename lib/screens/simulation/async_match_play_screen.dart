@@ -48,6 +48,21 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   Timer? _timer;
   int _timeLeft = 30;
   final int _maxTime = 30;
+
+  /// Zeit je Fragetyp: Antippen geht in 30 s, Sortieren und Tippen
+  /// brauchen mehr Luft. Freitext ist aus der Arena verbannt, bekommt
+  /// aber fuer Alt-Matches trotzdem einen fairen Wert.
+  int _zeitFuerTyp(String typ) {
+    switch (typ) {
+      case 'sequence':
+      case 'fill_blank':
+        return 60;
+      case 'freitext_ada':
+        return 120;
+      default:
+        return _maxTime;
+    }
+  }
   final _badgeService = BadgeService();
 
   String get _userId =>
@@ -115,7 +130,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
 
   void _startTimer() {
     _timer?.cancel();
-    _timeLeft = _maxTime;
+    _timeLeft = _zeitFuerTyp(_getQuestionType());
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
@@ -161,10 +176,18 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     final q = _questions[_idx];
 
     try {
+      // Pseudo-Antworten (Optionen aus calculation_data, z. B. DNS/Ports
+      // oder Schluessel-Fragen) tragen nur ihren Listen-Index 0..3 als id.
+      // Diese Ids gibt es in der antworten-Tabelle nicht; Index 0 crashte
+      // mit einem FK-Fehler. Fuer solche Fragen wird wie bei den
+      // Spezialfragen die Sentinel-Id 1 gespeichert. Echte antworten-Ids
+      // sind immer deutlich groesser.
+      final istPseudoId = answerId < 100;
+
       final ok = await _svc.submitAnswer(
         matchId: widget.matchId,
         idx: q['idx'] as int,
-        answerId: answerId,
+        answerId: istPseudoId ? 1 : answerId,
       );
 
       if (!ok) {
