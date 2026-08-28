@@ -74,6 +74,35 @@ void main() {
     debugPrint('>>> Screenshot: $name');
   }
 
+  /// Scrollt die erste scrollbare Flaeche nach unten.
+  Future<void> scrolle(WidgetTester tester, double pixel) async {
+    final s = find.byType(Scrollable);
+    if (s.evaluate().isEmpty) return;
+    try {
+      await tester.drag(s.first, Offset(0, -pixel));
+      await ruhe(tester, sekunden: 2);
+      tester.takeException();
+    } catch (e) {
+      debugPrint('Scrollen fehlgeschlagen: $e');
+    }
+  }
+
+  /// Geht einen Bildschirm zurueck; faellt auf den Tab-Wechsel zurueck.
+  Future<void> zurueck(WidgetTester tester, String tab) async {
+    try {
+      await tester.pageBack();
+      await ruhe(tester, sekunden: 3);
+      tester.takeException();
+    } catch (_) {
+      final f = find.text(tab);
+      if (f.evaluate().isNotEmpty) {
+        await tester.tap(f.first, warnIfMissed: false);
+        await ruhe(tester, sekunden: 3);
+        tester.takeException();
+      }
+    }
+  }
+
   /// Tippt auf einen Text, wenn er existiert.
   Future<bool> tippeText(WidgetTester tester, String text,
       {int warteSekunden = 2}) async {
@@ -152,37 +181,63 @@ void main() {
     protokolliereScreen(tester, 'nach Login');
 
     // ---- 3) Aufnahmen ------------------------------------------------
-    // Reihenfolge nach Wirkung: die ersten zwei Bilder sieht man in der
-    // App-Store-Suchliste, ohne dass jemand die Produktseite oeffnet.
+    // Die ersten zwei Bilder erscheinen in der App-Store-Suchliste, ohne
+    // dass jemand die Produktseite oeffnet — dort das Staerkste zeigen.
     await schliesseDialoge(tester);
     await schuss(tester, '01_lernen');
 
+    // --- Pruefungsbereich, der Kern des Produkts ---------------------
     if (await tippeText(tester, 'Prüfen', warteSekunden: 5)) {
       await schuss(tester, '02_pruefen');
-    }
-    if (await tippeText(tester, 'Arena', warteSekunden: 5)) {
-      await schuss(tester, '03_arena');
+
+      // In die IHK-Pruefungsliste hinein
+      var drin = await tippeText(tester, 'Anwendungsentwicklung', warteSekunden: 6);
+      if (!drin) {
+        drin = await tippeText(tester, 'Systemintegration', warteSekunden: 6);
+      }
+      if (drin) {
+        await schuss(tester, '03_pruefungsliste');
+
+        // Erste Pruefung oeffnen -> Detailansicht
+        final karten = find.byType(Card);
+        final tiles = find.byType(ListTile);
+        final ziel = karten.evaluate().isNotEmpty
+            ? karten
+            : (tiles.evaluate().isNotEmpty ? tiles : null);
+        if (ziel != null) {
+          try {
+            await tester.tap(ziel.first, warnIfMissed: false);
+            await ruhe(tester, sekunden: 6, schritte: 24);
+            tester.takeException();
+            await schuss(tester, '04_pruefung_detail');
+            await zurueck(tester, 'Prüfen');
+          } catch (e) {
+            debugPrint('Pruefungsdetail uebersprungen: $e');
+          }
+        }
+        await zurueck(tester, 'Prüfen');
+      }
+
+      // Zertifikate liegen weiter unten auf derselben Seite
+      await tippeText(tester, 'Prüfen', warteSekunden: 3);
+      await scrolle(tester, 900);
+      await schuss(tester, '05_zertifikate');
     }
 
-    // Inhaltsbildschirme aus dem Lernbereich — zeigen mehr von der App
-    // als reine Uebersichten.
+    if (await tippeText(tester, 'Arena', warteSekunden: 5)) {
+      await schuss(tester, '06_arena');
+    }
+
+    // --- Lernbereich -------------------------------------------------
     for (final ziel in const [
-      ('Module', '04_module'),
-      ('Flashcards', '05_flashcards'),
-      ('Levels', '06_levels'),
+      ('Module', '07_module'),
+      ('Levels', '08_levels'),
     ]) {
       await tippeText(tester, 'Lernen', warteSekunden: 3);
       await schliesseDialoge(tester);
       if (await tippeText(tester, ziel.$1, warteSekunden: 6)) {
         await schuss(tester, ziel.$2);
-        // Zurueck zur Uebersicht
-        try {
-          await tester.pageBack();
-          await ruhe(tester, sekunden: 3);
-          tester.takeException();
-        } catch (_) {
-          await tippeText(tester, 'Lernen', warteSekunden: 3);
-        }
+        await zurueck(tester, 'Lernen');
       } else {
         debugPrint('"${ziel.$1}" nicht gefunden — uebersprungen.');
       }
