@@ -47,13 +47,17 @@ void main() {
   /// Schliesst ueberlagernde Dialoge (Streak-Begruessung, Hinweise), die
   /// sonst den eigentlichen Screen verdecken.
   Future<void> schliesseDialoge(WidgetTester tester) async {
+    // Reihenfolge zaehlt: "Los geht's!" ist der Knopf des Streak-Dialogs
+    // ab mehreren Tagen Serie — bei 1 Tag heisst er "Später".
     for (final knopf in const [
+      "Los geht's!",
+      "Los geht's",
       'Später',
       'Spaeter',
       'Schließen',
       'Weiter lernen',
-      'Abbrechen',
       'Verstanden',
+      'Abbrechen',
       'OK',
     ]) {
       final f = find.text(knopf);
@@ -229,9 +233,14 @@ void main() {
     }
 
     // --- Lernbereich -------------------------------------------------
+    // "Module" bewusst NICHT: dieser Screen liest den Fortschritt aus
+    // SharedPreferences (app_cache_service.dart, 'fortschritt_modul_<id>')
+    // und zeigt auf einem frischen Simulator immer 0 %. Levels und Kurse
+    // lesen dagegen aus der Datenbank und zeigen echte Werte.
     for (final ziel in const [
-      ('Module', '07_module'),
-      ('Levels', '08_levels'),
+      ('Levels', '07_levels'),
+      ('SQL von Grund auf', '08_kurs'),
+      ('Anschlüsse', '09_anschluesse'),
     ]) {
       await tippeText(tester, 'Lernen', warteSekunden: 3);
       await schliesseDialoge(tester);
