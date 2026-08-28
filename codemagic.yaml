@@ -307,6 +307,32 @@ workflows:
             --dart-define=SHOT_EMAIL="$SHOT_EMAIL" \
             --dart-define=SHOT_PASSWORD="$SHOT_PASSWORD"
 
+      - name: Alpha-Kanal entfernen
+        script: |
+          # App Store lehnt Bilder mit Alpha-Kanal ab. Der Simulator liefert
+          # RGBA, deshalb hier auf RGB reduzieren.
+          python3 -m pip install --quiet --disable-pip-version-check pillow || true
+          python3 - <<'PYEOF'
+          import glob, os
+          try:
+              from PIL import Image
+          except ImportError:
+              print("Pillow nicht verfuegbar - Alpha-Kanal bleibt bestehen.")
+              raise SystemExit(0)
+          for pfad in sorted(glob.glob("screenshots/*.png")):
+              bild = Image.open(pfad)
+              if bild.mode != "RGB":
+                  hintergrund = Image.new("RGB", bild.size, (0, 0, 0))
+                  if bild.mode in ("RGBA", "LA"):
+                      hintergrund.paste(bild, mask=bild.split()[-1])
+                  else:
+                      hintergrund.paste(bild.convert("RGB"))
+                  hintergrund.save(pfad)
+                  print(f"{os.path.basename(pfad)}: {bild.mode} -> RGB")
+              else:
+                  print(f"{os.path.basename(pfad)}: bereits RGB")
+          PYEOF
+
       - name: Aufnahmen pruefen
         script: |
           if [ ! -d screenshots ] || [ -z "$(ls -A screenshots 2>/dev/null)" ]; then
@@ -320,9 +346,15 @@ workflows:
             echo "  $(basename "$f")  ${W}x${H}"
             if [ "$W" != "1320" ] || [ "$H" != "2868" ]; then
               echo "    HINWEIS: Apple verlangt 1320x2868 fuer 6,9 Zoll."
-              echo "    Andere Masse muessen vor dem Upload angepasst werden."
             fi
           done
+          ANZAHL=$(ls screenshots/*.png | wc -l | tr -d ' ')
+          echo "Gesamt: $ANZAHL Bilder"
+          if [ "$ANZAHL" -lt 3 ]; then
+            echo "WARNUNG: weniger als 3 Aufnahmen - vermutlich ist der Test"
+            echo "irgendwo haengengeblieben. Siehe die SICHTBAR-Zeilen im Log"
+            echo "des Schritts 'Screenshots aufnehmen'."
+          fi
 
     artifacts:
       - screenshots/*.png
