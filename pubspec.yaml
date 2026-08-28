@@ -5,7 +5,9 @@ publish_to: 'none'
 # Karte), Arena-Fixes (Absturz bei Rechen-Fragen behoben, faire Timer je
 # Fragetyp: Reihenfolge/Luecken 60s, Freitext 120s), Ada als sichtbarer
 # Knopf mit Text im Kursbereich
-version: 1.5.0+13
+# Build 13 war in der Play Console schon verbraucht (Versionscodes sind
+# app-weit einmalig, auch Entwuerfe zaehlen) -> direkt auf 14.
+version: 1.5.0+14
 environment:
   sdk: ^3.8.1
 dependencies:
@@ -38,6 +40,9 @@ dependencies:
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  # Fuer den Screenshot-Workflow (App Store Bilder aus dem iOS-Simulator)
+  integration_test:
     sdk: flutter
   flutter_lints: ^5.0.0
   dotenv: ^4.2.0

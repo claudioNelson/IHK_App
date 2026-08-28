@@ -301,3 +301,99 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 - **Secrets** (API-Keys) kommen in `.env` / Vercel-Env, **nie** in den Chat oder ins Repo. `.env.old` bleibt in `.gitignore`.
 - Projekt-Regel: **Schritt für Schritt arbeiten, Chat nicht überfüllen. Antworten auf Deutsch.**
 - **Regel (ab 26.08.2026): Eine Frage ist KEIN Arbeitsauftrag.** Wenn der User etwas fragt ("was bedeutet X?", "warum ist Y so?"), erst erklaeren und dann fragen, ob er etwas geaendert haben will. Niemals ungefragt Code umbauen, nur weil im Gespraech ein moeglicher Verbesserungspunkt auffaellt — Verbesserung vorschlagen, auf Freigabe warten.
+
+---
+
+## App-Store-Screenshots (28.08.2026)
+
+### Anforderungen (Stand 2026)
+
+Apple verlangt nur noch **eine** iPhone-Größe: **6,9 Zoll, 1320 × 2868 px**
+(iPhone 16/17 Pro Max). 1–10 Bilder je Sprache, PNG oder JPEG.
+iPad-Screenshots (13 Zoll) nur, wenn die App iPad unterstützt.
+
+### iPad deaktiviert
+
+`TARGETED_DEVICE_FAMILY` in `ios/Runner.xcodeproj/project.pbxproj` von `"1,2"`
+auf `"1"` gesetzt (drei Stellen). Lernarena ist damit eine reine iPhone-App:
+kein iPad-Screenshot-Satz nötig, kein iPad-Layout-Risiko im Review.
+Jederzeit umkehrbar — dann aber iPad-Bilder nachliefern.
+
+### Workflow `ios-screenshots`
+
+Auf Windows gibt es keinen iOS-Simulator; Codemagic baut auf macOS, dort sind
+Simulatoren vorhanden. Neuer Workflow, **manuell zu starten** (kein Tag-Trigger):
+
+1. Sucht einen 6,9-Zoll-Simulator (iPhone 17 Pro Max → 16 Pro Max → beliebiges
+   Pro Max → beliebiges iPhone) und startet ihn
+2. Setzt die Statusleiste auf 09:41 Uhr, volles Netz, volle Batterie
+3. Fährt die App per Integrationstest durch: Login mit Demo-Account, dann die
+   Tabs *Lernen*, *Prüfen*, *Arena*, *Profil* und ein Inhaltsbildschirm
+4. Prüft die Maße jedes Bildes und warnt bei Abweichung von 1320 × 2868
+5. Stellt alles unter `screenshots/*.png` als Artefakt bereit
+
+**Neue Dateien:**
+- `integration_test/screenshots_test.dart` — steuert die App, löst die Aufnahmen aus
+- `test_driver/integration_test.dart` — schreibt die PNGs nach `screenshots/`
+- `pubspec.yaml` — `integration_test` in den dev_dependencies
+
+**Erforderlich in Codemagic:** Variablengruppe **`screenshot_credentials`** mit
+`SHOT_EMAIL` und `SHOT_PASSWORD` (bestehender Testaccount mit Premium, beide
+*Secure*). Die Zugangsdaten gehen per `--dart-define` in den Lauf und stehen
+nirgends im Repo.
+
+Der Test ist fehlertolerant: findet er einen Tab-Namen nicht, überspringt er ihn
+und macht weiter. `pumpAndSettle` wird nicht verwendet, weil es bei
+Dauer-Animationen (Confetti, Ladespinner) hängen bleibt — stattdessen feste
+Wartezeiten.
+
+---
+
+## ⚠️ Zwei Arbeitskopien — Verwechslungsgefahr (28.08.2026)
+
+Es existieren mehrere Checkouts desselben Repos:
+
+| Pfad | Status |
+|---|---|
+| `Desktop\Projekte\IHK\ihk_app` | **aktuelle Arbeitskopie**, entspricht `origin/main` |
+| `Desktop\Lernarena\ihk_app` | veraltete Kopie — sollte nicht mehr benutzt werden |
+| `~\ihk_app` | alte Kopie von Aug 2025, unbenutzt |
+
+Am 28.08. wurde versehentlich in der Lernarena-Kopie gearbeitet, was zu einem
+abgelehnten Push und einem abgebrochenen Rebase führte. **Vor jedem `git`-Befehl
+mit `git remote -v` und dem Prompt prüfen, in welcher Kopie man steht.**
+Zusätzlich ist `C:\Users\cnm89` selbst ein Git-Repo (Telegram-Shop) — Befehle
+außerhalb eines Projektordners landen dort.
+
+---
+
+## ⚠️ Icon-Stolperfalle
+
+`assets/icon/app_icon.png` hat **schwarze** abgerundete Ecken (kein Alpha, echtes
+Schwarz). iOS legt seine Maske selbst an, das ergibt schwarze Ränder im fertigen
+Icon. Deshalb steht in `pubspec.yaml` zwingend
+`image_path_ios: "assets/icon/app_icon_ios.png"` (vollflächiges Quadrat).
+**`flutter pub run flutter_launcher_icons` nie ohne `image_path_ios` ausführen** —
+sonst sind die schwarzen Ecken sofort wieder da.
+
+---
+
+## ⬜ Offen für den iOS-Store-Release
+
+1. **Screenshots erzeugen** — Workflow `ios-screenshots` starten, Bilder sichten,
+   4–6 auswählen und in App Store Connect hochladen. Die ersten 2–3 erscheinen in
+   der Suchergebnisliste, dort die stärksten Screens zeigen.
+2. **Händlerstatus (EU Digital Services Act)** — am 28.08. eingereicht,
+   Status **In Prüfung**. Ohne ihn keine Veröffentlichung in der EU.
+3. **In-App-Käufe für iOS** — bisher nur Google Play umgesetzt. Auf iOS findet
+   `queryProductDetails` nichts, der Kauf schlägt fehl → Reject-Risiko
+   (Richtlinie 2.1). Nötig: Abo-Gruppe mit drei Produkten in App Store Connect
+   (`app.lernarena.premium.monthly` / `.halfyear` / `.annual`),
+   `billing_service.dart` plattformabhängig, und in der Edge Function
+   `verify-purchase` ein Apple-Zweig gegen die App Store Server API.
+   Der Paid Applications Agreement ist seit 16.08. **aktiv**.
+4. **Testinformationen** in TestFlight (Feedback-E-Mail, Kontaktdaten,
+   Demo-Login) — erst für **externe** Tester nötig. Danach in `codemagic.yaml`
+   `submit_to_testflight: true` setzen.
+5. **App-Store-Metadaten** — Beschreibung, Keywords, Untertitel,
+   Datenschutzangaben, Altersfreigabe, Kategorie, Support-URL.

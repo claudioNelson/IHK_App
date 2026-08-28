@@ -219,3 +219,118 @@ workflows:
     artifacts:
       - build/ios/iphoneos/*.app
       - /tmp/xcodebuild_logs/*.log
+
+  ####################################################################
+  # 3) App-Store-Screenshots aus dem iOS-Simulator
+  #
+  #    Startet einen iPhone-Simulator mit 6,9-Zoll-Display (1320x2868 -
+  #    genau die Groesse, die Apple verlangt), faehrt die App per
+  #    Integrationstest durch und legt die Aufnahmen als Artefakt ab.
+  #
+  #    Voraussetzung: Environment-Variablen-Gruppe "screenshot_credentials"
+  #    mit SHOT_EMAIL und SHOT_PASSWORD (Demo-Account, beide Secure).
+  #
+  #    Manuell starten - kein Tag-Trigger.
+  ####################################################################
+  ios-screenshots:
+    name: App-Store-Screenshots (Simulator)
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - screenshot_credentials
+
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
+
+    scripts:
+      - name: Flutter-Abhaengigkeiten holen
+        script: |
+          flutter pub get
+
+      - name: CocoaPods installieren
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+
+      - name: Simulator auswaehlen und starten
+        script: |
+          set -e
+          # Bevorzugt ein 6,9-Zoll-Geraet; faellt sonst auf das naechstbeste zurueck.
+          for MODELL in "iPhone 17 Pro Max" "iPhone 16 Pro Max" "Pro Max" "iPhone"; do
+            SIM_ID=$(xcrun simctl list devices available \
+              | grep -m1 "$MODELL" \
+              | sed -E 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')
+            if [ -n "$SIM_ID" ]; then
+              echo "Simulator gefunden ueber Muster '$MODELL': $SIM_ID"
+              break
+            fi
+          done
+
+          if [ -z "$SIM_ID" ]; then
+            echo "FEHLER: kein passender Simulator verfuegbar."
+            xcrun simctl list devices available
+            exit 1
+          fi
+
+          xcrun simctl boot "$SIM_ID" || true
+          xcrun simctl bootstatus "$SIM_ID" -b
+          # Statusleiste vereinheitlichen: volles Netz, volle Batterie, 09:41 Uhr
+          # (die Uhrzeit, die Apple in eigenem Marketingmaterial verwendet).
+          xcrun simctl status_bar "$SIM_ID" override \
+            --time "09:41" \
+            --batteryState charged --batteryLevel 100 \
+            --cellularMode active --cellularBars 4 \
+            --wifiMode active --wifiBars 3 || true
+
+          echo "SIM_ID=$SIM_ID" >> $CM_ENV
+
+      - name: Screenshots aufnehmen
+        script: |
+          set -e
+          if [ -z "$SHOT_EMAIL" ] || [ -z "$SHOT_PASSWORD" ]; then
+            echo "FEHLER: SHOT_EMAIL / SHOT_PASSWORD fehlen."
+            echo "  -> Codemagic: App IHK_App -> Environment variables"
+            echo "     Gruppe: screenshot_credentials, beide als Secure."
+            exit 1
+          fi
+
+          flutter drive \
+            --driver=test_driver/integration_test.dart \
+            --target=integration_test/screenshots_test.dart \
+            -d "$SIM_ID" \
+            --dart-define=SHOT_EMAIL="$SHOT_EMAIL" \
+            --dart-define=SHOT_PASSWORD="$SHOT_PASSWORD"
+
+      - name: Aufnahmen pruefen
+        script: |
+          if [ ! -d screenshots ] || [ -z "$(ls -A screenshots 2>/dev/null)" ]; then
+            echo "FEHLER: keine Screenshots erzeugt."
+            exit 1
+          fi
+          echo "Erzeugte Bilder:"
+          for f in screenshots/*.png; do
+            W=$(sips -g pixelWidth  "$f" | tail -1 | awk '{print $2}')
+            H=$(sips -g pixelHeight "$f" | tail -1 | awk '{print $2}')
+            echo "  $(basename "$f")  ${W}x${H}"
+            if [ "$W" != "1320" ] || [ "$H" != "2868" ]; then
+              echo "    HINWEIS: Apple verlangt 1320x2868 fuer 6,9 Zoll."
+              echo "    Andere Masse muessen vor dem Upload angepasst werden."
+            fi
+          done
+
+    artifacts:
+      - screenshots/*.png
+
+    publishing:
+      email:
+        recipients:
+          - info@lernarena.app
+        notify:
+          success: true
+          failure: true
