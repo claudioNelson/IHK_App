@@ -397,3 +397,71 @@ sonst sind die schwarzen Ecken sofort wieder da.
    `submit_to_testflight: true` setzen.
 5. **App-Store-Metadaten** — Beschreibung, Keywords, Untertitel,
    Datenschutzangaben, Altersfreigabe, Kategorie, Support-URL.
+
+---
+
+## Demo-Account für Screenshots und Apple-Review (28.08.2026)
+
+**E-Mail:** `demo@lernarena.app` · Passwort liegt in Codemagic
+(`SHOT_PASSWORD`, Gruppe `screenshot_credentials`) und gehört **nicht** in dieses
+Dokument.
+
+Angelegt über Supabase → Authentication → Users → *Add user*, mit
+**Auto Confirm User**. Derselbe Account dient später als Demo-Login für Apples
+App-Review — hinter dem Login sieht der Prüfer sonst nichts.
+
+### Ausstattung
+
+| Bereich | Wert | Tabelle |
+|---|---|---|
+| Anzeigename | `Alex` | `profiles.username` |
+| Premium | `is_premium = true`, `premium_tier = 'lifetime'`, `premium_until = null` | `profiles` |
+| Streak | 12 Tage | `profiles.streak_days` |
+| Beantwortete Fragen | 1.261 von 1.507, davon 1.110 richtig (88 %) | `user_progress` |
+| Gemeisterte Themen | rund 85 % von 70 | `thema_scores` |
+| Gemeisterte Levels | 82 von 92 (89 %) | `level_progress` |
+
+`premium_tier = 'lifetime'` mit `premium_until = null` ist bewusst gewählt:
+`subscription_service.dart` prüft das Ablaufdatum nur, wenn der Tier **nicht**
+`lifetime` ist. Der Account kann also nicht mitten in einem Screenshot-Lauf
+ablaufen.
+
+### Wie die Prüfungsbereitschaft wirklich gerechnet wird
+
+Der Ring auf dem Profil kommt aus `bereitschafts_service.dart` und speist sich
+aus **zwei** Quellen — `user_progress` gehört **nicht** dazu:
+
+1. **Lernmodule:** gemeisterte Themen / alle Themen. Gemeistert, wenn
+   `thema_scores.best_score >= themen.required_score` (Standard 80).
+   Module mit `kategorie = 'kernthema'` sind ausgenommen.
+2. **Levels:** `level_progress.best_score >= levels.schwelle` (70/80/100).
+
+`user_progress` füllt dagegen die Fortschrittsbalken im Lernbereich und die
+Modul-Abschlussquote in `progress_service.dart` (Modul gilt ab 80 % richtiger
+Antworten als abgeschlossen).
+
+### Zurücksetzen
+
+```sql
+delete from public.user_progress   where user_id = (select id from auth.users where email = 'demo@lernarena.app');
+delete from public.thema_scores    where user_id = (select id from auth.users where email = 'demo@lernarena.app');
+delete from public.level_progress  where user_id = (select id from auth.users where email = 'demo@lernarena.app');
+```
+
+### Offen
+
+- Den Account in `stats_exclusions` eintragen (Migration
+  `20260817090000_stats_exclusions.sql`), damit er die Nutzerstatistiken nicht
+  verfälscht.
+- In TestFlight → Testinformationen als Demo-Login hinterlegen, sobald externe
+  Tester dazukommen.
+
+---
+
+## Datenbefund am Rande (28.08.2026)
+
+Von **1.507** Fragen haben **1.026 keine `thema_id`** und **246 keine
+`modul_id`**. Nur 481 sind vollständig zugeordnet. Fragen ohne Themenzuordnung
+tauchen in themenbasierten Lernbereichen vermutlich nicht auf — das kann Absicht
+sein (etwa wenn sie nur über Prüfungssimulationen laufen) oder eine Altlast aus
+einem Import. Lohnt einen genaueren Blick: potenziell viel ungenutzter Inhalt.

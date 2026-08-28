@@ -44,7 +44,30 @@ void main() {
         '${texte.take(25).join(" | ")}');
   }
 
+  /// Schliesst ueberlagernde Dialoge (Streak-Begruessung, Hinweise), die
+  /// sonst den eigentlichen Screen verdecken.
+  Future<void> schliesseDialoge(WidgetTester tester) async {
+    for (final knopf in const [
+      'Später',
+      'Spaeter',
+      'Schließen',
+      'Weiter lernen',
+      'Abbrechen',
+      'Verstanden',
+      'OK',
+    ]) {
+      final f = find.text(knopf);
+      if (f.evaluate().isNotEmpty) {
+        await tester.tap(f.first, warnIfMissed: false);
+        await ruhe(tester, sekunden: 2);
+        tester.takeException();
+        debugPrint('Dialog geschlossen ueber "$knopf"');
+      }
+    }
+  }
+
   Future<void> schuss(WidgetTester tester, String name) async {
+    await schliesseDialoge(tester);
     await ruhe(tester, sekunden: 1);
     protokolliereScreen(tester, name);
     await binding.takeScreenshot(name);
@@ -128,39 +151,46 @@ void main() {
     }
     protokolliereScreen(tester, 'nach Login');
 
-    // ---- 3) Die vier Tabs -------------------------------------------
+    // ---- 3) Aufnahmen ------------------------------------------------
+    // Reihenfolge nach Wirkung: die ersten zwei Bilder sieht man in der
+    // App-Store-Suchliste, ohne dass jemand die Produktseite oeffnet.
+    await schliesseDialoge(tester);
     await schuss(tester, '01_lernen');
 
-    for (final tab in const [
-      ('Prüfen', '02_pruefen'),
-      ('Arena', '03_arena'),
-      ('Profil', '04_profil'),
+    if (await tippeText(tester, 'Prüfen', warteSekunden: 5)) {
+      await schuss(tester, '02_pruefen');
+    }
+    if (await tippeText(tester, 'Arena', warteSekunden: 5)) {
+      await schuss(tester, '03_arena');
+    }
+
+    // Inhaltsbildschirme aus dem Lernbereich — zeigen mehr von der App
+    // als reine Uebersichten.
+    for (final ziel in const [
+      ('Module', '04_module'),
+      ('Flashcards', '05_flashcards'),
+      ('Levels', '06_levels'),
     ]) {
-      if (await tippeText(tester, tab.$1, warteSekunden: 4)) {
-        await schuss(tester, tab.$2);
+      await tippeText(tester, 'Lernen', warteSekunden: 3);
+      await schliesseDialoge(tester);
+      if (await tippeText(tester, ziel.$1, warteSekunden: 6)) {
+        await schuss(tester, ziel.$2);
+        // Zurueck zur Uebersicht
+        try {
+          await tester.pageBack();
+          await ruhe(tester, sekunden: 3);
+          tester.takeException();
+        } catch (_) {
+          await tippeText(tester, 'Lernen', warteSekunden: 3);
+        }
       } else {
-        debugPrint('Tab "${tab.$1}" nicht gefunden — uebersprungen.');
+        debugPrint('"${ziel.$1}" nicht gefunden — uebersprungen.');
       }
     }
 
-    // ---- 4) Ein Inhaltsbildschirm -----------------------------------
-    if (await tippeText(tester, 'Lernen', warteSekunden: 3)) {
-      final karten = find.byType(Card);
-      final tiles = find.byType(ListTile);
-      final ziel = karten.evaluate().isNotEmpty
-          ? karten
-          : (tiles.evaluate().isNotEmpty ? tiles : null);
-      if (ziel != null) {
-        try {
-          await tester.tap(ziel.first, warnIfMissed: false);
-          await ruhe(tester, sekunden: 5, schritte: 20);
-          tester.takeException();
-          await schuss(tester, '05_inhalt');
-        } catch (e) {
-          debugPrint('Inhaltsbildschirm uebersprungen: $e');
-        }
-      }
-    }
+    // Profil bewusst NICHT aufnehmen: der Screen zeigt E-Mail-Adresse und
+    // Klarnamen des angemeldeten Kontos. Solche Daten gehoeren nicht in
+    // oeffentliche App-Store-Bilder.
 
     tester.takeException();
     debugPrint('=== Screenshot-Lauf abgeschlossen ===');
