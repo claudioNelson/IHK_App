@@ -561,3 +561,126 @@ Entfallen sind:
 **Merksatz für später:** Im Prüfen-Tab nicht scrollen, sondern umschalten.
 Blindes Scrollen um feste Pixelwerte trifft bei unterschiedlich hohen Karten
 nie zuverlässig eine Kartengrenze.
+
+### Die fünf Store-Bilder (Stand 30.08.2026)
+
+Aus dem letzten Lauf sind fünf brauchbare Aufnahmen gekommen. Reihenfolge in
+App Store Connect, Größe **6,9" iPhone / 1320 × 2868** — nur diese eine Größe
+ist nötig, Apple skaliert für kleinere Geräte selbst:
+
+1. `01_lernen` — Lernhub, „Guten Morgen, Alex"
+2. `02_pruefen` — IHK-Prüfungen, AE-Liste
+3. `05_levels` — Level-Pfade mit Fortschritt
+4. `03_zertifikate` — SAP, AZ-900, GCP, AWS
+5. `04_arena` — GOLD, ELO 1180, aktive Matches
+
+Lernen und Prüfen stehen vorn, weil die ersten beiden Bilder schon in der
+Suchergebnisliste erscheinen, ohne dass jemand die Produktseite öffnet.
+
+`06_kurs` und `07_anschluesse` sind im Lauf nicht entstanden — Ursache nicht
+untersucht, fünf Bilder reichen. Apple erlaubt bis zu zehn und verlangt nur
+eines; nachträglich austauschen geht jederzeit per Drag-and-drop.
+
+### Store-Bilder mit Überschrift (30.08.2026)
+
+Die nackten Simulator-Aufnahmen wandern nicht direkt in den Store, sondern
+bekommen erst die Marketing-Überschrift — dasselbe Layout wie bei den
+Play-Store-Bildern: violette Serifenschrift oben, darunter der Screenshot in
+einem abgerundeten Rahmen, der unten aus dem Bild läuft.
+
+**Skript:** `tools/store_bilder/render_store_bilder.py`
+
+Es rendert eine HTML-Vorlage in headless Chromium (Playwright) und
+fotografiert sie in 1320 × 2868 ab. Chromium statt Pillow, weil sich damit
+**Instrument Serif** einbetten lässt — dieselbe Schrift wie in der App. Die
+Schrift kommt über npm, nicht über Google Fonts:
+
+```
+cd tools/store_bilder
+npm install @fontsource/instrument-serif
+mkdir quelle          # hier die Codemagic-Artefakte ablegen
+python3 render_store_bilder.py
+```
+
+Die Quelldateien müssen `quelle/01_lernen.png` … `quelle/05_arena.png` heißen
+und exakt 1320 × 2868 groß sein. Ergebnis landet in `ausgabe/`.
+
+Überschriften ändern: oben in der Liste `BILDER`. Zeilenumbrüche werden mit
+`\n` **von Hand** gesetzt, nie automatisch — sonst reißt es Wörter
+auseinander. Genau das war in den Play-Store-Bildern passiert
+(„Prüfungsbedingunge/n."). Zu lange Zeilen verkleinert das Skript
+automatisch, bis sie in die Breite passen.
+
+**Warum nicht die Play-Store-Bilder wiederverwenden:** urheberrechtlich
+spricht nichts dagegen, es ist eigenes Material. Aber auf ihnen steckt ein
+Android-Telefon — Punch-Hole-Kamera in der Statusleiste, Android-Icons,
+Gestenbalken unten. Apple lehnt Screenshots ab, die die App auf fremder
+Hardware zeigen. Dazu kommt das falsche Seitenverhältnis (9:16 statt 1:2,17),
+das sich nicht ohne Beschnitt oder Verzerrung anpassen lässt.
+
+Fertige Bilder liegen unter `Desktop\Lernarena\AppStore-Bilder\` — bewusst
+außerhalb des Repos, damit die PNGs die Historie nicht aufblähen.
+
+---
+
+## App-Store-Metadaten (30.08.2026)
+
+Festgelegt für die erste iOS-Einreichung. Sprache: Deutsch.
+
+### Version
+
+**1.5.0** — nicht 1.0. Apple verlangt, dass die Versionsnummer in App Store
+Connect **exakt** der `CFBundleShortVersionString` des ausgewählten Builds
+entspricht. `pubspec.yaml` steht auf `1.5.0+14`, die Nummer ist über die
+Android-Veröffentlichungen gewachsen. Passt die Nummer nicht, bleibt die
+Build-Auswahlliste in App Store Connect einfach leer, ohne Fehlermeldung.
+
+Der Build in TestFlight war zu diesem Zeitpunkt noch **1.2.0 (10)**, also muss
+ein neuer Build mit 1.5.0 hochgeladen werden, bevor sich die Version
+einreichen lässt.
+
+### Feste Felder
+
+| Feld | Wert |
+|---|---|
+| Support-URL | `https://lernarena.app/impressum` (besser: eigene `/support`-Seite) |
+| Marketing-URL | `https://lernarena.app` |
+| Copyright | `2026 Claudio Medeiros Magalhaes` (aus dem Impressum) |
+
+### Schlüsselwörter (97 von 100 Zeichen)
+
+```
+IHK,Azubi,AP1,AP2,Anwendungsentwicklung,Systemintegration,Umschulung,Ausbildung,Prüfung,SQL,Python
+```
+
+Überlegungen dahinter:
+
+- **„Fachinformatiker" und „Lernarena" fehlen bewusst.** Beide stehen im
+  App-Namen („Lernarena: Fachinformatiker") und werden dort schon indexiert.
+  Doppelt einzutragen wären 26 verschenkte Zeichen.
+- **AP1 / AP2** sind die stärksten Begriffe: so nennen Azubis die gestreckte
+  Abschlussprüfung, und kaum eine Lern-App belegt sie.
+- **Kein Leerzeichen nach dem Komma** — Apple zählt es mit.
+- **Keine Wortgruppen.** Apple kombiniert die Begriffe selbst, „IHK Prüfung"
+  entsteht aus `IHK` und `Prüfung`.
+- **„Lernen" und „Quiz" wurden gestrichen**, zu allgemein — dort konkurriert
+  man mit Duolingo und Quizlet.
+- **„Programmierung" bewusst nicht**: 15 Zeichen für einen Begriff, bei dem
+  man gegen jede Coding-App antritt. `SQL` und `Python` treffen dasselbe
+  Publikum für 11 Zeichen genauer.
+
+### Beschreibung
+
+Der Text liegt in App Store Connect. Zwei Regeln beim Ändern:
+
+1. **Premium wird nicht erwähnt.** Solange der In-App-Kauf auf iOS fehlt,
+   wäre das die Ankündigung von etwas, das der Prüfer nicht kaufen kann —
+   und genau danach sucht er (Guideline 3.1.1 / 2.1). Sobald StoreKit drin
+   ist, kommt ein Abschnitt dazu.
+2. **Leerzeilen zwischen den Abschnitten erhalten**, sonst klebt im Store
+   alles zu einem Block zusammen und die Überschriften gehen unter.
+
+### Untertitel
+
+Noch offen. 30 Zeichen, wird zusätzlich indexiert und kostet kein
+Keyword-Budget. Kandidaten: `IHK-Prüfung üben, AP1 und AP2` (29).
