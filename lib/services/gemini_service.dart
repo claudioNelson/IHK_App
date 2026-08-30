@@ -1,13 +1,17 @@
 // lib/services/gemini_service.dart
 //
-// AI-Tutor Client. Spricht NICHT mehr direkt mit Groq/Gemini,
-// sondern mit unserer Supabase Edge Function "ai-tutor".
+// AI-Tutor Client. Spricht NICHT direkt mit einem KI-Anbieter, sondern mit
+// unserer Supabase Edge Function "ai-tutor".
+//
+// Der Klassenname ist historisch — Gemini ist seit 30.08.2026 nicht mehr im
+// Spiel (Trainingsnutzung in der kostenlosen Stufe, siehe Kommentar in
+// supabase/functions/ai-tutor/index.ts). Im Backend laeuft jetzt
+// Claude (claude-haiku-4-5) mit Groq als Rueckfallebene.
 //
 // Vorteile:
 // - API-Keys nicht mehr in der App (sicher)
-// - Failover Groq → Gemini im Backend
+// - Failover im Backend, ohne App-Update aenderbar
 // - Server-seitiger Limit-Check (kann nicht umgangen werden)
-// - Provider-Wechsel ohne App-Update möglich
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

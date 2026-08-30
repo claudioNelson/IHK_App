@@ -45,7 +45,7 @@ Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unt
 const String kDatenschutzMarkdown = r'''
 # Datenschutzerklärung
 
-Gemäß Art. 13, 14 DSGVO – Stand: 28. Juni 2026
+Gemäß Art. 13, 14 DSGVO – Stand: 30. August 2026
 
 ## 1. Verantwortlicher
 
@@ -79,7 +79,7 @@ Diese Daten werden gespeichert, um dir den Lerndienst bereitzustellen (Art. 6 Ab
 
 ### Bei der Nutzung der KI-Funktion (Ada)
 
-Deine Fragen an den KI-Tutor werden zur Verarbeitung an die Groq-API weitergeleitet. Der Inhalt deiner Anfrage kann personenbezogene Daten enthalten, sofern du solche eingibst. Wir haben bei Groq die Zero-Data-Retention-Einstellung aktiviert, sodass Inhalte nicht gespeichert werden. Weitere Details siehe Abschnitt 6.
+Deine Fragen an den KI-Tutor werden zur Verarbeitung an einen externen KI-Anbieter weitergeleitet. Der Inhalt deiner Anfrage kann personenbezogene Daten enthalten, sofern du solche eingibst. Stammdaten wie Name oder E-Mail-Adresse übermitteln wir dabei nicht. Welche Anbieter das sind und wie sie mit den Inhalten umgehen, steht in Abschnitt 6.
 
 ## 4. Cookies und lokale Speicherung
 
@@ -98,15 +98,17 @@ Die Daten werden auf Servern in der EU (Frankfurt, AWS eu-central-1) gespeichert
 
 Datenschutzerklärung von Supabase: [supabase.com/privacy](https://supabase.com/privacy)
 
-## 6. Groq API (KI-Tutor Ada)
+## 6. KI-Anbieter (KI-Tutor Ada)
 
-Für die KI-Tutorfunktion „Ada" verwenden wir die Groq API. Anbieter ist Groq, Inc., 101 University Ave, Suite 334, Palo Alto, CA 94301, USA.
+Für die KI-Tutorfunktion „Ada" arbeiten wir mit zwei Anbietern. Deine Anfrage geht nie direkt von deinem Gerät an sie, sondern zunächst an unseren eigenen Server; dieser leitet sie weiter. Angefragt wird zuerst Anthropic. Nur wenn dieser Dienst nicht erreichbar ist, wird Groq als Rückfallebene verwendet.
 
-Wenn du eine Frage an Ada stellst, wird der Inhalt deiner Anfrage zur Verarbeitung an Groq übertragen. Der Anfrageinhalt kann personenbezogene Daten enthalten, sofern du diese eingibst; darüber hinaus übermitteln wir keine Stammdaten wie Name oder E-Mail-Adresse. Groq speichert Inputs und Outputs standardmäßig bis zu 30 Tage zur Sicherstellung des Betriebs und zur Missbrauchskontrolle; wir haben die Zero-Data-Retention-Einstellung aktiviert, sodass keine Speicherung erfolgt. Groq nutzt die Daten nicht zum Training eigener Modelle.
+Übertragen wird ausschließlich der Inhalt deiner Anfrage samt dem bisherigen Gesprächsverlauf. Dieser kann personenbezogene Daten enthalten, sofern du solche eingibst. Stammdaten wie Name, Nutzername oder E-Mail-Adresse übermitteln wir nicht.
 
-Die Verarbeitung erfolgt im Auftrag auf Grundlage eines Auftragsverarbeitungsvertrags (Data Processing Addendum, Art. 28 DSGVO). Die Übertragung in die USA erfolgt auf Grundlage der Standardvertragsklauseln (Art. 46 DSGVO). Rechtsgrundlage für die Nutzung ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
+**Anthropic PBC**, 548 Market St, PMB 90375, San Francisco, CA 94104, USA. Wir nutzen einen kostenpflichtigen API-Zugang. Anthropic verwendet über die API übermittelte Inhalte nicht zum Training seiner Modelle. Datenschutzerklärung: [anthropic.com/legal/privacy](https://www.anthropic.com/legal/privacy)
 
-Datenschutzerklärung von Groq: [groq.com/privacy-policy](https://groq.com/privacy-policy/)
+**Groq, Inc.**, 101 University Ave, Suite 334, Palo Alto, CA 94301, USA. Groq verwendet über die API übermittelte Inhalte nicht zum Training eigener Modelle. Zur Sicherstellung des Betriebs und zur Missbrauchskontrolle können Inhalte für einen begrenzten Zeitraum gespeichert werden. Datenschutzerklärung: [groq.com/privacy-policy](https://groq.com/privacy-policy/)
+
+Die Verarbeitung erfolgt jeweils im Auftrag auf Grundlage eines Auftragsverarbeitungsvertrags (Data Processing Addendum, Art. 28 DSGVO). Die Übertragung in die USA erfolgt auf Grundlage der Standardvertragsklauseln (Art. 46 DSGVO). Rechtsgrundlage für die Nutzung ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
 
 ## 7. Vercel (Web-Hosting)
 
@@ -147,13 +149,13 @@ Du kannst deinen Account und alle damit verbundenen Daten jederzeit löschen las
 
 ## 11. Änderungen dieser Datenschutzerklärung
 
-Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen, um sie an geänderte rechtliche Anforderungen oder Änderungen unserer Dienste anzupassen. Die jeweils aktuelle Version ist stets in der App und auf unserer Website abrufbar. Stand: 28. Juni 2026.
+Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen, um sie an geänderte rechtliche Anforderungen oder Änderungen unserer Dienste anzupassen. Die jeweils aktuelle Version ist stets in der App und auf unserer Website abrufbar. Stand: 30. August 2026.
 ''';
 
 const String kAgbMarkdown = r'''
 # Allgemeine Geschäftsbedingungen
 
-Zuletzt aktualisiert: 28. Juni 2026
+Zuletzt aktualisiert: 30. August 2026
 
 ## 1. Geltungsbereich
 

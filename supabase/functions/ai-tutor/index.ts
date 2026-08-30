@@ -1,17 +1,25 @@
 // supabase/functions/ai-tutor/index.ts
 //
-// AI-Tutor Edge Function mit Failover (Claude → Groq → Gemini)
+// AI-Tutor Edge Function mit Failover (Claude → Groq)
 // + server-seitiger Usage-Tracking für Free-User
 //
 // Request:  { messages: [{role, content}], max_tokens?, temperature? }
-// Response: { content: string, provider: 'claude'|'groq'|'gemini', remaining: number }
+// Response: { content: string, provider: 'claude'|'groq', remaining: number }
+//
+// GEMINI WURDE AM 30.08.2026 ENTFERNT — nicht versehentlich, bitte nicht
+// zurückholen. In der kostenlosen Stufe der Gemini-API verwendet Google
+// Prompts und Antworten zur Verbesserung der eigenen Produkte, inklusive
+// menschlicher Sichtung. Für eine App mit deutschen Nutzern und einer
+// Datenschutzerklärung, die Zweckbindung zusagt, ist das nicht tragbar.
+// Erst wenn ein KOSTENPFLICHTIGER Gemini-Zugang existiert (dort ist die
+// Trainingsnutzung ausgeschlossen), darf der Zweig zurück — und dann muss
+// Google gleichzeitig in Abschnitt 6 der Datenschutzerklärung stehen.
 
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY')
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
 
 const CLAUDE_MODEL = 'claude-haiku-4-5'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
@@ -112,9 +120,9 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Conversation too long (max 20k chars)' }, 400)
     }
 
-    // ─── 5. Failover: Claude → Groq → Gemini ─────
+    // ─── 5. Failover: Claude → Groq ──────────────
     let content: string | null = null
-    let provider: 'claude' | 'groq' | 'gemini' | null = null
+    let provider: 'claude' | 'groq' | null = null
 
     if (ANTHROPIC_API_KEY) {
       try {
@@ -131,15 +139,6 @@ Deno.serve(async (req) => {
         provider = 'groq'
       } catch (err: any) {
         console.warn('Groq failed:', err.message)
-      }
-    }
-
-    if (!content && GEMINI_API_KEY) {
-      try {
-        content = await callGemini(messages, maxTokens, temperature)
-        provider = 'gemini'
-      } catch (err: any) {
-        console.warn('Gemini failed:', err.message)
       }
     }
 
@@ -267,56 +266,6 @@ async function callGroq(
   }
   const data = await res.json()
   return data.choices?.[0]?.message?.content ?? ''
-}
-
-// ─── Provider: Gemini ───────────────────────────
-async function callGemini(
-  messages: ChatMessage[],
-  maxTokens: number,
-  temperature: number,
-): Promise<string> {
-  // Gemini erwartet ein anderes Format als OpenAI:
-  // - system-Messages werden via "systemInstruction" gesendet
-  // - user/assistant werden zu "user"/"model" Rollen
-  const systemMessages = messages
-    .filter((m) => m.role === 'system')
-    .map((m) => m.content)
-    .join('\n\n')
-
-  const conversation = messages
-    .filter((m) => m.role !== 'system')
-    .map((m) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }))
-
-  const requestBody: any = {
-    contents: conversation,
-    generationConfig: {
-      maxOutputTokens: maxTokens,
-      temperature,
-    },
-  }
-
-  if (systemMessages) {
-    requestBody.systemInstruction = {
-      parts: [{ text: systemMessages }],
-    }
-  }
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(requestBody),
-  })
-
-  if (!res.ok) {
-    throw new Error(`Gemini HTTP ${res.status}: ${await res.text()}`)
-  }
-  const data = await res.json()
-  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 }
 
 // ─── Helper ────────────────────────────────────
