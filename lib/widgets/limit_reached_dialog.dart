@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/theme_provider.dart';
+import 'premium_kauf_sheet.dart' show premiumKaufMoeglich;
 
 /// Dialog der angezeigt wird wenn ein Free-User sein Tageslimit erreicht hat.
 class LimitReachedDialog extends StatelessWidget {
@@ -102,85 +103,112 @@ class LimitReachedDialog extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Mini Benefits
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: border),
+            // Mini Benefits — nur wo Premium auch kaufbar ist. Auf iOS
+            // waere das die Werbung fuer etwas, das man hier nicht bekommt.
+            if (premiumKaufMoeglich) ...[
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: border),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('MIT PREMIUM', style: AppTextStyles.monoSmall(textMid)),
+                    const SizedBox(height: 8),
+                    _benefit('Unbegrenzte Fragen', text),
+                    const SizedBox(height: 4),
+                    _benefit('Alle IHK-Prüfungen', text),
+                    const SizedBox(height: 4),
+                    _benefit('Alle Zertifikate', text),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 20),
+            ],
+
+            // Buttons. Ohne Kaufmoeglichkeit bleibt nur "Verstanden" —
+            // siehe premiumKaufMoeglich in premium_kauf_sheet.dart.
+            if (!premiumKaufMoeglich)
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    'Verstanden',
+                    style: AppTextStyles.mono(
+                      size: 11,
+                      color: textMid,
+                      weight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Row(
                 children: [
-                  Text('MIT PREMIUM', style: AppTextStyles.monoSmall(textMid)),
-                  const SizedBox(height: 8),
-                  _benefit('Unbegrenzte Fragen', text),
-                  const SizedBox(height: 4),
-                  _benefit('Alle IHK-Prüfungen', text),
-                  const SizedBox(height: 4),
-                  _benefit('Alle Zertifikate', text),
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: border),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Später',
+                          style: AppTextStyles.mono(
+                            size: 11,
+                            color: textMid,
+                            weight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          onUpgrade();
+                        },
+                        icon: const Icon(
+                          Icons.workspace_premium_rounded,
+                          size: 16,
+                        ),
+                        label: const Text('Premium'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: text,
+                          foregroundColor: bg,
+                          elevation: 0,
+                          textStyle: AppTextStyles.labelLarge(bg),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: border),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        'Später',
-                        style: AppTextStyles.mono(
-                          size: 11,
-                          color: textMid,
-                          weight: FontWeight.w700,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  flex: 2,
-                  child: SizedBox(
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        onUpgrade();
-                      },
-                      icon: const Icon(
-                        Icons.workspace_premium_rounded,
-                        size: 16,
-                      ),
-                      label: const Text('Premium'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: text,
-                        foregroundColor: bg,
-                        elevation: 0,
-                        textStyle: AppTextStyles.labelLarge(bg),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),

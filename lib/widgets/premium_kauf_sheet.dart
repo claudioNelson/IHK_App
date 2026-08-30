@@ -5,7 +5,9 @@
 // wenn der Kauf erfolgreich war (Premium ist dann bereits freigeschaltet).
 
 import 'dart:async';
+import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,8 +18,26 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/theme_provider.dart';
 
+/// Kann auf dieser Plattform überhaupt gekauft werden?
+///
+/// Auf iOS: nein. `billing_service.dart` spricht ausschliesslich Google Play
+/// (`GooglePlayProductDetails`), ein Kauf-Knopf würde dort ins Leere laufen.
+/// Ein toter Kauf-Knopf ist bei Apples Prüfung ein sicherer Ablehnungsgrund
+/// (Richtlinie 2.1, "App Completeness"). Deshalb blenden wir die gesamte
+/// Kauf-Oberfläche auf iOS aus, bis StoreKit eingebaut ist.
+///
+/// WICHTIG: Nicht stattdessen auf die Web-Version verweisen. Nutzer zu einem
+/// Kaufweg ausserhalb des App Store zu lotsen verbietet Richtlinie 3.1.3 und
+/// führt ebenfalls zur Ablehnung. Gesperrte Inhalte bleiben einfach gesperrt.
+///
+/// `kIsWeb` zuerst prüfen — `Platform` wirft im Browser.
+bool get premiumKaufMoeglich => kIsWeb || !Platform.isIOS;
+
 /// Öffnet das Kauf-Sheet. Gibt true zurück, wenn Premium aktiviert wurde.
+/// Auf iOS passiert nichts (siehe [premiumKaufMoeglich]).
 Future<bool?> showPremiumKaufSheet(BuildContext context) {
+  if (!premiumKaufMoeglich) return Future<bool?>.value(null);
+
   return showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,

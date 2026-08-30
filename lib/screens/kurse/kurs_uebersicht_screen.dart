@@ -77,6 +77,17 @@ class _KursUebersichtScreenState extends State<KursUebersichtScreen> {
       return;
     }
     if (_istGesperrt(lektion)) {
+      // Ohne Kaufmoeglichkeit (iOS, siehe premiumKaufMoeglich) bleibt die
+      // Lektion einfach gesperrt. Kein Kauf-Sheet, kein Verweis nach aussen.
+      if (!premiumKaufMoeglich) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Diese Lektion gehört zu Premium.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
       final gekauft = await showPremiumKaufSheet(context);
       if (gekauft != true) return;
       setState(() {}); // Schloesser neu zeichnen

@@ -86,10 +86,17 @@ class IHKPruefungDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                // Web-Empfehlung
-                _buildWebCard(surface, border, text, textMid),
-
-                const SizedBox(height: 12),
+                // Web-Empfehlung — auf iOS ausgeblendet.
+                // Die Karte verlinkt auf lernarena.app, und dort werden auch
+                // Abos verkauft. Apple wertet einen Verweis auf einen
+                // Kaufweg ausserhalb des App Store als Verstoss gegen
+                // Richtlinie 3.1.3; ausserdem naehrt "bearbeite das lieber
+                // am Desktop" den Verdacht, die App sei nur eine Huelle um
+                // eine Website (Richtlinie 4.2).
+                if (premiumKaufMoeglich) ...[
+                  _buildWebCard(surface, border, text, textMid),
+                  const SizedBox(height: 12),
+                ],
 
                 // Hinweise
                 _buildHinweiseCard(surface, border, text, textMid),

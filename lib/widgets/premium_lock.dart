@@ -4,8 +4,13 @@ import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/theme_provider.dart';
+import 'premium_kauf_sheet.dart' show premiumKaufMoeglich;
 
 /// Wiederverwendbares Lock-Widget für Premium-Features.
+///
+/// Wo nicht gekauft werden kann (iOS, siehe [premiumKaufMoeglich]), fallen
+/// Preisangabe und der Knopf "Premium aktivieren" weg. Ein Knopf ins Leere
+/// und Preise ohne Kaufweg sind bei Apples Prüfung beides Ablehnungsgründe.
 class PremiumLock extends StatelessWidget {
   final String featureName;
   final String description;
@@ -115,72 +120,78 @@ class PremiumLock extends StatelessWidget {
 
                   const SizedBox(height: 16),
 
-                  // Pricing Hint
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: surface,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: border),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.local_offer_outlined,
-                          size: 14,
-                          color: textMid,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            '11,99€/M · 47,99€/6M · 84,99€/Jahr',
-                            style: AppTextStyles.mono(
-                              size: 11,
-                              color: textMid,
-                              weight: FontWeight.w600,
-                              letterSpacing: 0.3,
+                  // Pricing Hint — nur wo auch gekauft werden kann.
+                  if (premiumKaufMoeglich)
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: surface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: border),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.local_offer_outlined,
+                            size: 14,
+                            color: textMid,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '11,99€/M · 47,99€/6M · 84,99€/Jahr',
+                              style: AppTextStyles.mono(
+                                size: 11,
+                                color: textMid,
+                                weight: FontWeight.w600,
+                                letterSpacing: 0.3,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
           ),
 
           // ─── BOTTOM BAR ──────────────────────
-          Container(
-            decoration: BoxDecoration(
-              color: surface,
-              border: Border(top: BorderSide(color: border)),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    onPressed: onUpgrade,
-                    icon: const Icon(Icons.workspace_premium_rounded, size: 18),
-                    label: const Text('Premium aktivieren'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: text,
-                      foregroundColor: bg,
-                      elevation: 0,
-                      textStyle: AppTextStyles.labelLarge(bg),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+          // Ohne Kaufmoeglichkeit gibt es hier nichts zu tippen.
+          if (premiumKaufMoeglich)
+            Container(
+              decoration: BoxDecoration(
+                color: surface,
+                border: Border(top: BorderSide(color: border)),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: onUpgrade,
+                      icon: const Icon(
+                        Icons.workspace_premium_rounded,
+                        size: 18,
+                      ),
+                      label: const Text('Premium aktivieren'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: text,
+                        foregroundColor: bg,
+                        elevation: 0,
+                        textStyle: AppTextStyles.labelLarge(bg),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

@@ -684,3 +684,76 @@ Der Text liegt in App Store Connect. Zwei Regeln beim Ändern:
 
 Noch offen. 30 Zeichen, wird zusätzlich indexiert und kostet kein
 Keyword-Budget. Kandidaten: `IHK-Prüfung üben, AP1 und AP2` (29).
+
+---
+
+## Premium-Kauf auf iOS ausgeblendet (30.08.2026)
+
+`billing_service.dart` spricht ausschließlich Google Play — der Cast auf
+`GooglePlayProductDetails` in `_basePlanIdOf` macht das unmissverständlich.
+Auf iOS gäbe es also Kauf-Knöpfe, die ins Leere führen. Das ist bei Apples
+Prüfung ein sicherer Ablehnungsgrund (Richtlinie 2.1, App Completeness).
+
+### Der Schalter
+
+Neu in `lib/widgets/premium_kauf_sheet.dart`:
+
+```dart
+bool get premiumKaufMoeglich => kIsWeb || !Platform.isIOS;
+```
+
+`kIsWeb` muss zuerst stehen, `Platform` wirft im Browser. Zusätzlich gibt
+`showPremiumKaufSheet()` auf iOS sofort `null` zurück, falls doch jemand
+daran vorbei aufruft.
+
+### Wo überall gekauft werden konnte
+
+Erst nach vollständigem Durchsuchen von `lib/` sichtbar geworden — ein erster
+Teildurchlauf hatte nur zwei der fünf Stellen gefunden:
+
+| Datei | Was passierte |
+|---|---|
+| `pages/pruefung/ihk_pruefung_detail_screen.dart:31` | `PremiumLock` vor jeder IHK-Prüfung |
+| `screens/zertifikate/zertifikat_test_screen.dart:485` | `PremiumLock` vor dem Zertifikatstest |
+| `screens/zertifikate/certificate_practice_screen.dart:285` | `PremiumLock` vor dem Übungsmodus |
+| `screens/kurse/kurs_uebersicht_screen.dart` | Kauf-Sheet beim Tippen auf eine gesperrte Lektion |
+| `screens/learning/ai_tutor_chat_screen.dart:97` | Kauf-Sheet aus dem Limit-Dialog von Ada |
+
+Gelöst an drei zentralen Stellen statt an fünf Aufrufstellen:
+
+- **`premium_lock.dart`** — Preisangabe („11,99€/M · …") und der Knopf
+  „Premium aktivieren" verschwinden. Die Vorteilsliste bleibt, sie erklärt
+  nur, was Premium ist. Das deckt drei der fünf Stellen ab.
+- **`limit_reached_dialog.dart`** — statt „Später / Premium" nur noch ein
+  „Verstanden". Deckt Ada und die Arena ab.
+- **`kurs_uebersicht_screen.dart`** — gesperrte Lektion zeigt einen Snackbar
+  statt des Kauf-Sheets.
+
+### Ebenfalls raus: die Web-Empfehlung
+
+`_buildWebCard()` im Prüfungsdetail verlinkte per `launchUrl` auf
+`https://lernarena.app`. Dort werden Abos verkauft, und Nutzer zu einem
+Kaufweg außerhalb des App Store zu lotsen verstößt gegen Richtlinie 3.1.3.
+Unabhängig davon nährt „bearbeite das lieber am Desktop" den Verdacht, die
+App sei nur eine Hülle um eine Website (Richtlinie 4.2). Die Karte wird auf
+iOS nicht mehr gerendert.
+
+**Grundregel für später:** Bei fehlender Kaufmöglichkeit bleiben gesperrte
+Inhalte einfach gesperrt. Nicht auf die Web-Version verweisen, auch nicht
+dezent — genau das ist der Verstoß.
+
+### Korrektur eines Irrtums aus diesem Chat
+
+Zwischenzeitlich stand hier die Annahme, die IHK-Prüfungen würden beim
+Antippen im Browser geöffnet. Das stimmt nicht. `pruefen_screen.dart`
+navigiert per `Navigator.push` in `IHKPruefungDetailScreen`, also in-app.
+Der Browser-Hinweis stammte aus einer veralteten Info-Box, die wir vorher
+entfernt haben. Die Guideline-4.2-Sorge ist damit weitgehend vom Tisch.
+
+### Was noch fehlt
+
+StoreKit. Für 1.6: Abo-Gruppe in App Store Connect anlegen, plattformabhängige
+Produkt-IDs in `billing_service.dart`, Apple-Zweig in der Edge Function
+`verify-purchase`, Sandbox-Test auf einem echten iPhone. Danach
+`premiumKaufMoeglich` auf `true` ziehen und die Beschreibung im Store um
+einen Premium-Abschnitt ergänzen.
