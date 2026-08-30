@@ -300,33 +300,12 @@ class _PruefenScreenState extends State<PruefenScreen>
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
       physics: const BouncingScrollPhysics(),
       children: [
-        // Info-Box: Prüfungen laufen im Browser
-        Container(
-          padding: const EdgeInsets.all(14),
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: AppColors.accent.withOpacity(0.06),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.accent.withOpacity(0.2)),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.open_in_new_rounded,
-                color: AppColors.accent,
-                size: 16,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'IHK-Prüfungen bearbeitest du in der Web-Version. Diagramme, SQL und lange Texte gehen am Laptop einfach besser. Tippe auf eine Prüfung — sie öffnet sich im Browser.',
-                  style: AppTextStyles.bodySmall(text),
-                ),
-              ),
-            ],
-          ),
-        ),
+        // Hinweis-Box zur Web-Version vorerst ausgebaut (30.08.2026).
+        // Grund: Sie stand ganz oben auf dem Prüfen-Screen und damit auf
+        // jedem App-Store-Screenshot. "Öffnet sich im Browser" ist zudem
+        // genau das, woran Apples Review bei Guideline 4.2 haengen bleibt.
+        // Zum Zurueckholen: git log -p auf diese Datei, Commit vom 30.08.
+        const SizedBox(height: 4),
         if (_aeExams.isNotEmpty) ...[
           _buildCategoryHeader(
             tag: 'AE',

@@ -465,3 +465,67 @@ Von **1.507** Fragen haben **1.026 keine `thema_id`** und **246 keine
 tauchen in themenbasierten Lernbereichen vermutlich nicht auf — das kann Absicht
 sein (etwa wenn sie nur über Prüfungssimulationen laufen) oder eine Altlast aus
 einem Import. Lohnt einen genaueren Blick: potenziell viel ungenutzter Inhalt.
+
+---
+
+## Arena-Screenshot und Browser-Hinweis (30.08.2026)
+
+Zwei Änderungen, beide ausschließlich für die App-Store-Bilder gedacht.
+
+### 1. Hinweisbox auf dem Prüfen-Screen entfernt
+
+`lib/screens/pruefen/pruefen_screen.dart`, Methode `_buildIhkList()`. Ganz oben
+in der Liste stand:
+
+> IHK-Prüfungen bearbeitest du in der Web-Version. Diagramme, SQL und lange
+> Texte gehen am Laptop einfach besser. Tippe auf eine Prüfung — sie öffnet
+> sich im Browser.
+
+Die Box ist raus, an ihrer Stelle steht ein Kommentar mit dem Grund. Zwei
+Motive:
+
+1. Sie saß über allem und war damit auf **jedem** Screenshot des Prüfen-Tabs.
+2. „Öffnet sich im Browser" ist genau die Formulierung, an der Apples Review
+   bei **Guideline 4.2 (Minimum Functionality)** hängen bleibt. Eine App, die
+   ihren Kernbereich in den Browser auslagert, gilt schnell als Website-Hülle.
+   Lernen, Levels und Kurse laufen in-app, damit ist die App vermutlich sicher
+   — aber man muss den Prüfer nicht mit der Nase darauf stoßen.
+
+Zurückholen: `git log -p -- lib/screens/pruefen/pruefen_screen.dart`, Commit
+vom 30.08.2026.
+
+**Offen und wichtiger als der Text:** Der Tap auf eine Prüfung öffnet weiterhin
+den Browser. Für den Store sollte mittelfristig entweder ein In-App-Webview mit
+eigener Navigation her oder die Prüfungen wandern in die App.
+
+### 2. Arena mit Demo-Daten füllen
+
+Der Arena-Tab zeigte beim Demo-Konto „AKTIVE MATCHES · 0 / Keine aktiven
+Matches" und keinen ELO-Banner — als Store-Bild wertlos. Skript dafür:
+`tools/arena_demo_fuellen.sql`.
+
+Was der Screen woraus liest (`async_match_demo_screen.dart` +
+`async_duel_service.dart`):
+
+| Element im Screen | Quelle |
+|---|---|
+| ELO-Banner mit Stufe, Siegen, Winrate | `player_stats` — erscheint **nur**, wenn `matches_played > 0` |
+| Stufenname (BRONZE … MEISTER) | `elo_rating`: ≥850 Bronze, ≥1000 Silber, ≥1150 Gold, ≥1300 Diamant, ≥1500 Meister |
+| „AKTIVE MATCHES · n" | `matches` mit `player1_id` oder `player2_id` = ich, Status **nicht** completed/finalized/finished |
+| Badge „NOCH x FRAGEN" | `total_questions` minus Anzahl eigener Zeilen in `match_answers` |
+| „HISTORY · n" | dieselben Matches mit Status completed/finalized/finished, Scores aus `match_scores` |
+
+Die Match-Karte zeigt **keinen Gegnernamen**, nur `#MATCHID`, den Status und
+die Fragenzahl. Deshalb brauchen die Demo-Matches keinen zweiten Spieler:
+`player2_id` bleibt leer, genau wie bei einem frisch erstellten Match aus der
+App (`create_async_match_any`).
+
+Das Skript setzt ELO 1180 (GOLD), 17 Siege / 2 Remis / 5 Niederlagen = 70 %
+Winrate, und legt drei Matches mit 4 / 7 / 0 beantworteten Fragen an. Abschnitt
+0 gibt das Schema aus, Abschnitt 4 macht alles rückgängig.
+
+**Nicht sicher bekannt:** Die Spalten von `matches`, `match_answers` und
+`player_stats` stehen in keiner Migration im Repo — sie leben nur in der
+Remote-Datenbank. Das Skript ist deshalb defensiv geschrieben (UPDATE-dann-
+INSERT statt `ON CONFLICT`, Fallback von Status `active` auf `open`). Falls es
+mit „column … does not exist" abbricht, liefert Abschnitt 0 die echten Spalten.
