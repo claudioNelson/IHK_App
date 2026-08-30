@@ -918,3 +918,148 @@ Die AGB wurden nicht angefasst, deren Stand-Datum bleibt der 28. Juni 2026.
 **Wichtig für den iOS-Build:** Der eingebettete Rechtstext steckt im Binary.
 Build 22 (Commit 311a063) enthält noch die alte Fassung. Deshalb Tag
 `ios-v1.5.0-2` → Build 23, und den muss man in App Store Connect auswählen.
+
+---
+
+## App-Datenschutz-Fragebogen (30.08.2026)
+
+Angekreuzt in App Store Connect → Vertrauen und Sicherheit → App-Datenschutz:
+
+| Kategorie | Datentyp | Woher |
+|---|---|---|
+| Kontaktinformationen | E-Mail-Adresse | Registrierung über Supabase |
+| Benutzerinhalte | Sonstige Benutzerinhalte | Chateingaben an Ada, selbst erstellte Karteikarten |
+| Benutzerinhalte | Kundendienst | „Fehler melden"-Dialog |
+| Kennungen | Benutzer-ID | Supabase-Konto-ID und Benutzername |
+| Nutzungsdaten | Produktinteraktion | Lernfortschritt, Testergebnisse, Elo, `usage_tracking` |
+
+Alles andere: nein.
+
+### Warum bestimmte Punkte NICHT angekreuzt sind
+
+**Name** — die Registrierung fragt nur Benutzername („dein_name"), E-Mail und
+Passwort ab. Ein Handle ordnet Apple den *Kennungen* zu, nicht dem Datentyp
+*Name*. Nachgesehen in `lib/screens/auth/register_screen.dart`.
+
+**Diagnose (Crash-, Leistungsdaten)** — es ist kein Analyse- oder Crash-SDK
+verbaut. Kein Firebase, kein Sentry, kein Crashlytics. Geprüft in
+`pubspec.yaml`.
+
+**Zahlungsdaten** — läuft über Stripe bzw. später StoreKit außerhalb der App,
+wir haben nie Zugriff. Apple sagt selbst, dass das nicht als Erfassung gilt.
+
+**Käufe** — diese iOS-Version kennt keinen Kauf. **Beim Einbau von StoreKit
+nachziehen**, das vergisst man beim nächsten Release leicht.
+
+**Fotos und Videos** — siehe nächster Abschnitt.
+
+---
+
+## Fotos in der Prüfung: bleiben auf dem Gerät (30.08.2026)
+
+Bei Diagramm-Aufgaben in der IHK-Prüfung blendet
+`ihk_pruefung_exam_screen.dart` das `PhotoUploadWidget` ein. Es nutzt den
+ImagePicker mit Kamera und Galerie. Trotzdem ist „Fotos und Videos" im
+Datenschutz-Fragebogen **nicht** anzukreuzen:
+
+```dart
+setState(() { _photoPath = image.path; });
+widget.onPhotoSelected(image.path);
+```
+
+Gespeichert wird nur der **Dateipfad**, nicht das Bild. Der landet über
+`_saveProgress()` in den SharedPreferences. Kein Supabase Storage, kein
+Base64, kein Upload — das Foto verlässt das Gerät nie. Apple definiert
+„erfassen" als Übertragung vom Gerät; rein lokale Daten werden nicht
+deklariert.
+
+Die Zweckbeschreibungen `NSCameraUsageDescription` und
+`NSPhotoLibraryUsageDescription` in der `Info.plist` braucht es trotzdem —
+die verlangt iOS beim Zugriff selbst, unabhängig vom Fragebogen.
+
+### Zwei echte Mängel, die dabei aufgefallen sind
+
+**1. Das Foto kann verschwinden.** Der ImagePicker legt die Datei im
+temporären Verzeichnis der App ab. iOS räumt das bei Speicherdruck auf. Nach
+einigen Tagen zeigt die Prüfung dann einen Pfad, hinter dem nichts mehr
+liegt. Sauber wäre: die Datei in das Dokumentenverzeichnis der App kopieren
+(`getApplicationDocumentsDirectory()`) und diesen Pfad speichern — oder,
+besser, in Supabase Storage hochladen. Letzteres macht das Foto dann aber zu
+erfassten Daten und muss im Fragebogen nachgetragen werden.
+
+**2. Prüfungsantworten liegen gerätelokal.** `_saveProgress()` schreibt alle
+Antworten in SharedPreferences. Wer das Gerät wechselt oder die App neu
+installiert, verliert den Zwischenstand. Dieselbe Bauart wie beim
+Modul-Fortschritt (`app_cache_service.dart`), der uns bei den Screenshots
+0 % angezeigt hat, obwohl 1.261 Antworten in der Datenbank lagen.
+
+Beides sind Produktmängel, keine Store-Blocker. Für die Einreichung
+unerheblich, für die Nutzer nicht.
+
+---
+
+## Inhaltsrechte und Herkunft der Aufgaben (30.08.2026)
+
+### Was gegenüber Apple erklärt wurde
+
+App-Informationen → Inhaltsrechte: **"Nein, sie enthält und zeigt keine
+Inhalte von Drittanbietern an."**
+
+Grundlage: Die Zertifikatsfragen wurden per KI erzeugt, die IHK-Aufgaben sind
+eigene Nachbildungen im Stil echter Prüfungen. Kein übernommenes fremdes
+Material. Sollte sich das ändern — etwa durch lizenzierte Aufgabensammlungen
+— muss die Antwort mitgeändert werden.
+
+### Titel entschärft
+
+Die fünf Prüfungen hießen `AE Prüfung 1 - Winter 2016/17` und so weiter. Das
+liest sich, als sei es der Originalprüfungssatz dieses Termins. Neu:
+
+| Datei | Titel |
+|---|---|
+| `lib/data/exams/ae-1.dart` | AE Übungsprüfung 1 |
+| `lib/data/exams/ae-2.dart` | AE Übungsprüfung 2 |
+| `lib/data/exams/ae-3.dart` | AE Übungsprüfung 3 |
+| `lib/data/exams/si-1.dart` | SI Übungsprüfung 1 |
+| `lib/data/exams/si-2.dart` | SI Übungsprüfung 2 |
+
+Die Felder `year` und `season` bleiben unverändert, das Badge über der Karte
+zeigt weiterhin "WINTER 2016" bzw. "SOMMER 2017". Die Einordnung bleibt also
+sichtbar, ohne dass der Titel behauptet, es *sei* diese Prüfung.
+
+### Zwei Hinweise ergänzt
+
+**Herkunft** — erster Punkt in den "Wichtigen Hinweisen" der
+Prüfungsdetailseite (`ihk_pruefung_detail_screen.dart`):
+
+> Eigene Übungsaufgaben im Stil der IHK-Abschlussprüfung — keine
+> Originalaufgaben der IHK
+
+**Marken** — in der Infobox über der Zertifikatsliste
+(`pruefen_screen.dart`):
+
+> Unabhängige Übungsaufgaben, nicht von AWS, Microsoft, Google oder SAP
+> autorisiert oder unterstützt.
+
+Die Simulationen heißen "AWS Certified Cloud Practitioner", "Microsoft Azure
+Fundamentals (AZ-900)", "Google Cloud Digital Leader" und "SAP Certified
+Application Associate" — alles eingetragene Marken. Eine Marke zu **nennen**,
+um zu sagen, worauf man vorbereitet, ist zulässig (nominative Nutzung). Der
+Eindruck einer offiziellen Zusammenarbeit wäre es nicht. Genau diesen
+Eindruck schließt der Satz aus. SAP und Microsoft reagieren darauf
+erfahrungsgemäß empfindlicher als die IHK.
+
+### Nebenbei korrigiert
+
+Der Hinweis "Foto-Upload: Fotografiere Diagramme und lade sie hoch" war
+falsch — es wird nichts hochgeladen, nur der Dateipfad landet in den
+SharedPreferences. Jetzt: "Diagramme kannst du fotografieren und der Aufgabe
+anhängen." Das deckt sich mit dem, was im Datenschutz-Fragebogen erklärt
+wurde.
+
+### Offener Punkt
+
+Bei KI-generierten Aufgaben ist die fachliche Richtigkeit das eigene Risiko.
+Wer eine falsche Antwort als richtig lernt, merkt es erst in der Prüfung. Der
+"Fehler melden"-Dialog sollte in den Zertifikatstests gut sichtbar bleiben
+und die Meldungen tatsächlich abgearbeitet werden.
