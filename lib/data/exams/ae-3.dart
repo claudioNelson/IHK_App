@@ -2,7 +2,7 @@ import '../../models/ihk_exam_model.dart';
 
 final ae3Exam = IHKExam(
   id: 'ae-3',
-  title: 'AE Prüfung 3 - Winter 2019/20',
+  title: 'AE Übungsprüfung 3',
   year: 2019,
   season: 'Winter',
   duration: 90,

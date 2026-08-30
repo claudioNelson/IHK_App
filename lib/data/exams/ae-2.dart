@@ -2,7 +2,7 @@ import '../../models/ihk_exam_model.dart';
 
 final ae2Exam = IHKExam(
   id: 'ae-2',
-  title: 'AE Prüfung 2 - Sommer 2017',
+  title: 'AE Übungsprüfung 2',
   year: 2017,
   season: 'Sommer',
   duration: 90,

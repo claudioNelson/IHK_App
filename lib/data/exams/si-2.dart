@@ -2,7 +2,7 @@ import '../../models/ihk_exam_model.dart';
 
 final si2Exam = IHKExam(
   id: 'si-2',
-  title: 'SI Prüfung 2 - Winter 2016/17',
+  title: 'SI Übungsprüfung 2',
   year: 2016,
   season: 'Winter',
   duration: 90,

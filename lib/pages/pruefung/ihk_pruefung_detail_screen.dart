@@ -453,14 +453,25 @@ class IHKPruefungDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
+          // Klarstellung zur Herkunft der Aufgaben. Die Titel nennen einen
+          // Prüfungstermin ("Winter 2016"), die Aufgaben sind aber eigene
+          // Nachbildungen. Ohne diesen Satz liest sich das wie ein
+          // Originalprüfungssatz der IHK.
+          _bulletItem(
+            'Eigene Übungsaufgaben im Stil der IHK-Abschlussprüfung — '
+            'keine Originalaufgaben der IHK',
+            textMid,
+          ),
           _bulletItem(
             'Keine Hilfsmittel — bearbeite ohne Google oder andere Hilfen',
             textMid,
           ),
           _bulletItem('Echte Prüfungsbedingungen — der Timer läuft', textMid),
           _bulletItem('Antworten werden automatisch gespeichert', textMid),
+          // Bewusst nicht "hochladen": das Foto bleibt auf dem Geraet,
+          // gespeichert wird nur der Dateipfad (photo_upload_widget.dart).
           _bulletItem(
-            'Foto-Upload: Fotografiere Diagramme und lade sie hoch',
+            'Diagramme kannst du fotografieren und der Aufgabe anhängen',
             textMid,
           ),
         ],

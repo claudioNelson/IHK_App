@@ -418,7 +418,13 @@ class _PruefenScreenState extends State<PruefenScreen>
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Zertifikats-Simulationen laufen mit Timer und ohne Erklärungen — wie die echte Prüfung.',
+                    // Der zweite Satz ist kein Beiwerk: Die Simulationen
+                    // tragen fremde Marken im Namen (AWS, Azure, GCP, SAP).
+                    // Eine Marke zu nennen, um zu sagen, worauf man
+                    // vorbereitet, ist zulässig — der Eindruck einer
+                    // offiziellen Zusammenarbeit wäre es nicht.
+                    'Zertifikats-Simulationen laufen mit Timer und ohne Erklärungen — wie die echte Prüfung. '
+                    'Unabhängige Übungsaufgaben, nicht von AWS, Microsoft, Google oder SAP autorisiert oder unterstützt.',
                     style: AppTextStyles.bodySmall(text),
                   ),
                 ),
