@@ -757,3 +757,164 @@ Produkt-IDs in `billing_service.dart`, Apple-Zweig in der Edge Function
 `verify-purchase`, Sandbox-Test auf einem echten iPhone. Danach
 `premiumKaufMoeglich` auf `true` ziehen und die Beschreibung im Store um
 einen Premium-Abschnitt ergänzen.
+
+---
+
+## Premium auf beiden Plattformen (geplant für 1.6)
+
+Ziel: ein Codestand, der auf Google Play und im App Store verkauft, ohne
+zwei Build-Varianten. Der Plan steht, umgesetzt ist noch nichts.
+
+### Was schon richtig gebaut ist
+
+`subscription_service.dart` liest den Premium-Status ausschließlich aus
+`profiles` — `is_premium`, `premium_until`, `premium_tier`. Die App fragt
+**nie** den Store, sondern immer die eigene Datenbank. Damit ist die
+Grundarchitektur bereits plattformneutral: Beide Stores schreiben am Ende in
+dieselben drei Spalten, alles darüber bleibt unverändert. Auch das Paket
+`in_app_purchase` muss nicht getauscht werden, die StoreKit-Implementierung
+bringt es mit.
+
+Zu ändern sind nur vier Stellen.
+
+### 1. Produkt-IDs sind plattformabhängig
+
+Google Play kennt **ein** Abo `lernarena_premium` mit drei Base Plans
+darunter. Apple kennt keine Base Plans — dort ist jede Laufzeit ein eigenes
+Produkt innerhalb einer Abo-Gruppe.
+
+```dart
+// billing_service.dart
+String get _abo =>
+    Platform.isIOS ? 'app.lernarena.premium' : 'lernarena_premium';
+
+Set<String> get _produktIds => Platform.isIOS
+    ? {
+        'app.lernarena.premium.monthly',
+        'app.lernarena.premium.halfyear',
+        'app.lernarena.premium.annual',
+      }
+    : {'lernarena_premium'};
+```
+
+### 2. Der Google-Cast muss ein Zweig werden
+
+`_basePlanIdOf` castet hart auf `GooglePlayProductDetails` — auf iOS wirft
+das. Dort **ist** die Produkt-ID bereits die Laufzeit, es gibt nichts
+abzuleiten. Dasselbe beim Kauf: Android braucht `GooglePlayPurchaseParam`
+mit Offer-Token, iOS reicht ein schlichtes `PurchaseParam`.
+
+### 3. Zweiter Zweig in der Edge Function `verify-purchase`
+
+Der eigentliche Brocken. Heute spricht die Funktion die Play Developer API.
+Apple liefert stattdessen eine **signierte Transaktion (JWS)**, die gegen die
+App Store Server API geprüft wird; `verifyReceipt` ist abgekündigt und darf
+nicht mehr die Grundlage sein. Dafür braucht es einen eigenen
+In-App-Purchase-Key aus App Store Connect als Secret — **nicht** derselbe
+Key wie der für Codemagic.
+
+Die App schickt ein Feld `platform` mit, die Funktion verzweigt darauf.
+Beide Zweige enden identisch: `profiles` aktualisieren.
+
+Zusätzlich eine Spalte `store` in der Abo-Tabelle anlegen. Bei
+Rückerstattungen und Support-Anfragen muss man wissen, wo man nachsieht.
+
+### 4. "Käufe wiederherstellen"
+
+Apple verlangt einen solchen Knopf, Google nicht. Gehört ins Kauf-Sheet,
+sichtbar auf beiden Plattformen (schadet auf Android nicht).
+
+### Danach
+
+`premiumKaufMoeglich` in `premium_kauf_sheet.dart` auf `true` ziehen — dann
+kommen Kauf-Sheet, Preisangabe im `PremiumLock` und der Premium-Knopf im
+Limit-Dialog automatisch zurück. Und die Store-Beschreibung um einen
+Premium-Abschnitt ergänzen.
+
+### Der praktische Blocker: Testen
+
+StoreKit lässt sich im iOS-Simulator nur mit einer StoreKit-Konfigurations-
+datei aus Xcode testen — dafür braucht man einen Mac. Ohne Mac und ohne
+iPhone ist der Kaufweg nicht selbst durchspielbar, sondern nur über einen
+Tester mit Gerät und Sandbox-Account (App Store Connect → Benutzer und
+Zugriff → Sandbox).
+
+**Deshalb wurde für 1.5.0 ausgeblendet statt eingebaut:** Ungetesteten
+Kaufcode einzureichen ist riskanter als gar keinen. Ein Kauf, der beim
+Prüfer abbricht, ist eine sichere Ablehnung; eine App ohne Kaufmöglichkeit
+ist es nicht.
+
+---
+
+## Gemini aus dem KI-Failover entfernt (30.08.2026)
+
+### Was die Kette vorher war
+
+`supabase/functions/ai-tutor/index.ts` versuchte der Reihe nach:
+
+```
+Claude (claude-haiku-4-5)  →  Groq  →  Gemini
+```
+
+Die App spricht keinen der Anbieter direkt an, sie ruft nur die Edge
+Function; die Schlüssel liegen nie auf dem Gerät. Das war und bleibt richtig.
+
+### Warum Gemini raus musste
+
+Der Gemini-Zugang war die **kostenlose Stufe**. Google verwendet dort Prompts
+und Antworten zur Verbesserung der eigenen Produkte, einschließlich
+menschlicher Sichtung; erst in der kostenpflichtigen Stufe ist das
+ausgeschlossen. Für eine App mit deutschen Nutzern und einer
+Datenschutzerklärung, die Zweckbindung zusagt, ist das nicht haltbar.
+
+Anthropic läuft über einen kostenpflichtigen Zugang, dort ist Training über
+die API ausgeschlossen. Groq trainiert ebenfalls nicht auf API-Inhalten.
+
+Rückholen ist erlaubt, sobald ein **kostenpflichtiger** Gemini-Zugang
+existiert — dann muss Google gleichzeitig in Abschnitt 6 der
+Datenschutzerklärung auftauchen. Ein entsprechender Warnkommentar steht oben
+in der Edge Function.
+
+### Der eigentliche Fund: die Datenschutzerklärung war falsch
+
+Abschnitt 6 nannte **ausschließlich Groq**, obwohl Anthropic der Anbieter
+ist, der die Anfragen zuerst bekommt. Art. 13 DSGVO verlangt die Benennung
+der Empfänger. Zusätzlich vergleicht Apples Prüfung die Datenschutzangaben
+im Store mit der verlinkten Erklärung — eine Unstimmigkeit genau dort ist
+teuer.
+
+Ebenfalls gestrichen: die Zusage *"wir haben bei Groq die
+Zero-Data-Retention-Einstellung aktiviert"*. Zero Data Retention ist bei Groq
+üblicherweise Vertragsbestandteil und nichts, was man im kostenlosen Konto
+anklickt. Unbelegte Zusagen in Rechtstexten sind schlechter als vorsichtige
+Formulierungen. **Offen:** In der Groq-Console prüfen, ob ZDR für das Konto
+tatsächlich gesetzt ist. Falls ja, darf der Satz zurück.
+
+### Geändert wurde an drei Orten
+
+Die Rechtstexte existieren **doppelt** und müssen immer gemeinsam gepflegt
+werden — der Kommentar am Kopf von `legal_texts.dart` sagt das auch:
+
+| Ort | Datei |
+|---|---|
+| App (offline eingebettet) | `lib/screens/legal/legal_texts.dart` |
+| Website (Next.js, Vercel) | `web/app/datenschutz/page.tsx` |
+| Edge Function | `supabase/functions/ai-tutor/index.ts` |
+
+Die Web-App liegt im **selben Repo** unter `web/` — ein Next.js-Projekt, nicht
+zu verwechseln mit dem Flutter-`web/`-Build-Ordner anderer Projekte. Das
+Stand-Datum steckt dort in der Konstante `STAND` am Dateikopf. Die
+Sprungmarke des Abschnitts hieß `groq` und heißt jetzt `ki-anbieter`.
+
+Die AGB wurden nicht angefasst, deren Stand-Datum bleibt der 28. Juni 2026.
+
+### Deployment
+
+- Edge Function: `supabase functions deploy ai-tutor` (lief trotz
+  "WARNING: Docker is not running" durch, die CLI weicht auf den API-Weg aus)
+- `GEMINI_API_KEY` wurde mit `supabase secrets unset` entfernt
+- Website: Vercel deployt bei Push auf main automatisch
+
+**Wichtig für den iOS-Build:** Der eingebettete Rechtstext steckt im Binary.
+Build 22 (Commit 311a063) enthält noch die alte Fassung. Deshalb Tag
+`ios-v1.5.0-2` → Build 23, und den muss man in App Store Connect auswählen.
