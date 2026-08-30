@@ -78,19 +78,6 @@ void main() {
     debugPrint('>>> Screenshot: $name');
   }
 
-  /// Scrollt die erste scrollbare Flaeche nach unten.
-  Future<void> scrolle(WidgetTester tester, double pixel) async {
-    final s = find.byType(Scrollable);
-    if (s.evaluate().isEmpty) return;
-    try {
-      await tester.drag(s.first, Offset(0, -pixel));
-      await ruhe(tester, sekunden: 2);
-      tester.takeException();
-    } catch (e) {
-      debugPrint('Scrollen fehlgeschlagen: $e');
-    }
-  }
-
   /// Geht einen Bildschirm zurueck; faellt auf den Tab-Wechsel zurueck.
   Future<void> zurueck(WidgetTester tester, String tab) async {
     try {
@@ -191,45 +178,29 @@ void main() {
     await schuss(tester, '01_lernen');
 
     // --- Pruefungsbereich, der Kern des Produkts ---------------------
+    // Der Tab hat oben einen Umschalter: "IHK-Prüfung 5" | "Zertifikate 4".
+    // Beide Haelften ergeben je ein Bild.
+    //
+    // Frueher stand hier noch ein Tap auf "Anwendungsentwicklung" und danach
+    // auf die erste Karte. Beides ist raus:
+    //   - "Anwendungsentwicklung" ist nur eine Ueberschrift, der Tap fuehrt
+    //     nirgendwo hin. Das Bild war eine Dublette von 02_pruefen.
+    //   - Der Tap auf eine Pruefungskarte oeffnet den Browser, verlaesst also
+    //     die App. Eine In-App-Detailansicht gibt es nicht zu fotografieren.
     if (await tippeText(tester, 'Prüfen', warteSekunden: 5)) {
       await schuss(tester, '02_pruefen');
 
-      // In die IHK-Pruefungsliste hinein
-      var drin = await tippeText(tester, 'Anwendungsentwicklung', warteSekunden: 6);
-      if (!drin) {
-        drin = await tippeText(tester, 'Systemintegration', warteSekunden: 6);
+      // Auf die Zertifikate umschalten. Nicht scrollen — blindes Scrollen
+      // landete zwischen zwei Karten und schnitt die obere ab.
+      if (await tippeText(tester, 'Zertifikate', warteSekunden: 5)) {
+        await schuss(tester, '03_zertifikate');
+      } else {
+        debugPrint('Umschalter "Zertifikate" nicht gefunden — uebersprungen.');
       }
-      if (drin) {
-        await schuss(tester, '03_pruefungsliste');
-
-        // Erste Pruefung oeffnen -> Detailansicht
-        final karten = find.byType(Card);
-        final tiles = find.byType(ListTile);
-        final ziel = karten.evaluate().isNotEmpty
-            ? karten
-            : (tiles.evaluate().isNotEmpty ? tiles : null);
-        if (ziel != null) {
-          try {
-            await tester.tap(ziel.first, warnIfMissed: false);
-            await ruhe(tester, sekunden: 6, schritte: 24);
-            tester.takeException();
-            await schuss(tester, '04_pruefung_detail');
-            await zurueck(tester, 'Prüfen');
-          } catch (e) {
-            debugPrint('Pruefungsdetail uebersprungen: $e');
-          }
-        }
-        await zurueck(tester, 'Prüfen');
-      }
-
-      // Zertifikate liegen weiter unten auf derselben Seite
-      await tippeText(tester, 'Prüfen', warteSekunden: 3);
-      await scrolle(tester, 900);
-      await schuss(tester, '05_zertifikate');
     }
 
     if (await tippeText(tester, 'Arena', warteSekunden: 5)) {
-      await schuss(tester, '06_arena');
+      await schuss(tester, '04_arena');
     }
 
     // --- Lernbereich -------------------------------------------------
@@ -238,9 +209,9 @@ void main() {
     // und zeigt auf einem frischen Simulator immer 0 %. Levels und Kurse
     // lesen dagegen aus der Datenbank und zeigen echte Werte.
     for (final ziel in const [
-      ('Levels', '07_levels'),
-      ('SQL von Grund auf', '08_kurs'),
-      ('Anschlüsse', '09_anschluesse'),
+      ('Levels', '05_levels'),
+      ('SQL von Grund auf', '06_kurs'),
+      ('Anschlüsse', '07_anschluesse'),
     ]) {
       await tippeText(tester, 'Lernen', warteSekunden: 3);
       await schliesseDialoge(tester);

@@ -529,3 +529,35 @@ Winrate, und legt drei Matches mit 4 / 7 / 0 beantworteten Fragen an. Abschnitt
 Remote-Datenbank. Das Skript ist deshalb defensiv geschrieben (UPDATE-dann-
 INSERT statt `ON CONFLICT`, Fallback von Status `active` auf `open`). Falls es
 mit „column … does not exist" abbricht, liefert Abschnitt 0 die echten Spalten.
+
+### 3. Screenshot-Test aufgeräumt (30.08.2026, nachmittags)
+
+Nach dem Lauf mit den Arena-Daten waren von neun Aufnahmen mehrere unbrauchbar.
+`integration_test/screenshots_test.dart` erzeugt jetzt sieben statt neun Bilder:
+
+| Datei | Screen |
+|---|---|
+| `01_lernen` | Lernhub, „Guten Morgen, Alex" |
+| `02_pruefen` | IHK-Prüfungen, AE-Liste |
+| `03_zertifikate` | Zertifikate (über den Umschalter oben) |
+| `04_arena` | ELO-Banner + aktive Matches |
+| `05_levels` | Level-Pfade mit Fortschritt |
+| `06_kurs` | SQL von Grund auf |
+| `07_anschluesse` | Anschlüsse-Quiz |
+
+Entfallen sind:
+
+- **`03_pruefungsliste`** — der Tap auf „Anwendungsentwicklung" führte nirgendwo
+  hin, das ist bloß eine Überschrift. Das Bild war eine exakte Dublette von
+  `02_pruefen`.
+- **`04_pruefung_detail`** — der Tap auf eine Prüfungskarte öffnet den Browser
+  und verlässt damit die App. Eine In-App-Detailansicht existiert nicht.
+- **Das blinde Scrollen für die Zertifikate.** `scrolle(tester, 900)` landete
+  zwischen zwei Karten; oben im Bild schwebte ein „90 Minuten · 100 Punkte ·
+  Starten" ohne Titel. Stattdessen tippt der Test jetzt auf den Umschalter
+  „Zertifikate" im Kopf des Prüfen-Tabs. Die Hilfsfunktion `scrolle()` ist
+  ersatzlos raus.
+
+**Merksatz für später:** Im Prüfen-Tab nicht scrollen, sondern umschalten.
+Blindes Scrollen um feste Pixelwerte trifft bei unterschiedlich hohen Karten
+nie zuverlässig eine Kartengrenze.
