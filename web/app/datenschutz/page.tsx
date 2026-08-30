@@ -7,7 +7,7 @@ export const metadata = {
 
 // Festes Datum der letzten inhaltlichen Änderung.
 // Bei jeder echten Überarbeitung der Datenschutzerklärung manuell anpassen.
-const STAND = "28. Juni 2026";
+const STAND = "30. August 2026";
 
 const sections = [
   {
@@ -84,11 +84,12 @@ const sections = [
             Bei der Nutzung der KI-Funktion (Ada)
           </h3>
           <p>
-            Deine Fragen an den KI-Tutor werden zur Verarbeitung an die
-            Groq-API weitergeleitet. Der Inhalt deiner Anfrage kann
-            personenbezogene Daten enthalten, sofern du solche eingibst. Wir
-            haben bei Groq die Zero-Data-Retention-Einstellung aktiviert, sodass
-            Inhalte nicht gespeichert werden. Weitere Details siehe Abschnitt 6.
+            Deine Fragen an den KI-Tutor werden zur Verarbeitung an einen
+            externen KI-Anbieter weitergeleitet. Der Inhalt deiner Anfrage kann
+            personenbezogene Daten enthalten, sofern du solche eingibst.
+            Stammdaten wie Name oder E-Mail-Adresse übermitteln wir dabei
+            nicht. Welche Anbieter das sind und wie sie mit den Inhalten
+            umgehen, steht in Abschnitt 6.
           </p>
         </div>
       </div>
@@ -146,35 +147,45 @@ const sections = [
     ),
   },
   {
-    id: "groq",
-    title: "6. Groq API (KI-Tutor Ada)",
+    id: "ki-anbieter",
+    title: "6. KI-Anbieter (KI-Tutor Ada)",
     content: (
       <div className="text-gray-700 text-sm leading-relaxed space-y-2">
         <p>
-          Für die KI-Tutorfunktion „Ada" verwenden wir die Groq API. Anbieter
-          ist Groq, Inc., 101 University Ave, Suite 334, Palo Alto, CA 94301,
-          USA.
+          Für die KI-Tutorfunktion „Ada" arbeiten wir mit zwei Anbietern. Deine
+          Anfrage geht nie direkt von deinem Gerät an sie, sondern zunächst an
+          unseren eigenen Server; dieser leitet sie weiter. Angefragt wird
+          zuerst Anthropic. Nur wenn dieser Dienst nicht erreichbar ist, wird
+          Groq als Rückfallebene verwendet.
         </p>
         <p>
-          Wenn du eine Frage an Ada stellst, wird der Inhalt deiner Anfrage zur
-          Verarbeitung an Groq übertragen. Der Anfrageinhalt kann
-          personenbezogene Daten enthalten, sofern du diese eingibst; darüber
-          hinaus übermitteln wir keine Stammdaten wie Name oder E-Mail-Adresse.
-          Groq speichert Inputs und Outputs standardmäßig bis zu 30 Tage zur
-          Sicherstellung des Betriebs und zur Missbrauchskontrolle; wir haben
-          die Zero-Data-Retention-Einstellung aktiviert, sodass keine
-          Speicherung erfolgt. Groq nutzt die Daten nicht zum Training eigener
-          Modelle.
+          Übertragen wird ausschließlich der Inhalt deiner Anfrage samt dem
+          bisherigen Gesprächsverlauf. Dieser kann personenbezogene Daten
+          enthalten, sofern du solche eingibst. Stammdaten wie Name,
+          Nutzername oder E-Mail-Adresse übermitteln wir nicht.
         </p>
         <p>
-          Die Verarbeitung erfolgt im Auftrag auf Grundlage eines
-          Auftragsverarbeitungsvertrags (Data Processing Addendum, Art. 28
-          DSGVO). Die Übertragung in die USA erfolgt auf Grundlage der
-          Standardvertragsklauseln (Art. 46 DSGVO). Rechtsgrundlage für die
-          Nutzung ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
+          <strong className="font-medium text-gray-800">Anthropic PBC</strong>,
+          548 Market St, PMB 90375, San Francisco, CA 94104, USA. Wir nutzen
+          einen kostenpflichtigen API-Zugang. Anthropic verwendet über die API
+          übermittelte Inhalte nicht zum Training seiner Modelle.
+          Datenschutzerklärung:{" "}
+          <a
+            href="https://www.anthropic.com/legal/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-700 hover:underline"
+          >
+            anthropic.com/legal/privacy
+          </a>
         </p>
         <p>
-          Datenschutzerklärung von Groq:{" "}
+          <strong className="font-medium text-gray-800">Groq, Inc.</strong>, 101
+          University Ave, Suite 334, Palo Alto, CA 94301, USA. Groq verwendet
+          über die API übermittelte Inhalte nicht zum Training eigener Modelle.
+          Zur Sicherstellung des Betriebs und zur Missbrauchskontrolle können
+          Inhalte für einen begrenzten Zeitraum gespeichert werden.
+          Datenschutzerklärung:{" "}
           <a
             href="https://groq.com/privacy-policy/"
             target="_blank"
@@ -183,6 +194,13 @@ const sections = [
           >
             groq.com/privacy-policy
           </a>
+        </p>
+        <p>
+          Die Verarbeitung erfolgt jeweils im Auftrag auf Grundlage eines
+          Auftragsverarbeitungsvertrags (Data Processing Addendum, Art. 28
+          DSGVO). Die Übertragung in die USA erfolgt auf Grundlage der
+          Standardvertragsklauseln (Art. 46 DSGVO). Rechtsgrundlage für die
+          Nutzung ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
         </p>
       </div>
     ),
