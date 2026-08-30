@@ -32,9 +32,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     );
-    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
+    _fadeAnim = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 0.06),
       end: Offset.zero,
@@ -69,8 +70,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
           ),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           margin: const EdgeInsets.all(16),
         ),
       );
@@ -122,12 +124,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                     constraints: const BoxConstraints(maxWidth: 440),
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 28, vertical: 24),
+                        horizontal: 28,
+                        vertical: 24,
+                      ),
                       child: _emailSent
-                          ? _buildSuccess(bg, surface, border, text, textMid,
-                              textDim, isDark)
-                          : _buildForm(bg, surface, border, text, textMid,
-                              textDim, isDark),
+                          ? _buildSuccess(
+                              bg,
+                              surface,
+                              border,
+                              text,
+                              textMid,
+                              textDim,
+                              isDark,
+                            )
+                          : _buildForm(
+                              bg,
+                              surface,
+                              border,
+                              text,
+                              textMid,
+                              textDim,
+                              isDark,
+                            ),
                     ),
                   ),
                 ),
@@ -140,8 +158,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   }
 
   // ─── FORM ───────────────────────────────────────────
-  Widget _buildForm(Color bg, Color surface, Color border, Color text,
-      Color textMid, Color textDim, bool isDark) {
+  Widget _buildForm(
+    Color bg,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+    bool isDark,
+  ) {
     return Form(
       key: _formKey,
       child: Column(
@@ -153,8 +178,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             child: GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: surface,
                   borderRadius: BorderRadius.circular(8),
@@ -165,10 +192,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                   children: [
                     Icon(Icons.arrow_back, color: textMid, size: 14),
                     const SizedBox(width: 6),
-                    Text(
-                      'Zurück',
-                      style: AppTextStyles.labelSmall(textMid),
-                    ),
+                    Text('Zurück', style: AppTextStyles.labelSmall(textMid)),
                   ],
                 ),
               ),
@@ -321,8 +345,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   }
 
   // ─── SUCCESS ───────────────────────────────────────
-  Widget _buildSuccess(Color bg, Color surface, Color border, Color text,
-      Color textMid, Color textDim, bool isDark) {
+  Widget _buildSuccess(
+    Color bg,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -392,9 +423,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                   const TextSpan(text: 'Wir haben einen Reset-Link an\n'),
                   TextSpan(
                     text: _emailController.text,
-                    style: AppTextStyles.bodyMedium(text).copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.bodyMedium(
+                      text,
+                    ).copyWith(fontWeight: FontWeight.w600),
                   ),
                   const TextSpan(text: '\ngesendet.'),
                 ],
@@ -414,11 +445,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.lightbulb_outline_rounded,
-                color: textMid,
-                size: 18,
-              ),
+              Icon(Icons.lightbulb_outline_rounded, color: textMid, size: 18),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -455,10 +482,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     );
   }
 
-  InputDecoration _inputDeco({
-    required String hint,
-    required bool isDark,
-  }) {
+  InputDecoration _inputDeco({required String hint, required bool isDark}) {
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
     final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
@@ -489,8 +513,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         borderSide: const BorderSide(color: AppColors.error, width: 1.5),
       ),
       errorStyle: const TextStyle(color: AppColors.error, fontSize: 12),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
     );
   }
 }
