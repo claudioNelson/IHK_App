@@ -254,7 +254,9 @@ async function callGroq(
       Authorization: `Bearer ${GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      // llama-3.3-70b-versatile wurde von Groq am 16.08.2026 abgeschaltet,
+      // empfohlener Ersatz laut Groq: openai/gpt-oss-120b
+      model: 'openai/gpt-oss-120b',
       messages,
       max_tokens: maxTokens,
       temperature,

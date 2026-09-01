@@ -8,7 +8,7 @@
 //     Lernmodule  -> thema_scores vs. themen (gemeistert ab required_score)
 //     Levels      -> level_progress vs. levels (geschafft ab schwelle)
 //     SQL/Python  -> kurs_fortschritt (geloeste Aufgaben-IDs "sql-*" / "py-*")
-//   Bestandene Pruefungen  -> user_exam_attempts + exams
+//   Pruefungen (alle bewerteten Versuche mit IHK-Note) -> user_exam_attempts + exams
 //   Zertifikate            -> zertifikate + user_certificates
 //   Badges                 -> badges + user_badges
 //   Arena                  -> player_stats
@@ -30,7 +30,17 @@ const KURS_AUFGABEN: Record<string, { name: string; prefix: string; gesamt: numb
 };
 
 type Bereich = { key: string; name: string; geschafft: number; gesamt: number };
-type Pruefung = { id: string; name: string; typ: string | null; prozent: number; datum: string | null };
+type Pruefung = { id: string; name: string; typ: string | null; prozent: number; datum: string | null; bestanden: boolean; note: number };
+
+// IHK-Notenschluessel (Prozent -> Note)
+function ihkNote(p: number) {
+    if (p >= 92) return 1;
+    if (p >= 81) return 2;
+    if (p >= 67) return 3;
+    if (p >= 50) return 4;
+    if (p >= 30) return 5;
+    return 6;
+}
 type Zertifikat = { id: number; name: string; anbieter: string | null; mindest: number | null; best: number | null; passed: boolean; passedAt: string | null; attempts: number };
 type Badge = { id: string; name: string; description: string | null; icon: string | null; earnedAt: string };
 type Arena = { elo: number; wins: number; losses: number; draws: number; matches: number; peak: number } | null;
@@ -99,7 +109,7 @@ export default function ProfilPage() {
                 supabase.from("level_progress").select("level_id, best_score").eq("user_id", userId),
                 supabase.from("kurs_fortschritt").select("aufgabe_id").eq("user_id", userId),
                 supabase.from("user_exam_attempts")
-                    .select("id, exam_id, submitted_at, percentage, passed")
+                    .select("id, exam_id, submitted_at, percentage, passed, status")
                     .eq("user_id", userId)
                     .order("submitted_at", { ascending: false }),
                 supabase.from("exams").select("id, name, typ, beschreibung"),
@@ -170,16 +180,23 @@ export default function ProfilPage() {
             }
             const attempts = (attemptsRes.data ?? []).filter((a) => ihkExams.has(Number(a.exam_id)));
             setVersucheGesamt(attempts.length);
+            // Alle BEWERTETEN Versuche zeigen (auch nicht bestandene), damit
+            // niemand denkt, sein Ergebnis sei verloren. Bestanden ab 50 %.
             setPruefungen(
                 attempts
-                    .filter((a) => a.passed === true)
-                    .map((a) => ({
-                        id: String(a.id),
-                        name: ihkExams.get(Number(a.exam_id))?.name ?? `Prüfung ${a.exam_id}`,
-                        typ: ihkExams.get(Number(a.exam_id))?.info ?? null,
-                        prozent: Math.round(Number(a.percentage ?? 0)),
-                        datum: a.submitted_at,
-                    })),
+                    .filter((a) => a.status === "graded" && a.percentage !== null)
+                    .map((a) => {
+                        const prozent = Math.round(Number(a.percentage ?? 0));
+                        return {
+                            id: String(a.id),
+                            name: ihkExams.get(Number(a.exam_id))?.name ?? `Prüfung ${a.exam_id}`,
+                            typ: ihkExams.get(Number(a.exam_id))?.info ?? null,
+                            prozent,
+                            datum: a.submitted_at,
+                            bestanden: a.passed === true,
+                            note: ihkNote(prozent),
+                        };
+                    }),
             );
 
             // Zertifikate
@@ -339,30 +356,35 @@ export default function ProfilPage() {
                 </div>
 
                 {/* ── PRÜFUNGEN ── */}
-                <div className="pf-section">Bestandene Prüfungen{pruefungen.length > 0 ? ` · ${pruefungen.length}` : ""}</div>
+                <div className="pf-section">
+                    Prüfungen{pruefungen.length > 0 ? ` · ${pruefungen.filter((p) => p.bestanden).length}/${pruefungen.length} bestanden` : ""}
+                </div>
                 <div className="pf-card">
                     {pruefungen.length === 0 ? (
                         <div className="pf-muted">
                             {versucheGesamt > 0
-                                ? `Noch keine bestandene Prüfung (${versucheGesamt} ${versucheGesamt === 1 ? "Versuch" : "Versuche"} bisher). Dranbleiben!`
+                                ? `${versucheGesamt} ${versucheGesamt === 1 ? "Versuch abgegeben" : "Versuche abgegeben"}, aber noch ohne KI-Korrektur. Starte die Korrektur in der App, dann erscheint das Ergebnis hier.`
                                 : "Noch keine Prüfungssimulation abgeschlossen. Starte in der App unter Prüfen."}
                         </div>
                     ) : (
                         <ul className="pf-list">
                             {pruefungen.map((p) => (
                                 <li key={p.id} className="pf-item">
-                                    <span className="pf-ok">✓</span>
+                                    <span className={p.bestanden ? "pf-ok" : "pf-open"}>{p.bestanden ? "✓" : "○"}</span>
                                     <div className="pf-item-main">
                                         <div className="pf-item-title">{p.name}</div>
                                         <div className="pf-muted">{p.typ ? `${p.typ} · ` : ""}{datum(p.datum)}</div>
                                     </div>
-                                    <span className="pf-score ok">{p.prozent}%</span>
+                                    <span className="pf-note" title={p.bestanden ? "Bestanden" : "Nicht bestanden"}>Note {p.note}</span>
+                                    <span className={`pf-score ${p.bestanden ? "ok" : ""}`}>{p.prozent}%</span>
                                 </li>
                             ))}
                         </ul>
                     )}
-                    {pruefungen.length > 0 && versucheGesamt > pruefungen.length && (
-                        <div className="pf-foot">{versucheGesamt} Versuche insgesamt</div>
+                    {versucheGesamt > pruefungen.length && (
+                        <div className="pf-foot">
+                            {versucheGesamt - pruefungen.length} {versucheGesamt - pruefungen.length === 1 ? "Versuch" : "Versuche"} abgegeben, noch ohne Bewertung
+                        </div>
                     )}
                 </div>
 
@@ -577,6 +599,11 @@ const pfCss = `
   .pf-open { background: var(--chip-bg); color: var(--text-dim); border: 1px solid var(--chip-border); }
   .pf-score { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 14px; font-weight: 600; color: var(--text-dim); }
   .pf-score.ok { color: var(--ok); }
+  .pf-note {
+    font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 11px; letter-spacing: .06em;
+    padding: 3px 8px; border-radius: 99px; background: var(--chip-bg); border: 1px solid var(--chip-border); color: var(--text-dim);
+    white-space: nowrap;
+  }
 
   /* Badges */
   .pf-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }

@@ -8,7 +8,9 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 const CLAUDE_MODEL = "claude-haiku-4-5";
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+// llama-3.3-70b-versatile wurde von Groq am 16.08.2026 abgeschaltet.
+// Empfohlener Ersatz laut Groq-Deprecation-Seite: openai/gpt-oss-120b.
+const GROQ_MODEL = "openai/gpt-oss-120b";
 
 // Versucht, die KI-Antwort als strukturiertes Ergebnis zu parsen.
 // Liefert null, wenn kein gültiges JSON erkannt wird (dann zeigt das
@@ -187,6 +189,10 @@ WICHTIGE KONSISTENZ-REGELN:
   (also NICHT "keine Aufgaben beantwortet" schreiben, wenn Teilaufgaben
   Punkte bekommen haben).`;
 
+    // Warum Claude nicht geantwortet hat, landet im Fehlertext des
+    // Fallbacks, damit man es im Browser sieht und nicht nur im Vercel-Log.
+    let claudeFehler = "";
+
     // ─── 1) Primär: Claude Haiku ─────────────────────────────
     if (ANTHROPIC_API_KEY) {
       try {
@@ -216,11 +222,15 @@ WICHTIGE KONSISTENZ-REGELN:
             );
           }
         } else {
-          console.warn(`Claude API Fehler ${res.status}: ${await res.text()}`);
+          claudeFehler = `Claude HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`;
+          console.warn(claudeFehler);
         }
       } catch (err) {
-        console.warn("Claude nicht erreichbar, nutze Groq-Fallback:", err);
+        claudeFehler = `Claude nicht erreichbar: ${err instanceof Error ? err.message : String(err)}`;
+        console.warn(claudeFehler);
       }
+    } else {
+      claudeFehler = "ANTHROPIC_API_KEY nicht gesetzt";
     }
 
     // ─── 2) Fallback: Groq ───────────────────────────────────
@@ -241,7 +251,10 @@ WICHTIGE KONSISTENZ-REGELN:
 
       if (!response.ok) {
         const error = await response.text();
-        return NextResponse.json({ error: `Groq API Fehler: ${error}` }, { status: 500 });
+        return NextResponse.json(
+          { error: `Groq API Fehler: ${error}${claudeFehler ? ` | Zuvor ${claudeFehler}` : ""}` },
+          { status: 500 },
+        );
       }
 
       const data = await response.json();
@@ -256,7 +269,7 @@ WICHTIGE KONSISTENZ-REGELN:
     }
 
     return NextResponse.json(
-      { error: "Kein KI-Anbieter erreichbar" },
+      { error: `Kein KI-Anbieter erreichbar${claudeFehler ? ` (${claudeFehler})` : ""}` },
       { status: 503 }
     );
   } catch (error) {

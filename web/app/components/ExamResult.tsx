@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 interface ExamResultProps {
   onReset: () => void;
@@ -103,12 +104,67 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
   const [kiFeedback, setKiFeedback] = useState<string | null>(null);
   const [kiResult, setKiResult] = useState<KiResult | null>(null);
   const [kiError, setKiError] = useState<string | null>(null);
+  // Speichern des Ergebnisses in user_exam_attempts (fuers Profil)
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "guest" | "error">("idle");
 
   const allQuestions = exam.sections.flatMap((s) => s.questions);
-  const completedCount = allQuestions.filter((q) => completed[q.id]).length;
-  const completedPoints = allQuestions
-    .filter((q) => completed[q.id])
-    .reduce((sum, q) => sum + q.points, 0);
+
+  // "Beantwortet" heisst: es steht wirklich etwas in der Antwort. Die
+  // Haekchen ("als bearbeitet markiert") waren dafuer unzuverlaessig, weil
+  // kaum jemand sie setzt, und dann stand ueberall 0/25 obwohl Ada laengst
+  // Punkte vergeben hatte. Tabellen/Matrix speichern JSON, "{}" zaehlt nicht.
+  const istBeantwortet = (id: string) => {
+    const v = (answers[id] ?? "").trim();
+    const hatText = v !== "" && v !== "{}" && v !== "[]";
+    // Haekchen zaehlt weiterhin mit (z. B. Diagramm auf Papier gezeichnet).
+    return hatText || completed[id] === true;
+  };
+  const answeredCount = allQuestions.filter((q) => istBeantwortet(q.id)).length;
+
+  // Bewertetes Ergebnis in die Datenbank schreiben, damit es im Profil
+  // (Web und App) unter "Pruefungen" erscheint. Gleiche Tabelle wie die
+  // App: user_exam_attempts, Pruefung ueber exams.slug (z. B. "ap1-1").
+  const ergebnisSpeichern = async (result: KiResult) => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setSaveStatus("guest");
+        return;
+      }
+      const { data: examRow, error: examError } = await supabase
+        .from("exams")
+        .select("id")
+        .eq("slug", exam.id)
+        .maybeSingle();
+      if (examError || !examRow) {
+        console.warn("Kein exams-Eintrag fuer Slug", exam.id, examError?.message);
+        setSaveStatus("error");
+        return;
+      }
+      const jetzt = new Date();
+      const { error } = await supabase.from("user_exam_attempts").insert({
+        user_id: user.id,
+        exam_id: examRow.id,
+        started_at: jetzt.toISOString(),
+        submitted_at: jetzt.toISOString(),
+        total_points: result.gesamt.maxPunkte,
+        achieved_points: result.gesamt.punkte,
+        percentage: result.gesamt.prozent,
+        passed: result.gesamt.bestanden,
+        status: "graded",
+      });
+      if (error) {
+        console.warn("Ergebnis speichern fehlgeschlagen:", error.message);
+        setSaveStatus("error");
+        return;
+      }
+      setSaveStatus("saved");
+    } catch (e) {
+      console.warn("Ergebnis speichern fehlgeschlagen:", e);
+      setSaveStatus("error");
+    }
+  };
 
   const requestKiKorrektur = async () => {
     setKiLoading(true);
@@ -122,8 +178,10 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unbekannter Fehler");
       if (data.result) {
-        setKiResult(reconcileKiResult(data.result as KiResult));
+        const result = reconcileKiResult(data.result as KiResult);
+        setKiResult(result);
         setKiFeedback(null);
+        void ergebnisSpeichern(result);
       } else {
         setKiFeedback(data.feedback ?? "Keine Antwort erhalten");
         setKiResult(null);
@@ -135,7 +193,7 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
     }
   };
 
-  const pointsPercent = exam.totalPoints > 0 ? Math.round((completedPoints / exam.totalPoints) * 100) : 0;
+  const answeredPercent = allQuestions.length > 0 ? Math.round((answeredCount / allQuestions.length) * 100) : 0;
 
   // Farbe/Status einer Teilaufgabe für den Punkt links
   const subStatus = (t: KiTeilaufgabe): "full" | "part" | "zero" | "skip" => {
@@ -443,6 +501,13 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
           text-transform: uppercase;
           margin-top: 6px;
         }
+        .kir-save {
+          font-size: 12px;
+          color: #8A8A92;
+          margin-top: 8px;
+        }
+        .kir-save.ok { color: #1E9E50; }
+        .kir-save a { color: inherit; text-decoration: underline; }
         .kir-badges {
           display: flex;
           flex-direction: column;
@@ -813,18 +878,18 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
         {/* STATS */}
         <div className="result-stats">
           <div className="stat-card">
-            <div className="stat-card-label">Bearbeitet</div>
+            <div className="stat-card-label">Beantwortet</div>
             <div className="stat-card-value">
-              <em>{completedCount}</em><span style={{ fontSize: 22, color: "#8A8A92" }}> / {allQuestions.length}</span>
+              <em>{answeredCount}</em><span style={{ fontSize: 22, color: "#8A8A92" }}> / {allQuestions.length}</span>
             </div>
-            <div className="stat-card-sub">Aufgaben gelöst</div>
+            <div className="stat-card-sub">{answeredPercent}% der Aufgaben</div>
           </div>
           <div className="stat-card">
             <div className="stat-card-label">Punkte</div>
             <div className="stat-card-value">
-              <em>{completedPoints}</em><span style={{ fontSize: 22, color: "#8A8A92" }}> / {exam.totalPoints}</span>
+              <em>{kiResult ? kiResult.gesamt.punkte : "–"}</em><span style={{ fontSize: 22, color: "#8A8A92" }}> / {kiResult ? kiResult.gesamt.maxPunkte : exam.totalPoints}</span>
             </div>
-            <div className="stat-card-sub">{pointsPercent}% bearbeitet</div>
+            <div className="stat-card-sub">{kiResult ? `${kiResult.gesamt.prozent}% erreicht` : "nach Adas Korrektur"}</div>
           </div>
           <div className="stat-card">
             <div className="stat-card-label">Modus</div>
@@ -884,6 +949,15 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
                   <span className="kir-score-max"> / {kiResult.gesamt.maxPunkte}</span>
                 </div>
                 <div className="kir-score-sub">{kiResult.gesamt.prozent}% erreicht</div>
+                {saveStatus === "saved" && (
+                  <div className="kir-save ok">✓ Im Profil gespeichert · <Link href="/profil">ansehen</Link></div>
+                )}
+                {saveStatus === "guest" && (
+                  <div className="kir-save"><Link href="/login?next=/profil">Einloggen</Link>, damit Ergebnisse im Profil gespeichert werden</div>
+                )}
+                {saveStatus === "error" && (
+                  <div className="kir-save">Ergebnis konnte nicht im Profil gespeichert werden</div>
+                )}
               </div>
               <div className="kir-badges">
                 <span className={`kir-badge ${kiResult.gesamt.bestanden ? "pass" : "fail"}`}>
@@ -1001,27 +1075,36 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
             Details pro Handlungsschritt
           </div>
           {exam.sections.map((section, index) => {
-            const sectionCompleted = section.questions.filter((q) => completed[q.id]).length;
+            const sectionAnswered = section.questions.filter((q) => istBeantwortet(q.id)).length;
             const sectionTotal = section.questions.length;
-            const sectionPoints = section.questions
-              .filter((q) => completed[q.id])
-              .reduce((sum, q) => sum + q.points, 0);
             const sectionTotalPoints = section.questions.reduce((sum, q) => sum + q.points, 0);
-            const isComplete = sectionCompleted === sectionTotal;
+            const isComplete = sectionAnswered === sectionTotal;
+
+            // Punkte kommen NUR aus Adas Bewertung (gleiche Reihenfolge wie
+            // die Handlungsschritte im Prompt). Vorher: Strich statt 0.
+            const kiAufgabe = kiResult?.aufgaben?.[index];
+            const punkteText = kiAufgabe
+              ? `${kiAufgabe.punkte} / ${kiAufgabe.maxPunkte || sectionTotalPoints} Pkt`
+              : `– / ${sectionTotalPoints} Pkt`;
+            const status = kiAufgabe
+              ? kiAufgabe.punkte >= (kiAufgabe.maxPunkte || sectionTotalPoints) * 0.5
+                ? "✓ Bestanden"
+                : ""
+              : isComplete
+                ? "✓ Vollständig beantwortet"
+                : "noch nicht bewertet";
 
             return (
               <div key={section.id} className={`section-row ${isComplete ? "complete" : ""}`}>
                 <div>
                   <div className="section-info-name">Aufgabe {index + 1}</div>
                   <div className="section-info-meta">
-                    {sectionCompleted} / {sectionTotal} Unteraufgaben
+                    {sectionAnswered} / {sectionTotal} Unteraufgaben beantwortet
                   </div>
                 </div>
                 <div className="section-pts">
-                  <div className="section-pts-value">
-                    {sectionPoints} / {sectionTotalPoints} Pkt
-                  </div>
-                  {isComplete && <div className="section-pts-status">✓ Vollständig</div>}
+                  <div className="section-pts-value">{punkteText}</div>
+                  {status && <div className="section-pts-status">{status}</div>}
                 </div>
               </div>
             );
