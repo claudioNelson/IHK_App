@@ -7,6 +7,9 @@ import '../../models/ihk_exam_model.dart';
 import '../../widgets/photo_upload_widget.dart';
 import '../../widgets/code_editor_widget.dart';
 import '../../services/gemini_service.dart';
+import '../../services/exam_attempt_service.dart';
+import '../../services/badge_service.dart';
+import '../../widgets/badge_celebration_dialog.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
@@ -34,6 +37,13 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
   bool _isLoadingKi = false;
   bool _showKiKorrektur = false;
 
+  // Cloud-Versuch (user_exam_attempts) und Bewertung aus der KI-Korrektur.
+  // Beides wird lokal mitgespeichert, damit das Ergebnis nach dem
+  // Schliessen des Screens erhalten bleibt.
+  final _attemptService = ExamAttemptService();
+  String? _attemptId;
+  ExamBewertung? _bewertung;
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +69,19 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
     }
     if (completedJson != null) {
       completed = Map<String, bool>.from(json.decode(completedJson));
+    }
+
+    // Ergebnis-Zustand (Versuch-Id, KI-Text, Punkte) wiederherstellen
+    _attemptId = prefs.getString('exam_${widget.exam.id}_attempt');
+    final kiText = prefs.getString('exam_${widget.exam.id}_ki');
+    final erreicht = prefs.getDouble('exam_${widget.exam.id}_punkte');
+    final gesamt = prefs.getDouble('exam_${widget.exam.id}_punkte_gesamt');
+    if (kiText != null) {
+      _kiKorrektur = kiText;
+      _showKiKorrektur = true;
+    }
+    if (erreicht != null && gesamt != null && gesamt > 0) {
+      _bewertung = ExamBewertung(erreicht: erreicht, gesamt: gesamt);
     }
 
     setState(() {
@@ -104,6 +127,71 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
     setState(() => submitted = true);
     timer?.cancel();
     _saveProgress();
+    _versuchInCloudAnlegen();
+  }
+
+  /// Nach dem Abgeben: Versuch in user_exam_attempts anlegen (Status
+  /// "abgegeben"). Punkte kommen erst mit der KI-Korrektur dazu.
+  Future<void> _versuchInCloudAnlegen() async {
+    if (_attemptId != null) return; // schon angelegt (z. B. Timer + Klick)
+    final gebraucht = (widget.exam.duration * 60 - remainingSeconds).clamp(
+      0,
+      widget.exam.duration * 60,
+    );
+    final id = await _attemptService.versuchSpeichern(
+      examSlug: widget.exam.id,
+      gesamtPunkte: widget.exam.totalPoints,
+      sekundenGebraucht: gebraucht,
+    );
+    if (id == null) return;
+    _attemptId = id;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('exam_${widget.exam.id}_attempt', id);
+  }
+
+  /// Punkte aus der KI-Korrektur uebernehmen: lokal merken, in die Cloud
+  /// schreiben und danach die Exam-Badges pruefen.
+  Future<void> _bewertungUebernehmen(ExamBewertung bewertung) async {
+    setState(() => _bewertung = bewertung);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('exam_${widget.exam.id}_punkte', bewertung.erreicht);
+    await prefs.setDouble(
+      'exam_${widget.exam.id}_punkte_gesamt',
+      bewertung.gesamt,
+    );
+
+    // Falls das Anlegen beim Abgeben schiefging (kein Netz): jetzt nachholen.
+    if (_attemptId == null) await _versuchInCloudAnlegen();
+    if (_attemptId == null) return;
+
+    final ok = await _attemptService.bewertungSpeichern(
+      attemptId: _attemptId!,
+      bewertung: bewertung,
+    );
+    if (ok && bewertung.bestanden) await _badgesPruefen(bewertung);
+  }
+
+  Future<void> _badgesPruefen(ExamBewertung bewertung) async {
+    try {
+      final service = BadgeService();
+      final bestanden = await _attemptService.anzahlBestanden();
+      final neue = await service.checkExamBadges(
+        passed: bestanden,
+        scoreOver90: bewertung.prozent >= 90,
+      );
+      if (neue.isEmpty || !mounted) return;
+      final details = await service.getBadgeDetails(neue);
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        builder: (_) => BadgeCelebrationDialog(
+          badgeIds: neue,
+          badgeDetails: details,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Badge-Pruefung Exam fehlgeschlagen: $e');
+    }
   }
 
   void _resetExam() async {
@@ -176,6 +264,10 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
       await prefs.remove('exam_${widget.exam.id}_completed');
       await prefs.remove('exam_${widget.exam.id}_started');
       await prefs.remove('exam_${widget.exam.id}_submitted');
+      await prefs.remove('exam_${widget.exam.id}_attempt');
+      await prefs.remove('exam_${widget.exam.id}_ki');
+      await prefs.remove('exam_${widget.exam.id}_punkte');
+      await prefs.remove('exam_${widget.exam.id}_punkte_gesamt');
 
       setState(() {
         answers.clear();
@@ -183,6 +275,12 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
         started = false;
         submitted = false;
         remainingSeconds = widget.exam.duration * 60;
+        // Der alte Versuch bleibt in der Cloud (Historie), ein neuer
+        // Durchlauf bekommt beim naechsten Abgeben eine neue Zeile.
+        _attemptId = null;
+        _bewertung = null;
+        _kiKorrektur = null;
+        _showKiKorrektur = false;
       });
     }
   }
@@ -816,6 +914,19 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                     ),
                   ),
 
+                  // Bewertung (nach der KI-Korrektur)
+                  if (_bewertung != null) ...[
+                    const SizedBox(height: 12),
+                    _buildBewertungsKarte(
+                      _bewertung!,
+                      surface,
+                      border,
+                      text,
+                      textMid,
+                      textDim,
+                    ),
+                  ],
+
                   const SizedBox(height: 20),
 
                   // KI-Korrektur Button
@@ -951,6 +1062,102 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
     );
   }
 
+  /// Punkte, Prozent, IHK-Note und Bestanden-Status nach der Korrektur.
+  Widget _buildBewertungsKarte(
+    ExamBewertung b,
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    final farbe = b.bestanden ? AppColors.success : AppColors.error;
+    final punkte = b.erreicht == b.erreicht.roundToDouble()
+        ? b.erreicht.round().toString()
+        : b.erreicht.toStringAsFixed(1);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: farbe.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(width: 16, height: 1, color: farbe),
+              const SizedBox(width: 10),
+              Text(
+                b.bestanden ? 'BESTANDEN' : 'NICHT BESTANDEN',
+                style: AppTextStyles.monoLabel(farbe),
+              ),
+              const Spacer(),
+              Text(
+                'Ergebnis gespeichert',
+                style: AppTextStyles.monoSmall(textDim),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _bewertungsWert(
+                  'PUNKTE',
+                  '$punkte / ${b.gesamt.round()}',
+                  text,
+                  textDim,
+                ),
+              ),
+              Expanded(
+                child: _bewertungsWert(
+                  'PROZENT',
+                  '${b.prozent.round()} %',
+                  text,
+                  textDim,
+                ),
+              ),
+              Expanded(
+                child: _bewertungsWert('NOTE', '${b.note}', farbe, textDim),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'IHK-Schlüssel: ab 50 % bestanden, Note 1 ab 92 %.',
+            style: AppTextStyles.bodySmall(textMid),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bewertungsWert(
+    String label,
+    String wert,
+    Color farbe,
+    Color textDim,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.monoSmall(textDim)),
+        const SizedBox(height: 4),
+        Text(
+          wert,
+          style: AppTextStyles.instrumentSerif(
+            size: 28,
+            color: farbe,
+            letterSpacing: -0.8,
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _requestKiKorrektur() async {
     setState(() => _isLoadingKi = true);
     try {
@@ -980,13 +1187,43 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
       buffer.writeln(
         'Bewerte jede Aufgabe mit Punkten und Feedback. Antworte auf Deutsch.',
       );
+      buffer.writeln('Nicht beantwortete Aufgaben bekommen 0 Punkte.');
+      buffer.writeln(
+        'WICHTIG: Schreibe als ALLERLETZTE Zeile deiner Antwort exakt in '
+        'diesem Format die Summe aller vergebenen Punkte: '
+        'GESAMTPUNKTE: <erreicht>/${widget.exam.totalPoints}',
+      );
 
       final response = await _geminiService.generateContent(buffer.toString());
+      final bewertung = ExamAttemptService.punkteAusKiText(
+        response,
+        widget.exam.totalPoints,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('exam_${widget.exam.id}_ki', response);
+
+      if (!mounted) return;
       setState(() {
         _kiKorrektur = response;
         _showKiKorrektur = true;
         _isLoadingKi = false;
       });
+
+      if (bewertung != null) {
+        await _bewertungUebernehmen(bewertung);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Die KI hat keine Gesamtpunktzahl geliefert. Korrektur '
+              'einfach nochmal starten, dann wird das Ergebnis gespeichert.',
+            ),
+            backgroundColor: AppColors.warning,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e) {
       setState(() => _isLoadingKi = false);
       if (mounted) {
