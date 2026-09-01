@@ -213,6 +213,19 @@ export default function LandingPage() {
           transition: opacity 0.2s;
         }
         .nav-cta:hover { opacity: 0.85; }
+        .nav-user {
+          display: inline-flex; align-items: center; gap: 8px;
+          color: ${t.textMid}; font-size: 14px; font-weight: 500;
+          text-decoration: none; padding: 6px 10px; border-radius: 8px;
+          transition: background 0.2s, color 0.2s;
+        }
+        .nav-user:hover { color: ${t.text}; background: ${t.surface}; }
+        .nav-user-avatar {
+          width: 24px; height: 24px; border-radius: 50%;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: rgba(124,109,255,0.16); color: #C4BBFF;
+          font-size: 12px; font-weight: 700;
+        }
 
         /* HERO */
         .hero {
@@ -1257,9 +1270,10 @@ export default function LandingPage() {
             </button>
             {authLoaded && (username ? (
               <>
-                <span style={{ color: t.textMid, fontSize: 14, fontWeight: 500 }}>
+                <Link href="/profil" className="nav-user" title="Dein Profil">
+                  <span className="nav-user-avatar">{username.charAt(0).toUpperCase()}</span>
                   {username}
-                </span>
+                </Link>
                 {subscription.loaded && subscription.isPremium && (
                   <span
                     style={{
@@ -1978,6 +1992,7 @@ export default function LandingPage() {
               </li>
               <li><Link href="/login">Login</Link></li>
               <li><Link href="/signup">Registrieren</Link></li>
+              <li><Link href="/profil">Dein Profil</Link></li>
               <li><a href="mailto:info@lernarena.app">Kontakt</a></li>
             </ul>
           </div>
