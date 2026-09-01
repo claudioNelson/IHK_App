@@ -46,6 +46,9 @@ class _NewProfilePageState extends State<NewProfilePage> {
   Bereitschaft? _bereitschaft;
   bool _bereitschaftOffen = false;
 
+  // Bewertete IHK-Simulationen (neueste zuerst)
+  List<_PruefungsEintrag> _pruefungen = [];
+
   bool _loading = true;
   bool _notificationsEnabled = true;
   bool _soundsEnabled = true;
@@ -116,20 +119,51 @@ class _NewProfilePageState extends State<NewProfilePage> {
             .select('id')
             .eq('user_id', userId)
             .eq('passed', true),
-        // Bestandene Prüfungen
+        // Alle Pruefungsversuche (Liste mit Noten + Zaehler "bestanden")
         _supabase
             .from('user_exam_attempts')
-            .select('id')
+            .select('id, exam_id, submitted_at, percentage, passed, status')
             .eq('user_id', userId)
-            .eq('passed', true),
+            .order('submitted_at', ascending: false),
         // Pruefungsbereitschaft (Themen gemeistert je Modul)
         BereitschaftsService().laden(),
+        // IHK-Pruefungen (nur typ 'ihk', keine Zertifikats-Uebungen)
+        _supabase.from('exams').select('id, name, beschreibung, typ'),
       ]);
 
       final playerStats = results[0] as Map<String, dynamic>?;
       final certs = results[1] as List<dynamic>;
-      final exams = results[2] as List<dynamic>;
+      final attempts = results[2] as List<dynamic>;
       final bereitschaft = results[3] as Bereitschaft?;
+      final examsRoh = results[4] as List<dynamic>;
+
+      // Nur echte IHK-Simulationen, nur bewertete Versuche. Alle Noten
+      // zeigen (auch nicht bestanden), sonst denkt man, es fehlt etwas.
+      final ihkExams = <int, Map<String, dynamic>>{};
+      for (final e in examsRoh) {
+        if (e['typ'] == 'ihk') ihkExams[e['id'] as int] = e;
+      }
+      final pruefungen = <_PruefungsEintrag>[];
+      var bestanden = 0;
+      for (final a in attempts) {
+        final exam = ihkExams[a['exam_id'] as int?];
+        if (exam == null || a['status'] != 'graded' || a['percentage'] == null) {
+          continue;
+        }
+        final prozent = (a['percentage'] as num).round();
+        final passed = a['passed'] == true;
+        if (passed) bestanden++;
+        pruefungen.add(
+          _PruefungsEintrag(
+            name: (exam['name'] ?? 'Prüfung') as String,
+            info: exam['beschreibung'] as String?,
+            datum: DateTime.tryParse(a['submitted_at'] as String? ?? '')
+                ?.toLocal(),
+            prozent: prozent,
+            bestanden: passed,
+          ),
+        );
+      }
 
       // Streak aus lokalen Prefs
       final streak = await _calcStreak();
@@ -141,7 +175,8 @@ class _NewProfilePageState extends State<NewProfilePage> {
       setState(() {
         _playerStats = playerStats;
         _certsPassed = certs.length;
-        _examsPassed = exams.length;
+        _examsPassed = bestanden;
+        _pruefungen = pruefungen;
         _bereitschaft = bereitschaft;
         _streakDays = streak;
         _activeDayCounts = activeDays;
@@ -526,6 +561,17 @@ class _NewProfilePageState extends State<NewProfilePage> {
                   _buildProgressGrid(surface, border, text, textMid, textDim),
 
                   const SizedBox(height: 32),
+
+                  // PRUEFUNGEN (nur wenn bewertete Versuche vorliegen)
+                  if (_pruefungen.isNotEmpty) ...[
+                    _sectionLabel(
+                      'PRÜFUNGEN · $_examsPassed/${_pruefungen.length} BESTANDEN',
+                      textDim,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildPruefungen(surface, border, text, textMid, textDim),
+                    const SizedBox(height: 32),
+                  ],
 
                   // MATCH STATS (nur wenn gespielt)
                   if (hasMatchData) ...[
@@ -1120,6 +1166,116 @@ class _NewProfilePageState extends State<NewProfilePage> {
     );
   }
 
+  // ─── PRÜFUNGEN ────────────────────────────────────
+  Widget _buildPruefungen(
+    Color surface,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < _pruefungen.length; i++) ...[
+            if (i > 0) Divider(height: 1, color: border),
+            _pruefungsZeile(_pruefungen[i], border, text, textMid, textDim),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _pruefungsZeile(
+    _PruefungsEintrag p,
+    Color border,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    final farbe = p.bestanden ? AppColors.success : textDim;
+    final datum = p.datum == null
+        ? ''
+        : '${p.datum!.day.toString().padLeft(2, '0')}.'
+            '${p.datum!.month.toString().padLeft(2, '0')}.${p.datum!.year}';
+    final untertitel = [
+      if (p.info != null && p.info!.isNotEmpty) p.info!,
+      if (datum.isNotEmpty) datum,
+    ].join(' · ');
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: p.bestanden
+                  ? AppColors.success.withValues(alpha: 0.16)
+                  : border.withValues(alpha: 0.6),
+            ),
+            child: Icon(
+              p.bestanden ? Icons.check_rounded : Icons.circle_outlined,
+              size: 15,
+              color: farbe,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  p.name,
+                  style: AppTextStyles.bodyMedium(text),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (untertitel.isNotEmpty)
+                  Text(
+                    untertitel,
+                    style: AppTextStyles.bodySmall(textDim),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(99),
+              border: Border.all(color: border),
+            ),
+            child: Text(
+              'Note ${p.note}',
+              style: AppTextStyles.monoSmall(textDim),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            '${p.prozent}%',
+            style: AppTextStyles.mono(
+              size: 13,
+              color: farbe,
+              weight: FontWeight.w700,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── MATCH STATS ──────────────────────────────────
   Widget _buildMatchStats(
     Color surface,
@@ -1613,4 +1769,31 @@ class _NewProfilePageState extends State<NewProfilePage> {
     margin: const EdgeInsets.only(left: 50),
     color: border,
   );
+}
+
+/// Ein bewerteter Versuch einer IHK-Simulation fuers Profil.
+class _PruefungsEintrag {
+  final String name;
+  final String? info;
+  final DateTime? datum;
+  final int prozent;
+  final bool bestanden;
+
+  const _PruefungsEintrag({
+    required this.name,
+    required this.info,
+    required this.datum,
+    required this.prozent,
+    required this.bestanden,
+  });
+
+  /// IHK-Notenschluessel
+  int get note {
+    if (prozent >= 92) return 1;
+    if (prozent >= 81) return 2;
+    if (prozent >= 67) return 3;
+    if (prozent >= 50) return 4;
+    if (prozent >= 30) return 5;
+    return 6;
+  }
 }
