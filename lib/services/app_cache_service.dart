@@ -97,6 +97,32 @@ class AppCacheService {
         }
       }
 
+      // Beantwortete Fragen je Modul — EINE Abfrage fuer alle Module.
+      //
+      // Frueher stand hier prefs.getStringList('fortschritt_modul_<id>').
+      // Diesen Schluessel hat nie jemand geschrieben, er war also immer leer
+      // und die Modeluebersicht zeigte dauerhaft 0 von X. Die Antworten
+      // selbst lagen die ganze Zeit korrekt in user_progress, geschrieben
+      // von ProgressService.saveAnswer().
+      //
+      // Zeilen zu zaehlen ist exakt: saveAnswer upsertet mit
+      // onConflict 'user_id,frage_id', pro Nutzer und Frage existiert also
+      // genau eine Zeile. Keine Dubletten.
+      final Map<int, int> beantwortetProModul = {};
+      final userId = supabase.auth.currentUser?.id;
+      if (userId != null) {
+        final progress = await supabase
+            .from('user_progress')
+            .select('modul_id')
+            .eq('user_id', userId);
+        for (final zeile in progress) {
+          final m = zeile['modul_id'];
+          if (m is int) {
+            beantwortetProModul[m] = (beantwortetProModul[m] ?? 0) + 1;
+          }
+        }
+      }
+
       final prefs = await SharedPreferences.getInstance();
 
       for (var modul in response) {
@@ -104,8 +130,8 @@ class AppCacheService {
         if (modulId == null || modulId is! int) continue;
 
         cachedAnzahlFragen[modulId] = fragenCount[modulId] ?? 0;
-        cachedBeantworteteFragen[modulId] =
-            prefs.getStringList('fortschritt_modul_$modulId')?.length ?? 0;
+        cachedBeantworteteFragen[modulId] = beantwortetProModul[modulId] ?? 0;
+        // Bleibt lokal: reine Bedienkomfort-Info, kein Fortschritt.
         cachedLetzteThemaId[modulId] =
             prefs.getInt('letztes_thema_modul_$modulId') ?? 0;
       }

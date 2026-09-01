@@ -80,15 +80,16 @@ class _ModulListeState extends State<ModulListe> {
           .select()
           .neq('kategorie', 'kernthema')
           .order('id');
+      // Fortschritt einmal fuer alle Module holen statt pro Modul.
+      final fortschritt = await _ladeFortschrittProModul();
+
       for (var modul in response) {
         final fragen = await supabase
             .from('fragen')
             .select('id')
             .eq('modul_id', modul['id']);
         anzahlFragen[modul['id']] = fragen.length;
-        beantworteteFragen[modul['id']] = await _ladeModulFortschritt(
-          modul['id'],
-        );
+        beantworteteFragen[modul['id']] = fortschritt[modul['id']] ?? 0;
         letzteThemaId[modul['id']] = await _ladeLetzteThemaId(modul['id']);
       }
       if (!mounted) return;
@@ -109,12 +110,34 @@ class _ModulListeState extends State<ModulListe> {
     }
   }
 
-  Future<int> _ladeModulFortschritt(int modulId) async {
+  /// Beantwortete Fragen je Modul, aus der Datenbank.
+  ///
+  /// Vorher las diese Stelle prefs.getStringList('fortschritt_modul_<id>').
+  /// Diesen Schluessel hat nie jemand geschrieben — die Liste zeigte deshalb
+  /// bei jedem Nutzer dauerhaft 0 von X, obwohl die Antworten in
+  /// user_progress lagen. Siehe ProgressService.saveAnswer().
+  ///
+  /// Eine Abfrage fuer alle Module. Zeilen zaehlen ist exakt, weil
+  /// saveAnswer mit onConflict 'user_id,frage_id' upsertet.
+  Future<Map<int, int>> _ladeFortschrittProModul() async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return {};
+
     try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getStringList('fortschritt_modul_$modulId')?.length ?? 0;
-    } catch (_) {
-      return 0;
+      final zeilen = await supabase
+          .from('user_progress')
+          .select('modul_id')
+          .eq('user_id', userId);
+
+      final Map<int, int> zaehler = {};
+      for (final zeile in zeilen) {
+        final m = zeile['modul_id'];
+        if (m is int) zaehler[m] = (zaehler[m] ?? 0) + 1;
+      }
+      return zaehler;
+    } catch (e) {
+      debugPrint('Fortschritt konnte nicht geladen werden: $e');
+      return {};
     }
   }
 
