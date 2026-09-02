@@ -38,6 +38,8 @@ interface Stats {
   active30: number;
   premium: number;
   guests: number;
+  guests_google?: number; // davon Google-Testgeraete (is_google_test)
+  guests_echt?: number; // davon echte Menschen
   last_signup: string | null;
 }
 
@@ -101,7 +103,9 @@ function formatStats(s: Stats): string {
     `Aktiv (30 Tage): <b>${num(s.active30)}</b>`,
     `Premium: <b>${num(s.premium)}</b>`,
     "",
-    `Gäste gerade: ${num(s.guests)}`,
+    typeof s.guests_google === "number"
+      ? `Gäste gerade: ${num(s.guests_echt)} echte · ${num(s.guests_google)} Google-Tests`
+      : `Gäste gerade: ${num(s.guests)}`,
     `Roh in der DB: ${num(s.total_raw)} · ${num(s.excluded)} gefiltert`,
     `Letzte Registrierung: ${esc(seit(s.last_signup))}`,
   ].join("\n");

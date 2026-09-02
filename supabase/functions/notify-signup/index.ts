@@ -213,6 +213,30 @@ serve(async (req: Request) => {
     const ip = payload.user_id ? await holeSignupIp(payload.user_id) : null;
     const google = istGoogleIp(ip);
 
+    // Erkennung dauerhaft am Profil speichern (Spalte is_google_test,
+    // Migration 20260902090000). Der /stats-Bot trennt damit echte
+    // Gaeste von Googles Testgeraeten, auch wenn die Session laengst
+    // geloescht ist. Fehler hier verhindern die Meldung nicht.
+    if (google && payload.user_id && SUPABASE_URL && SERVICE_ROLE_KEY) {
+      try {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/profiles?id=eq.${payload.user_id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SERVICE_ROLE_KEY,
+              Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+              Prefer: "return=minimal",
+            },
+            body: JSON.stringify({ is_google_test: true }),
+          },
+        );
+      } catch (e) {
+        console.warn("notify-signup: is_google_test setzen fehlgeschlagen", e);
+      }
+    }
+
     const text = buildMessage(payload, ip, google);
 
     const res = await fetch(
