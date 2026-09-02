@@ -86,7 +86,10 @@ function ipv4ToInt(ip: string): number | null {
 
 function istGoogleIp(ip: string | null): boolean {
   if (!ip) return false;
-  const sauber = ip.trim().toLowerCase();
+  // auth.sessions.ip kommt teils mit Netzmaske ("108.177.24.190/32").
+  // Ohne dieses Abschneiden lief Number("190/32") auf NaN und die
+  // Erkennung meldete faelschlich "kein Google".
+  const sauber = ip.trim().toLowerCase().split("/")[0];
   if (sauber.includes(":")) {
     return GOOGLE_IPV6_PREFIXES.some((p) => sauber.startsWith(p));
   }
@@ -169,7 +172,7 @@ function buildMessage(p: Payload, ip: string | null, google: boolean): string {
     wer,
     `Weg: ${esc(p.provider ?? "email")} · ${esc(zeit)} Uhr`,
   ];
-  if (ip) zeilen.push(`IP: <code>${esc(ip)}</code>`);
+  if (ip) zeilen.push(`IP: <code>${esc(ip.split("/")[0])}</code>`);
 
   zeilen.push(
     "",
