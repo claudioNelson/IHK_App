@@ -375,6 +375,157 @@ class _NewProfilePageState extends State<NewProfilePage> {
     }
   }
 
+  /// Loescht das Konto endgueltig — Auth-Nutzer und alle Daten.
+  ///
+  /// Apple verlangt seit 2022 (Guideline 5.1.1(v)), dass Apps mit
+  /// Kontoerstellung die Loeschung IN DER APP anbieten. Ein Verweis auf
+  /// E-Mail oder eine Webseite reicht nicht und fuehrt zur Ablehnung.
+  ///
+  /// Die eigentliche Arbeit macht die Edge Function 'delete-account'. Sie
+  /// braucht den Service-Role-Key, der niemals in die App gehoert.
+  ///
+  /// Zwei Abfragen hintereinander, weil der Schritt nicht rueckgaengig zu
+  /// machen ist: erst die Warnung, dann das Eintippen des Wortes.
+  Future<void> _deleteAccount() async {
+    final isDark = context.read<ThemeProvider>().isDark;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+
+    // ---- Abfrage 1: Was passiert -------------------------------------
+    final weiter = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: Text('Konto löschen?', style: AppTextStyles.h2(text)),
+        content: Text(
+          'Dein Konto und alle deine Daten werden endgültig gelöscht:\n\n'
+          '• Lernfortschritt und Testergebnisse\n'
+          '• Karteikarten und Wiederholungen\n'
+          '• Abzeichen und Zertifikate\n'
+          '• Arena-Wertung und Matches\n'
+          '• Premium-Status\n\n'
+          'Das lässt sich nicht rückgängig machen.',
+          style: AppTextStyles.bodyMedium(text),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Abbrechen'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Weiter', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (weiter != true || !mounted) return;
+
+    // ---- Abfrage 2: Wort eintippen -----------------------------------
+    final eingabe = TextEditingController();
+    final bestaetigt = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setLokal) => AlertDialog(
+          backgroundColor: surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          title: Text('Wirklich löschen?', style: AppTextStyles.h2(text)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tippe LÖSCHEN ein, um zu bestätigen.',
+                style: AppTextStyles.bodyMedium(text),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: eingabe,
+                autofocus: true,
+                textCapitalization: TextCapitalization.characters,
+                decoration: const InputDecoration(hintText: 'LÖSCHEN'),
+                onChanged: (_) => setLokal(() {}),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Abbrechen'),
+            ),
+            ElevatedButton(
+              onPressed: eingabe.text.trim().toUpperCase() == 'LÖSCHEN'
+                  ? () => Navigator.pop(context, true)
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Endgültig löschen'),
+            ),
+          ],
+        ),
+      ),
+    );
+    eingabe.dispose();
+    if (bestaetigt != true || !mounted) return;
+
+    // ---- Loeschen ----------------------------------------------------
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final antwort = await _supabase.functions.invoke(
+        'delete-account',
+        body: {'bestaetigung': 'LOESCHEN'},
+      );
+
+      final daten = antwort.data as Map<String, dynamic>?;
+      if (daten?['ok'] != true) {
+        throw Exception(daten?['error'] ?? 'Unbekannter Fehler');
+      }
+
+      // Sitzung lokal beenden. Der Auth-Nutzer existiert serverseitig nicht
+      // mehr, ein Fehler beim Abmelden ist deshalb unerheblich.
+      try {
+        await _authService.signOut();
+      } catch (_) {}
+      SubscriptionService().clear();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Ladeanzeige schliessen
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dein Konto wurde gelöscht.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Ladeanzeige schliessen
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Löschen fehlgeschlagen: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<void> _clearLocalData() async {
     final isDark = context.read<ThemeProvider>().isDark;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
@@ -1595,9 +1746,24 @@ class _NewProfilePageState extends State<NewProfilePage> {
           _actionTile(
             icon: Icons.delete_outline,
             title: 'Lokale Daten löschen',
-            subtitle: 'Lernfortschritt zurücksetzen',
-            iconColor: AppColors.error,
+            subtitle: 'Lernfortschritt auf diesem Gerät zurücksetzen',
+            iconColor: AppColors.warning,
             onTap: _clearLocalData,
+            text: text,
+            textMid: textMid,
+            textDim: textDim,
+          ),
+          _divider(border),
+          // Pflicht seit Apple-Richtlinie 5.1.1(v): Die Kontoloeschung muss
+          // in der App moeglich sein, nicht nur per E-Mail. Bewusst getrennt
+          // von "Lokale Daten loeschen" und in Rot, damit niemand das eine
+          // fuer das andere haelt.
+          _actionTile(
+            icon: Icons.person_remove_outlined,
+            title: 'Konto löschen',
+            subtitle: 'Konto und alle Daten endgültig entfernen',
+            iconColor: AppColors.error,
+            onTap: _deleteAccount,
             text: text,
             textMid: textMid,
             textDim: textDim,
