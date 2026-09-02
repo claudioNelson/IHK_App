@@ -242,6 +242,7 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 ## 6. Offene Punkte / Nächste Schritte
 
 **App**
+- ⏳ **VORBEREITET, NOCH NICHT AUSGEFUEHRT (02.09.2026, Nachtpause):** (1) Migration `supabase/migrations/20260902150000_fk_indizes.sql` (13 FK-Indizes, verhaltensneutral) liegt im Repo, muss noch im SQL-Editor ausgefuehrt werden → danach lesend kontrollieren (Kontrollabfrage am Dateiende, Erwartung 0 Zeilen). (2) Backup-Skript `tools/backup_db.ps1` liegt im Repo; Einrichtung offen: Session-Pooler-URI mit Passwort nach `C:\Users\cnm89\backups\lernarena\.db_url.txt` (ausserhalb Repo), `pg_dump` installieren (`scoop install postgresql`), erster Lauf, dann Windows-Aufgabenplanung woechentlich. Beide Dateien noch nicht committet. Naechste Punkte danach: siehe Projekt-Doc `claude/datenbank.md` (Gruppe 2: search_path Arena-RPCs, doppelte Policies/Trigger, auth_rls_initplan – jeweils mit Review-Agent; Gruppe 3 nur mit App-Release).
 - ✅ **DB-Inventur + Admin-RPC-Sperre (02.09.2026, NUR DB, LIVE):** Lese-Agent hat die komplette Live-DB inventarisiert (31 Tabellen, 88 Policies, 40 Funktionen, 11 Trigger, Advisors) → Projekt-Doc `claude/datenbank.md` mit 12 priorisierten Punkten. Sofort behoben (Migration `20260902140000_lock_admin_rpcs_themen.sql`, im SQL-Editor eingespielt, lesend kontrolliert): Policy `themen: write (all)` (jeder Client durfte Themen loeschen) entfernt; `delete_module_data` (2 Overloads, die integer-Variante OHNE Admin-Check!), `clear_all_explanations`, `add_question_with_answers`, `update_question_explanation` fuer public/anon/authenticated gesperrt, `search_path` fixiert. Vorher Aufrufer-Check per Lese-Agent: keine dieser Funktionen wird aus lib/, web/ oder Edge Functions aufgerufen; App liest `themen` nur. App ruft insgesamt nur 4 RPCs auf (Arena: create_async_match_any, join_random_open_match, submit_async_answer, try_finalize_match). NOCH OFFEN (siehe datenbank.md): Arena-RPCs ohne search_path (nur mit Release/Uebergang anfassen), player_stats frei beschreibbar, profiles oeffentlich lesbar, question_reports anon-Insert, doppelte Policies/Trigger, 13 FKs ohne Index, Repo deckt DB nicht ab (17/20 Migrationen nicht registriert).
 - ✅ **Premium-RPC-Sperre (02.09.2026, NUR DB, LIVE):** Sicherheitsluecke geschlossen. Befund aus `pg_proc.proacl`: `activate_premium_purchase(text,integer)` war fuer `authenticated` ausfuehrbar (SECURITY DEFINER, keine Belegpruefung → jeder eingeloggte User haette sich per RPC bis zu 372 Tage Premium geben koennen); `set_premium` und `update_premium_by_customer` (Stripe-Pfad) waren sogar fuer PUBLIC/anon ausfuehrbar. Fix: Migration `supabase/migrations/20260902120000_lock_premium_rpcs.sql` — `revoke all ... from public, anon, authenticated` auf allen vier Premium-RPCs, `grant execute ... to service_role` (grant_premium_from_server war schon korrekt). Angewendet ueber Supabase-Connector als Migration `lock_premium_rpcs`, Ergebnis kontrolliert: alle vier nur noch postgres/service_role. Edge Functions `verify-purchase` und `stripe-webhook` laufen unveraendert (Service-Role-Key). Kein Code-Release noetig. Folge: App-Versionen ≤ v7 koennen keine Kaeufe mehr freischalten (Kauf wird nach Update auf v8+ per verify-purchase nachgeholt). ✅ NACHGEZOGEN (02.09.2026): Migration `20260902130000_premium_ddl_ins_repo.sql` holt das komplette Premium-DDL (4 RPCs + `protect_premium_columns` + Trigger `trg_protect_premium`) ins Repo und setzt bei allen fuenf Funktionen `set search_path = public, pg_temp`; im SQL-Editor eingespielt, lesend kontrolliert. Lehre: Lese-Agent hatte in der REVOKE-Zeile von `update_premium_by_customer` die Parameterreihenfolge vertauscht → Agenten-SQL immer gegen `pg_proc` pruefen. NEBENBEFUNDE: (1) In `supabase_migrations` sind nur zwei `remote_schema` von 09/2025 plus `lock_premium_rpcs` registriert — die uebrigen Repo-Migrationen wurden per SQL-Editor eingespielt, nie per `db push`. (2) `protect_premium_columns` hat noch EXECUTE fuer PUBLIC (unkritisch, Trigger feuert als Tabellenbesitzer; optionaler Revoke in der Migration auskommentiert). (3) `subscription_service.dart:73-77` macht ein direktes `update({'is_premium': false})` aus dem Client — mit `trg_protect_premium` abgleichen. (4) `drop function activate_premium_purchase` erst nach 2-4 Wochen Log-Beobachtung. Doku: Projekt-Doc `claude/billing-status.md` und `claude/architektur.md`.
 - **Profil-Fortschritt neu: Pruefungsbereitschaft (26.08.2026, kommt mit v13):** Die alten Kacheln "Fragen" und "Trefferquote" sind raus (waren irrefuehrend: nur der Uebungsbereich schrieb in user_progress, Levels/Kurse/Arena nicht -> 100 % trotz Fehlern). Neu: grosse Bereitschafts-Karte mit Ring ("Pruefungsbereit: X %"), beim Antippen Aufschluesselung nach BEREICHEN: Lernmodule (gemeisterte Themen aus thema_scores, ab required_score), Levels (level_progress ab Schwelle), SQL-Kurs und Python-Kurs (geloeste Aufgaben aus kurs_fortschritt). Gesamtwert = Durchschnitt der vier Bereichs-Prozente. Neuer `BereitschaftsService` (lib/services/bereitschafts_service.dart). Darunter schlanke Reihe Streak/Zertifikate/Pruefungen. Merke Spaltennamen: themen.module_id vs thema_scores.modul_id.
@@ -309,3 +310,888 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 - **Secrets** (API-Keys) kommen in `.env` / Vercel-Env, **nie** in den Chat oder ins Repo. `.env.old` bleibt in `.gitignore`.
 - Projekt-Regel: **Schritt für Schritt arbeiten, Chat nicht überfüllen. Antworten auf Deutsch.**
 - **Regel (ab 26.08.2026): Eine Frage ist KEIN Arbeitsauftrag.** Wenn der User etwas fragt ("was bedeutet X?", "warum ist Y so?"), erst erklaeren und dann fragen, ob er etwas geaendert haben will. Niemals ungefragt Code umbauen, nur weil im Gespraech ein moeglicher Verbesserungspunkt auffaellt — Verbesserung vorschlagen, auf Freigabe warten.
+
+---
+
+## App-Store-Screenshots (28.08.2026)
+
+### Anforderungen (Stand 2026)
+
+Apple verlangt nur noch **eine** iPhone-Größe: **6,9 Zoll, 1320 × 2868 px**
+(iPhone 16/17 Pro Max). 1–10 Bilder je Sprache, PNG oder JPEG.
+iPad-Screenshots (13 Zoll) nur, wenn die App iPad unterstützt.
+
+### iPad deaktiviert
+
+`TARGETED_DEVICE_FAMILY` in `ios/Runner.xcodeproj/project.pbxproj` von `"1,2"`
+auf `"1"` gesetzt (drei Stellen). Lernarena ist damit eine reine iPhone-App:
+kein iPad-Screenshot-Satz nötig, kein iPad-Layout-Risiko im Review.
+Jederzeit umkehrbar — dann aber iPad-Bilder nachliefern.
+
+### Workflow `ios-screenshots`
+
+Auf Windows gibt es keinen iOS-Simulator; Codemagic baut auf macOS, dort sind
+Simulatoren vorhanden. Neuer Workflow, **manuell zu starten** (kein Tag-Trigger):
+
+1. Sucht einen 6,9-Zoll-Simulator (iPhone 17 Pro Max → 16 Pro Max → beliebiges
+   Pro Max → beliebiges iPhone) und startet ihn
+2. Setzt die Statusleiste auf 09:41 Uhr, volles Netz, volle Batterie
+3. Fährt die App per Integrationstest durch: Login mit Demo-Account, dann die
+   Tabs *Lernen*, *Prüfen*, *Arena*, *Profil* und ein Inhaltsbildschirm
+4. Prüft die Maße jedes Bildes und warnt bei Abweichung von 1320 × 2868
+5. Stellt alles unter `screenshots/*.png` als Artefakt bereit
+
+**Neue Dateien:**
+- `integration_test/screenshots_test.dart` — steuert die App, löst die Aufnahmen aus
+- `test_driver/integration_test.dart` — schreibt die PNGs nach `screenshots/`
+- `pubspec.yaml` — `integration_test` in den dev_dependencies
+
+**Erforderlich in Codemagic:** Variablengruppe **`screenshot_credentials`** mit
+`SHOT_EMAIL` und `SHOT_PASSWORD` (bestehender Testaccount mit Premium, beide
+*Secure*). Die Zugangsdaten gehen per `--dart-define` in den Lauf und stehen
+nirgends im Repo.
+
+Der Test ist fehlertolerant: findet er einen Tab-Namen nicht, überspringt er ihn
+und macht weiter. `pumpAndSettle` wird nicht verwendet, weil es bei
+Dauer-Animationen (Confetti, Ladespinner) hängen bleibt — stattdessen feste
+Wartezeiten.
+
+---
+
+## ⚠️ Zwei Arbeitskopien — Verwechslungsgefahr (28.08.2026)
+
+Es existieren mehrere Checkouts desselben Repos:
+
+| Pfad | Status |
+|---|---|
+| `Desktop\Projekte\IHK\ihk_app` | **aktuelle Arbeitskopie**, entspricht `origin/main` |
+| `Desktop\Lernarena\ihk_app` | veraltete Kopie — sollte nicht mehr benutzt werden |
+| `~\ihk_app` | alte Kopie von Aug 2025, unbenutzt |
+
+Am 28.08. wurde versehentlich in der Lernarena-Kopie gearbeitet, was zu einem
+abgelehnten Push und einem abgebrochenen Rebase führte. **Vor jedem `git`-Befehl
+mit `git remote -v` und dem Prompt prüfen, in welcher Kopie man steht.**
+Zusätzlich ist `C:\Users\cnm89` selbst ein Git-Repo (Telegram-Shop) — Befehle
+außerhalb eines Projektordners landen dort.
+
+---
+
+## ⚠️ Icon-Stolperfalle
+
+`assets/icon/app_icon.png` hat **schwarze** abgerundete Ecken (kein Alpha, echtes
+Schwarz). iOS legt seine Maske selbst an, das ergibt schwarze Ränder im fertigen
+Icon. Deshalb steht in `pubspec.yaml` zwingend
+`image_path_ios: "assets/icon/app_icon_ios.png"` (vollflächiges Quadrat).
+**`flutter pub run flutter_launcher_icons` nie ohne `image_path_ios` ausführen** —
+sonst sind die schwarzen Ecken sofort wieder da.
+
+---
+
+## ⬜ Offen für den iOS-Store-Release
+
+1. **Screenshots erzeugen** — Workflow `ios-screenshots` starten, Bilder sichten,
+   4–6 auswählen und in App Store Connect hochladen. Die ersten 2–3 erscheinen in
+   der Suchergebnisliste, dort die stärksten Screens zeigen.
+2. **Händlerstatus (EU Digital Services Act)** — am 28.08. eingereicht,
+   Status **In Prüfung**. Ohne ihn keine Veröffentlichung in der EU.
+3. **In-App-Käufe für iOS** — bisher nur Google Play umgesetzt. Auf iOS findet
+   `queryProductDetails` nichts, der Kauf schlägt fehl → Reject-Risiko
+   (Richtlinie 2.1). Nötig: Abo-Gruppe mit drei Produkten in App Store Connect
+   (`app.lernarena.premium.monthly` / `.halfyear` / `.annual`),
+   `billing_service.dart` plattformabhängig, und in der Edge Function
+   `verify-purchase` ein Apple-Zweig gegen die App Store Server API.
+   Der Paid Applications Agreement ist seit 16.08. **aktiv**.
+4. **Testinformationen** in TestFlight (Feedback-E-Mail, Kontaktdaten,
+   Demo-Login) — erst für **externe** Tester nötig. Danach in `codemagic.yaml`
+   `submit_to_testflight: true` setzen.
+5. **App-Store-Metadaten** — Beschreibung, Keywords, Untertitel,
+   Datenschutzangaben, Altersfreigabe, Kategorie, Support-URL.
+
+---
+
+## Demo-Account für Screenshots und Apple-Review (28.08.2026)
+
+**E-Mail:** `demo@lernarena.app` · Passwort liegt in Codemagic
+(`SHOT_PASSWORD`, Gruppe `screenshot_credentials`) und gehört **nicht** in dieses
+Dokument.
+
+Angelegt über Supabase → Authentication → Users → *Add user*, mit
+**Auto Confirm User**. Derselbe Account dient später als Demo-Login für Apples
+App-Review — hinter dem Login sieht der Prüfer sonst nichts.
+
+### Ausstattung
+
+| Bereich | Wert | Tabelle |
+|---|---|---|
+| Anzeigename | `Alex` | `profiles.username` |
+| Premium | `is_premium = true`, `premium_tier = 'lifetime'`, `premium_until = null` | `profiles` |
+| Streak | 12 Tage | `profiles.streak_days` |
+| Beantwortete Fragen | 1.261 von 1.507, davon 1.110 richtig (88 %) | `user_progress` |
+| Gemeisterte Themen | rund 85 % von 70 | `thema_scores` |
+| Gemeisterte Levels | 82 von 92 (89 %) | `level_progress` |
+
+`premium_tier = 'lifetime'` mit `premium_until = null` ist bewusst gewählt:
+`subscription_service.dart` prüft das Ablaufdatum nur, wenn der Tier **nicht**
+`lifetime` ist. Der Account kann also nicht mitten in einem Screenshot-Lauf
+ablaufen.
+
+### Wie die Prüfungsbereitschaft wirklich gerechnet wird
+
+Der Ring auf dem Profil kommt aus `bereitschafts_service.dart` und speist sich
+aus **zwei** Quellen — `user_progress` gehört **nicht** dazu:
+
+1. **Lernmodule:** gemeisterte Themen / alle Themen. Gemeistert, wenn
+   `thema_scores.best_score >= themen.required_score` (Standard 80).
+   Module mit `kategorie = 'kernthema'` sind ausgenommen.
+2. **Levels:** `level_progress.best_score >= levels.schwelle` (70/80/100).
+
+`user_progress` füllt dagegen die Fortschrittsbalken im Lernbereich und die
+Modul-Abschlussquote in `progress_service.dart` (Modul gilt ab 80 % richtiger
+Antworten als abgeschlossen).
+
+### Zurücksetzen
+
+```sql
+delete from public.user_progress   where user_id = (select id from auth.users where email = 'demo@lernarena.app');
+delete from public.thema_scores    where user_id = (select id from auth.users where email = 'demo@lernarena.app');
+delete from public.level_progress  where user_id = (select id from auth.users where email = 'demo@lernarena.app');
+```
+
+### Offen
+
+- Den Account in `stats_exclusions` eintragen (Migration
+  `20260817090000_stats_exclusions.sql`), damit er die Nutzerstatistiken nicht
+  verfälscht.
+- In TestFlight → Testinformationen als Demo-Login hinterlegen, sobald externe
+  Tester dazukommen.
+
+---
+
+## Datenbefund am Rande (28.08.2026)
+
+Von **1.507** Fragen haben **1.026 keine `thema_id`** und **246 keine
+`modul_id`**. Nur 481 sind vollständig zugeordnet. Fragen ohne Themenzuordnung
+tauchen in themenbasierten Lernbereichen vermutlich nicht auf — das kann Absicht
+sein (etwa wenn sie nur über Prüfungssimulationen laufen) oder eine Altlast aus
+einem Import. Lohnt einen genaueren Blick: potenziell viel ungenutzter Inhalt.
+
+---
+
+## Arena-Screenshot und Browser-Hinweis (30.08.2026)
+
+Zwei Änderungen, beide ausschließlich für die App-Store-Bilder gedacht.
+
+### 1. Hinweisbox auf dem Prüfen-Screen entfernt
+
+`lib/screens/pruefen/pruefen_screen.dart`, Methode `_buildIhkList()`. Ganz oben
+in der Liste stand:
+
+> IHK-Prüfungen bearbeitest du in der Web-Version. Diagramme, SQL und lange
+> Texte gehen am Laptop einfach besser. Tippe auf eine Prüfung — sie öffnet
+> sich im Browser.
+
+Die Box ist raus, an ihrer Stelle steht ein Kommentar mit dem Grund. Zwei
+Motive:
+
+1. Sie saß über allem und war damit auf **jedem** Screenshot des Prüfen-Tabs.
+2. „Öffnet sich im Browser" ist genau die Formulierung, an der Apples Review
+   bei **Guideline 4.2 (Minimum Functionality)** hängen bleibt. Eine App, die
+   ihren Kernbereich in den Browser auslagert, gilt schnell als Website-Hülle.
+   Lernen, Levels und Kurse laufen in-app, damit ist die App vermutlich sicher
+   — aber man muss den Prüfer nicht mit der Nase darauf stoßen.
+
+Zurückholen: `git log -p -- lib/screens/pruefen/pruefen_screen.dart`, Commit
+vom 30.08.2026.
+
+**Offen und wichtiger als der Text:** Der Tap auf eine Prüfung öffnet weiterhin
+den Browser. Für den Store sollte mittelfristig entweder ein In-App-Webview mit
+eigener Navigation her oder die Prüfungen wandern in die App.
+
+### 2. Arena mit Demo-Daten füllen
+
+Der Arena-Tab zeigte beim Demo-Konto „AKTIVE MATCHES · 0 / Keine aktiven
+Matches" und keinen ELO-Banner — als Store-Bild wertlos. Skript dafür:
+`tools/arena_demo_fuellen.sql`.
+
+Was der Screen woraus liest (`async_match_demo_screen.dart` +
+`async_duel_service.dart`):
+
+| Element im Screen | Quelle |
+|---|---|
+| ELO-Banner mit Stufe, Siegen, Winrate | `player_stats` — erscheint **nur**, wenn `matches_played > 0` |
+| Stufenname (BRONZE … MEISTER) | `elo_rating`: ≥850 Bronze, ≥1000 Silber, ≥1150 Gold, ≥1300 Diamant, ≥1500 Meister |
+| „AKTIVE MATCHES · n" | `matches` mit `player1_id` oder `player2_id` = ich, Status **nicht** completed/finalized/finished |
+| Badge „NOCH x FRAGEN" | `total_questions` minus Anzahl eigener Zeilen in `match_answers` |
+| „HISTORY · n" | dieselben Matches mit Status completed/finalized/finished, Scores aus `match_scores` |
+
+Die Match-Karte zeigt **keinen Gegnernamen**, nur `#MATCHID`, den Status und
+die Fragenzahl. Deshalb brauchen die Demo-Matches keinen zweiten Spieler:
+`player2_id` bleibt leer, genau wie bei einem frisch erstellten Match aus der
+App (`create_async_match_any`).
+
+Das Skript setzt ELO 1180 (GOLD), 17 Siege / 2 Remis / 5 Niederlagen = 70 %
+Winrate, und legt drei Matches mit 4 / 7 / 0 beantworteten Fragen an. Abschnitt
+0 gibt das Schema aus, Abschnitt 4 macht alles rückgängig.
+
+**Nicht sicher bekannt:** Die Spalten von `matches`, `match_answers` und
+`player_stats` stehen in keiner Migration im Repo — sie leben nur in der
+Remote-Datenbank. Das Skript ist deshalb defensiv geschrieben (UPDATE-dann-
+INSERT statt `ON CONFLICT`, Fallback von Status `active` auf `open`). Falls es
+mit „column … does not exist" abbricht, liefert Abschnitt 0 die echten Spalten.
+
+### 3. Screenshot-Test aufgeräumt (30.08.2026, nachmittags)
+
+Nach dem Lauf mit den Arena-Daten waren von neun Aufnahmen mehrere unbrauchbar.
+`integration_test/screenshots_test.dart` erzeugt jetzt sieben statt neun Bilder:
+
+| Datei | Screen |
+|---|---|
+| `01_lernen` | Lernhub, „Guten Morgen, Alex" |
+| `02_pruefen` | IHK-Prüfungen, AE-Liste |
+| `03_zertifikate` | Zertifikate (über den Umschalter oben) |
+| `04_arena` | ELO-Banner + aktive Matches |
+| `05_levels` | Level-Pfade mit Fortschritt |
+| `06_kurs` | SQL von Grund auf |
+| `07_anschluesse` | Anschlüsse-Quiz |
+
+Entfallen sind:
+
+- **`03_pruefungsliste`** — der Tap auf „Anwendungsentwicklung" führte nirgendwo
+  hin, das ist bloß eine Überschrift. Das Bild war eine exakte Dublette von
+  `02_pruefen`.
+- **`04_pruefung_detail`** — der Tap auf eine Prüfungskarte öffnet den Browser
+  und verlässt damit die App. Eine In-App-Detailansicht existiert nicht.
+- **Das blinde Scrollen für die Zertifikate.** `scrolle(tester, 900)` landete
+  zwischen zwei Karten; oben im Bild schwebte ein „90 Minuten · 100 Punkte ·
+  Starten" ohne Titel. Stattdessen tippt der Test jetzt auf den Umschalter
+  „Zertifikate" im Kopf des Prüfen-Tabs. Die Hilfsfunktion `scrolle()` ist
+  ersatzlos raus.
+
+**Merksatz für später:** Im Prüfen-Tab nicht scrollen, sondern umschalten.
+Blindes Scrollen um feste Pixelwerte trifft bei unterschiedlich hohen Karten
+nie zuverlässig eine Kartengrenze.
+
+### Die fünf Store-Bilder (Stand 30.08.2026)
+
+Aus dem letzten Lauf sind fünf brauchbare Aufnahmen gekommen. Reihenfolge in
+App Store Connect, Größe **6,9" iPhone / 1320 × 2868** — nur diese eine Größe
+ist nötig, Apple skaliert für kleinere Geräte selbst:
+
+1. `01_lernen` — Lernhub, „Guten Morgen, Alex"
+2. `02_pruefen` — IHK-Prüfungen, AE-Liste
+3. `05_levels` — Level-Pfade mit Fortschritt
+4. `03_zertifikate` — SAP, AZ-900, GCP, AWS
+5. `04_arena` — GOLD, ELO 1180, aktive Matches
+
+Lernen und Prüfen stehen vorn, weil die ersten beiden Bilder schon in der
+Suchergebnisliste erscheinen, ohne dass jemand die Produktseite öffnet.
+
+`06_kurs` und `07_anschluesse` sind im Lauf nicht entstanden — Ursache nicht
+untersucht, fünf Bilder reichen. Apple erlaubt bis zu zehn und verlangt nur
+eines; nachträglich austauschen geht jederzeit per Drag-and-drop.
+
+### Store-Bilder mit Überschrift (30.08.2026)
+
+Die nackten Simulator-Aufnahmen wandern nicht direkt in den Store, sondern
+bekommen erst die Marketing-Überschrift — dasselbe Layout wie bei den
+Play-Store-Bildern: violette Serifenschrift oben, darunter der Screenshot in
+einem abgerundeten Rahmen, der unten aus dem Bild läuft.
+
+**Skript:** `tools/store_bilder/render_store_bilder.py`
+
+Es rendert eine HTML-Vorlage in headless Chromium (Playwright) und
+fotografiert sie in 1320 × 2868 ab. Chromium statt Pillow, weil sich damit
+**Instrument Serif** einbetten lässt — dieselbe Schrift wie in der App. Die
+Schrift kommt über npm, nicht über Google Fonts:
+
+```
+cd tools/store_bilder
+npm install @fontsource/instrument-serif
+mkdir quelle          # hier die Codemagic-Artefakte ablegen
+python3 render_store_bilder.py
+```
+
+Die Quelldateien müssen `quelle/01_lernen.png` … `quelle/05_arena.png` heißen
+und exakt 1320 × 2868 groß sein. Ergebnis landet in `ausgabe/`.
+
+Überschriften ändern: oben in der Liste `BILDER`. Zeilenumbrüche werden mit
+`\n` **von Hand** gesetzt, nie automatisch — sonst reißt es Wörter
+auseinander. Genau das war in den Play-Store-Bildern passiert
+(„Prüfungsbedingunge/n."). Zu lange Zeilen verkleinert das Skript
+automatisch, bis sie in die Breite passen.
+
+**Warum nicht die Play-Store-Bilder wiederverwenden:** urheberrechtlich
+spricht nichts dagegen, es ist eigenes Material. Aber auf ihnen steckt ein
+Android-Telefon — Punch-Hole-Kamera in der Statusleiste, Android-Icons,
+Gestenbalken unten. Apple lehnt Screenshots ab, die die App auf fremder
+Hardware zeigen. Dazu kommt das falsche Seitenverhältnis (9:16 statt 1:2,17),
+das sich nicht ohne Beschnitt oder Verzerrung anpassen lässt.
+
+Fertige Bilder liegen unter `Desktop\Lernarena\AppStore-Bilder\` — bewusst
+außerhalb des Repos, damit die PNGs die Historie nicht aufblähen.
+
+---
+
+## App-Store-Metadaten (30.08.2026)
+
+Festgelegt für die erste iOS-Einreichung. Sprache: Deutsch.
+
+### Version
+
+**1.5.0** — nicht 1.0. Apple verlangt, dass die Versionsnummer in App Store
+Connect **exakt** der `CFBundleShortVersionString` des ausgewählten Builds
+entspricht. `pubspec.yaml` steht auf `1.5.0+14`, die Nummer ist über die
+Android-Veröffentlichungen gewachsen. Passt die Nummer nicht, bleibt die
+Build-Auswahlliste in App Store Connect einfach leer, ohne Fehlermeldung.
+
+Der Build in TestFlight war zu diesem Zeitpunkt noch **1.2.0 (10)**, also muss
+ein neuer Build mit 1.5.0 hochgeladen werden, bevor sich die Version
+einreichen lässt.
+
+### Feste Felder
+
+| Feld | Wert |
+|---|---|
+| Support-URL | `https://lernarena.app/impressum` (besser: eigene `/support`-Seite) |
+| Marketing-URL | `https://lernarena.app` |
+| Copyright | `2026 Claudio Medeiros Magalhaes` (aus dem Impressum) |
+
+### Schlüsselwörter (97 von 100 Zeichen)
+
+```
+IHK,Azubi,AP1,AP2,Anwendungsentwicklung,Systemintegration,Umschulung,Ausbildung,Prüfung,SQL,Python
+```
+
+Überlegungen dahinter:
+
+- **„Fachinformatiker" und „Lernarena" fehlen bewusst.** Beide stehen im
+  App-Namen („Lernarena: Fachinformatiker") und werden dort schon indexiert.
+  Doppelt einzutragen wären 26 verschenkte Zeichen.
+- **AP1 / AP2** sind die stärksten Begriffe: so nennen Azubis die gestreckte
+  Abschlussprüfung, und kaum eine Lern-App belegt sie.
+- **Kein Leerzeichen nach dem Komma** — Apple zählt es mit.
+- **Keine Wortgruppen.** Apple kombiniert die Begriffe selbst, „IHK Prüfung"
+  entsteht aus `IHK` und `Prüfung`.
+- **„Lernen" und „Quiz" wurden gestrichen**, zu allgemein — dort konkurriert
+  man mit Duolingo und Quizlet.
+- **„Programmierung" bewusst nicht**: 15 Zeichen für einen Begriff, bei dem
+  man gegen jede Coding-App antritt. `SQL` und `Python` treffen dasselbe
+  Publikum für 11 Zeichen genauer.
+
+### Beschreibung
+
+Der Text liegt in App Store Connect. Zwei Regeln beim Ändern:
+
+1. **Premium wird nicht erwähnt.** Solange der In-App-Kauf auf iOS fehlt,
+   wäre das die Ankündigung von etwas, das der Prüfer nicht kaufen kann —
+   und genau danach sucht er (Guideline 3.1.1 / 2.1). Sobald StoreKit drin
+   ist, kommt ein Abschnitt dazu.
+2. **Leerzeilen zwischen den Abschnitten erhalten**, sonst klebt im Store
+   alles zu einem Block zusammen und die Überschriften gehen unter.
+
+### Untertitel
+
+Noch offen. 30 Zeichen, wird zusätzlich indexiert und kostet kein
+Keyword-Budget. Kandidaten: `IHK-Prüfung üben, AP1 und AP2` (29).
+
+---
+
+## Premium-Kauf auf iOS ausgeblendet (30.08.2026)
+
+`billing_service.dart` spricht ausschließlich Google Play — der Cast auf
+`GooglePlayProductDetails` in `_basePlanIdOf` macht das unmissverständlich.
+Auf iOS gäbe es also Kauf-Knöpfe, die ins Leere führen. Das ist bei Apples
+Prüfung ein sicherer Ablehnungsgrund (Richtlinie 2.1, App Completeness).
+
+### Der Schalter
+
+Neu in `lib/widgets/premium_kauf_sheet.dart`:
+
+```dart
+bool get premiumKaufMoeglich => kIsWeb || !Platform.isIOS;
+```
+
+`kIsWeb` muss zuerst stehen, `Platform` wirft im Browser. Zusätzlich gibt
+`showPremiumKaufSheet()` auf iOS sofort `null` zurück, falls doch jemand
+daran vorbei aufruft.
+
+### Wo überall gekauft werden konnte
+
+Erst nach vollständigem Durchsuchen von `lib/` sichtbar geworden — ein erster
+Teildurchlauf hatte nur zwei der fünf Stellen gefunden:
+
+| Datei | Was passierte |
+|---|---|
+| `pages/pruefung/ihk_pruefung_detail_screen.dart:31` | `PremiumLock` vor jeder IHK-Prüfung |
+| `screens/zertifikate/zertifikat_test_screen.dart:485` | `PremiumLock` vor dem Zertifikatstest |
+| `screens/zertifikate/certificate_practice_screen.dart:285` | `PremiumLock` vor dem Übungsmodus |
+| `screens/kurse/kurs_uebersicht_screen.dart` | Kauf-Sheet beim Tippen auf eine gesperrte Lektion |
+| `screens/learning/ai_tutor_chat_screen.dart:97` | Kauf-Sheet aus dem Limit-Dialog von Ada |
+
+Gelöst an drei zentralen Stellen statt an fünf Aufrufstellen:
+
+- **`premium_lock.dart`** — Preisangabe („11,99€/M · …") und der Knopf
+  „Premium aktivieren" verschwinden. Die Vorteilsliste bleibt, sie erklärt
+  nur, was Premium ist. Das deckt drei der fünf Stellen ab.
+- **`limit_reached_dialog.dart`** — statt „Später / Premium" nur noch ein
+  „Verstanden". Deckt Ada und die Arena ab.
+- **`kurs_uebersicht_screen.dart`** — gesperrte Lektion zeigt einen Snackbar
+  statt des Kauf-Sheets.
+
+### Ebenfalls raus: die Web-Empfehlung
+
+`_buildWebCard()` im Prüfungsdetail verlinkte per `launchUrl` auf
+`https://lernarena.app`. Dort werden Abos verkauft, und Nutzer zu einem
+Kaufweg außerhalb des App Store zu lotsen verstößt gegen Richtlinie 3.1.3.
+Unabhängig davon nährt „bearbeite das lieber am Desktop" den Verdacht, die
+App sei nur eine Hülle um eine Website (Richtlinie 4.2). Die Karte wird auf
+iOS nicht mehr gerendert.
+
+**Grundregel für später:** Bei fehlender Kaufmöglichkeit bleiben gesperrte
+Inhalte einfach gesperrt. Nicht auf die Web-Version verweisen, auch nicht
+dezent — genau das ist der Verstoß.
+
+### Korrektur eines Irrtums aus diesem Chat
+
+Zwischenzeitlich stand hier die Annahme, die IHK-Prüfungen würden beim
+Antippen im Browser geöffnet. Das stimmt nicht. `pruefen_screen.dart`
+navigiert per `Navigator.push` in `IHKPruefungDetailScreen`, also in-app.
+Der Browser-Hinweis stammte aus einer veralteten Info-Box, die wir vorher
+entfernt haben. Die Guideline-4.2-Sorge ist damit weitgehend vom Tisch.
+
+### Was noch fehlt
+
+StoreKit. Für 1.6: Abo-Gruppe in App Store Connect anlegen, plattformabhängige
+Produkt-IDs in `billing_service.dart`, Apple-Zweig in der Edge Function
+`verify-purchase`, Sandbox-Test auf einem echten iPhone. Danach
+`premiumKaufMoeglich` auf `true` ziehen und die Beschreibung im Store um
+einen Premium-Abschnitt ergänzen.
+
+---
+
+## Premium auf beiden Plattformen (geplant für 1.6)
+
+Ziel: ein Codestand, der auf Google Play und im App Store verkauft, ohne
+zwei Build-Varianten. Der Plan steht, umgesetzt ist noch nichts.
+
+### Was schon richtig gebaut ist
+
+`subscription_service.dart` liest den Premium-Status ausschließlich aus
+`profiles` — `is_premium`, `premium_until`, `premium_tier`. Die App fragt
+**nie** den Store, sondern immer die eigene Datenbank. Damit ist die
+Grundarchitektur bereits plattformneutral: Beide Stores schreiben am Ende in
+dieselben drei Spalten, alles darüber bleibt unverändert. Auch das Paket
+`in_app_purchase` muss nicht getauscht werden, die StoreKit-Implementierung
+bringt es mit.
+
+Zu ändern sind nur vier Stellen.
+
+### 1. Produkt-IDs sind plattformabhängig
+
+Google Play kennt **ein** Abo `lernarena_premium` mit drei Base Plans
+darunter. Apple kennt keine Base Plans — dort ist jede Laufzeit ein eigenes
+Produkt innerhalb einer Abo-Gruppe.
+
+```dart
+// billing_service.dart
+String get _abo =>
+    Platform.isIOS ? 'app.lernarena.premium' : 'lernarena_premium';
+
+Set<String> get _produktIds => Platform.isIOS
+    ? {
+        'app.lernarena.premium.monthly',
+        'app.lernarena.premium.halfyear',
+        'app.lernarena.premium.annual',
+      }
+    : {'lernarena_premium'};
+```
+
+### 2. Der Google-Cast muss ein Zweig werden
+
+`_basePlanIdOf` castet hart auf `GooglePlayProductDetails` — auf iOS wirft
+das. Dort **ist** die Produkt-ID bereits die Laufzeit, es gibt nichts
+abzuleiten. Dasselbe beim Kauf: Android braucht `GooglePlayPurchaseParam`
+mit Offer-Token, iOS reicht ein schlichtes `PurchaseParam`.
+
+### 3. Zweiter Zweig in der Edge Function `verify-purchase`
+
+Der eigentliche Brocken. Heute spricht die Funktion die Play Developer API.
+Apple liefert stattdessen eine **signierte Transaktion (JWS)**, die gegen die
+App Store Server API geprüft wird; `verifyReceipt` ist abgekündigt und darf
+nicht mehr die Grundlage sein. Dafür braucht es einen eigenen
+In-App-Purchase-Key aus App Store Connect als Secret — **nicht** derselbe
+Key wie der für Codemagic.
+
+Die App schickt ein Feld `platform` mit, die Funktion verzweigt darauf.
+Beide Zweige enden identisch: `profiles` aktualisieren.
+
+Zusätzlich eine Spalte `store` in der Abo-Tabelle anlegen. Bei
+Rückerstattungen und Support-Anfragen muss man wissen, wo man nachsieht.
+
+### 4. "Käufe wiederherstellen"
+
+Apple verlangt einen solchen Knopf, Google nicht. Gehört ins Kauf-Sheet,
+sichtbar auf beiden Plattformen (schadet auf Android nicht).
+
+### Danach
+
+`premiumKaufMoeglich` in `premium_kauf_sheet.dart` auf `true` ziehen — dann
+kommen Kauf-Sheet, Preisangabe im `PremiumLock` und der Premium-Knopf im
+Limit-Dialog automatisch zurück. Und die Store-Beschreibung um einen
+Premium-Abschnitt ergänzen.
+
+### Der praktische Blocker: Testen
+
+StoreKit lässt sich im iOS-Simulator nur mit einer StoreKit-Konfigurations-
+datei aus Xcode testen — dafür braucht man einen Mac. Ohne Mac und ohne
+iPhone ist der Kaufweg nicht selbst durchspielbar, sondern nur über einen
+Tester mit Gerät und Sandbox-Account (App Store Connect → Benutzer und
+Zugriff → Sandbox).
+
+**Deshalb wurde für 1.5.0 ausgeblendet statt eingebaut:** Ungetesteten
+Kaufcode einzureichen ist riskanter als gar keinen. Ein Kauf, der beim
+Prüfer abbricht, ist eine sichere Ablehnung; eine App ohne Kaufmöglichkeit
+ist es nicht.
+
+---
+
+## Gemini aus dem KI-Failover entfernt (30.08.2026)
+
+### Was die Kette vorher war
+
+`supabase/functions/ai-tutor/index.ts` versuchte der Reihe nach:
+
+```
+Claude (claude-haiku-4-5)  →  Groq  →  Gemini
+```
+
+Die App spricht keinen der Anbieter direkt an, sie ruft nur die Edge
+Function; die Schlüssel liegen nie auf dem Gerät. Das war und bleibt richtig.
+
+### Warum Gemini raus musste
+
+Der Gemini-Zugang war die **kostenlose Stufe**. Google verwendet dort Prompts
+und Antworten zur Verbesserung der eigenen Produkte, einschließlich
+menschlicher Sichtung; erst in der kostenpflichtigen Stufe ist das
+ausgeschlossen. Für eine App mit deutschen Nutzern und einer
+Datenschutzerklärung, die Zweckbindung zusagt, ist das nicht haltbar.
+
+Anthropic läuft über einen kostenpflichtigen Zugang, dort ist Training über
+die API ausgeschlossen. Groq trainiert ebenfalls nicht auf API-Inhalten.
+
+Rückholen ist erlaubt, sobald ein **kostenpflichtiger** Gemini-Zugang
+existiert — dann muss Google gleichzeitig in Abschnitt 6 der
+Datenschutzerklärung auftauchen. Ein entsprechender Warnkommentar steht oben
+in der Edge Function.
+
+### Der eigentliche Fund: die Datenschutzerklärung war falsch
+
+Abschnitt 6 nannte **ausschließlich Groq**, obwohl Anthropic der Anbieter
+ist, der die Anfragen zuerst bekommt. Art. 13 DSGVO verlangt die Benennung
+der Empfänger. Zusätzlich vergleicht Apples Prüfung die Datenschutzangaben
+im Store mit der verlinkten Erklärung — eine Unstimmigkeit genau dort ist
+teuer.
+
+Ebenfalls gestrichen: die Zusage *"wir haben bei Groq die
+Zero-Data-Retention-Einstellung aktiviert"*. Zero Data Retention ist bei Groq
+üblicherweise Vertragsbestandteil und nichts, was man im kostenlosen Konto
+anklickt. Unbelegte Zusagen in Rechtstexten sind schlechter als vorsichtige
+Formulierungen. **Offen:** In der Groq-Console prüfen, ob ZDR für das Konto
+tatsächlich gesetzt ist. Falls ja, darf der Satz zurück.
+
+### Geändert wurde an drei Orten
+
+Die Rechtstexte existieren **doppelt** und müssen immer gemeinsam gepflegt
+werden — der Kommentar am Kopf von `legal_texts.dart` sagt das auch:
+
+| Ort | Datei |
+|---|---|
+| App (offline eingebettet) | `lib/screens/legal/legal_texts.dart` |
+| Website (Next.js, Vercel) | `web/app/datenschutz/page.tsx` |
+| Edge Function | `supabase/functions/ai-tutor/index.ts` |
+
+Die Web-App liegt im **selben Repo** unter `web/` — ein Next.js-Projekt, nicht
+zu verwechseln mit dem Flutter-`web/`-Build-Ordner anderer Projekte. Das
+Stand-Datum steckt dort in der Konstante `STAND` am Dateikopf. Die
+Sprungmarke des Abschnitts hieß `groq` und heißt jetzt `ki-anbieter`.
+
+Die AGB wurden nicht angefasst, deren Stand-Datum bleibt der 28. Juni 2026.
+
+### Deployment
+
+- Edge Function: `supabase functions deploy ai-tutor` (lief trotz
+  "WARNING: Docker is not running" durch, die CLI weicht auf den API-Weg aus)
+- `GEMINI_API_KEY` wurde mit `supabase secrets unset` entfernt
+- Website: Vercel deployt bei Push auf main automatisch
+
+**Wichtig für den iOS-Build:** Der eingebettete Rechtstext steckt im Binary.
+Build 22 (Commit 311a063) enthält noch die alte Fassung. Deshalb Tag
+`ios-v1.5.0-2` → Build 23, und den muss man in App Store Connect auswählen.
+
+---
+
+## App-Datenschutz-Fragebogen (30.08.2026)
+
+Angekreuzt in App Store Connect → Vertrauen und Sicherheit → App-Datenschutz:
+
+| Kategorie | Datentyp | Woher |
+|---|---|---|
+| Kontaktinformationen | E-Mail-Adresse | Registrierung über Supabase |
+| Benutzerinhalte | Sonstige Benutzerinhalte | Chateingaben an Ada, selbst erstellte Karteikarten |
+| Benutzerinhalte | Kundendienst | „Fehler melden"-Dialog |
+| Kennungen | Benutzer-ID | Supabase-Konto-ID und Benutzername |
+| Nutzungsdaten | Produktinteraktion | Lernfortschritt, Testergebnisse, Elo, `usage_tracking` |
+
+Alles andere: nein.
+
+### Warum bestimmte Punkte NICHT angekreuzt sind
+
+**Name** — die Registrierung fragt nur Benutzername („dein_name"), E-Mail und
+Passwort ab. Ein Handle ordnet Apple den *Kennungen* zu, nicht dem Datentyp
+*Name*. Nachgesehen in `lib/screens/auth/register_screen.dart`.
+
+**Diagnose (Crash-, Leistungsdaten)** — es ist kein Analyse- oder Crash-SDK
+verbaut. Kein Firebase, kein Sentry, kein Crashlytics. Geprüft in
+`pubspec.yaml`.
+
+**Zahlungsdaten** — läuft über Stripe bzw. später StoreKit außerhalb der App,
+wir haben nie Zugriff. Apple sagt selbst, dass das nicht als Erfassung gilt.
+
+**Käufe** — diese iOS-Version kennt keinen Kauf. **Beim Einbau von StoreKit
+nachziehen**, das vergisst man beim nächsten Release leicht.
+
+**Fotos und Videos** — siehe nächster Abschnitt.
+
+---
+
+## Fotos in der Prüfung: bleiben auf dem Gerät (30.08.2026)
+
+Bei Diagramm-Aufgaben in der IHK-Prüfung blendet
+`ihk_pruefung_exam_screen.dart` das `PhotoUploadWidget` ein. Es nutzt den
+ImagePicker mit Kamera und Galerie. Trotzdem ist „Fotos und Videos" im
+Datenschutz-Fragebogen **nicht** anzukreuzen:
+
+```dart
+setState(() { _photoPath = image.path; });
+widget.onPhotoSelected(image.path);
+```
+
+Gespeichert wird nur der **Dateipfad**, nicht das Bild. Der landet über
+`_saveProgress()` in den SharedPreferences. Kein Supabase Storage, kein
+Base64, kein Upload — das Foto verlässt das Gerät nie. Apple definiert
+„erfassen" als Übertragung vom Gerät; rein lokale Daten werden nicht
+deklariert.
+
+Die Zweckbeschreibungen `NSCameraUsageDescription` und
+`NSPhotoLibraryUsageDescription` in der `Info.plist` braucht es trotzdem —
+die verlangt iOS beim Zugriff selbst, unabhängig vom Fragebogen.
+
+### Zwei echte Mängel, die dabei aufgefallen sind
+
+**1. Das Foto kann verschwinden.** Der ImagePicker legt die Datei im
+temporären Verzeichnis der App ab. iOS räumt das bei Speicherdruck auf. Nach
+einigen Tagen zeigt die Prüfung dann einen Pfad, hinter dem nichts mehr
+liegt. Sauber wäre: die Datei in das Dokumentenverzeichnis der App kopieren
+(`getApplicationDocumentsDirectory()`) und diesen Pfad speichern — oder,
+besser, in Supabase Storage hochladen. Letzteres macht das Foto dann aber zu
+erfassten Daten und muss im Fragebogen nachgetragen werden.
+
+**2. Prüfungsantworten liegen gerätelokal.** `_saveProgress()` schreibt alle
+Antworten in SharedPreferences. Wer das Gerät wechselt oder die App neu
+installiert, verliert den Zwischenstand. Dieselbe Bauart wie beim
+Modul-Fortschritt (`app_cache_service.dart`), der uns bei den Screenshots
+0 % angezeigt hat, obwohl 1.261 Antworten in der Datenbank lagen.
+
+Beides sind Produktmängel, keine Store-Blocker. Für die Einreichung
+unerheblich, für die Nutzer nicht.
+
+---
+
+## Inhaltsrechte und Herkunft der Aufgaben (30.08.2026)
+
+### Was gegenüber Apple erklärt wurde
+
+App-Informationen → Inhaltsrechte: **"Nein, sie enthält und zeigt keine
+Inhalte von Drittanbietern an."**
+
+Grundlage: Die Zertifikatsfragen wurden per KI erzeugt, die IHK-Aufgaben sind
+eigene Nachbildungen im Stil echter Prüfungen. Kein übernommenes fremdes
+Material. Sollte sich das ändern — etwa durch lizenzierte Aufgabensammlungen
+— muss die Antwort mitgeändert werden.
+
+### Titel entschärft
+
+Die fünf Prüfungen hießen `AE Prüfung 1 - Winter 2016/17` und so weiter. Das
+liest sich, als sei es der Originalprüfungssatz dieses Termins. Neu:
+
+| Datei | Titel |
+|---|---|
+| `lib/data/exams/ae-1.dart` | AE Übungsprüfung 1 |
+| `lib/data/exams/ae-2.dart` | AE Übungsprüfung 2 |
+| `lib/data/exams/ae-3.dart` | AE Übungsprüfung 3 |
+| `lib/data/exams/si-1.dart` | SI Übungsprüfung 1 |
+| `lib/data/exams/si-2.dart` | SI Übungsprüfung 2 |
+
+Die Felder `year` und `season` bleiben unverändert, das Badge über der Karte
+zeigt weiterhin "WINTER 2016" bzw. "SOMMER 2017". Die Einordnung bleibt also
+sichtbar, ohne dass der Titel behauptet, es *sei* diese Prüfung.
+
+### Zwei Hinweise ergänzt
+
+**Herkunft** — erster Punkt in den "Wichtigen Hinweisen" der
+Prüfungsdetailseite (`ihk_pruefung_detail_screen.dart`):
+
+> Eigene Übungsaufgaben im Stil der IHK-Abschlussprüfung — keine
+> Originalaufgaben der IHK
+
+**Marken** — in der Infobox über der Zertifikatsliste
+(`pruefen_screen.dart`):
+
+> Unabhängige Übungsaufgaben, nicht von AWS, Microsoft, Google oder SAP
+> autorisiert oder unterstützt.
+
+Die Simulationen heißen "AWS Certified Cloud Practitioner", "Microsoft Azure
+Fundamentals (AZ-900)", "Google Cloud Digital Leader" und "SAP Certified
+Application Associate" — alles eingetragene Marken. Eine Marke zu **nennen**,
+um zu sagen, worauf man vorbereitet, ist zulässig (nominative Nutzung). Der
+Eindruck einer offiziellen Zusammenarbeit wäre es nicht. Genau diesen
+Eindruck schließt der Satz aus. SAP und Microsoft reagieren darauf
+erfahrungsgemäß empfindlicher als die IHK.
+
+### Nebenbei korrigiert
+
+Der Hinweis "Foto-Upload: Fotografiere Diagramme und lade sie hoch" war
+falsch — es wird nichts hochgeladen, nur der Dateipfad landet in den
+SharedPreferences. Jetzt: "Diagramme kannst du fotografieren und der Aufgabe
+anhängen." Das deckt sich mit dem, was im Datenschutz-Fragebogen erklärt
+wurde.
+
+### Offener Punkt
+
+Bei KI-generierten Aufgaben ist die fachliche Richtigkeit das eigene Risiko.
+Wer eine falsche Antwort als richtig lernt, merkt es erst in der Prüfung. Der
+"Fehler melden"-Dialog sollte in den Zertifikatstests gut sichtbar bleiben
+und die Meldungen tatsächlich abgearbeitet werden.
+
+---
+
+# ✅ EINGEREICHT: iOS 1.5.0 (Build 25) am 30.08.2026
+
+Status beim Absenden: **Warten auf Prüfung**, Veröffentlichung auf **manuell**.
+
+| | |
+|---|---|
+| Version | 1.5.0, Build 25 (Tag `ios-v1.5.0-3`, Commit 8f813a1) |
+| Bundle-ID | app.lernarena · Apple-ID 6802045311 |
+| Kategorie | Bildung · Altersfreigabe 13+ |
+| Preis | Kostenlos · Deutschland, Österreich, Schweiz |
+| Screenshots | 5 Stück, 6,9" / 1320 × 2868 |
+
+Prüfer-Zugang: `demo@lernarena.app`.
+
+Die 13+ statt der erwarteten 4+ kommt aus der Frage nach **Wettkämpfen**, die
+wahrheitsgemäß mit „häufig" beantwortet wurde (Arena mit Elo und
+Wochenranglisten, dazu Levels, Sterne, Streak). Für Azubis irrelevant, nicht
+daran drehen.
+
+## Die letzte Hürde: DAC7
+
+App Store Connect blockierte die Einreichung mit dem Hinweis auf die
+**Richtlinie über die Zusammenarbeit der Verwaltungsbehörden – 7. Änderung**.
+Eine EU-Meldepflicht für Plattformen, keine Frage zur App. Zu finden unter
+**Geschäftliches → Vereinbarungen → Compliance → DAC7**. Zu beantworten war
+nur, ob die App **persönliche Dienstleistungen** anbietet: **Nein** (gemeint
+sind zeitbasierte Leistungen echter Menschen; Lernarena verkauft Software,
+Ada ist ein Sprachmodell). Alles Übrige hatte Apple aus der Kontoeinrichtung.
+
+## Wenn eine Ablehnung kommt
+
+Im **Resolution Center** steht eine konkrete Begründung, man korrigiert und
+reicht neu ein. Wahrscheinlichster Stolperstein: gesperrte Inhalte ohne
+Kaufmöglichkeit. Die Erklärung steht bereits in den Anmerkungen zur
+App-Prüfung — StoreKit fehlt, die Kaufoberfläche ist deshalb auf iOS
+ausgeblendet.
+
+## ✅ Test auf echter Hardware erledigt (02.09.2026)
+
+Bis dahin größtes offenes Risiko. Inzwischen liegt ein **iPhone 14** vor, die
+App wurde über TestFlight installiert und läuft dort einwandfrei. Als
+Account-Inhaber ist man automatisch interner Tester — **kein Einladungscode
+nötig**, es genügt, sich in TestFlight mit derselben Apple-ID anzumelden wie
+in App Store Connect.
+
+Damit ist auch der Sandbox-Test für StoreKit möglich geworden, der vorher am
+fehlenden Gerät scheiterte.
+
+---
+
+## Arbeitsplan: Fortschritt gehört in die Datenbank
+
+Drei Stellen speicherten Nutzerdaten gerätelokal in SharedPreferences.
+Gemeinsame Folge: Wer das Gerät wechselt oder neu installiert, verliert den
+Stand.
+
+### 1. Modul-Fortschritt — ✅ ERLEDIGT 30.08.2026
+
+**Symptom:** Die Modulübersicht zeigte dauerhaft 0 von X und 0 %, bei jedem
+Nutzer, auf jedem Gerät.
+
+**Ursache:** Der Schlüssel `fortschritt_modul_<id>` wurde an zwei Stellen
+**gelesen** und **nirgends geschrieben** — eine Altlast aus der Zeit vor
+Supabase. Die Antworten selbst lagen korrekt in `user_progress`, geschrieben
+von `ProgressService.saveAnswer()`.
+
+**Behoben in:**
+
+- `lib/services/app_cache_service.dart` — `_preloadModules()` holt jetzt alle
+  `user_progress`-Zeilen des Nutzers in **einer** Abfrage und zählt pro Modul
+- `lib/screens/module/modul_liste_screen.dart` — `_ladeModulFortschritt()`
+  ersetzt durch `_ladeFortschrittProModul()`, Aufruf aus der Schleife heraus
+  (vorher eine Abfrage pro Modul)
+
+Zeilen zu zählen ist exakt, weil `saveAnswer` mit `onConflict
+'user_id,frage_id'` upsertet. `letztes_thema_modul_<id>` bleibt lokal, das
+ist reine Bedienkomfort-Info.
+
+Ausgeliefert mit **Android 1.5.1+15**. Für iOS noch offen — Build 25 hat den
+Fix nicht, er entstand nach der Einreichung.
+
+### 2. Prüfungsantworten — offen
+
+`lib/pages/pruefung/ihk_pruefung_exam_screen.dart`, `_saveProgress()`
+schreibt Antworten, Bearbeitungsstand und Timer in SharedPreferences.
+
+**Lösung:** Tabelle `exam_progress` mit `user_id`, `exam_id`, `answers`
+(jsonb), `completed` (jsonb), `started`, `submitted`, `remaining_seconds`,
+`updated_at`. Unique auf `(user_id, exam_id)`, RLS wie bei `user_progress`.
+Speichern gedrosselt, lokal als Offline-Cache behalten.
+
+### 3. Foto-Pfad — offen, mit Folgefrage
+
+`lib/widgets/photo_upload_widget.dart` speichert `image.path`. Die Datei
+liegt im temporären Verzeichnis, iOS räumt das bei Speicherdruck auf.
+
+- **Minimal:** nach `getApplicationDocumentsDirectory()` kopieren. Bleibt
+  lokal, am Datenschutz-Fragebogen ändert sich nichts.
+- **Vollständig:** Upload nach Supabase Storage. Überlebt den Gerätewechsel,
+  **macht das Foto aber zu erfassten Daten** — dann muss „Fotos und Videos"
+  im App-Datenschutz nachgetragen werden.
+
+---
+
+## ⚠️ Datei-Unfall: PROJECT_STATE.md wurde überschrieben (02.09.2026)
+
+Im Commit **`4b470a6`** („Web: Profil mit Lernstand…") wurde eine ältere
+Kopie dieser Datei mitcommittet. Dabei sind rund 32 KB verloren gegangen:
+sämtliche Abschnitte vom 30.08.2026 (Screenshots, Metadaten, Premium auf
+iOS, Gemini, Datenschutz, Inhaltsrechte). Von 85.001 auf 52.782 Zeichen.
+
+Zurückgeholt am 02.09.2026 aus `git show 8f813a1:PROJECT_STATE.md` und mit
+der zwischenzeitlich gewachsenen Fassung zusammengeführt, sodass die
+Ergänzungen vom 02.09. (DB-Sicherheit, Premium-RPC-Sperre) erhalten blieben.
+
+**Lehre:** Diese Datei wird von mehreren Sitzungen parallel geschrieben. Vor
+dem Schreiben immer die aktuelle Fassung vom Rechner holen und **anhängen
+statt ersetzen**. Beim Zurückschreiben die Änderungsschutz-Prüfung
+(erwarteter Zeitstempel) setzen — dann bricht der Schreibvorgang ab, statt
+fremde Arbeit zu überbügeln.
