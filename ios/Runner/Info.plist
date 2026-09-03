@@ -52,9 +52,9 @@
 	<!-- Berechtigungen: werden von lib/widgets/photo_upload_widget.dart (image_picker)
 	     fuer Kamera UND Galerie tatsaechlich genutzt. Ohne diese Texte -> Crash + App-Store-Reject. -->
 	<key>NSCameraUsageDescription</key>
-	<string>Lernarena nutzt die Kamera, damit du deine handschriftlichen Loesungen zu Pruefungsaufgaben abfotografieren und hochladen kannst.</string>
+	<string>Lernarena nutzt die Kamera, damit du deine handschriftliche Lösung – zum Beispiel ein UML-Diagramm – abfotografieren und der Prüfungsaufgabe anhängen kannst. Das Foto bleibt auf deinem Gerät.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Lernarena greift auf deine Fotos zu, damit du ein gespeichertes Bild deiner Loesung zu einer Pruefungsaufgabe hochladen kannst.</string>
+	<string>Lernarena greift auf deine Fotos zu, damit du ein bereits aufgenommenes Bild deiner Lösung einer Prüfungsaufgabe anhängen kannst. Das Foto bleibt auf deinem Gerät.</string>
 
 	<key>LSRequiresIPhoneOS</key>
 	<true/>

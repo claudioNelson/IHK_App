@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+
+// Hinweis zur Wortwahl: Das Foto wird NICHT hochgeladen. Es bleibt auf dem
+// Geraet, gespeichert wird nur der Dateipfad (siehe _saveProgress im
+// Pruefungsscreen). Deshalb heisst es hier "anhaengen", nicht "hochladen".
+// Das deckt sich mit dem, was im App-Datenschutz gegenueber Apple erklaert
+// wurde — "Fotos und Videos" ist dort bewusst NICHT als erfasst angegeben.
 
 class PhotoUploadWidget extends StatefulWidget {
   final String questionId;
@@ -46,17 +53,47 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('📸 Foto ausgewählt!'),
+              content: Text('Foto angehängt'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 2),
             ),
           );
         }
       }
+    } on PlatformException catch (e) {
+      // Vorher landete hier die rohe Exception im Snackbar:
+      // "PlatformException(camera_access_denied, The user did not allow
+      // camera access., null, null)". Das sieht nach einer unfertigen App
+      // aus — und Apples Pruefer verweigert Berechtigungen gern absichtlich,
+      // um genau diesen Fall zu sehen.
+      if (!mounted) return;
+      final String text;
+      switch (e.code) {
+        case 'camera_access_denied':
+          text =
+              'Kein Zugriff auf die Kamera. Du kannst ihn unter '
+              'Einstellungen → Lernarena → Kamera erlauben.';
+        case 'photo_access_denied':
+          text =
+              'Kein Zugriff auf die Fotos. Du kannst ihn unter '
+              'Einstellungen → Lernarena → Fotos erlauben.';
+        default:
+          text = 'Das Foto konnte nicht geladen werden (${e.code}).';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('Das Foto konnte nicht geladen werden.'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -87,10 +124,10 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
       ),
       child: Column(
         children: [
-          Icon(Icons.upload_file, size: 48, color: Colors.grey.shade400),
+          Icon(Icons.add_photo_alternate_outlined, size: 48, color: Colors.grey.shade400),
           const SizedBox(height: 12),
           Text(
-            'Diagramm hochladen',
+            'Diagramm anhängen',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.grey.shade700,
@@ -99,7 +136,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Fotografiere deine Lösung und lade sie hoch',
+            'Fotografiere deine Lösung oder wähle ein Bild aus',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
@@ -171,7 +208,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
-                    'Foto hochgeladen',
+                    'Foto angehängt',
                     style: TextStyle(
                       color: Colors.green,
                       fontWeight: FontWeight.bold,
