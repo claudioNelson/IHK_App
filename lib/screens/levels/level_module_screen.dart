@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../services/app_cache_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../theme/modul_stil.dart';
 import '../../theme/theme_provider.dart';
 import 'level_pfad_screen.dart';
 
@@ -227,7 +228,10 @@ class _LevelModuleScreenState extends State<LevelModuleScreen> {
     final completed = m['completed'] as int;
     final percent = total > 0 ? (completed / total) : 0.0;
     final isCompleted = completed == total && total > 0;
-    final accentColor = isCompleted ? AppColors.success : AppColors.accent;
+    // Icon + Farbe je Modul wie in der Modul-Liste, statt fuer alle elf
+    // Karten dasselbe Buch-Icon. Abgeschlossene Module werden gruen.
+    final stil = modulStil(m['name'] ?? '');
+    final accentColor = isCompleted ? AppColors.success : stil.farbe;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -258,9 +262,9 @@ class _LevelModuleScreenState extends State<LevelModuleScreen> {
                       border: Border.all(color: accentColor.withOpacity(0.3)),
                     ),
                     child: Icon(
-                      Icons.auto_stories_rounded,
+                      isCompleted ? Icons.check_rounded : stil.icon,
                       color: accentColor,
-                      size: 22,
+                      size: 24,
                     ),
                   ),
                   const SizedBox(width: 14),

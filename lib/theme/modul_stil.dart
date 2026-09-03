@@ -2,7 +2,10 @@
 //
 // Gemeinsamer Look fuer die Lernbereiche: Icon + Akzentfarbe je Modul
 // (erkannt am Namen) und der kleine Fortschrittsring.
-// Genutzt von modul_liste_screen und themen_liste_screen.
+// Genutzt von modul_liste_screen, themen_liste_screen und
+// level_module_screen (Level-Pfade). Die Reihenfolge der Abfragen ist
+// wichtig: speziellere Namen ("DNS & Ports", "OSI-Modell") stehen vor den
+// allgemeinen ("Netzwerk"), sonst greift die allgemeine Regel zuerst.
 
 import 'package:flutter/material.dart';
 
@@ -14,6 +17,22 @@ import 'app_text_styles.dart';
 /// den Standard-Look.
 ({IconData icon, Color farbe}) modulStil(String name) {
   final n = name.toLowerCase();
+  // Level-Module (Namen aus der Tabelle level_module)
+  if (n.contains('backup') || n.contains('recovery')) {
+    return (icon: Icons.backup_outlined, farbe: AppColors.success);
+  }
+  if (n.contains('binär') || n.contains('binaer') || n.contains('hex')) {
+    return (icon: Icons.pin_outlined, farbe: AppColors.warning);
+  }
+  if (n.contains('dns') || n.contains('port')) {
+    return (icon: Icons.dns_outlined, farbe: AppColors.gcpBlue);
+  }
+  if (n.contains('osi')) {
+    return (icon: Icons.layers_outlined, farbe: AppColors.azureBlue);
+  }
+  if (n.contains('subnet')) {
+    return (icon: Icons.lan_outlined, farbe: AppColors.accentCyan);
+  }
   if (n.contains('netzwerk')) {
     return (icon: Icons.hub_outlined, farbe: AppColors.accentCyan);
   }

@@ -114,6 +114,18 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeProvider>().isDark;
 
+    // Zahlen rechts auf den Karten kommen aus dem App-Cache, der beim Start
+    // befuellt wird (preloadAllData). Vorher standen hier feste Werte, und
+    // bei "Levels" war es eine "1" aus der Zeit mit nur einem Lernpfad.
+    // Fallbacks nur fuer den Fall, dass der Cache noch leer ist.
+    final cache = AppCacheService();
+    final levelCount = cache.cachedLevelModule.isNotEmpty
+        ? cache.cachedLevelModule.length
+        : 11;
+    final modulCount = cache.cachedModule.isNotEmpty
+        ? cache.cachedModule.length
+        : 17;
+
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
@@ -241,7 +253,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     tagColor: AppColors.accent,
                     title: 'Levels',
                     sub: 'Aufbauende Lernpfade',
-                    count: '1',
+                    count: '$levelCount',
                     surface: surface,
                     border: border,
                     text: text,
@@ -264,7 +276,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     tagColor: AppColors.accent,
                     title: 'Module',
                     sub: 'Freies Üben',
-                    count: '17',
+                    count: '$modulCount',
                     surface: surface,
                     border: border,
                     text: text,
