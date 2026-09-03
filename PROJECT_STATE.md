@@ -1,9 +1,9 @@
 # Projektstatus — Lernarena (ihk_app)
 
-Aktualisiert: **2026-09-02**
+Aktualisiert: **2026-09-03**
 Repo: **github.com/claudioNelson/IHK_App** · Branch **main**
 Lokal: **C:\Users\cnm89\Desktop\Projekte\IHK\ihk_app**
-App-Version im Store: **1.4.1+12** (Production) · **Build 15 (1.5.1+15) bei Google in Pruefung** (02.09.2026). Build 15 enthaelt ALLES seit v12: Pruefungsbereitschaft + Pruefungsliste mit Noten im Profil, Simulations-Ergebnisse speichern + Exam-Badges, Arena-Resync + Timer je Fragetyp, Lernmodule-Design + Fortschritt aus user_progress, Ada-Pill, Umbenennung "Uebungspruefung" + Datenschutz-Update (Anthropic/Groq). Build 14 wurde uebersprungen (nur intern).
+App-Version im Store: **1.4.1+12** (Production) · **Build 15 (1.5.1+15) bei Google in Pruefung** (02.09.2026) · **iOS 1.5.1 (Build 27) bei Apple in Pruefung, 2. Anlauf** (03.09.2026, siehe Abschnitt „Ablehnung 2.1 und Wiedereinreichung"). Build 15 enthaelt ALLES seit v12: Pruefungsbereitschaft + Pruefungsliste mit Noten im Profil, Simulations-Ergebnisse speichern + Exam-Badges, Arena-Resync + Timer je Fragetyp, Lernmodule-Design + Fortschritt aus user_progress, Ada-Pill, Umbenennung "Uebungspruefung" + Datenschutz-Update (Anthropic/Groq). Build 14 wurde uebersprungen (nur intern).
 
 > Hinweis: Diese Datei wurde bis 09/2025 automatisch von `Update-ProjectState.ps1` erzeugt (nur Git-/Datei-Metadaten). Seit 07/2026 wird sie manuell als echte Projekt-Übersicht gepflegt. Das alte Skript spiegelt den Stand nicht mehr wider.
 
@@ -25,7 +25,7 @@ Zwei Produkte, ein Projekt:
 - **Flutter 3.44.8 / Dart 3.12.2** (Upgrade 01.08.2026; pubspec-SDK `^3.8.1`)
 - State-Management: **provider**
 - Backend & Auth: **Supabase** (`supabase_flutter`), inkl. Sign in with Apple (`sign_in_with_apple`), Deep Links (`app_links`)
-- KI-Tutor „Ada": Supabase Edge Function `ai-tutor` → **Claude Haiku 4.5** (Failover Groq → Gemini). Aufruf aus `lib/services/gemini_service.dart` (Name historisch, Keys liegen nur serverseitig)
+- KI-Tutor „Ada": Supabase Edge Function `ai-tutor` → **Claude Haiku 4.5** (Failover Groq; Gemini am 30.08.2026 entfernt). Aufruf aus `lib/services/gemini_service.dart` (Name historisch, Keys liegen nur serverseitig)
 - Billing: `in_app_purchase ^3.3.0` + `in_app_purchase_android ^0.5.2` (**neue Play-Billing-Bibliothek, Google-Frist 31.08.2026 erfüllt**)
 - UI/Extras: `google_fonts`, `confetti` (Badges), `audioplayers` (Sound), `flutter_highlight` (Code), `flutter_markdown_plus`, `image_picker`, `url_launcher`
 - Config: `dotenv` (API-Keys aus `.env`), Icons via `flutter_launcher_icons`, Paketname via `change_app_package_name`
@@ -46,7 +46,7 @@ Zwei Produkte, ein Projekt:
 **Infrastruktur / Konten**
 - E-Mail: `admin@lernarena.app` + `info@lernarena.app` (Zoho)
 - Domain: lernarena.app
-- KI-Anbieter: **Claude Haiku 4.5 (primär, App + Web)** mit Failover: Web-Tutor Claude→Groq; Ada (Edge Function ai-tutor) Claude→Groq→Gemini.
+- KI-Anbieter: **Claude Haiku 4.5 (primär, App + Web)** mit Failover: Web-Tutor Claude→Groq; Ada (Edge Function ai-tutor) Claude→Groq.
 
 ---
 
@@ -1077,6 +1077,10 @@ und die Meldungen tatsächlich abgearbeitet werden.
 
 # ✅ EINGEREICHT: iOS 1.5.0 (Build 25) am 30.08.2026
 
+> **Nachtrag 03.09.2026:** Build 25 wurde am 31.08. abgelehnt (Guideline 2.1,
+> Information Needed). Der zweite Anlauf ist **1.5.1, Build 27**, siehe
+> Abschnitt „Ablehnung 2.1 und Wiedereinreichung" weiter unten.
+
 Status beim Absenden: **Warten auf Prüfung**, Veröffentlichung auf **manuell**.
 
 | | |
@@ -1195,3 +1199,137 @@ dem Schreiben immer die aktuelle Fassung vom Rechner holen und **anhängen
 statt ersetzen**. Beim Zurückschreiben die Änderungsschutz-Prüfung
 (erwarteter Zeitstempel) setzen — dann bricht der Schreibvorgang ab, statt
 fremde Arbeit zu überbügeln.
+
+
+---
+
+## Ablehnung 2.1 und Wiedereinreichung: iOS 1.5.1, Build 27 (03.09.2026)
+
+Am **31.08.2026** lehnte Apple Build 25 ab: **Guideline 2.1 – Information
+Needed**. Kein Fehler in der App, sondern eine Rückfrage mit sieben Punkten
+plus der Bitte um eine **Bildschirmaufnahme**. Der eigentliche Grund dahinter:
+Apple verlangt seit 2022 (**Guideline 5.1.1(v)**), dass Apps mit
+Kontoerstellung die **Kontolöschung in der App** anbieten. Das gab es nicht.
+
+Abgearbeitet in vier Schritten, in dieser Reihenfolge:
+
+### 1. Kontolöschung in der App
+
+- **Neue Edge Function `supabase/functions/delete-account/index.ts`**,
+  deployed. Prüft das JWT des Aufrufers mit dem Anon-Key, verlangt im Body
+  `{bestaetigung: "LOESCHEN"}`, löscht dann mit Service-Role der Reihe nach
+  aus `usage_tracking`, `spaced_repetition`, `flashcards`, `kurs_fortschritt`,
+  `thema_scores`, `level_progress`, `user_progress`, `user_badges`,
+  `user_certificates`, `question_reports`, `player_stats`, danach
+  `user_exam_answers` (über die Attempt-IDs) + `user_exam_attempts`, alle
+  Matches mit dem Nutzer als Spieler 1 oder 2 (+ `match_answers`,
+  `match_questions`, `match_scores`), zuletzt `profiles` und den Auth-Nutzer.
+  **Warum manuell:** Es gibt keinen Fremdschlüssel von `public` auf
+  `auth.users` (geprüft 02.09.). Neue Tabelle mit `user_id`? Dann auch dort
+  eintragen.
+- **App:** `lib/screens/profile/new_profile_page.dart` hat einen neuen
+  Eintrag **„Konto löschen"** (rot) unter Account. Zwei Dialoge: erst die
+  Warnliste, dann ein Textfeld, in das **LÖSCHEN** getippt werden muss.
+  Danach `functions.invoke('delete-account')`, signOut, Subscription-Cache
+  und SharedPreferences leeren, zurück zum Login, Snackbar „Dein Konto wurde
+  gelöscht." Der bestehende Eintrag „Lokale Daten löschen" ist jetzt orange
+  mit Untertitel „Lernfortschritt auf diesem Gerät zurücksetzen", damit
+  beide nicht verwechselt werden.
+- **Verifiziert** am 03.09. im Supabase-Log: Test-Account
+  `apple_test_011@proton.me` registriert, gelöscht, danach in keiner Tabelle
+  mehr vorhanden, Login schlägt mit „Ungültige E-Mail oder Passwort" fehl.
+- ⚠️ **`demo@lernarena.app` niemals löschen.** Das ist der Prüfer-Zugang.
+
+### 2. Neue Builds
+
+- **Build 26** aus Tag `ios-v1.5.1` (Commit e631d71). Achtung beim Taggen:
+  Der Tag zeigte zuerst auf einen Stand mit `1.5.0+14`, weil die pubspec
+  noch nicht committet war. Tag gelöscht, pubspec committet, Tag neu gesetzt.
+  Erst dann stimmte die Version im Build.
+- **Build 27** aus Tag `ios-v1.5.1-1`: enthält zusätzlich die Foto-Widget-
+  und Info.plist-Korrekturen aus Schritt 3. **Das ist der eingereichte Build.**
+- In App Store Connect musste der **Versionsdatensatz von 1.5.0 auf 1.5.1**
+  umbenannt werden (Feld „Version" im Abschnitt „Allgemeine
+  App-Informationen" der Versionsseite). Ein Build mit `1.5.1` lässt sich
+  an einen `1.5.0`-Datensatz zwar anhängen, aber nicht einreichen.
+  „Prüfung aktualisieren" ist ausgegraut, solange ungespeicherte
+  Änderungen auf der Seite sind: erst „Sichern".
+
+### 3. Was das erste Video gezeigt hat (und was daraufhin geändert wurde)
+
+Die erste Aufnahme vom 02.09. war unbrauchbar: kein Kamera-Dialog (schon
+erteilt), Galerie nie angetippt, keine Registrierung, und beim Verweigern der
+Kamera erschien die rohe Exception
+`PlatformException(camera_access_denied, …)` als Snackbar. Apples Prüfer
+verweigern Berechtigungen gern absichtlich, genau um so etwas zu sehen.
+
+- **`lib/widgets/photo_upload_widget.dart`:** `PlatformException` wird
+  jetzt gefangen; bei `camera_access_denied` / `photo_access_denied` kommt
+  ein Hinweis mit dem Weg über Einstellungen → Lernarena → Kamera/Fotos.
+  Texte ohne „hochladen": „Diagramm anhängen", „Fotografiere deine Lösung
+  oder wähle ein Bild aus", „Foto angehängt". Das Foto bleibt auf dem Gerät,
+  gespeichert wird nur der Pfad, und genau so steht es auch im
+  App-Datenschutz-Fragebogen.
+- **`ios/Runner/Info.plist`:** Zwecktexte neu. Kamera: „… damit du deine
+  handschriftliche Lösung – zum Beispiel ein UML-Diagramm – abfotografieren
+  und der Prüfungsaufgabe anhängen kannst. Das Foto bleibt auf deinem
+  Gerät." Fotos analog.
+
+### 4. Zweites Video und Antwort
+
+Aufgenommen am 03.09. auf dem iPhone 14 mit Build 27, 4:41 Minuten, geprüft
+über Einzelbilder (alle 4 Sekunden). Reihenfolge: App-Start, Registrierung
+`apple_test_011`, Bestätigungs-Mail, Login als Gratisnutzer, Premium-Sperre
+ohne Kaufknopf, Profil → Konto löschen mit beiden Dialogen, fehlgeschlagener
+Login mit dem gelöschten Konto, Login `demo@lernarena.app`, Level,
+Übungsprüfung mit Kamera-Dialog + Foto + Galerie-Auswahl, Zertifikate mit
+Markenhinweis, Arena (Gold, 1180, 3 Matches), Profil, Abmelden.
+
+Hochgeladen auf YouTube als **nicht gelistet**: `https://youtu.be/2hR3RX4FArQ`
+(Original 317 MB; für die Prüfung hier eine 720p-Fassung mit ffmpeg auf 3 MB
+verkleinert, da der Chat-Upload bei 30 MB endet und die Ordner-Übertragung
+bei etwa 50 Sekunden abbricht).
+
+Antwort im Resolution Center auf Englisch mit sieben Punkten: Demo-Zugang,
+getestete Geräte (iPhone 14 iOS 26.5, iPhone 16 iOS 26.6, Simulator iPhone
+17 Pro Max), Weg zur Kontolöschung, kein In-App-Kauf auf iOS, Zweck von
+Kamera/Fotos, Herkunft der Aufgaben (eigene, nicht IHK, nicht von
+AWS/Microsoft/Google/SAP autorisiert), KI-Tutor mit Anthropic/Groq und
+Verweis auf die Datenschutzerklärung. Dann **„Erneut zur App-Prüfung
+übermitteln"**. Status seit 03.09.2026 ca. 14 Uhr: **Warten auf Prüfung**.
+
+### Aufgefallen im Video, bewusst NICHT vor der Einreichung geändert
+
+Jede Codeänderung hätte Build 28 und ein drittes Video bedeutet. Das sind
+die Punkte für **1.5.2**, alle klein:
+
+1. **Bestätigungslink landet in Safari, nicht in der App.** Für Android gibt
+   es `assetlinks.json`, für iOS fehlt das Gegenstück: Datei
+   `.well-known/apple-app-site-association` auf lernarena.app **plus**
+   Entitlement „Associated Domains" mit `applinks:lernarena.app` in
+   `Runner.entitlements` und im Developer-Portal. Und die Seite
+   `lernarena.app/auth/callback` zeigt nach dem Klick nur **Weiß** statt
+   „E-Mail bestätigt".
+2. **Kein Autofill für Login/Registrierung.** Keines der Textfelder in
+   `screens/auth/` hat `autofillHints`, deshalb bietet iOS nie an, das
+   Passwort zu speichern. Fix: `AutofillHints.email` / `.password` /
+   `.newPassword`, Felder in `AutofillGroup`, nach Login
+   `TextInput.finishAutofillContext()`. Optional `webcredentials:lernarena.app`
+   in den Associated Domains (hängt am selben Entitlement wie Punkt 1).
+3. **Login-Screen zeigt unten „v1.0.0 · BUILD 2026.04"**, veralteter Text.
+4. **Premium-Sperre und Umschalter im Prüfen-Tab sagen noch „IHK-Prüfung"**
+   („IHK-Prüfungen ist Premium", „Alle IHK-Prüfungen Frühjahr & Herbst aller
+   Jahre", Abschnittslabel „IHK-PRÜFUNG"). Passt nicht zur Umbenennung in
+   Übungsprüfung.
+5. **Keine Meldung bei fehlendem Internet.** Am 03.09. sah ein Login-Versuch
+   ohne WLAN so aus, als wäre die App kaputt (im Supabase-Log kam schlicht
+   nichts an). Ein „Keine Verbindung"-Hinweis fehlt.
+
+### Nebenbei geklärt
+
+- **Kein Build-Review vor der Einreichung nötig.** Der Build wird an die
+  Version gehängt und mit ihr geprüft. Die „Beta-App-Prüfung" in TestFlight
+  betrifft nur externe Tester und ist davon unabhängig.
+- **Android:** Der nächste Play-Build muss **+16** sein und die
+  Kontolöschung enthalten (Build 15 hat sie noch nicht; Google verlangt sie
+  ebenfalls, Datenlöschungs-Erklärung in der Play Console dann anpassen).
