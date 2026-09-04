@@ -11,6 +11,8 @@ export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
+  // Burger-Menue auf Handybreite (siehe .nav-burger / .nav-mobile im CSS)
+  const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
   const supabase = createClient();
   const subscription = useSubscription();
@@ -195,8 +197,47 @@ export default function LandingPage() {
            Login und "Starten" (zusammen ~680px). Ohne diese Regel scrollte die
            ganze Seite horizontal. Produkt/Ada/Preise sind Anker auf derselben
            Seite und per Scrollen erreichbar, Lernen/Pruefungen stehen im Footer. */
+        .nav-burger {
+          display: none;
+          width: 36px; height: 36px;
+          border-radius: 8px;
+          border: 1px solid ${t.border};
+          background: transparent;
+          color: ${t.text};
+          cursor: pointer;
+          align-items: center; justify-content: center;
+          flex-direction: column; gap: 4px;
+        }
+        .nav-burger span {
+          display: block; width: 16px; height: 2px;
+          background: currentColor; border-radius: 2px;
+          transition: transform 0.2s, opacity 0.2s;
+        }
+        .nav-burger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .nav-burger.open span:nth-child(2) { opacity: 0; }
+        .nav-burger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+        .nav-mobile {
+          display: none;
+          border-top: 1px solid ${t.border};
+          padding: 8px 20px 16px;
+          flex-direction: column;
+        }
+        .nav-mobile a {
+          display: block;
+          padding: 12px 4px;
+          font-size: 16px; font-weight: 500;
+          color: ${t.text};
+          text-decoration: none;
+          border-bottom: 1px solid ${t.border};
+        }
+        .nav-mobile a:last-child { border-bottom: none; }
         @media (max-width: 820px) {
+          /* Die fuenf Textlinks passen nicht neben Logo, Theme-Knopf, Login
+             und "Starten" (zusammen ~680px, Seite scrollte horizontal).
+             Deshalb hier ein Burger-Knopf, der sie als Liste aufklappt. */
           .nav-links { display: none; }
+          .nav-burger { display: flex; }
+          .nav-mobile.open { display: flex; }
           .nav-inner { padding: 12px 20px; }
           .nav-actions { gap: 8px; }
         }
@@ -1353,7 +1394,22 @@ export default function LandingPage() {
                 </Link>
               </>
             ))}
+            <button
+              className={`nav-burger${menuOpen ? " open" : ""}`}
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label={menuOpen ? "Menü schließen" : "Menü öffnen"}
+              aria-expanded={menuOpen}
+            >
+              <span /><span /><span />
+            </button>
           </div>
+        </div>
+        <div className={`nav-mobile${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(false)}>
+          <a href="#product">Produkt</a>
+          <a href="#ada">Ada</a>
+          <a href="#pricing">Preise</a>
+          <Link href="/lernen">Lernen</Link>
+          <Link href="/pruefungen">Prüfungen</Link>
         </div>
       </nav>
 
