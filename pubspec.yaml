@@ -31,7 +31,7 @@ publish_to: 'none'
 # Die vergibt Codemagic (siehe "Build-Nummer bestimmen" in codemagic.yaml).
 # Der App-Store-Versionsdatensatz muss aber zur Versionsnummer links vom +
 # passen, sonst bietet App Store Connect den Build nicht zur Auswahl an.
-version: 1.5.1+16
+version: 1.5.2+17
 environment:
   sdk: ^3.8.1
 dependencies:
