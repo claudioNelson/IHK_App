@@ -3,7 +3,7 @@
 Aktualisiert: **2026-09-04**
 Repo: **github.com/claudioNelson/IHK_App** · Branch **main**
 Lokal: **C:\Users\cnm89\Desktop\Projekte\IHK\ihk_app**
-App-Version im Store: **1.5.1+15** (Production, von Google freigegeben) · **1.5.2+17 in Arbeit** (04.09.2026: Arena-Zwischenstand, Emoji-Avatare, Historie-Ergebnis; AAB lokal bauen → interner Track → Production) · **iOS 1.5.1 (Build 27) bei Apple in Pruefung, 2. Anlauf** (03.09.2026, siehe Abschnitt „Ablehnung 2.1 und Wiedereinreichung"). Build 15 enthaelt ALLES seit v12: Pruefungsbereitschaft + Pruefungsliste mit Noten im Profil, Simulations-Ergebnisse speichern + Exam-Badges, Arena-Resync + Timer je Fragetyp, Lernmodule-Design + Fortschritt aus user_progress, Ada-Pill, Umbenennung "Uebungspruefung" + Datenschutz-Update (Anthropic/Groq). Build 14 wurde uebersprungen (nur intern).
+App-Version im Store: **1.5.1+15** (Production, von Google freigegeben) · **1.5.2+18 im internen Track** (04.09.2026: Arena-Zwischenstand, Emoji-Avatare, Historie-Ergebnis; Versionscode 17 war bei Google schon belegt → 18; nach Test: Promote to Production) · **iOS 1.5.1 (Build 27) von Apple FREIGEGEBEN, Status „Bereit für Vertrieb"** (04.09.2026, `https://apps.apple.com/app/id6802045311`; Weg dorthin im Abschnitt „Ablehnung 2.1 und Wiedereinreichung"). Build 15 enthaelt ALLES seit v12: Pruefungsbereitschaft + Pruefungsliste mit Noten im Profil, Simulations-Ergebnisse speichern + Exam-Badges, Arena-Resync + Timer je Fragetyp, Lernmodule-Design + Fortschritt aus user_progress, Ada-Pill, Umbenennung "Uebungspruefung" + Datenschutz-Update (Anthropic/Groq). Build 14 wurde uebersprungen (nur intern).
 
 > Hinweis: Diese Datei wurde bis 09/2025 automatisch von `Update-ProjectState.ps1` erzeugt (nur Git-/Datei-Metadaten). Seit 07/2026 wird sie manuell als echte Projekt-Übersicht gepflegt. Das alte Skript spiegelt den Stand nicht mehr wider.
 
@@ -242,6 +242,7 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 ## 6. Offene Punkte / Nächste Schritte
 
 **App**
+- ✅ **Zufaelliges Duell nur noch mit fertigen Erstellern (04.09.2026, NUR DB, LIVE):** `join_random_open_match` bot bisher das aelteste offene Match an, auch wenn der Ersteller nach 0 Fragen abgebrochen hatte. Migration `supabase/migrations/20260904030000_join_nur_fertige_matches.sql`: Bedingung Ersteller >= total_questions Antworten, kein Bot-Ersteller, FOR UPDATE SKIP LOCKED gegen Doppel-Beitritt, search_path, NULL-Guard fuer auth.uid() (vorher haette ein Aufruf ohne Login player2_id=NULL gesetzt). Signatur/Rueckgabe unveraendert, kein App-Release noetig. Simulation: alt 8 angebotene Matches, neu 1. Review-Agent + lesende Kontrolle. Hinweis fuer spaeter: anon/PUBLIC brauchen kein EXECUTE auf die Arena-RPCs (Gaeste sind authenticated).
 - ✅ **Arena-Historie antippbar (04.09.2026, CODE, kommt mit 1.5.2):** Beendete Matches in der Match-Liste (`async_match_demo_screen.dart`, `_openResult`) oeffnen `AsyncMatchPlayPage(showResult: true)`: laedt nur `loadScores` (jetzt inkl. avatar_url), zeigt die bestehende Ergebnisansicht mit beiden Avataren, OHNE Sieg-Sound/Badge-Check (wuerden sonst bei jedem Nachschauen erneut feuern). Chevron am Ergebnis-Badge als Hinweis. Kein eigener Screen noetig.
 - ✅ **Arena "Status pruefen" + Emoji-Avatare (04.09.2026, CODE, kommt mit naechstem Release):** (1) Wartebildschirm: "Status pruefen" ruft `_pruefeStatus()` – fertiges Match → Ergebnis, sonst Dialog `match_status_dialog.dart` (ZWISCHENSTAND: eigener Avatar + "X / N richtig", VS, Gegner-Avatar + "Y / N beantwortet" oder Platzhalter "Noch niemand"). Daten aus NEU `AsyncDuelService.loadWaitingStatus()` (matches, match_answers.is_correct, profiles). BUGFIX nebenbei: `_waitingForOpponent` wurde beim Abschluss nie zurueckgesetzt → Wartebildschirm blieb trotz fertigem Gegner stehen (build() prueft waiting vor completed). (2) Profilbilder: KEIN Foto-Upload (kein Bucket, Apple-Datenschutz, Moderation) sondern Emoji-Avatare: `EmojiAvatar` in `lib/widgets/user_avatar.dart` (24 Emojis x 6 Farben, gespeichert als `avatar://emoji/🦊/2` in `profiles.avatar_url`, echte URLs weiter moeglich), Picker `lib/widgets/dialogs/avatar_picker_sheet.dart`, Profil-Header antippbar + Stift-Button (`new_profile_page.dart`, `_waehleAvatar`, Speichern via `updateProfileInDB(avatarUrl:)`, Cache-Reset), Fremdprofil (`player_profile_screen.dart`) nutzt `UserAvatar`. Keine DB-Aenderung. flutter analyze sauber, auf Windows getestet. Befund vorher: `image_picker` dient nur dem lokalen Anhaengen von Loesungsfotos (photo_upload_widget, diagram_widget), nie Upload – Info.plist-Texte stimmen weiterhin.
 - ✅ **Verwaiste Arena-Matches werden aufgeraeumt (04.09.2026, NUR DB, LIVE):** Luecke: offene Matches, deren Ersteller nicht alle Fragen beantwortet hat, blieben ewig liegen (bot_takeover braucht fertigen Ersteller, cleanup_stale_active_matches nur status=active mit started_at). Folge: echte Spieler joinen uralte Matches gegen Ersteller, der nie antwortet (5 Faelle 02./03.09.). Fix: Migration `supabase/migrations/20260904020000_cleanup_offene_matches.sql` — NEU `cleanup_stale_open_matches(p_days=3)` (loescht offene Matches ohne Gegner, aelter 3 Tage, Ersteller nicht fertig; CASCADE), Cron-Job `cleanup_stale_open_matches` taeglich 04:37 UTC, `cleanup_stale_active_matches` nutzt jetzt coalesce(started_at, created_at). Einmaliger Lauf: 16 Matches geloescht (07.08.–30.08.), 10 offen uebrig. Kein App-Release noetig. OFFEN: `join_random_open_match` sollte nur Matches mit fertigem Ersteller anbieten (Arena-RPC, von App genutzt → mit Review). FEATURE-WUNSCH App (naechster Schritt, braucht Release): Bei "Status pruefen" im Wartebildschirm eigenen Zwischenstand (richtige Antworten) mit beiden Profilbildern zeigen, Gegner-Platzhalter solange keiner da ist.
@@ -1381,3 +1382,33 @@ grau mit Schloss. Abschnitte Basics/Praxis/Prüfung als Banner quer über den
 Pfad, Premium als sichtbare Schranke, Checkpoint-Belohnung je Abschnitt,
 animiertes Weiterrücken nach Level-Abschluss. Reine Darstellung, alle Daten
 (Sterne, Status, Abschnitte) sind schon da. Vorher Skizze zeigen.
+
+
+---
+
+## 🎉 iOS ist im App Store (04.09.2026)
+
+Apple hat **1.5.1 (Build 27)** nach der Wiedereinreichung vom 03.09.
+freigegeben. Status in App Store Connect: **„Bereit für Vertrieb"**, das ist
+der Zustand nach der Veröffentlichung. Store-Link:
+`https://apps.apple.com/app/id6802045311` (Sichtbarkeit im Store und in
+der Suche braucht nach der Freigabe einige Stunden).
+
+Damit läuft Lernarena auf beiden Plattformen: Google Play mit 1.5.1+15 in
+Production, App Store mit 1.5.1 (Build 27). Der Android-Plan „+16" aus dem
+Abschnitt darüber ist **überholt**: Der parallele Chat hat inzwischen
+1.5.2+18 in den internen Play-Track gebracht, darin sind Kontolöschung,
+Foto-Widget und Level-Fixes bereits enthalten.
+
+**Für den nächsten iOS-Release gilt:** Versionsnummer in `pubspec.yaml`
+hochziehen (aktuell 1.5.2), in App Store Connect einen **neuen
+Versionsdatensatz 1.5.2** anlegen, Tag `ios-v1.5.2` setzen → Codemagic
+Build 28, Build anhängen, Prüfung. Die Prüfungsnotizen mit Demo-Zugang
+bleiben im Datensatz erhalten. Bei unveränderten Berechtigungen und ohne
+neue Kaufoberfläche ist kein neues Video nötig.
+
+**Noch offen nach dem Release:** App-Store-Badge neben dem Play-Badge auf
+lernarena.app; die fünf 1.5.2-Punkte aus dem Abschnitt „Aufgefallen im
+Video" (Universal Links + Callback-Seite, Autofill, Versions-Text auf dem
+Login-Screen, „IHK-Prüfung"-Reste, Offline-Hinweis); Spielfeld-Pfad für die
+Levels.
