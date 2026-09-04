@@ -1348,11 +1348,29 @@ export default function LandingPage() {
                 style={{ height: 62, margin: "-6px 0" }}
               />
             </a>
+            <a
+              href="https://apps.apple.com/de/app/id6802045311"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Lernarena im App Store laden"
+              style={{ display: "inline-flex", alignItems: "center" }}
+            >
+              {/* Offizielles Badge aus Apples App Store Marketing Tools.
+                  Das Play-Badge hat ~6px eingebauten Rand, das Apple-Badge
+                  nicht - deshalb hier 50px statt 62px, damit beide gleich
+                  hoch wirken. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/de-de?size=250x83"
+                alt="Laden im App Store"
+                style={{ height: 50 }}
+              />
+            </a>
           </div>
           <div className="hero-meta">
             <span><span className="check">✓</span> Keine Kreditkarte</span>
             <span><span className="check">✓</span> Free-Tier dauerhaft</span>
-            <span><span className="check">✓</span> Android-App & Web</span>
+            <span><span className="check">✓</span> iPhone, Android & Web</span>
           </div>
         </div>
 
@@ -1950,6 +1968,24 @@ export default function LandingPage() {
                 style={{ height: 62, margin: "-6px 0" }}
               />
             </a>
+            <a
+              href="https://apps.apple.com/de/app/id6802045311"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Lernarena im App Store laden"
+              style={{ display: "inline-flex", alignItems: "center" }}
+            >
+              {/* Offizielles Badge aus Apples App Store Marketing Tools.
+                  Das Play-Badge hat ~6px eingebauten Rand, das Apple-Badge
+                  nicht - deshalb hier 50px statt 62px, damit beide gleich
+                  hoch wirken. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/de-de?size=250x83"
+                alt="Laden im App Store"
+                style={{ height: 50 }}
+              />
+            </a>
           </div>
         </div>
       </section>
@@ -1988,6 +2024,15 @@ export default function LandingPage() {
                   rel="noopener noreferrer"
                 >
                   Android-App im Play Store
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://apps.apple.com/de/app/id6802045311"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  iPhone-App im App Store
                 </a>
               </li>
               <li><Link href="/login">Login</Link></li>
