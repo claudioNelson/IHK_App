@@ -9,13 +9,21 @@ import '../../../services/sound_service.dart';
 import '../../services/badge_service.dart';
 import '../../widgets/badge_celebration_dialog.dart';
 import '../../widgets/dialogs/match_status_dialog.dart';
+import '../../widgets/user_avatar.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 
 class AsyncMatchPlayPage extends StatefulWidget {
   final String matchId;
-  const AsyncMatchPlayPage({super.key, required this.matchId});
+  /// true = nur Ergebnis eines beendeten Matches anzeigen (aus der Historie),
+  /// ohne Sounds/Badge-Check und ohne Fragen zu laden.
+  final bool showResult;
+  const AsyncMatchPlayPage({
+    super.key,
+    required this.matchId,
+    this.showResult = false,
+  });
 
   @override
   State<AsyncMatchPlayPage> createState() => _AsyncMatchPlayPageState();
@@ -85,6 +93,10 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   }
 
   Future<void> _init() async {
+    if (widget.showResult) {
+      await _zeigeErgebnisAusHistorie();
+      return;
+    }
     try {
       await _soundService.init();
       _store ??= await AsyncMatchProgressStore.instance;
@@ -389,6 +401,43 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     _progress!.currentIdx = _idx;
     await _store!.save(_progress!);
     _startTimer();
+  }
+
+  /// Historie: Ergebnis eines bereits beendeten Matches laden (nur match_scores
+  /// + Profile), keine RPC, keine Fragen.
+  Future<void> _zeigeErgebnisAusHistorie() async {
+    try {
+      final scores = await _svc.loadScores(widget.matchId);
+      if (!mounted) return;
+      if (scores == null) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Für dieses Match liegt kein Ergebnis vor.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.of(context).pop();
+        return;
+      }
+      setState(() {
+        _matchCompleted = true;
+        _finalScores = scores;
+        _waitingForOpponent = false;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ergebnis konnte nicht geladen werden: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.of(context).pop();
+    }
   }
 
   /// "Status pruefen" im Wartebildschirm: Ist der Gegner fertig, rendert
@@ -1671,6 +1720,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     final isDraw = myScore == oppScore;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (widget.showResult) return; // Historie: keine Sounds, keine Badges
       if (isWinner) {
         _soundService.playSound(SoundType.victory);
       } else if (!isDraw) {
@@ -1769,6 +1819,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                             text,
                             textMid,
                             textDim,
+                            avatarUrl: myProfile?['avatar_url'] as String?,
                           ),
                         ),
                         Padding(
@@ -1794,6 +1845,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                             text,
                             textMid,
                             textDim,
+                            avatarUrl: oppProfile?['avatar_url'] as String?,
                           ),
                         ),
                       ],
@@ -1837,8 +1889,9 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     Color border,
     Color text,
     Color textMid,
-    Color textDim,
-  ) {
+    Color textDim, {
+    String? avatarUrl,
+  }) {
     final accentColor = isWinner ? AppColors.success : AppColors.accent;
 
     return Container(
@@ -1866,6 +1919,15 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          UserAvatar(
+            avatarUrl: avatarUrl,
+            username: name,
+            size: 44,
+            surface: surface,
+            border: isWinner ? AppColors.success : border,
+            textColor: text,
+          ),
+          const SizedBox(height: 10),
           Text(
             isMe ? 'DU' : 'GEGNER',
             style: AppTextStyles.monoSmall(

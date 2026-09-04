@@ -154,13 +154,13 @@ class AsyncDuelService {
     // Lade Spieler-Profile separat
     final player1Profile = await c
         .from('profiles')
-        .select('id, username, email')
+        .select('id, username, email, avatar_url')
         .eq('id', scores['player1_id'])
         .maybeSingle();
 
     final player2Profile = await c
         .from('profiles')
-        .select('id, username, email')
+        .select('id, username, email, avatar_url')
         .eq('id', scores['player2_id'])
         .maybeSingle();
 

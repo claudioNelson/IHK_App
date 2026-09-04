@@ -195,6 +195,16 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     ).then((_) => _loadData());
   }
 
+  /// Historie: Ergebnis eines beendeten Matches ansehen (ohne Sounds/Badges).
+  void _openResult(String matchId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AsyncMatchPlayPage(matchId: matchId, showResult: true),
+      ),
+    );
+  }
+
   void _showOpenMatchesSheet() {
     final isDark = context.read<ThemeProvider>().isDark;
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
@@ -991,7 +1001,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
-        onTap: isHistory ? null : () => _playMatch(matchId),
+        onTap: isHistory ? () => _openResult(matchId) : () => _playMatch(matchId),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1089,43 +1099,50 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                 ),
               ),
 
-              // Right-Side: Score (History) oder Play-Button (Active)
+              // Right-Side: Score (History, antippbar -> Ergebnis) oder Play-Button (Active)
               if (isHistory && didWin != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: resultColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: resultColor.withOpacity(0.3)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        isDraw == true
-                            ? 'REMIS'
-                            : (didWin ? 'SIEG' : 'NIEDERL.'),
-                        style: AppTextStyles.mono(
-                          size: 9,
-                          color: resultColor,
-                          weight: FontWeight.w700,
-                          letterSpacing: 1,
-                        ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '$myScore:$opponentScore',
-                        style: AppTextStyles.interTight(
-                          size: 15,
-                          weight: FontWeight.w700,
-                          color: resultColor,
-                        ),
+                      decoration: BoxDecoration(
+                        color: resultColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: resultColor.withOpacity(0.3)),
                       ),
-                    ],
-                  ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            isDraw == true
+                                ? 'REMIS'
+                                : (didWin ? 'SIEG' : 'NIEDERL.'),
+                            style: AppTextStyles.mono(
+                              size: 9,
+                              color: resultColor,
+                              weight: FontWeight.w700,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '$myScore:$opponentScore',
+                            style: AppTextStyles.interTight(
+                              size: 15,
+                              weight: FontWeight.w700,
+                              color: resultColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(Icons.chevron_right_rounded, size: 18, color: textDim),
+                  ],
                 )
               else if (canPlay)
                 Container(
