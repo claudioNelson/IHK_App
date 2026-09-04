@@ -83,46 +83,115 @@ class _NavRootState extends State<NavRoot> {
     final text = isDark ? AppColors.darkText : AppColors.lightText;
     final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
 
-    return Scaffold(
-      backgroundColor: bg,
-      body: _pages[_index],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: surface,
-          border: Border(top: BorderSide(color: border, width: 1)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 64,
-            child: Row(
-              children: List.generate(
-                _tabs.length,
-                (i) => Expanded(
-                  child: _buildNavItem(
-                    index: i,
-                    tab: _tabs[i],
-                    text: text,
-                    textDim: textDim,
-                    border: border,
-                  ),
-                ),
-              ),
+    final navBar = SizedBox(
+      height: 64,
+      child: Row(
+        children: List.generate(
+          _tabs.length,
+          (i) => Expanded(
+            child: _buildNavItem(
+              index: i,
+              tab: _tabs[i],
+              isDark: isDark,
+              text: text,
+              textDim: textDim,
+              border: border,
             ),
           ),
         ),
       ),
+    );
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: _pages[_index],
+      bottomNavigationBar: isDark
+          // Dark: flaechige Leiste mit oberer Linie (unveraendert)
+          ? Container(
+              decoration: BoxDecoration(
+                color: surface,
+                border: Border(top: BorderSide(color: border, width: 1)),
+              ),
+              child: SafeArea(top: false, child: navBar),
+            )
+          // Light (Variante D): schwebende weisse Pille mit Schatten
+          : Container(
+              color: bg,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.lightSurface,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: border),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: AppColors.lightShadowStrong,
+                          blurRadius: 24,
+                          offset: Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: navBar,
+                  ),
+                ),
+              ),
+            ),
     );
   }
 
   Widget _buildNavItem({
     required int index,
     required _TabItem tab,
+    required bool isDark,
     required Color text,
     required Color textDim,
     required Color border,
   }) {
     final isSelected = _index == index;
+
+    // Light: aktiver Tab als gefuellte Akzent-Pille, Label in Akzent
+    if (!isDark) {
+      return GestureDetector(
+        onTap: () => setState(() => _index = index),
+        behavior: HitTestBehavior.opaque,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 46,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.accent : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  tab.icon,
+                  color: isSelected ? Colors.white : textDim,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                tab.label,
+                style: AppTextStyles.interTight(
+                  size: 10,
+                  weight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? AppColors.lightAccentInk : textDim,
+                  letterSpacing: 0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return GestureDetector(
       onTap: () => setState(() => _index = index),

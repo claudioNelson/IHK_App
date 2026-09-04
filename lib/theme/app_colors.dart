@@ -35,15 +35,25 @@ class AppColors {
   static const Color darkTextDim = Color(0xFF606070);
   static const Color darkAccentSoft = Color(0x247C6DFF);   // 14% accent
 
-  // ─── LIGHT THEME ───────────────────────────────────────────────
-  static const Color lightBg = Color(0xFFFAFAF9);
-  static const Color lightBgMuted = Color(0xFFF4F4F1);
+  // ─── LIGHT THEME (Variante D "Indigo-Wash", 04.09.2026) ───────
+  // Kuehler, leicht indigo-verwandter Grund; Karten bleiben weiss und heben
+  // sich dadurch ab. Rahmen kraeftiger, gedimmter Text AA-tauglich.
+  static const Color lightBg = Color(0xFFF3F4F9);
+  static const Color lightBgMuted = Color(0xFFE7E9F2);
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color lightSurfaceElev = Color(0xFFFFFFFF);
-  static const Color lightBorder = Color(0x140A0A0F);      // 8% dark
-  static const Color lightBorderStrong = Color(0x1F0A0A0F); // 12% dark
-  static const Color lightText = Color(0xFF0A0A0F);
-  static const Color lightTextMid = Color(0xFF55555F);
-  static const Color lightTextDim = Color(0xFF8A8A92);
-  static const Color lightAccentSoft = Color(0x147C6DFF);  // 8% accent
+  static const Color lightBorder = Color(0x24141A2E);       // 14% blauschwarz
+  static const Color lightBorderStrong = Color(0x33141A2E); // 20% blauschwarz
+  static const Color lightText = Color(0xFF0D0F1A);
+  static const Color lightTextMid = Color(0xFF4B4F60);
+  static const Color lightTextDim = Color(0xFF6B7080);      // 4,9:1 auf Weiss
+  static const Color lightAccentSoft = Color(0x2E7C6DFF);   // 18% accent
+
+  // Tiefe im Hellmodus: neutrale, leicht blauschwarze Schatten statt Glows
+  static const Color lightShadow = Color(0x140B1033);       // Karten
+  static const Color lightShadowStrong = Color(0x240B1033); // Sheets, Nav-Pille
+  // Akzent als Text auf Weiss (6,2:1 statt 3,8:1)
+  static const Color lightAccentInk = Color(0xFF5B4BE0);
+  // Indigo-Verlauf hinter Kopfbereichen (nur Light)
+  static const Color lightHeaderWash = Color(0x297C6DFF);   // 16% accent
 }

@@ -17,6 +17,7 @@ import '../levels/level_module_screen.dart';
 import '../kurse/kurs_uebersicht_screen.dart';
 import '../../data/kurse/sql_kurs.dart';
 import '../../data/kurse/python_kurs.dart';
+import '../../widgets/header_wash.dart';
 
 class LearningHubScreen extends StatefulWidget {
   const LearningHubScreen({super.key});
@@ -144,7 +145,12 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           ),
           slivers: [
             // ─── HEADER ────────────────────────────────────
-            SliverToBoxAdapter(child: _buildHeader(text, textMid, textDim)),
+            SliverToBoxAdapter(
+              child: HeaderWash(
+                isDark: isDark,
+                child: _buildHeader(text, textMid, textDim),
+              ),
+            ),
 
             // ─── CONTENT ───────────────────────────────────
             SliverPadding(
@@ -388,7 +394,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   // ─── HEADER ─────────────────────────────────────────
   Widget _buildHeader(Color text, Color textMid, Color textDim) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 36),
       child: SafeArea(
         bottom: false,
         child: Column(

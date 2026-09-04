@@ -15,6 +15,7 @@ import '../../theme/theme_provider.dart';
 import '../../widgets/zertifikat_info_dialog.dart';
 import '../../pages/pruefung/ihk_pruefung_detail_screen.dart';
 import '../zertifikate/zertifikat_test_screen.dart';
+import '../../widgets/header_wash.dart';
 
 class PruefenScreen extends StatefulWidget {
   const PruefenScreen({super.key});
@@ -137,12 +138,14 @@ class _PruefenScreenState extends State<PruefenScreen>
 
     return Scaffold(
       backgroundColor: bg,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
+      body: Column(
           children: [
             // ─── HEADER ─────────────────────────────────────
-            Padding(
+            HeaderWash(
+              isDark: isDark,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,6 +176,8 @@ class _PruefenScreenState extends State<PruefenScreen>
                   ),
                 ],
               ),
+                ),
+              ),
             ),
 
             // ─── CUSTOM TABS ────────────────────────────────
@@ -196,7 +201,8 @@ class _PruefenScreenState extends State<PruefenScreen>
                         textDim: textDim,
                         bgMuted: isDark
                             ? AppColors.darkBgMuted
-                            : AppColors.lightBgMuted,
+                            : AppColors.lightAccentSoft,
+                        activeText: isDark ? text : AppColors.lightAccentInk,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -209,7 +215,8 @@ class _PruefenScreenState extends State<PruefenScreen>
                         textDim: textDim,
                         bgMuted: isDark
                             ? AppColors.darkBgMuted
-                            : AppColors.lightBgMuted,
+                            : AppColors.lightAccentSoft,
+                        activeText: isDark ? text : AppColors.lightAccentInk,
                       ),
                     ),
                   ],
@@ -230,7 +237,6 @@ class _PruefenScreenState extends State<PruefenScreen>
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -242,8 +248,10 @@ class _PruefenScreenState extends State<PruefenScreen>
     required Color text,
     required Color textDim,
     required Color bgMuted,
+    Color? activeText,
   }) {
     final isActive = _tabController.index == index;
+    final activeColor = activeText ?? text;
 
     return GestureDetector(
       onTap: () => _tabController.animateTo(index),
@@ -262,7 +270,7 @@ class _PruefenScreenState extends State<PruefenScreen>
               style: AppTextStyles.interTight(
                 size: 13,
                 weight: isActive ? FontWeight.w600 : FontWeight.w500,
-                color: isActive ? text : textDim,
+                color: isActive ? activeColor : textDim,
               ),
             ),
             const SizedBox(width: 6),

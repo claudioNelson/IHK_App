@@ -10,6 +10,7 @@ import 'leaderboard_screen.dart';
 import 'async_match_play_screen.dart';
 import '../../services/usage_tracker.dart';
 import '../../widgets/limit_reached_dialog.dart';
+import '../../widgets/header_wash.dart';
 
 class AsyncMatchDemoPage extends StatefulWidget {
   const AsyncMatchDemoPage({super.key});
@@ -469,9 +470,12 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
           padding: EdgeInsets.zero,
           children: [
             // ─── HEADER ───────────────────────────────────
-            SafeArea(
-              bottom: false,
-              child: _buildHeader(text, textMid, textDim, surface, border),
+            HeaderWash(
+              isDark: isDark,
+              child: SafeArea(
+                bottom: false,
+                child: _buildHeader(text, textMid, textDim, surface, border),
+              ),
             ),
 
             Padding(

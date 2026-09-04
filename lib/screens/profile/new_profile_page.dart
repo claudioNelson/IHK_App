@@ -20,6 +20,7 @@ import '../../theme/modul_stil.dart';
 import '../../widgets/streak_calendar.dart';
 import '../../widgets/user_avatar.dart';
 import '../../widgets/dialogs/avatar_picker_sheet.dart';
+import '../../widgets/header_wash.dart';
 
 class NewProfilePage extends StatefulWidget {
   const NewProfilePage({super.key});
@@ -718,16 +719,19 @@ class _NewProfilePageState extends State<NewProfilePage> {
           padding: EdgeInsets.zero,
           children: [
             // ─── HEADER ─────────────────────────────────
-            SafeArea(
-              bottom: false,
-              child: _buildHeader(
-                user,
-                isFallback,
-                surface,
-                border,
-                text,
-                textMid,
-                textDim,
+            HeaderWash(
+              isDark: isDark,
+              child: SafeArea(
+                bottom: false,
+                child: _buildHeader(
+                  user,
+                  isFallback,
+                  surface,
+                  border,
+                  text,
+                  textMid,
+                  textDim,
+                ),
               ),
             ),
 
@@ -851,13 +855,23 @@ class _NewProfilePageState extends State<NewProfilePage> {
                     shape: BoxShape.circle,
                     color: surface,
                     border: Border.all(color: border, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withOpacity(0.2),
-                        blurRadius: 30,
-                        spreadRadius: 2,
-                      ),
-                    ],
+                    // Dark: Akzent-Glow. Light: neutraler Schatten (Glow
+                    // verpufft auf hellem Grund).
+                    boxShadow: context.read<ThemeProvider>().isDark
+                        ? [
+                            BoxShadow(
+                              color: AppColors.accent.withOpacity(0.2),
+                              blurRadius: 30,
+                              spreadRadius: 2,
+                            ),
+                          ]
+                        : const [
+                            BoxShadow(
+                              color: AppColors.lightShadowStrong,
+                              blurRadius: 18,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
                   ),
                   child: EmojiAvatar.decode(_profile?['avatar_url'] as String?) != null
                       ? UserAvatar(
