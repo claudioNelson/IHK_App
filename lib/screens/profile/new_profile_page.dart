@@ -18,6 +18,8 @@ import '../../services/daily_goal_service.dart';
 import '../../services/bereitschafts_service.dart';
 import '../../theme/modul_stil.dart';
 import '../../widgets/streak_calendar.dart';
+import '../../widgets/user_avatar.dart';
+import '../../widgets/dialogs/avatar_picker_sheet.dart';
 
 class NewProfilePage extends StatefulWidget {
   const NewProfilePage({super.key});
@@ -313,6 +315,41 @@ class _NewProfilePageState extends State<NewProfilePage> {
             context,
           ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
         }
+      }
+    }
+  }
+
+  /// Emoji-Avatar waehlen und in profiles.avatar_url speichern.
+  Future<void> _waehleAvatar() async {
+    final isDark = context.read<ThemeProvider>().isDark;
+    final result = await showAvatarPickerSheet(
+      context,
+      isDark: isDark,
+      current: _profile?['avatar_url'] as String?,
+    );
+    if (result == null || result == _profile?['avatar_url']) return;
+    try {
+      await _authService.updateProfileInDB(avatarUrl: result);
+      AppCacheService().cachedMyProfile = null;
+      await _loadProfile();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✓ Avatar gespeichert'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Avatar konnte nicht gespeichert werden: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -802,35 +839,68 @@ class _NewProfilePageState extends State<NewProfilePage> {
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 28),
       child: Column(
         children: [
-          // Avatar
+          // Avatar (antippen -> Emoji-Avatar waehlen)
           Stack(
             children: [
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: surface,
-                  border: Border.all(color: border, width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.accent.withOpacity(0.2),
-                      blurRadius: 30,
-                      spreadRadius: 2,
-                    ),
-                  ],
+              GestureDetector(
+                onTap: isFallback ? null : _waehleAvatar,
+                child: Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: surface,
+                    border: Border.all(color: border, width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withOpacity(0.2),
+                        blurRadius: 30,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: EmojiAvatar.decode(_profile?['avatar_url'] as String?) != null
+                      ? UserAvatar(
+                          avatarUrl: _profile?['avatar_url'] as String?,
+                          username: _profile?['username'] as String?,
+                          size: 88,
+                          surface: surface,
+                          border: border,
+                          textColor: text,
+                        )
+                      : Center(
+                          child: Text(
+                            _getInitials(_profile?['username']),
+                            style: AppTextStyles.instrumentSerif(
+                              size: 38,
+                              color: AppColors.accent,
+                              letterSpacing: -1.0,
+                            ),
+                          ),
+                        ),
                 ),
-                child: Center(
-                  child: Text(
-                    _getInitials(_profile?['username']),
-                    style: AppTextStyles.instrumentSerif(
-                      size: 38,
-                      color: AppColors.accent,
-                      letterSpacing: -1.0,
+              ),
+              if (!isFallback)
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: _waehleAvatar,
+                    child: Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: surface, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.edit_rounded,
+                        size: 12,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
               if (isFallback)
                 Positioned(
                   bottom: 0,

@@ -8,6 +8,7 @@ import '../../../widgets/report_dialog.dart';
 import '../../../services/sound_service.dart';
 import '../../services/badge_service.dart';
 import '../../widgets/badge_celebration_dialog.dart';
+import '../../widgets/dialogs/match_status_dialog.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
@@ -390,6 +391,42 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     _startTimer();
   }
 
+  /// "Status pruefen" im Wartebildschirm: Ist der Gegner fertig, rendert
+  /// _tryFinalize automatisch das Ergebnis. Sonst zeigt ein Dialog den
+  /// eigenen Zwischenstand mit beiden Profilbildern.
+  Future<void> _pruefeStatus() async {
+    if (_loading) return;
+    setState(() => _loading = true);
+    await _tryFinalize();
+    if (!mounted) return;
+    if (_matchCompleted) {
+      setState(() => _loading = false);
+      return;
+    }
+    Map<String, dynamic>? status;
+    try {
+      status = await _svc.loadWaitingStatus(widget.matchId);
+    } catch (_) {
+      status = null;
+    }
+    if (!mounted) return;
+    setState(() => _loading = false);
+    if (status == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dein Gegner ist noch nicht fertig.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    await showMatchStatusDialog(
+      context,
+      status: status,
+      isDark: context.read<ThemeProvider>().isDark,
+    );
+  }
+
   Future<void> _tryFinalize() async {
     try {
       final status = await _svc.tryFinalize(widget.matchId);
@@ -398,6 +435,9 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         setState(() {
           _matchCompleted = true;
           _finalScores = scores;
+          // Wartebildschirm hat in build() Vorrang -> hier zuruecksetzen,
+          // sonst bleibt "Warte auf Gegner" trotz fertigem Match stehen.
+          _waitingForOpponent = false;
         });
       } else if (status == 'waiting') {
         setState(() => _waitingForOpponent = true);
@@ -1559,11 +1599,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton.icon(
-                  onPressed: () async {
-                    setState(() => _loading = true);
-                    await _tryFinalize();
-                    setState(() => _loading = false);
-                  },
+                  onPressed: _loading ? null : _pruefeStatus,
                   icon: const Icon(Icons.refresh_rounded, size: 18),
                   label: const Text('Status prüfen'),
                   style: ElevatedButton.styleFrom(

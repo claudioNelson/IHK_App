@@ -78,6 +78,67 @@ class AsyncDuelService {
     return {'questions': q, 'myAnswers': myAnswers};
   }
 
+  /// Zwischenstand fuer den Wartebildschirm ("Status pruefen"):
+  /// eigener Score, ob ein Gegner da ist und wie weit er ist, beide Profile.
+  /// Nur Lesen ueber bestehende Tabellen (matches, match_answers, profiles).
+  Future<Map<String, dynamic>?> loadWaitingStatus(String matchId) async {
+    final myId = c.auth.currentUser?.id;
+    if (myId == null) return null;
+
+    final match = await c
+        .from('matches')
+        .select('player1_id, player2_id, total_questions, status')
+        .eq('id', matchId)
+        .maybeSingle();
+    if (match == null) return null;
+
+    final total = match['total_questions'] as int? ?? 10;
+    final p1 = match['player1_id'] as String?;
+    final p2 = match['player2_id'] as String?;
+    final opponentId = (p1 == myId) ? p2 : p1;
+
+    final myAnswers = await c
+        .from('match_answers')
+        .select('is_correct')
+        .eq('match_id', matchId)
+        .eq('user_id', myId);
+    final myCorrect = (myAnswers as List)
+        .where((a) => a['is_correct'] == true)
+        .length;
+
+    int opponentAnswered = 0;
+    Map<String, dynamic>? opponentProfile;
+    if (opponentId != null) {
+      final oppAnswers = await c
+          .from('match_answers')
+          .select('idx')
+          .eq('match_id', matchId)
+          .eq('user_id', opponentId);
+      opponentAnswered = (oppAnswers as List).length;
+      opponentProfile = await c
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .eq('id', opponentId)
+          .maybeSingle();
+    }
+
+    final myProfile = await c
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .eq('id', myId)
+        .maybeSingle();
+
+    return {
+      'total': total,
+      'my_correct': myCorrect,
+      'my_answered': myAnswers.length,
+      'my_profile': myProfile,
+      'has_opponent': opponentId != null,
+      'opponent_answered': opponentAnswered,
+      'opponent_profile': opponentProfile,
+    };
+  }
+
   Future<Map<String, dynamic>?> loadScores(String matchId) async {
     final userId = c.auth.currentUser?.id;
 

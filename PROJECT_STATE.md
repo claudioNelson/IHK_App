@@ -1,6 +1,6 @@
 # Projektstatus — Lernarena (ihk_app)
 
-Aktualisiert: **2026-09-03**
+Aktualisiert: **2026-09-04**
 Repo: **github.com/claudioNelson/IHK_App** · Branch **main**
 Lokal: **C:\Users\cnm89\Desktop\Projekte\IHK\ihk_app**
 App-Version im Store: **1.4.1+12** (Production) · **Build 15 (1.5.1+15) bei Google in Pruefung** (02.09.2026) · **iOS 1.5.1 (Build 27) bei Apple in Pruefung, 2. Anlauf** (03.09.2026, siehe Abschnitt „Ablehnung 2.1 und Wiedereinreichung"). Build 15 enthaelt ALLES seit v12: Pruefungsbereitschaft + Pruefungsliste mit Noten im Profil, Simulations-Ergebnisse speichern + Exam-Badges, Arena-Resync + Timer je Fragetyp, Lernmodule-Design + Fortschritt aus user_progress, Ada-Pill, Umbenennung "Uebungspruefung" + Datenschutz-Update (Anthropic/Groq). Build 14 wurde uebersprungen (nur intern).
@@ -242,7 +242,11 @@ Voller Stand in `claude/seo-status-web.md` (Claude-Projekt). Kurz: SEO-Landingpa
 ## 6. Offene Punkte / Nächste Schritte
 
 **App**
-- ⏳ **VORBEREITET, NOCH NICHT AUSGEFUEHRT (02.09.2026, Nachtpause):** (1) Migration `supabase/migrations/20260902150000_fk_indizes.sql` (13 FK-Indizes, verhaltensneutral) liegt im Repo, muss noch im SQL-Editor ausgefuehrt werden → danach lesend kontrollieren (Kontrollabfrage am Dateiende, Erwartung 0 Zeilen). (2) Backup-Skript `tools/backup_db.ps1` liegt im Repo; Einrichtung offen: Session-Pooler-URI mit Passwort nach `C:\Users\cnm89\backups\lernarena\.db_url.txt` (ausserhalb Repo), `pg_dump` installieren (`scoop install postgresql`), erster Lauf, dann Windows-Aufgabenplanung woechentlich. Beide Dateien noch nicht committet. Naechste Punkte danach: siehe Projekt-Doc `claude/datenbank.md` (Gruppe 2: search_path Arena-RPCs, doppelte Policies/Trigger, auth_rls_initplan – jeweils mit Review-Agent; Gruppe 3 nur mit App-Release).
+- ✅ **Arena "Status pruefen" + Emoji-Avatare (04.09.2026, CODE, kommt mit naechstem Release):** (1) Wartebildschirm: "Status pruefen" ruft `_pruefeStatus()` – fertiges Match → Ergebnis, sonst Dialog `match_status_dialog.dart` (ZWISCHENSTAND: eigener Avatar + "X / N richtig", VS, Gegner-Avatar + "Y / N beantwortet" oder Platzhalter "Noch niemand"). Daten aus NEU `AsyncDuelService.loadWaitingStatus()` (matches, match_answers.is_correct, profiles). BUGFIX nebenbei: `_waitingForOpponent` wurde beim Abschluss nie zurueckgesetzt → Wartebildschirm blieb trotz fertigem Gegner stehen (build() prueft waiting vor completed). (2) Profilbilder: KEIN Foto-Upload (kein Bucket, Apple-Datenschutz, Moderation) sondern Emoji-Avatare: `EmojiAvatar` in `lib/widgets/user_avatar.dart` (24 Emojis x 6 Farben, gespeichert als `avatar://emoji/🦊/2` in `profiles.avatar_url`, echte URLs weiter moeglich), Picker `lib/widgets/dialogs/avatar_picker_sheet.dart`, Profil-Header antippbar + Stift-Button (`new_profile_page.dart`, `_waehleAvatar`, Speichern via `updateProfileInDB(avatarUrl:)`, Cache-Reset), Fremdprofil (`player_profile_screen.dart`) nutzt `UserAvatar`. Keine DB-Aenderung. flutter analyze sauber, auf Windows getestet. Befund vorher: `image_picker` dient nur dem lokalen Anhaengen von Loesungsfotos (photo_upload_widget, diagram_widget), nie Upload – Info.plist-Texte stimmen weiterhin.
+- ✅ **Verwaiste Arena-Matches werden aufgeraeumt (04.09.2026, NUR DB, LIVE):** Luecke: offene Matches, deren Ersteller nicht alle Fragen beantwortet hat, blieben ewig liegen (bot_takeover braucht fertigen Ersteller, cleanup_stale_active_matches nur status=active mit started_at). Folge: echte Spieler joinen uralte Matches gegen Ersteller, der nie antwortet (5 Faelle 02./03.09.). Fix: Migration `supabase/migrations/20260904020000_cleanup_offene_matches.sql` — NEU `cleanup_stale_open_matches(p_days=3)` (loescht offene Matches ohne Gegner, aelter 3 Tage, Ersteller nicht fertig; CASCADE), Cron-Job `cleanup_stale_open_matches` taeglich 04:37 UTC, `cleanup_stale_active_matches` nutzt jetzt coalesce(started_at, created_at). Einmaliger Lauf: 16 Matches geloescht (07.08.–30.08.), 10 offen uebrig. Kein App-Release noetig. OFFEN: `join_random_open_match` sollte nur Matches mit fertigem Ersteller anbieten (Arena-RPC, von App genutzt → mit Review). FEATURE-WUNSCH App (naechster Schritt, braucht Release): Bei "Status pruefen" im Wartebildschirm eigenen Zwischenstand (richtige Antworten) mit beiden Profilbildern zeigen, Gegner-Platzhalter solange keiner da ist.
+- ✅ **Arena ohne Zertifikatsfragen (04.09.2026, NUR DB, LIVE):** Befund per Lese-Agent: 330 von 1237 match_questions (27 %) in 119 von 124 Matches waren Zertifikatsfragen (SAP/AWS/AZ-900/GCP), weil `create_async_match_any` nur nach question_type filterte. Fix: Migration `supabase/migrations/20260904010000_arena_ohne_zertifikatsfragen.sql` (create or replace, Filter `zertifikat_id IS NULL` + MC nur mit Antworten, fill_blank/sequence bleiben drin weil Daten in calculation_data; `search_path` fixiert). Im SQL-Editor eingespielt, lesend kontrolliert. Wirkt nur fuer NEUE Matches; bestehende behalten ihre Fragen. Kein App-Release noetig (Auswahl rein serverseitig, App ruft nur die RPC). Pool danach 948 Fragen. Offen: `create_async_match(p_count,p_module_id,p_thema_id)` hat denselben Luecke, wird von der App aber nicht aufgerufen.
+- ✅ **Backup-Skript LAEUFT (04.09.2026):** `tools/backup_db.ps1` sichert alle 35 Tabellen/Views als CSV ueber die REST-API mit dem Secret-Key (Datei `C:\Users\cnm89\backups\lernarena\service_role.txt`, ausserhalb Repo). Erster Lauf: 35 Tabellen, 2,6 MB. Behaelt die letzten 12 Ordner. Grund fuer den API-Weg: pg_dump ueber den Session-Pooler scheiterte mit `password authentication failed` trotz mehrfachem Passwort-Reset (bekannter Supabase-Bug #44210). TODO: Windows-Aufgabenplanung woechentlich (`powershell -ExecutionPolicy Bypass -File "C:\Users\cnm89\Desktop\Projekte\IHK\ihk_app\tools\backup_db.ps1"`).
+- ✅ **FK-Indizes angelegt (04.09.2026, NUR DB, LIVE):** Migration `supabase/migrations/20260902150000_fk_indizes.sql` im SQL-Editor ausgefuehrt, lesend kontrolliert: 0 Fremdschluessel ohne Index, 13 neue `idx_*`-Indizes. Verhaltensneutral. Datei noch nicht committet.
 - ✅ **DB-Inventur + Admin-RPC-Sperre (02.09.2026, NUR DB, LIVE):** Lese-Agent hat die komplette Live-DB inventarisiert (31 Tabellen, 88 Policies, 40 Funktionen, 11 Trigger, Advisors) → Projekt-Doc `claude/datenbank.md` mit 12 priorisierten Punkten. Sofort behoben (Migration `20260902140000_lock_admin_rpcs_themen.sql`, im SQL-Editor eingespielt, lesend kontrolliert): Policy `themen: write (all)` (jeder Client durfte Themen loeschen) entfernt; `delete_module_data` (2 Overloads, die integer-Variante OHNE Admin-Check!), `clear_all_explanations`, `add_question_with_answers`, `update_question_explanation` fuer public/anon/authenticated gesperrt, `search_path` fixiert. Vorher Aufrufer-Check per Lese-Agent: keine dieser Funktionen wird aus lib/, web/ oder Edge Functions aufgerufen; App liest `themen` nur. App ruft insgesamt nur 4 RPCs auf (Arena: create_async_match_any, join_random_open_match, submit_async_answer, try_finalize_match). NOCH OFFEN (siehe datenbank.md): Arena-RPCs ohne search_path (nur mit Release/Uebergang anfassen), player_stats frei beschreibbar, profiles oeffentlich lesbar, question_reports anon-Insert, doppelte Policies/Trigger, 13 FKs ohne Index, Repo deckt DB nicht ab (17/20 Migrationen nicht registriert).
 - ✅ **Premium-RPC-Sperre (02.09.2026, NUR DB, LIVE):** Sicherheitsluecke geschlossen. Befund aus `pg_proc.proacl`: `activate_premium_purchase(text,integer)` war fuer `authenticated` ausfuehrbar (SECURITY DEFINER, keine Belegpruefung → jeder eingeloggte User haette sich per RPC bis zu 372 Tage Premium geben koennen); `set_premium` und `update_premium_by_customer` (Stripe-Pfad) waren sogar fuer PUBLIC/anon ausfuehrbar. Fix: Migration `supabase/migrations/20260902120000_lock_premium_rpcs.sql` — `revoke all ... from public, anon, authenticated` auf allen vier Premium-RPCs, `grant execute ... to service_role` (grant_premium_from_server war schon korrekt). Angewendet ueber Supabase-Connector als Migration `lock_premium_rpcs`, Ergebnis kontrolliert: alle vier nur noch postgres/service_role. Edge Functions `verify-purchase` und `stripe-webhook` laufen unveraendert (Service-Role-Key). Kein Code-Release noetig. Folge: App-Versionen ≤ v7 koennen keine Kaeufe mehr freischalten (Kauf wird nach Update auf v8+ per verify-purchase nachgeholt). ✅ NACHGEZOGEN (02.09.2026): Migration `20260902130000_premium_ddl_ins_repo.sql` holt das komplette Premium-DDL (4 RPCs + `protect_premium_columns` + Trigger `trg_protect_premium`) ins Repo und setzt bei allen fuenf Funktionen `set search_path = public, pg_temp`; im SQL-Editor eingespielt, lesend kontrolliert. Lehre: Lese-Agent hatte in der REVOKE-Zeile von `update_premium_by_customer` die Parameterreihenfolge vertauscht → Agenten-SQL immer gegen `pg_proc` pruefen. NEBENBEFUNDE: (1) In `supabase_migrations` sind nur zwei `remote_schema` von 09/2025 plus `lock_premium_rpcs` registriert — die uebrigen Repo-Migrationen wurden per SQL-Editor eingespielt, nie per `db push`. (2) `protect_premium_columns` hat noch EXECUTE fuer PUBLIC (unkritisch, Trigger feuert als Tabellenbesitzer; optionaler Revoke in der Migration auskommentiert). (3) `subscription_service.dart:73-77` macht ein direktes `update({'is_premium': false})` aus dem Client — mit `trg_protect_premium` abgleichen. (4) `drop function activate_premium_purchase` erst nach 2-4 Wochen Log-Beobachtung. Doku: Projekt-Doc `claude/billing-status.md` und `claude/architektur.md`.
 - **Profil-Fortschritt neu: Pruefungsbereitschaft (26.08.2026, kommt mit v13):** Die alten Kacheln "Fragen" und "Trefferquote" sind raus (waren irrefuehrend: nur der Uebungsbereich schrieb in user_progress, Levels/Kurse/Arena nicht -> 100 % trotz Fehlern). Neu: grosse Bereitschafts-Karte mit Ring ("Pruefungsbereit: X %"), beim Antippen Aufschluesselung nach BEREICHEN: Lernmodule (gemeisterte Themen aus thema_scores, ab required_score), Levels (level_progress ab Schwelle), SQL-Kurs und Python-Kurs (geloeste Aufgaben aus kurs_fortschritt). Gesamtwert = Durchschnitt der vier Bereichs-Prozente. Neuer `BereitschaftsService` (lib/services/bereitschafts_service.dart). Darunter schlanke Reihe Streak/Zertifikate/Pruefungen. Merke Spaltennamen: themen.module_id vs thema_scores.modul_id.
@@ -1333,3 +1337,46 @@ die Punkte für **1.5.2**, alle klein:
 - **Android:** Der nächste Play-Build muss **+16** sein und die
   Kontolöschung enthalten (Build 15 hat sie noch nicht; Google verlangt sie
   ebenfalls, Datenlöschungs-Erklärung in der Play Console dann anpassen).
+
+
+---
+
+## Android 1.5.1+16 vorbereitet, Level-Kosmetik (03.09.2026)
+
+Während Apple prüft, zieht Android nach. **`pubspec.yaml` steht auf
+`1.5.1+16`** (Changelog-Kommentar v16 in der Datei). Build 15 liegt bei
+Google in Prüfung, hat aber die Kontolöschung noch nicht; Google verlangt
+sie wie Apple. Kein Supabase-Eingriff nötig, die Edge Function
+`delete-account` ist bereits deployed und plattformunabhängig.
+
+Zwei kleine Korrekturen an den Levels, die beim Durchklicken auffielen:
+
+- **`lib/screens/learning/learning_hub_screen.dart`:** Die Zahlen rechts
+  auf den Lernhub-Karten waren fest im Code (`count: '1'` bei Levels, `'17'`
+  bei Modulen). Die „1" stammte aus der Zeit mit nur einem Lernpfad. Jetzt
+  kommen beide aus `AppCacheService` (`cachedLevelModule.length`,
+  `cachedModule.length`), Fallback 11 bzw. 17, falls der Cache leer ist.
+  „Anschlüsse · 16" bleibt fest.
+- **`lib/theme/modul_stil.dart` + `lib/screens/levels/level_module_screen.dart`:**
+  Alle elf Level-Module hatten dasselbe Buch-Icon. `modulStil()` (bisher nur
+  in der Modul-Liste genutzt) kennt jetzt zusätzlich Backup/Recovery,
+  Binär/Hex, DNS/Ports, OSI und Subnetting und wird auch in der
+  Level-Liste verwendet. Abgeschlossene Module: grün mit Haken.
+  Reihenfolge der Abfragen beachten, spezielle Namen vor „netzwerk".
+
+**Nächste Schritte Android:** `flutter run` zum Sichtprüfen, Commit,
+`flutter build appbundle --release`, AAB in der Play Console hochladen,
+dort unter App-Inhalte → Datensicherheit die **Datenlöschungs-Erklärung**
+anpassen (Löschung jetzt in der App möglich, Profil → Konto löschen).
+
+### Idee für 1.5.2: Level-Pfad als Spielfeld
+
+Wunsch: Aufbau wie bei Mimo/Duolingo. Vorschlag ohne Landschaftsgrafik,
+passend zum Rest der App: vertikaler Schlangenpfad in
+`level_pfad_screen.dart`, Kreise als Level-Knoten (links/rechts versetzt,
+`CustomPainter` für die Verbindungslinie), erledigt = gefüllt in Modulfarbe
+mit Sternen, aktuell = größer mit pulsierendem Ring und „Weiter", gesperrt =
+grau mit Schloss. Abschnitte Basics/Praxis/Prüfung als Banner quer über den
+Pfad, Premium als sichtbare Schranke, Checkpoint-Belohnung je Abschnitt,
+animiertes Weiterrücken nach Level-Abschluss. Reine Darstellung, alle Daten
+(Sterne, Status, Abschnitte) sind schon da. Vorher Skizze zeigen.

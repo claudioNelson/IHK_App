@@ -7,6 +7,7 @@ import '../../services/badge_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
+import '../../widgets/user_avatar.dart';
 
 class PlayerProfileScreen extends StatefulWidget {
   final String oderId;
@@ -307,33 +308,14 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Avatar
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: surface,
-            border: Border.all(color: border, width: 1.5),
-            image: avatarUrl != null
-                ? DecorationImage(
-                    image: NetworkImage(avatarUrl),
-                    fit: BoxFit.cover,
-                  )
-                : null,
-          ),
-          child: avatarUrl == null
-              ? Center(
-                  child: Text(
-                    username.isNotEmpty ? username[0].toUpperCase() : '?',
-                    style: AppTextStyles.instrumentSerif(
-                      size: 32,
-                      color: text,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                )
-              : null,
+        // Avatar (Emoji-Avatar, Bild-URL oder Initiale)
+        UserAvatar(
+          avatarUrl: avatarUrl,
+          username: username,
+          size: 72,
+          surface: surface,
+          border: border,
+          textColor: text,
         ),
         const SizedBox(height: 16),
         // Badges Row: Tier + Premium
