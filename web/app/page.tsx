@@ -191,6 +191,15 @@ export default function LandingPage() {
         }
         .nav-links a:hover { color: ${t.text}; }
         .nav-actions { display: flex; gap: 12px; align-items: center; }
+        /* Mobile: Die fuenf Textlinks passen nicht neben Logo, Theme-Knopf,
+           Login und "Starten" (zusammen ~680px). Ohne diese Regel scrollte die
+           ganze Seite horizontal. Produkt/Ada/Preise sind Anker auf derselben
+           Seite und per Scrollen erreichbar, Lernen/Pruefungen stehen im Footer. */
+        @media (max-width: 820px) {
+          .nav-links { display: none; }
+          .nav-inner { padding: 12px 20px; }
+          .nav-actions { gap: 8px; }
+        }
         .theme-btn {
           width: 36px; height: 36px;
           border-radius: 8px;
@@ -236,7 +245,7 @@ export default function LandingPage() {
           position: relative;
         }
         @media (max-width: 900px) {
-          .hero { grid-template-columns: 1fr; padding: 60px 24px 40px; gap: 40px; }
+          .hero { grid-template-columns: 1fr; padding: 56px 20px 40px; gap: 40px; }
         }
 
         .eyebrow {
@@ -262,7 +271,7 @@ export default function LandingPage() {
         }
 
         .hero-title {
-          font-size: clamp(40px, 6vw, 68px);
+          font-size: clamp(34px, 6vw, 68px);
           font-weight: 600;
           line-height: 0.98;
           letter-spacing: -2px;
@@ -287,6 +296,28 @@ export default function LandingPage() {
         .hero-actions {
           display: flex; gap: 12px; flex-wrap: wrap;
           margin-bottom: 32px;
+        }
+        /* Store-Badges: Das Play-Badge bringt ~6px eigenen Rand mit, das
+           Apple-Badge nicht. 62px mit -6px Rand und 50px ohne wirken deshalb
+           gleich hoch. Hoehen bewusst hier statt inline, damit die
+           Mobile-Regel unten greifen kann. */
+        .store-badges { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .store-badges a { display: inline-flex; align-items: center; }
+        .store-badges img { height: 50px; width: auto; }
+        .store-badges .badge-play img { height: 62px; margin: -6px 0; }
+        @media (max-width: 600px) {
+          /* Auf Handybreite: Button volle Breite, darunter die zwei Badges
+             nebeneinander und zentriert. Vorher wrappte die Reihe auf
+             360px-Geraeten in drei ungleiche Zeilen. Der harte Zeilenumbruch
+             in der Headline erzeugte dort eine Ein-Wort-Zeile. */
+          .hero-actions { flex-direction: column; align-items: stretch; }
+          .hero-actions .btn-primary { justify-content: center; }
+          .store-badges { justify-content: center; }
+          .store-badges img { height: 44px; }
+          .store-badges .badge-play img { height: 55px; margin: -5px 0; }
+          .hero-title br, .final-cta-title br { display: none; }
+          .hero-title { letter-spacing: -1px; }
+          .final-cta-title { letter-spacing: -1px; }
         }
         .btn-primary {
           display: inline-flex; align-items: center; gap: 8px;
@@ -463,6 +494,18 @@ export default function LandingPage() {
         .section {
           max-width: 1200px; margin: 0 auto;
           padding: 100px 32px;
+        }
+        /* Mobile: 100px/32px liessen im Statistik-Panel nur ~40px Textbreite
+           pro Karte (3 Spalten in 245px). Abstaende verkleinert, Grid auf 2
+           Spalten, Kennzahl kleiner. */
+        @media (max-width: 700px) {
+          .section { padding: 64px 20px; }
+          .section-head { margin-bottom: 40px; }
+          .panel-body { padding: 20px; }
+          .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+          .stat-card { padding: 16px; }
+          .stat-value { font-size: 30px; }
+          .final-cta { padding: 60px 20px 80px; }
         }
         .section-head {
           max-width: 700px;
@@ -1253,7 +1296,7 @@ export default function LandingPage() {
             <span className="logo-dot" />
             Lernarena
           </Link>
-          <div className="nav-links" style={{ display: "flex" }}>
+          <div className="nav-links">
             <a href="#product">Produkt</a>
             <a href="#ada">Ada</a>
             <a href="#pricing">Preise</a>
@@ -1334,38 +1377,42 @@ export default function LandingPage() {
             <Link href="/signup" className="btn-primary">
               Kostenlos starten →
             </Link>
-            <a
-              href="https://play.google.com/store/apps/details?id=app.lernarena"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Lernarena bei Google Play herunterladen"
-              style={{ display: "inline-flex", alignItems: "center" }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://play.google.com/intl/de_de/badges/static/images/badges/de_badge_web_generic.png"
-                alt="Jetzt bei Google Play"
-                style={{ height: 62, margin: "-6px 0" }}
-              />
-            </a>
-            <a
-              href="https://apps.apple.com/de/app/id6802045311"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Lernarena im App Store laden"
-              style={{ display: "inline-flex", alignItems: "center" }}
-            >
-              {/* Offizielles Badge aus Apples App Store Marketing Tools.
-                  Das Play-Badge hat ~6px eingebauten Rand, das Apple-Badge
-                  nicht - deshalb hier 50px statt 62px, damit beide gleich
-                  hoch wirken. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/de-de?size=250x83"
-                alt="Laden im App Store"
-                style={{ height: 50 }}
-              />
-            </a>
+            <div className="store-badges">
+              <a
+                className="badge-play"
+                href="https://play.google.com/store/apps/details?id=app.lernarena"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Lernarena bei Google Play herunterladen"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://play.google.com/intl/de_de/badges/static/images/badges/de_badge_web_generic.png"
+                  alt="Jetzt bei Google Play"
+                  width={646}
+                  height={250}
+                />
+              </a>
+              <a
+                className="badge-apple"
+                href="https://apps.apple.com/de/app/id6802045311"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Lernarena im App Store laden"
+              >
+                {/* Offizielles Badge aus Apples App Store Marketing Tools.
+                    width/height sind das Seitenverhaeltnis der Grafik, damit
+                    der Browser den Platz vor dem Laden reserviert (kein
+                    Layout-Sprung). Die Anzeigehoehe regelt .store-badges. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/de-de?size=250x83"
+                  alt="Laden im App Store"
+                  width={250}
+                  height={83}
+                />
+              </a>
+            </div>
           </div>
           <div className="hero-meta">
             <span><span className="check">✓</span> Keine Kreditkarte</span>
@@ -1954,38 +2001,42 @@ export default function LandingPage() {
             <Link href="/signup" className="btn-primary">
               Kostenlos registrieren →
             </Link>
-            <a
-              href="https://play.google.com/store/apps/details?id=app.lernarena"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Lernarena bei Google Play herunterladen"
-              style={{ display: "inline-flex", alignItems: "center" }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://play.google.com/intl/de_de/badges/static/images/badges/de_badge_web_generic.png"
-                alt="Jetzt bei Google Play"
-                style={{ height: 62, margin: "-6px 0" }}
-              />
-            </a>
-            <a
-              href="https://apps.apple.com/de/app/id6802045311"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Lernarena im App Store laden"
-              style={{ display: "inline-flex", alignItems: "center" }}
-            >
-              {/* Offizielles Badge aus Apples App Store Marketing Tools.
-                  Das Play-Badge hat ~6px eingebauten Rand, das Apple-Badge
-                  nicht - deshalb hier 50px statt 62px, damit beide gleich
-                  hoch wirken. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/de-de?size=250x83"
-                alt="Laden im App Store"
-                style={{ height: 50 }}
-              />
-            </a>
+            <div className="store-badges">
+              <a
+                className="badge-play"
+                href="https://play.google.com/store/apps/details?id=app.lernarena"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Lernarena bei Google Play herunterladen"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://play.google.com/intl/de_de/badges/static/images/badges/de_badge_web_generic.png"
+                  alt="Jetzt bei Google Play"
+                  width={646}
+                  height={250}
+                />
+              </a>
+              <a
+                className="badge-apple"
+                href="https://apps.apple.com/de/app/id6802045311"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Lernarena im App Store laden"
+              >
+                {/* Offizielles Badge aus Apples App Store Marketing Tools.
+                    width/height sind das Seitenverhaeltnis der Grafik, damit
+                    der Browser den Platz vor dem Laden reserviert (kein
+                    Layout-Sprung). Die Anzeigehoehe regelt .store-badges. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/de-de?size=250x83"
+                  alt="Laden im App Store"
+                  width={250}
+                  height={83}
+                />
+              </a>
+            </div>
           </div>
         </div>
       </section>
