@@ -173,16 +173,50 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     _timer?.cancel();
   }
 
-  void _onTimeUp() {
+  Future<void> _onTimeUp() async {
     if (_answered || _submitting) return;
     _soundService.playSound(SoundType.timeUp);
 
     setState(() {
+      _submitting = true;
       _answered = true;
       _wasCorrect = false;
       _selectedAnswerId = null;
     });
 
+    // Zeitablauf muss serverseitig als (falsche) Antwort landen, sonst hat
+    // der Server nur 9/10 Antworten und das Match wird nie ausgewertet.
+    final q = _questions[_idx];
+    try {
+      final ok = await _svc.submitAnswer(
+        matchId: widget.matchId,
+        idx: q['idx'] as int,
+        answerId: AsyncDuelService.sentinelAnswerId,
+        isCorrect: false,
+      );
+      if (!mounted) return;
+      if (!ok) {
+        // Antwort lag schon vor (z. B. Doppel-Tap kurz vor Ablauf) -> Stand
+        // vom Server holen; _nachAblehnungNeuSyncen springt selbst weiter.
+        setState(() => _answered = false);
+        await _nachAblehnungNeuSyncen();
+        return;
+      }
+      _progress!.answers[_idx] = AsyncDuelService.sentinelAnswerId;
+      await _store!.save(_progress!);
+    } catch (_) {
+      // Netzfehler: NICHT lokal weiterspringen (sonst fehlt die Antwort auf
+      // dem Server). Stand abgleichen; klappt auch das nicht, bleibt die
+      // Frage offen und der Nutzer kann sie manuell beantworten.
+      if (!mounted) return;
+      setState(() => _answered = false);
+      await _nachAblehnungNeuSyncen();
+      return;
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+
+    if (!mounted) return;
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) _next();
     });
@@ -204,14 +238,17 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       // oder Schluessel-Fragen) tragen nur ihren Listen-Index 0..3 als id.
       // Diese Ids gibt es in der antworten-Tabelle nicht; Index 0 crashte
       // mit einem FK-Fehler. Fuer solche Fragen wird wie bei den
-      // Spezialfragen die Sentinel-Id 1 gespeichert. Echte antworten-Ids
-      // sind immer deutlich groesser.
+      // Spezialfragen die Sentinel-Id gespeichert und richtig/falsch explizit
+      // mitgeschickt (die Sentinel-Zeile in `antworten` ist zufaellig eine
+      // richtige Antwort!). Echte antworten-Ids sind immer deutlich groesser
+      // und werden weiterhin serverseitig nachgeschlagen.
       final istPseudoId = answerId < 100;
 
       final ok = await _svc.submitAnswer(
         matchId: widget.matchId,
         idx: q['idx'] as int,
-        answerId: istPseudoId ? 1 : answerId,
+        answerId: istPseudoId ? AsyncDuelService.sentinelAnswerId : answerId,
+        isCorrect: istPseudoId ? correct : null,
       );
 
       if (!ok) {
@@ -265,10 +302,13 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     final q = _questions[_idx];
 
     try {
+      // Sonderfragen haben keine antworten-Zeile -> Sentinel-Id plus das
+      // in der App ermittelte Ergebnis (sonst wertet der Server immer "richtig").
       final ok = await _svc.submitAnswer(
         matchId: widget.matchId,
         idx: q['idx'] as int,
-        answerId: 1,
+        answerId: AsyncDuelService.sentinelAnswerId,
+        isCorrect: isCorrect,
       );
 
       if (!ok) {
@@ -278,7 +318,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
         return;
       }
 
-      _progress!.answers[_idx] = 1;
+      _progress!.answers[_idx] = AsyncDuelService.sentinelAnswerId;
       await _store!.save(_progress!);
 
       setState(() {
@@ -417,7 +457,9 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        Navigator.of(context).pop();
+        if (ModalRoute.of(context)?.isCurrent == true) {
+          Navigator.of(context).pop();
+        }
         return;
       }
       setState(() {
@@ -436,20 +478,24 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      Navigator.of(context).pop();
+      if (ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
   /// "Status pruefen" im Wartebildschirm: Ist der Gegner fertig, rendert
   /// _tryFinalize automatisch das Ergebnis. Sonst zeigt ein Dialog den
   /// eigenen Zwischenstand mit beiden Profilbildern.
+  bool _checking = false;
+
   Future<void> _pruefeStatus() async {
-    if (_loading) return;
-    setState(() => _loading = true);
+    if (_checking) return;
+    setState(() => _checking = true);
     await _tryFinalize();
     if (!mounted) return;
     if (_matchCompleted) {
-      setState(() => _loading = false);
+      setState(() => _checking = false);
       return;
     }
     Map<String, dynamic>? status;
@@ -459,7 +505,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
       status = null;
     }
     if (!mounted) return;
-    setState(() => _loading = false);
+    setState(() => _checking = false);
     if (status == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -479,8 +525,10 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   Future<void> _tryFinalize() async {
     try {
       final status = await _svc.tryFinalize(widget.matchId);
+      if (!mounted) return;
       if (status == 'completed' || status == 'finalized') {
         final scores = await _svc.loadScores(widget.matchId);
+        if (!mounted) return;
         setState(() {
           _matchCompleted = true;
           _finalScores = scores;
@@ -489,6 +537,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
           _waitingForOpponent = false;
         });
       } else if (status == 'waiting') {
+        if (!mounted) return;
         setState(() => _waitingForOpponent = true);
       }
     } catch (e) {
@@ -1648,9 +1697,15 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton.icon(
-                  onPressed: _loading ? null : _pruefeStatus,
-                  icon: const Icon(Icons.refresh_rounded, size: 18),
-                  label: const Text('Status prüfen'),
+                  onPressed: _checking ? null : _pruefeStatus,
+                  icon: _checking
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.refresh_rounded, size: 18),
+                  label: Text(_checking ? 'Prüfe…' : 'Status prüfen'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: text,
                     foregroundColor: bg,
@@ -1708,13 +1763,13 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
     Color textMid,
     Color textDim,
   ) {
-    final myScore = _finalScores?['my_score'] ?? 0;
-    final oppScore = _finalScores?['opponent_score'] ?? 0;
+    final myScore = (_finalScores?['my_score'] as num?)?.toInt() ?? 0;
+    final oppScore = (_finalScores?['opponent_score'] as num?)?.toInt() ?? 0;
     final myProfile = _finalScores?['my_profile'] as Map<String, dynamic>?;
     final oppProfile =
         _finalScores?['opponent_profile'] as Map<String, dynamic>?;
-    final myName = myProfile?['username'] ?? 'Du';
-    final oppName = oppProfile?['username'] ?? 'Gegner';
+    final String myName = (myProfile?['username'] as String?) ?? 'Du';
+    final String oppName = (oppProfile?['username'] as String?) ?? 'Gegner';
 
     final isWinner = myScore > oppScore;
     final isDraw = myScore == oppScore;

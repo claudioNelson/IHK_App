@@ -35,7 +35,7 @@ Future<String?> showAvatarPickerSheet(
       builder: (ctx, setSheet) {
         final preview = EmojiAvatar.encode(emoji, colorIdx);
         return SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,

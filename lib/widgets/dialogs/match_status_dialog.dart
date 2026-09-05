@@ -21,8 +21,11 @@ Future<void> showMatchStatusDialog(
 
   final total = status['total'] as int? ?? 10;
   final myCorrect = status['my_correct'] as int? ?? 0;
+  final myAnswered = status['my_answered'] as int? ?? 0;
   final hasOpponent = status['has_opponent'] == true;
+  final oppCorrect = status['opponent_correct'] as int? ?? 0;
   final oppAnswered = status['opponent_answered'] as int? ?? 0;
+  final oppDone = oppAnswered >= total;
   final me = status['my_profile'] as Map<String, dynamic>?;
   final opp = status['opponent_profile'] as Map<String, dynamic>?;
 
@@ -70,6 +73,9 @@ Future<void> showMatchStatusDialog(
                     name: (myName == null || myName.isEmpty) ? 'Du' : myName,
                     value: '$myCorrect / $total',
                     caption: 'richtig',
+                    progress: myAnswered < total
+                        ? '$myAnswered von $total gespielt'
+                        : null,
                     valueColor: AppColors.success,
                     text: text,
                     textMid: textMid,
@@ -104,9 +110,14 @@ Future<void> showMatchStatusDialog(
                             ? 'Gegner'
                             : oppName)
                         : 'Noch niemand',
-                    value: hasOpponent ? '$oppAnswered / $total' : '—',
-                    caption: hasOpponent ? 'beantwortet' : 'wartet auf Gegner',
-                    valueColor: hasOpponent ? AppColors.warning : textDim,
+                    value: hasOpponent ? '$oppCorrect / $total' : '—',
+                    caption: hasOpponent ? 'richtig' : 'wartet auf Gegner',
+                    progress: hasOpponent && !oppDone
+                        ? '$oppAnswered von $total gespielt'
+                        : null,
+                    valueColor: hasOpponent
+                        ? (oppDone ? AppColors.success : AppColors.warning)
+                        : textDim,
                     text: text,
                     textMid: textMid,
                     textDim: textDim,
@@ -116,9 +127,11 @@ Future<void> showMatchStatusDialog(
             ),
             const SizedBox(height: 18),
             Text(
-              hasOpponent
-                  ? 'Das Ergebnis erscheint, sobald dein Gegner alle Fragen beantwortet hat.'
-                  : 'Sobald jemand dein Duell annimmt und spielt, siehst du hier das Ergebnis.',
+              !hasOpponent
+                  ? 'Sobald jemand dein Duell annimmt und spielt, siehst du hier das Ergebnis.'
+                  : oppDone
+                      ? 'Beide sind fertig – das Match wird in Kürze ausgewertet.'
+                      : 'Das Ergebnis wird gewertet, sobald dein Gegner alle Fragen beantwortet hat.',
               style: AppTextStyles.bodySmall(textMid),
             ),
             const SizedBox(height: 12),
@@ -145,6 +158,8 @@ class _PlayerColumn extends StatelessWidget {
   final String name;
   final String value;
   final String caption;
+  /// Kleine Zusatzzeile, z. B. "7 von 10 gespielt" (null = fertig).
+  final String? progress;
   final Color valueColor;
   final Color text;
   final Color textMid;
@@ -156,6 +171,7 @@ class _PlayerColumn extends StatelessWidget {
     required this.name,
     required this.value,
     required this.caption,
+    this.progress,
     required this.valueColor,
     required this.text,
     required this.textMid,
@@ -189,6 +205,12 @@ class _PlayerColumn extends StatelessWidget {
           ),
         ),
         Text(caption, style: AppTextStyles.bodySmall(textMid)),
+        // Platz immer reservieren, damit beide Spalten gleich hoch bleiben
+        const SizedBox(height: 4),
+        Text(
+          progress ?? '',
+          style: AppTextStyles.monoSmall(progress == null ? Colors.transparent : textDim),
+        ),
       ],
     );
   }

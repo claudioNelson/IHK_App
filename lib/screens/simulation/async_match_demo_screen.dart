@@ -11,6 +11,7 @@ import 'async_match_play_screen.dart';
 import '../../services/usage_tracker.dart';
 import '../../widgets/limit_reached_dialog.dart';
 import '../../widgets/header_wash.dart';
+import '../../widgets/user_avatar.dart';
 
 class AsyncMatchDemoPage extends StatefulWidget {
   const AsyncMatchDemoPage({super.key});
@@ -29,6 +30,8 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   Map<String, Map<String, dynamic>> _matchScores = {};
   List<Map<String, dynamic>> _openMatches = [];
   Map<String, int> _myAnswerCounts = {};
+  /// Profile der Mitspieler (id -> username/avatar_url), einmal pro Ladevorgang
+  Map<String, Map<String, dynamic>> _profiles = {};
 
   String get _userId =>
       Supabase.instance.client.auth.currentUser?.id ?? 'local';
@@ -49,14 +52,29 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     }
   }
 
-  /// Lädt nur die Antwort-Counts (für Badge-Anzeige), wenn Rest aus Cache kommt.
+  /// Lädt nur Antwort-Counts und Gegner-Profile nach, wenn der Rest aus dem
+  /// Cache kommt (beides ist nicht im Cache).
   Future<void> _loadAnswerCountsOnly() async {
-    if (_activeMatches.isEmpty) return;
     try {
       final activeIds = _activeMatches.map((m) => m['id'] as String).toList();
-      final counts = await _svc.getMyAnswerCounts(activeIds);
+      final otherIds = <String>[];
+      for (final m in [..._activeMatches, ..._historyMatches]) {
+        for (final k in ['player1_id', 'player2_id']) {
+          final id = m[k] as String?;
+          if (id != null && id != _userId) otherIds.add(id);
+        }
+      }
+      final results = await Future.wait([
+        activeIds.isEmpty
+            ? Future.value(<String, int>{})
+            : _svc.getMyAnswerCounts(activeIds),
+        _svc.getProfiles(otherIds),
+      ]);
       if (!mounted) return;
-      setState(() => _myAnswerCounts = counts);
+      setState(() {
+        _myAnswerCounts = results[0] as Map<String, int>;
+        _profiles = results[1] as Map<String, Map<String, dynamic>>;
+      });
     } catch (e) {
       debugPrint('❌ Fehler beim Laden der Antwort-Counts: $e');
     }
@@ -83,6 +101,15 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       final scores = await _svc.getMatchScores(historyIds);
       final activeIds = active.map((m) => m['id'] as String).toList();
       final answerCounts = await _svc.getMyAnswerCounts(activeIds);
+      // Gegner-Profile fuer alle Karten in einer Abfrage
+      final otherIds = <String>[];
+      for (final m in matches) {
+        for (final k in ['player1_id', 'player2_id']) {
+          final id = m[k] as String?;
+          if (id != null && id != _userId) otherIds.add(id);
+        }
+      }
+      final profiles = await _svc.getProfiles(otherIds);
       if (!mounted) return;
       setState(() {
         _activeMatches = active;
@@ -90,6 +117,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
         _myStats = stats;
         _matchScores = scores;
         _myAnswerCounts = answerCounts; // ← NEU
+        _profiles = profiles;
       });
     } catch (e) {
       debugPrint('❌ Fehler: $e');
@@ -971,6 +999,13 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
   }) {
     final matchId = match['id'] as String;
     final status = match['status'] as String;
+    // Gegner bestimmen (der andere Spieler); null = noch keiner beigetreten
+    final p1 = match['player1_id'] as String?;
+    final p2 = match['player2_id'] as String?;
+    final opponentId = (p1 == _userId) ? p2 : p1;
+    final opponent = opponentId == null ? null : _profiles[opponentId];
+    final opponentName = (opponent?['username'] as String?)?.trim();
+    final istErsteller = p1 == _userId;
     final questions = (match['total_questions'] ?? 10) as int;
     final createdAt = match['created_at'] as String?;
     final canPlay = status == 'active' || status == 'open';
@@ -1005,7 +1040,11 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
-        onTap: isHistory ? () => _openResult(matchId) : () => _playMatch(matchId),
+        // Historie: nur Matches mit Wertung oeffnen das Ergebnis; abgebrochene
+        // (kein match_scores-Eintrag) sind nicht antippbar.
+        onTap: isHistory
+            ? (didWin != null ? () => _openResult(matchId) : null)
+            : () => _playMatch(matchId),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1015,20 +1054,38 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
           ),
           child: Row(
             children: [
-              // Match-ID in Mono + Status
+              // Gegner-Avatar (Platzhalter, solange keiner da ist)
+              UserAvatar(
+                avatarUrl: opponent?['avatar_url'] as String?,
+                username: opponentName,
+                size: 40,
+                surface: surface,
+                border: border,
+                textColor: text,
+                placeholder: opponentId == null,
+              ),
+              const SizedBox(width: 12),
+              // Gegnername + Status
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Text(
-                          '#${matchId.substring(0, 6).toUpperCase()}',
-                          style: AppTextStyles.mono(
-                            size: 13,
-                            color: text,
-                            weight: FontWeight.w700,
-                            letterSpacing: 0.5,
+                        Flexible(
+                          child: Text(
+                            opponentId == null
+                                ? 'Wartet auf Gegner'
+                                : (opponentName == null || opponentName.isEmpty
+                                    ? 'Gegner'
+                                    : opponentName),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.interTight(
+                              size: 14,
+                              weight: FontWeight.w600,
+                              color: opponentId == null ? textMid : text,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1096,7 +1153,10 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$questions Fragen · ${_formatDate(createdAt)}',
+                      '#${matchId.substring(0, 6).toUpperCase()} · $questions Fragen · ${_formatDate(createdAt)}'
+                      '${istErsteller ? '' : ' · von ${opponentName ?? 'Gegner'} eröffnet'}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.monoSmall(textDim),
                     ),
                   ],
@@ -1147,6 +1207,27 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                     const SizedBox(width: 6),
                     Icon(Icons.chevron_right_rounded, size: 18, color: textDim),
                   ],
+                )
+              else if (isHistory)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: textDim.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: textDim.withOpacity(0.25)),
+                  ),
+                  child: Text(
+                    'OHNE WERTUNG',
+                    style: AppTextStyles.mono(
+                      size: 9,
+                      color: textDim,
+                      weight: FontWeight.w700,
+                      letterSpacing: 1,
+                    ),
+                  ),
                 )
               else if (canPlay)
                 Container(

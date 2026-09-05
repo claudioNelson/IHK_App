@@ -393,10 +393,12 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
 
   // ─── HEADER ─────────────────────────────────────────
   Widget _buildHeader(Color text, Color textMid, Color textDim) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 36),
-      child: SafeArea(
-        bottom: false,
+    // SafeArea aussen wie bei Pruefen/Arena/Profil, sonst addiert sich das
+    // Top-Padding auf den Statusbar-Inset und der Header sitzt tiefer.
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 36),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

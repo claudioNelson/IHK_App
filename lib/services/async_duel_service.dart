@@ -12,12 +12,7 @@ class AsyncDuelService {
   }
 
   Future<String?> joinRandomMatch() async {
-    print('🔵 joinRandomMatch aufgerufen');
-    print('🔵 User ID: ${c.auth.currentUser?.id}');
-
     final id = await c.rpc('join_random_open_match');
-
-    print('🔵 Ergebnis: $id');
 
     return id == null ? null : id as String;
   }
@@ -39,14 +34,28 @@ class AsyncDuelService {
     return List<Map<String, dynamic>>.from(result);
   }
 
+  /// Platzhalter-Antwort-Id fuer Sonderfragen, Pseudo-Antworten und
+  /// Zeitablauf (antwort_id ist NOT NULL mit FK -> muss existieren).
+  /// Ob die Antwort richtig war, entscheidet in diesen Faellen [isCorrect],
+  /// nicht die Tabelle antworten (Migration 20260905010000).
+  static const int sentinelAnswerId = 1;
+
+  /// [isCorrect] == null: Server schlaegt ist_richtig in `antworten` nach
+  /// (echte Multiple-Choice-Antwort). Sonst wird der Wert uebernommen.
   Future<bool> submitAnswer({
     required String matchId,
     required int idx,
     required int answerId,
+    bool? isCorrect,
   }) async {
     final done = await c.rpc(
       'submit_async_answer',
-      params: {'p_match': matchId, 'p_idx': idx, 'p_antwort_id': answerId},
+      params: {
+        'p_match': matchId,
+        'p_idx': idx,
+        'p_antwort_id': answerId,
+        if (isCorrect != null) 'p_is_correct': isCorrect,
+      },
     );
     return (done as bool? ?? false);
   }
@@ -97,36 +106,25 @@ class AsyncDuelService {
     final p2 = match['player2_id'] as String?;
     final opponentId = (p1 == myId) ? p2 : p1;
 
-    final myAnswers = await c
-        .from('match_answers')
-        .select('is_correct')
-        .eq('match_id', matchId)
-        .eq('user_id', myId);
-    final myCorrect = (myAnswers as List)
-        .where((a) => a['is_correct'] == true)
-        .length;
+    // Die vier Abfragen sind unabhaengig -> parallel (spart auf Mobilfunk ~1 s)
+    final results = await Future.wait<dynamic>([
+      c.from('match_answers').select('is_correct').eq('match_id', matchId).eq('user_id', myId),
+      opponentId == null
+          ? Future.value(<dynamic>[])
+          : c.from('match_answers').select('is_correct').eq('match_id', matchId).eq('user_id', opponentId),
+      c.from('profiles').select('id, username, avatar_url').eq('id', myId).maybeSingle(),
+      opponentId == null
+          ? Future.value(null)
+          : c.from('profiles').select('id, username, avatar_url').eq('id', opponentId).maybeSingle(),
+    ]);
 
-    int opponentAnswered = 0;
-    Map<String, dynamic>? opponentProfile;
-    if (opponentId != null) {
-      final oppAnswers = await c
-          .from('match_answers')
-          .select('idx')
-          .eq('match_id', matchId)
-          .eq('user_id', opponentId);
-      opponentAnswered = (oppAnswers as List).length;
-      opponentProfile = await c
-          .from('profiles')
-          .select('id, username, avatar_url')
-          .eq('id', opponentId)
-          .maybeSingle();
-    }
-
-    final myProfile = await c
-        .from('profiles')
-        .select('id, username, avatar_url')
-        .eq('id', myId)
-        .maybeSingle();
+    final List myAnswers = results[0];
+    final myCorrect = myAnswers.where((a) => a['is_correct'] == true).length;
+    final List opponentAnswers = results[1];
+    final opponentCorrect =
+        opponentAnswers.where((a) => a['is_correct'] == true).length;
+    final myProfile = results[2] as Map<String, dynamic>?;
+    final opponentProfile = results[3] as Map<String, dynamic>?;
 
     return {
       'total': total,
@@ -134,7 +132,8 @@ class AsyncDuelService {
       'my_answered': myAnswers.length,
       'my_profile': myProfile,
       'has_opponent': opponentId != null,
-      'opponent_answered': opponentAnswered,
+      'opponent_correct': opponentCorrect,
+      'opponent_answered': opponentAnswers.length,
       'opponent_profile': opponentProfile,
     };
   }
@@ -151,18 +150,22 @@ class AsyncDuelService {
 
     if (scores == null) return null;
 
-    // Lade Spieler-Profile separat
-    final player1Profile = await c
-        .from('profiles')
-        .select('id, username, email, avatar_url')
-        .eq('id', scores['player1_id'])
-        .maybeSingle();
+    // Lade Spieler-Profile separat (player2 kann bei abgebrochenen Matches
+    // fehlen -> .eq('id', null) wuerde einen PostgREST-Fehler werfen)
+    final p1Id = scores['player1_id'] as String?;
+    final p2Id = scores['player2_id'] as String?;
+    Future<Map<String, dynamic>?> profil(String? id) async {
+      if (id == null) return null;
+      return await c
+          .from('profiles')
+          .select('id, username, email, avatar_url')
+          .eq('id', id)
+          .maybeSingle();
+    }
 
-    final player2Profile = await c
-        .from('profiles')
-        .select('id, username, email, avatar_url')
-        .eq('id', scores['player2_id'])
-        .maybeSingle();
+    final profiles = await Future.wait([profil(p1Id), profil(p2Id)]);
+    final player1Profile = profiles[0];
+    final player2Profile = profiles[1];
 
     final isPlayer1 = scores['player1_id'] == userId;
 
@@ -273,6 +276,21 @@ class AsyncDuelService {
     }
 
     return result;
+  }
+
+  /// Laedt Profile (id, username, avatar_url) fuer mehrere User in einer Abfrage.
+  Future<Map<String, Map<String, dynamic>>> getProfiles(List<String> userIds) async {
+    final ids = userIds.toSet().toList();
+    if (ids.isEmpty) return {};
+    final rows = await c
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .inFilter('id', ids);
+    final map = <String, Map<String, dynamic>>{};
+    for (final r in rows) {
+      map[r['id'] as String] = Map<String, dynamic>.from(r as Map);
+    }
+    return map;
   }
 
   /// Lädt die Scores für mehrere Matches

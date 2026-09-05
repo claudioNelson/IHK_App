@@ -838,6 +838,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
   ) {
     final elo = _playerStats?['elo_rating'] ?? 0;
     final hasElo = elo > 0;
+    final isDark = context.watch<ThemeProvider>().isDark;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 28),
@@ -857,7 +858,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
                     border: Border.all(color: border, width: 1.5),
                     // Dark: Akzent-Glow. Light: neutraler Schatten (Glow
                     // verpufft auf hellem Grund).
-                    boxShadow: context.read<ThemeProvider>().isDark
+                    boxShadow: isDark
                         ? [
                             BoxShadow(
                               color: AppColors.accent.withOpacity(0.2),
@@ -873,11 +874,12 @@ class _NewProfilePageState extends State<NewProfilePage> {
                             ),
                           ],
                   ),
+                  clipBehavior: Clip.antiAlias,
                   child: EmojiAvatar.decode(_profile?['avatar_url'] as String?) != null
                       ? UserAvatar(
                           avatarUrl: _profile?['avatar_url'] as String?,
                           username: _profile?['username'] as String?,
-                          size: 88,
+                          size: 85,
                           surface: surface,
                           border: border,
                           textColor: text,

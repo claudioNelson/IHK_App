@@ -80,15 +80,17 @@ class UserAvatar extends StatelessWidget {
       return Container(
         width: size,
         height: size,
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: emoji.color.withOpacity(0.22),
-          border: Border.all(color: emoji.color.withOpacity(0.6), width: 1.5),
+          border: Border.all(color: emoji.color.withOpacity(0.75), width: 1.5),
         ),
         child: Center(
           child: Text(
             emoji.emoji,
-            style: TextStyle(fontSize: size * 0.5, height: 1),
+            // Noto Color Emoji rendert ~1.17x der fontSize -> 0.44 statt 0.5
+            style: TextStyle(fontSize: size * 0.44, height: 1),
           ),
         ),
       );
