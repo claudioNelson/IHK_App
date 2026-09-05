@@ -489,6 +489,9 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
   /// eigenen Zwischenstand mit beiden Profilbildern.
   bool _checking = false;
 
+  /// Sound + Badge-Check des Ergebnis-Screens nur einmal ausloesen.
+  bool _resultEffectsDone = false;
+
   Future<void> _pruefeStatus() async {
     if (_checking) return;
     setState(() => _checking = true);
@@ -1776,6 +1779,9 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (widget.showResult) return; // Historie: keine Sounds, keine Badges
+      // build() laeuft bei jedem Rebuild -> Sound + Badge-Check nur einmal
+      if (_resultEffectsDone) return;
+      _resultEffectsDone = true;
       if (isWinner) {
         _soundService.playSound(SoundType.victory);
       } else if (!isDraw) {
