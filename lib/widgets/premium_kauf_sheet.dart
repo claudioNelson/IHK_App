@@ -1,6 +1,6 @@
 // lib/widgets/premium_kauf_sheet.dart
 //
-// Bottom Sheet mit den drei Premium-Plänen (Google Play Billing).
+// Bottom Sheet mit den drei Premium-Plänen (Google Play Billing / App Store).
 // Aufruf über showPremiumKaufSheet(context) — liefert true zurück,
 // wenn der Kauf erfolgreich war (Premium ist dann bereits freigeschaltet).
 
@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../screens/auth/upgrade_account_screen.dart';
+import '../screens/legal/legal_document_screen.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../theme/app_colors.dart';
@@ -20,18 +21,19 @@ import '../theme/theme_provider.dart';
 
 /// Kann auf dieser Plattform überhaupt gekauft werden?
 ///
-/// Auf iOS: nein. `billing_service.dart` spricht ausschliesslich Google Play
-/// (`GooglePlayProductDetails`), ein Kauf-Knopf würde dort ins Leere laufen.
-/// Ein toter Kauf-Knopf ist bei Apples Prüfung ein sicherer Ablehnungsgrund
-/// (Richtlinie 2.1, "App Completeness"). Deshalb blenden wir die gesamte
-/// Kauf-Oberfläche auf iOS aus, bis StoreKit eingebaut ist.
+/// Seit 1.6 auch auf iOS (StoreKit über `billing_service.dart`). Der
+/// Schalter [_iosKaufAktiv] bleibt als Notbremse: auf `false` verschwindet
+/// die gesamte Kauf-Oberfläche auf iOS wieder (so lief 1.5.x durch Apples
+/// Prüfung, weil ein toter Kauf-Knopf ein Ablehnungsgrund ist, Richtlinie 2.1).
 ///
-/// WICHTIG: Nicht stattdessen auf die Web-Version verweisen. Nutzer zu einem
-/// Kaufweg ausserhalb des App Store zu lotsen verbietet Richtlinie 3.1.3 und
-/// führt ebenfalls zur Ablehnung. Gesperrte Inhalte bleiben einfach gesperrt.
+/// WICHTIG: Auf iOS nie auf die Web-Version oder Google Play verweisen.
+/// Nutzer zu einem Kaufweg ausserhalb des App Store zu lotsen verbietet
+/// Richtlinie 3.1.3. Gesperrte Inhalte bleiben dann einfach gesperrt.
 ///
 /// `kIsWeb` zuerst prüfen — `Platform` wirft im Browser.
-bool get premiumKaufMoeglich => kIsWeb || !Platform.isIOS;
+const bool _iosKaufAktiv = true;
+bool get premiumKaufMoeglich => kIsWeb || !Platform.isIOS || _iosKaufAktiv;
+
 
 /// Öffnet das Kauf-Sheet. Gibt true zurück, wenn Premium aktiviert wurde.
 /// Auf iOS passiert nichts (siehe [premiumKaufMoeglich]).
@@ -131,7 +133,9 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
       ),
       child: SafeArea(
         top: false,
-        child: Padding(
+        // Scrollbar: mit den Abo-Pflichttexten passt das auf kleinen
+        // iPhones sonst nicht mehr auf einen Screen.
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -173,7 +177,7 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
               const SizedBox(height: 4),
               Text(
                 'Alle Pläne enthalten den vollen Premium-Zugang. '
-                'Jederzeit in Google Play kündbar.',
+                'Jederzeit im $_storeLabel kündbar.',
                 style: AppTextStyles.bodySmall(textMid),
               ),
               const SizedBox(height: 18),
@@ -231,16 +235,58 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
                 ),
               ),
               const SizedBox(height: 4),
+              // Pflichtangaben fuer Abos (Apple 3.1.2; bei Google ebenso
+              // sinnvoll): Preis je Periode steht auf den Karten, hier
+              // Verlaengerung/Kuendigung + Links zu AGB und Datenschutz.
               Text(
-                'Abos verlängern sich automatisch zum jeweiligen Preis und '
-                'können jederzeit in den Google-Play-Einstellungen gekündigt '
-                'werden.',
+                'Die Zahlung wird über dein ${_storeLabel}-Konto abgerechnet. '
+                'Das Abo verlängert sich automatisch zum jeweiligen Preis, '
+                'sofern es nicht mindestens 24 Stunden vor Ablauf der '
+                'laufenden Periode gekündigt wird. Kündigen kannst du '
+                'jederzeit in den $_storeLabel-Einstellungen.',
                 style: AppTextStyles.bodySmall(
                   textMid.withOpacity(0.7),
                 ),
               ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _legalLink(context, 'Nutzungsbedingungen', LegalDoc.agb, textMid),
+                  Text(
+                    '  ·  ',
+                    style: AppTextStyles.bodySmall(textMid.withOpacity(0.5)),
+                  ),
+                  _legalLink(context, 'Datenschutz', LegalDoc.datenschutz, textMid),
+                ],
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// "App Store" auf iOS, sonst "Google Play" (fuer die Abo-Hinweise).
+  String get _storeLabel =>
+      (!kIsWeb && Platform.isIOS) ? 'App Store' : 'Google Play';
+
+  /// Textlink auf AGB bzw. Datenschutz (in-App-Screens, kein externer Link).
+  Widget _legalLink(
+    BuildContext context,
+    String label,
+    LegalDoc doc,
+    Color color,
+  ) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => LegalDocumentScreen(doc: doc)),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.bodySmall(color).copyWith(
+          decoration: TextDecoration.underline,
+          decorationColor: color.withOpacity(0.6),
         ),
       ),
     );

@@ -1,20 +1,30 @@
 // lib/services/billing_service.dart
 //
-// Google Play Billing für Lernarena Premium.
+// In-App-Käufe für Lernarena Premium (Google Play Billing + Apple StoreKit).
 //
-// Produkte (Play Console):
-//   Abo-ID:      lernarena_premium
-//   Base Plans:  monthly (11,99 €/Monat) · half-year (47,99 €/6 Monate) · annual (84,99 €/Jahr) — dt. Endpreise inkl. MwSt.
+// Produkte:
+//   Google Play: EIN Abo `lernarena_premium` mit drei Base Plans
+//                monthly · half-year · annual
+//   App Store:   DREI Abos in der Gruppe "Lernarena Premium"
+//                lernarena_premium_monthly · lernarena_premium_halfyear ·
+//                lernarena_premium_annual   (Apple kennt keine Base Plans)
+//   Preise (dt. Endpreise inkl. MwSt.): 11,99 €/Monat · 47,99 €/6 Monate ·
+//   84,99 €/Jahr — auf beiden Plattformen gleich.
 //
 // Ablauf:
 //   1. init() beim App-Start → lädt Produkte + lauscht auf Kauf-Events.
-//   2. buy(plan) startet den Google-Play-Kaufdialog.
-//   3. Bei erfolgreichem Kauf schickt die App den purchaseToken an die
-//      Edge Function `verify-purchase`. Die prüft den Kauf DIREKT bei
-//      Google (Play Developer API) und schaltet erst dann Premium frei —
-//      inklusive echtem Ablaufdatum aus dem Google-Abo.
+//   2. buy(plan) startet den Store-Kaufdialog.
+//   3. Bei erfolgreichem Kauf schickt die App den Kaufnachweis an eine
+//      Edge Function, die DIREKT beim Store nachfragt und erst dann Premium
+//      freischaltet — inklusive echtem Ablaufdatum aus dem Abo:
+//        Android → `verify-purchase`      (purchaseToken, Play Developer API)
+//        iOS     → `verify-purchase-ios`  (signierte StoreKit-2-Transaktion,
+//                                          App Store Server API)
 //   4. restorePurchases() läuft über denselben Weg (z. B. nach
 //      Neuinstallation oder automatischer Abo-Verlängerung).
+//
+// iOS seit 1.6 (05.09.2026): StoreKit 2 (in_app_purchase_storekit ≥ 0.4,
+// iOS ≥ 15). `serverVerificationData` ist dort die JWS-Transaktion.
 
 import 'dart:async';
 import 'dart:io' show Platform;
@@ -39,6 +49,18 @@ extension PremiumPlanX on PremiumPlan {
         return 'half-year';
       case PremiumPlan.annual:
         return 'annual';
+    }
+  }
+
+  /// Produkt-ID wie in App Store Connect angelegt (je Laufzeit ein Abo).
+  String get appleProductId {
+    switch (this) {
+      case PremiumPlan.monthly:
+        return 'lernarena_premium_monthly';
+      case PremiumPlan.halfYear:
+        return 'lernarena_premium_halfyear';
+      case PremiumPlan.annual:
+        return 'lernarena_premium_annual';
     }
   }
 
@@ -110,7 +132,23 @@ class BillingService {
   factory BillingService() => _instance;
   BillingService._internal();
 
+  /// Google-Play-Abo-ID (ein Produkt, drei Base Plans).
   static const String subscriptionId = 'lernarena_premium';
+
+  /// Kauf über den App Store (StoreKit) statt Google Play?
+  static bool get _isApple => !kIsWeb && (Platform.isIOS || Platform.isMacOS);
+
+  /// Produkt-IDs, die beim Store abgefragt werden.
+  static Set<String> get _productIds => _isApple
+      ? PremiumPlan.values.map((p) => p.appleProductId).toSet()
+      : {subscriptionId};
+
+  /// Name der Edge Function für die serverseitige Belegprüfung.
+  static String get _verifyFunction =>
+      _isApple ? 'verify-purchase-ios' : 'verify-purchase';
+
+  /// Name des Stores für Fehlermeldungen.
+  static String get _storeName => _isApple ? 'App Store' : 'Google Play';
 
   /// In-App-Purchase-Instanz. `late` + Initializer = wird erst beim ersten
   /// Zugriff erzeugt — auf nicht unterstützten Plattformen (Windows/Linux/
@@ -189,27 +227,32 @@ class BillingService {
   Future<void> loadProducts() async {
     if (!_available) return;
     try {
-      final response = await _iap.queryProductDetails({subscriptionId});
+      final response = await _iap.queryProductDetails(_productIds);
       if (response.error != null) {
         debugPrint('❌ queryProductDetails: ${response.error!.message}');
         return;
       }
+      if (response.notFoundIDs.isNotEmpty) {
+        // iOS: typisch, wenn der Vertrag für bezahlte Apps nicht aktiv ist
+        // oder die Abos in App Store Connect noch nicht "Bereit" sind.
+        debugPrint('⚠️ Produkte nicht gefunden: ${response.notFoundIDs}');
+      }
 
       _products.clear();
-      // Auf Android liefert Google pro Base Plan / Angebot einen eigenen
-      // ProductDetails-Eintrag (gleiche Produkt-ID). Wir ordnen sie über
-      // die Base-Plan-ID zu.
       for (final pd in response.productDetails) {
-        final basePlanId = _basePlanIdOf(pd);
         for (final plan in PremiumPlan.values) {
-          if (basePlanId == plan.basePlanId) {
-            _products[plan] = pd;
-          }
+          final passt = _isApple
+              // App Store: je Laufzeit ein eigenes Produkt.
+              ? pd.id == plan.appleProductId
+              // Google Play: pro Base Plan ein ProductDetails-Eintrag mit
+              // derselben Produkt-ID -> Zuordnung ueber die Base-Plan-ID.
+              : _basePlanIdOf(pd) == plan.basePlanId;
+          if (passt) _products[plan] = pd;
         }
       }
       debugPrint(
-        '💳 Produkte geladen: '
-        '${_products.map((k, v) => MapEntry(k.basePlanId, v.price))}',
+        '💳 Produkte geladen ($_storeName): '
+        '${_products.map((k, v) => MapEntry(k.name, v.price))}',
       );
     } catch (e) {
       debugPrint('❌ loadProducts Fehler: $e');
@@ -247,7 +290,7 @@ class BillingService {
 
     if (!_available) {
       _purchaseError.add(
-        'Google Play Billing ist auf diesem Gerät nicht verfügbar.',
+        'Käufe über den $_storeName sind auf diesem Gerät nicht verfügbar.',
       );
       return false;
     }
@@ -314,8 +357,9 @@ class BillingService {
           break;
       }
 
-      // Pflicht: Kauf gegenüber Google bestätigen (sonst automatische
-      // Rückerstattung nach 3 Tagen).
+      // Pflicht: Kauf gegenüber dem Store bestätigen (Google: sonst
+      // automatische Rückerstattung nach 3 Tagen; Apple: Transaktion
+      // bleibt sonst offen und wird bei jedem Start erneut gemeldet).
       if (purchase.pendingCompletePurchase) {
         try {
           await _iap.completePurchase(purchase);
@@ -328,9 +372,11 @@ class BillingService {
 
   /// Schaltet Premium über die serverseitige Belegprüfung frei.
   ///
-  /// Die App schickt nur den purchaseToken — der Server fragt bei Google
+  /// Die App schickt nur den Kaufnachweis — der Server fragt beim Store
   /// nach, ob der Kauf echt und aktiv ist, ermittelt Plan + echtes
   /// Ablaufdatum aus dem Abo und schreibt erst dann Premium in Supabase.
+  ///   Android: purchaseToken            → verify-purchase
+  ///   iOS:     JWS-Transaktion (StoreKit 2) → verify-purchase-ios
   ///
   /// fresh = true  → neuer Kauf (UI wartet auf onPremiumActivated).
   /// fresh = false → Restore/Verlängerung (gleicher Prüfweg).
@@ -338,7 +384,7 @@ class BillingService {
     PurchaseDetails purchase, {
     required bool fresh,
   }) async {
-    if (purchase.productID != subscriptionId) return;
+    if (!_productIds.contains(purchase.productID)) return;
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
@@ -347,15 +393,17 @@ class BillingService {
     }
 
     try {
-      // Der purchaseToken von Google Play — der Nachweis des Kaufs.
+      // Google: purchaseToken. Apple (StoreKit 2): signierte Transaktion.
       final token = purchase.verificationData.serverVerificationData;
       if (token.isEmpty) {
-        throw Exception('Kein purchaseToken vorhanden');
+        throw Exception('Kein Kaufnachweis vorhanden');
       }
 
       final res = await Supabase.instance.client.functions.invoke(
-        'verify-purchase',
-        body: {'purchaseToken': token},
+        _verifyFunction,
+        body: _isApple
+            ? {'transactionJws': token, 'productId': purchase.productID}
+            : {'purchaseToken': token},
       );
 
       final data = res.data is Map ? Map<String, dynamic>.from(res.data) : null;
