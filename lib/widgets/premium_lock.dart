@@ -120,6 +120,33 @@ class PremiumLock extends StatelessWidget {
 
                   const SizedBox(height: 16),
 
+                  // Ohne Kaufmoeglichkeit (iOS): neutraler Hinweis statt
+                  // einer Seite, die nach der Vorteilsliste einfach endet.
+                  // Bewusst kein Verweis auf andere Plattformen oder das Web
+                  // (Richtlinie 3.1.3).
+                  if (!premiumKaufMoeglich)
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: surface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: border),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.info_outline, size: 16, color: textMid),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Premium ist in dieser App-Version noch nicht verfügbar. Alle kostenlosen Inhalte stehen dir weiterhin uneingeschränkt offen.',
+                              style: AppTextStyles.bodySmall(textMid),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                   // Pricing Hint — nur wo auch gekauft werden kann.
                   if (premiumKaufMoeglich)
                     Container(

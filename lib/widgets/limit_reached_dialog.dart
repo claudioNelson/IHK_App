@@ -96,8 +96,12 @@ class LimitReachedDialog extends StatelessWidget {
             const SizedBox(height: 8),
 
             // Description
+            // Ohne Kaufmoeglichkeit (iOS) kein "Upgrade"-Satz — der wuerde
+            // auf einen Knopf verweisen, den es dort nicht gibt.
             Text(
-              'Du hast dein tägliches Limit von $limit $featureName erreicht. Upgrade auf Premium für unbegrenzten Zugang.',
+              premiumKaufMoeglich
+                  ? 'Du hast dein tägliches Limit von $limit $featureName erreicht. Upgrade auf Premium für unbegrenzten Zugang.'
+                  : 'Du hast dein tägliches Limit von $limit $featureName erreicht. Morgen geht es weiter – dein Fortschritt bleibt gespeichert.',
               style: AppTextStyles.bodyMedium(textMid),
             ),
 
