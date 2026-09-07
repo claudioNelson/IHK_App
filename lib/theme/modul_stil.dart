@@ -12,10 +12,20 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
-/// Icon und Akzentfarbe je Modul. Gibt den Listen Gesichter statt
-/// sechzehn identischer Kacheln. Neue Module bekommen automatisch
+/// Seit 07.09.2026: Module bekommen ihr Icon, aber alle dieselbe
+/// Akzentfarbe (Indigo). Die Farbe je Modul trug keine Bedeutung und machte
+/// die Listen neben den Status-Farben (gruen = fertig, orange/rot = Stufe)
+/// zu bunt. `true` stellt den alten bunten Look wieder her.
+const bool kBunteModulFarben = false;
+
+/// Icon und Akzentfarbe je Modul. Neue Module bekommen automatisch
 /// den Standard-Look.
 ({IconData icon, Color farbe}) modulStil(String name) {
+  final s = _modulStilBunt(name);
+  return kBunteModulFarben ? s : (icon: s.icon, farbe: AppColors.accent);
+}
+
+({IconData icon, Color farbe}) _modulStilBunt(String name) {
   final n = name.toLowerCase();
   // Level-Module (Namen aus der Tabelle level_module)
   if (n.contains('backup') || n.contains('recovery')) {

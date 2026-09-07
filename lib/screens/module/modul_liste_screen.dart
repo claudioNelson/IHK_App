@@ -188,7 +188,14 @@ class _ModulListeState extends State<ModulListe> {
   Map<String, List<Map<String, dynamic>>> _groupedModules() {
     final grouped = <String, List<Map<String, dynamic>>>{};
     for (final m in module) {
-      final kat = (m['kategorie'] as String?)?.toUpperCase() ?? 'ALLGEMEIN';
+      // DB-Kategorie -> Anzeigename ("standard" ist ein Datenbankbegriff)
+      final roh = (m['kategorie'] as String?)?.toLowerCase() ?? '';
+      final kat = switch (roh) {
+        'standard' => 'MODULE',
+        'kernthema' => 'KERNTHEMEN',
+        '' => 'ALLGEMEIN',
+        _ => roh.toUpperCase(),
+      };
       grouped.putIfAbsent(kat, () => []).add(m as Map<String, dynamic>);
     }
     return grouped;
