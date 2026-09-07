@@ -61,9 +61,12 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
 
   bool _busy = false;
   String? _error;
+  String? _statusText;
+  Timer? _timeout;
 
   StreamSubscription<bool>? _successSub;
   StreamSubscription<String>? _errorSub;
+  StreamSubscription<void>? _verifyingSub;
 
   @override
   void initState() {
@@ -71,15 +74,28 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
 
     // Erfolgreicher Kauf → Sheet mit true schließen.
     _successSub = _billing.onPremiumActivated.listen((_) {
+      _timeout?.cancel();
       if (mounted) Navigator.pop(context, true);
     });
 
     // Fehler/Abbruch → Meldung anzeigen, Buttons wieder freigeben.
     _errorSub = _billing.onPurchaseError.listen((msg) {
+      _timeout?.cancel();
       if (mounted) {
         setState(() {
           _busy = false;
+          _statusText = null;
           _error = msg;
+        });
+      }
+    });
+
+    // Store hat den Kauf bestaetigt, Server prueft gerade den Beleg.
+    _verifyingSub = _billing.onPurchaseVerifying.listen((_) {
+      if (mounted) {
+        setState(() {
+          _busy = true;
+          _statusText = 'Kauf wird bestätigt …';
         });
       }
     });
@@ -92,8 +108,10 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
 
   @override
   void dispose() {
+    _timeout?.cancel();
     _successSub?.cancel();
     _errorSub?.cancel();
+    _verifyingSub?.cancel();
     super.dispose();
   }
 
@@ -102,12 +120,29 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
     setState(() {
       _busy = true;
       _error = null;
+      _statusText = '$_storeLabel wird geöffnet …';
     });
     final started = await _billing.buy(plan);
     if (!started && mounted) {
-      setState(() => _busy = false);
+      setState(() {
+        _busy = false;
+        _statusText = null;
+      });
+      return;
     }
     // Danach übernimmt der purchaseStream (Erfolg → pop, Fehler → _errorSub).
+    // Sicherheitsnetz: meldet sich der Store gar nicht (Dialog weggewischt,
+    // Sandbox haengt), Sheet nach 45 s wieder freigeben. Ein spaeter doch
+    // eintreffender Kauf wird trotzdem verarbeitet (Listener bleibt).
+    _timeout?.cancel();
+    _timeout = Timer(const Duration(seconds: 45), () {
+      if (!mounted || !_busy) return;
+      setState(() {
+        _busy = false;
+        _statusText = null;
+        _error = 'Keine Antwort vom $_storeLabel. Bitte erneut versuchen.';
+      });
+    });
   }
 
   @override
@@ -219,6 +254,33 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
                 Text(
                   _error!,
                   style: AppTextStyles.bodySmall(AppColors.warning),
+                ),
+              ],
+
+              // Statuszeile waehrend des Kaufs: der Store-Dialog braucht
+              // (besonders in Apples Sandbox) gern 5-15 s, die Bestaetigung
+              // beim Server nochmal ein paar Sekunden. Ohne Text wirkt der
+              // Spinner wie "haengt".
+              if (_busy && _statusText != null) ...[
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.accent,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _statusText!,
+                        style: AppTextStyles.bodySmall(textMid),
+                      ),
+                    ),
+                  ],
                 ),
               ],
 

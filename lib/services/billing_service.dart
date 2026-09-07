@@ -182,6 +182,12 @@ class BillingService {
       StreamController<String>.broadcast();
   Stream<String> get onPurchaseError => _purchaseError.stream;
 
+  /// Feuert, sobald der Store einen Kauf gemeldet hat und die
+  /// serverseitige Belegprüfung läuft (UI: "Kauf wird bestätigt …").
+  final StreamController<void> _purchaseVerifying =
+      StreamController<void>.broadcast();
+  Stream<void> get onPurchaseVerifying => _purchaseVerifying.stream;
+
   bool get isAvailable => _available;
 
   /// Anzeigepreis für einen Plan (echter Google-Play-Preis oder Fallback).
@@ -391,6 +397,8 @@ class BillingService {
       debugPrint('⚠️ Kauf ohne eingeloggten User — kein Grant möglich.');
       return;
     }
+
+    if (fresh) _purchaseVerifying.add(null);
 
     try {
       // Google: purchaseToken. Apple (StoreKit 2): signierte Transaktion.
