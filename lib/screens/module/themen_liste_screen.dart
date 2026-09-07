@@ -34,6 +34,8 @@ class _ThemenListeState extends State<ThemenListe> {
   Map<int, double> cachedScores = {};
   Map<int, int> themenRequired = {};
   Map<int, int> fragenCount = {};
+  /// Je Thema [einfach, mittel, schwer] fuer die Verteilung auf der Karte.
+  Map<int, List<int>> schwierigkeitsMix = {};
 
   @override
   void initState() {
@@ -115,18 +117,29 @@ class _ThemenListeState extends State<ThemenListe> {
     try {
       final alleFragen = await supabase
           .from('fragen')
-          .select('id, thema_id')
+          .select('id, thema_id, schwierigkeitsgrad')
           .eq('modul_id', widget.modulId);
 
       // Frisch zaehlen statt auf den alten Stand draufzuaddieren.
       // Vorher summierte jeder Reload weiter auf, dadurch standen auf den
       // Kacheln Vielfache der echten Fragenzahl (z. B. 77 statt 11).
       final neu = <int, int>{};
+      final mix = <int, List<int>>{}; // [einfach, mittel, schwer]
       for (final frage in alleFragen) {
         final themaId = frage['thema_id'] as int;
         neu[themaId] = (neu[themaId] ?? 0) + 1;
+        final grad = (frage['schwierigkeitsgrad'] as String?)?.toLowerCase();
+        final m = mix.putIfAbsent(themaId, () => [0, 0, 0]);
+        if (grad == 'einfach' || grad == 'leicht') {
+          m[0]++;
+        } else if (grad == 'schwer') {
+          m[2]++;
+        } else {
+          m[1]++;
+        }
       }
       fragenCount = neu;
+      schwierigkeitsMix = mix;
     } catch (e) {
       debugPrint('Fehler beim Laden der Fragen-Counts: $e');
     }
@@ -141,8 +154,11 @@ class _ThemenListeState extends State<ThemenListe> {
   }
 
   Color _getDifficultyColor(String? difficulty) {
-    switch (difficulty?.toLowerCase()) {
+    switch (difficulty?.toLowerCase().trim()) {
+      // themen.schwierigkeitsgrad nutzt "leicht", fragen.schwierigkeitsgrad
+      // "einfach" - beides gruen.
       case 'leicht':
+      case 'einfach':
         return AppColors.success;
       case 'mittel':
         return AppColors.warning;
@@ -717,6 +733,7 @@ class _ThemenListeState extends State<ThemenListe> {
                         const SizedBox(height: 4),
                         _buildInfoRow(
                           difficulty: difficulty,
+                          mix: schwierigkeitsMix[id],
                           fragenAnzahl: fragenAnzahl,
                           estimatedMin: estimatedMin,
                           unlocked: unlocked,
@@ -844,6 +861,7 @@ class _ThemenListeState extends State<ThemenListe> {
 
   Widget _buildInfoRow({
     required String? difficulty,
+    List<int>? mix,
     required int fragenAnzahl,
     required int estimatedMin,
     required bool unlocked,
@@ -852,8 +870,47 @@ class _ThemenListeState extends State<ThemenListe> {
   }) {
     final parts = <Widget>[];
 
-    // Difficulty
-    if (difficulty != null && difficulty.isNotEmpty && unlocked) {
+    // Verteilung "8 leicht · 6 mittel · 2 schwer" statt eines einzelnen
+    // Labels: Ein Thema mit Badge "leicht" enthaelt trotzdem mittlere und
+    // schwere Fragen (Fragen werden aufsteigend gespielt) - das eine Wort
+    // wurde als "alles leicht" gelesen (Feedback 07.09.2026).
+    final hatMix = mix != null && (mix[0] + mix[1] + mix[2]) > 0;
+    if (hatMix && unlocked) {
+      Widget punkt(int n, String label, String farbe) => Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 5,
+                height: 5,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _getDifficultyColor(farbe),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '$n $label',
+                style: AppTextStyles.mono(
+                  size: 10,
+                  color: _getDifficultyColor(farbe),
+                  weight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          );
+      parts.add(
+        Wrap(
+          spacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            if (mix[0] > 0) punkt(mix[0], 'LEICHT', 'leicht'),
+            if (mix[1] > 0) punkt(mix[1], 'MITTEL', 'mittel'),
+            if (mix[2] > 0) punkt(mix[2], 'SCHWER', 'schwer'),
+          ],
+        ),
+      );
+    } else if (difficulty != null && difficulty.isNotEmpty && unlocked) {
       parts.add(
         Row(
           mainAxisSize: MainAxisSize.min,

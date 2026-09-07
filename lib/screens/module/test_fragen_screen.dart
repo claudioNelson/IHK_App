@@ -102,6 +102,59 @@ class _TestFragenState extends State<TestFragen>
     return fragen[currentIndex]['question_type'] == 'sequence';
   }
 
+  /// Anzeigename der Stufe der aktuellen Frage ('leicht'/'mittel'/'schwer').
+  String? get _aktuelleStufe {
+    if (fragen.isEmpty || currentIndex >= fragen.length) return null;
+    switch ((fragen[currentIndex]['schwierigkeitsgrad'] as String?)
+        ?.toLowerCase()
+        .trim()) {
+      case 'einfach':
+      case 'leicht':
+        return 'leicht';
+      case 'mittel':
+        return 'mittel';
+      case 'schwer':
+        return 'schwer';
+      default:
+        return null;
+    }
+  }
+
+  Color _stufenFarbe(String stufe) {
+    switch (stufe) {
+      case 'leicht':
+        return AppColors.success;
+      case 'schwer':
+        return AppColors.error;
+      default:
+        return AppColors.warning;
+    }
+  }
+
+  /// Gruppiert nach Schwierigkeit (einfach -> mittel -> schwer, Unbekanntes
+  /// wie "mittel") und mischt nur innerhalb der Gruppe.
+  static List<dynamic> _nachSchwierigkeitSortiert(List<dynamic> fragen) {
+    int stufe(dynamic f) {
+      switch ((f['schwierigkeitsgrad'] as String?)?.toLowerCase().trim()) {
+        case 'einfach':
+        case 'leicht':
+          return 0;
+        case 'schwer':
+          return 2;
+        default:
+          return 1;
+      }
+    }
+
+    final gruppen = <int, List<dynamic>>{0: [], 1: [], 2: []};
+    for (final f in fragen) {
+      gruppen[stufe(f)]!.add(f);
+    }
+    return [
+      for (final k in [0, 1, 2]) ...(gruppen[k]!..shuffle()),
+    ];
+  }
+
   Future<void> _loadFragen() async {
     // ─── LIMIT-CHECK für Free-User ─────────────────
     if (!await checkPracticeLimit(widget.modulId)) {
@@ -113,15 +166,18 @@ class _TestFragenState extends State<TestFragen>
       final res = await supabase
           .from('fragen')
           .select(
-            'id, frage, question_type, calculation_data, antworten(id, text, ist_richtig, erklaerung)',
+            'id, frage, question_type, calculation_data, schwierigkeitsgrad, antworten(id, text, ist_richtig, erklaerung)',
           )
           .eq('modul_id', widget.modulId)
           .eq('thema_id', widget.themaId);
 
       if (!mounted) return;
 
-      final frageListe = List<dynamic>.from(res);
-      frageListe.shuffle();
+      // Reihenfolge: erst alle einfachen, dann mittel, dann schwer -
+      // innerhalb einer Stufe gemischt. Vorher wurde alles komplett
+      // gemischt, sodass die erste Frage eines Themas oft "schwer" war
+      // (Befund 07.09.2026: Schwierigkeit wurde in der App nirgends genutzt).
+      final frageListe = _nachSchwierigkeitSortiert(List<dynamic>.from(res));
 
       for (final frage in frageListe) {
         if (frage['antworten'] != null) {
@@ -625,9 +681,37 @@ class _TestFragenState extends State<TestFragen>
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (!loading && fragen.isNotEmpty)
-                    Text(
-                      'FRAGE ${(currentIndex + 1).toString().padLeft(2, '0')} / ${fragen.length.toString().padLeft(2, '0')}',
-                      style: AppTextStyles.monoSmall(textDim),
+                    Row(
+                      children: [
+                        Text(
+                          'FRAGE ${(currentIndex + 1).toString().padLeft(2, '0')} / ${fragen.length.toString().padLeft(2, '0')}',
+                          style: AppTextStyles.monoSmall(textDim),
+                        ),
+                        // Stufe der aktuellen Frage: Fragen laufen aufsteigend
+                        // (einfach -> mittel -> schwer), so sieht man, wann
+                        // es schwerer wird.
+                        if (_aktuelleStufe != null) ...[
+                          Text('  ·  ', style: AppTextStyles.monoSmall(textDim)),
+                          Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _stufenFarbe(_aktuelleStufe!),
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            _aktuelleStufe!.toUpperCase(),
+                            style: AppTextStyles.mono(
+                              size: 10,
+                              color: _stufenFarbe(_aktuelleStufe!),
+                              weight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                 ],
               ),
