@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../widgets/frage_text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/async_duel_service.dart';
 import '../../../async_match_progress.dart';
@@ -818,7 +819,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
           ],
         ),
         const SizedBox(height: 14),
-        Text(
+        FrageText(
           frageText,
           style: AppTextStyles.instrumentSerif(
             size: 22,

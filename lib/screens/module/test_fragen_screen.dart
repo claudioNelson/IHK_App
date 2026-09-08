@@ -2,6 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../widgets/frage_text.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../../widgets/calculation_question_widget.dart';
 import '../../widgets/fill_in_blank_widget.dart';
 import '../../widgets/sequence_question_widget.dart';
@@ -24,11 +27,21 @@ class TestFragen extends StatefulWidget {
   final String modulName;
   final int themaId;
 
+  /// Prozent, ab denen das Thema als bestanden gilt (themen.required_score).
+  final int requiredScore;
+
+  /// true, wenn in der Themenliste noch ein Thema folgt. Dann bietet der
+  /// Ergebnis-Dialog bei Bestehen "Naechstes Thema" an; der Screen wird
+  /// mit dem Ergebnis 'next' geschlossen, die Themenliste oeffnet es.
+  final bool hatNaechstesThema;
+
   const TestFragen({
     super.key,
     required this.modulId,
     required this.modulName,
     required this.themaId,
+    this.requiredScore = 80,
+    this.hatNaechstesThema = false,
   });
 
   @override
@@ -49,6 +62,17 @@ class _TestFragenState extends State<TestFragen>
   /// richtige Antworten aus frueheren Sitzungen mit und jede Runde
   /// zeigt 100 %.
   final Set<int> _rundeRichtig = {};
+
+  /// Alle in dieser Runde beantworteten Fragen (richtig oder falsch) und
+  /// die Groesse der vollstaendigen Runde. Wird lokal gespeichert, damit
+  /// eine abgebrochene Runde beim naechsten Oeffnen fortgesetzt werden
+  /// kann (Befund 08.09.2026: nach dem Schliessen ging es immer wieder
+  /// bei Frage 1 los, mit der Sortierung nach Schwierigkeit erreichte man
+  /// die schweren Fragen praktisch nie).
+  final Set<int> _rundeBeantwortet = {};
+  int _rundeGesamt = 0;
+
+  String get _rundeKey => 'runde_${widget.modulId}_${widget.themaId}';
   int? selectedAnswer;
   bool hasAnswered = false;
   String? generatedExplanation;
@@ -178,6 +202,11 @@ class _TestFragenState extends State<TestFragen>
       // gemischt, sodass die erste Frage eines Themas oft "schwer" war
       // (Befund 07.09.2026: Schwierigkeit wurde in der App nirgends genutzt).
       final frageListe = _nachSchwierigkeitSortiert(List<dynamic>.from(res));
+      _rundeGesamt = frageListe.length;
+
+      // Angefangene Runde? Dann fragen, ob fortgesetzt werden soll.
+      await _rundeWiederherstellen(frageListe);
+      if (!mounted) return;
 
       for (final frage in frageListe) {
         if (frage['antworten'] != null) {
@@ -212,6 +241,153 @@ class _TestFragenState extends State<TestFragen>
     }
   }
 
+  /// Liest eine gespeicherte Runde. Passt sie zur aktuellen Fragenmenge
+  /// und ist sie noch nicht fertig, wird der Nutzer gefragt; bei
+  /// "Fortsetzen" fliegen die schon beantworteten Fragen aus der Liste.
+  Future<void> _rundeWiederherstellen(List<dynamic> frageListe) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_rundeKey);
+      if (json == null) return;
+      final data = jsonDecode(json) as Map<String, dynamic>;
+      final beantwortet = (data['beantwortet'] as List).cast<int>().toSet();
+      final richtig = (data['richtig'] as List).cast<int>().toSet();
+      final gesamt = data['gesamt'] as int;
+      final ids = frageListe.map((f) => f['id'] as int).toSet();
+      final offen = ids.difference(beantwortet);
+      // Fragenmenge hat sich geaendert oder Runde war schon komplett:
+      // Merker weg, normal starten.
+      if (gesamt != ids.length ||
+          beantwortet.isEmpty ||
+          offen.isEmpty ||
+          !ids.containsAll(beantwortet)) {
+        await prefs.remove(_rundeKey);
+        return;
+      }
+      if (!mounted) return;
+      final fortsetzen = await _frageFortsetzen(beantwortet.length, gesamt);
+      if (fortsetzen == true) {
+        _rundeBeantwortet.addAll(beantwortet);
+        _rundeRichtig.addAll(richtig);
+        frageListe.removeWhere((f) => beantwortet.contains(f['id']));
+      } else {
+        await prefs.remove(_rundeKey);
+      }
+    } catch (e) {
+      debugPrint('Runde konnte nicht wiederhergestellt werden: $e');
+    }
+  }
+
+  Future<bool?> _frageFortsetzen(int beantwortet, int gesamt) {
+    final isDark = context.read<ThemeProvider>().isDark;
+    final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
+    final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
+
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        backgroundColor: surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(width: 16, height: 1, color: AppColors.accent),
+                  const SizedBox(width: 10),
+                  Text(
+                    'ANGEFANGENE RUNDE',
+                    style: AppTextStyles.monoLabel(AppColors.accent),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Weitermachen?',
+                style: AppTextStyles.instrumentSerif(
+                  size: 32,
+                  color: text,
+                  letterSpacing: -1.0,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Du hast $beantwortet von $gesamt Fragen beantwortet. '
+                'Fortsetzen zeigt nur die restlichen ${gesamt - beantwortet}.',
+                style: AppTextStyles.bodyMedium(textMid),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: textMid,
+                        side: BorderSide(color: textDim.withOpacity(0.3)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('Von vorn'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: text,
+                        foregroundColor: bg,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        textStyle: AppTextStyles.labelLarge(bg),
+                      ),
+                      child: const Text('Fortsetzen'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _rundeSpeichern() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _rundeKey,
+        jsonEncode({
+          'beantwortet': _rundeBeantwortet.toList(),
+          'richtig': _rundeRichtig.toList(),
+          'gesamt': _rundeGesamt,
+        }),
+      );
+    } catch (e) {
+      debugPrint('Runde konnte nicht gespeichert werden: $e');
+    }
+  }
+
+  Future<void> _rundeLoeschen() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_rundeKey);
+    } catch (_) {}
+  }
+
   Future<void> _loadProgress() async {
     try {
       final answered = await _progressService.getCorrectFragen(widget.modulId);
@@ -236,6 +412,8 @@ class _TestFragenState extends State<TestFragen>
     } catch (e) {
       debugPrint('Fehler beim Speichern: $e');
     }
+    _rundeBeantwortet.add(frageId);
+    await _rundeSpeichern();
   }
 
   Future<void> _saveFlashcardIfWrong({
@@ -404,12 +582,17 @@ class _TestFragenState extends State<TestFragen>
     final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
     final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
 
-    final allFragenIds = fragen.map((f) => f['id'] as int).toSet();
-    final richtigInSession = allFragenIds
-        .intersection(_rundeRichtig)
-        .length;
-    final gesamt = fragen.length;
+    // Runde ist fertig: Merker loeschen, sonst wuerde beim naechsten
+    // Oeffnen "Fortsetzen" angeboten.
+    _rundeLoeschen();
+
+    // _rundeRichtig enthaelt nur Fragen dieser Runde (inkl. eines
+    // fortgesetzten Teils), _rundeGesamt die volle Rundengroesse.
+    final richtigInSession = _rundeRichtig.length;
+    final gesamt = _rundeGesamt > 0 ? _rundeGesamt : fragen.length;
     final prozent = ((richtigInSession / gesamt) * 100).toInt();
+    final bestanden = prozent >= widget.requiredScore;
+    final zeigeNaechstes = bestanden && widget.hatNaechstesThema;
 
     // Bestes Ergebnis sichern: Die Themenliste liest genau diesen
     // Schluessel fuer "bestanden", Ø-Score und die Freischaltung des
@@ -502,14 +685,26 @@ class _TestFragenState extends State<TestFragen>
                   minHeight: 3,
                 ),
               ),
+              if (!bestanden && widget.hatNaechstesThema) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'Ziel: ${widget.requiredScore} % schalten das nächste Thema frei.',
+                  style: AppTextStyles.monoSmall(textDim),
+                ),
+              ],
               const SizedBox(height: 24),
               Row(
                 children: [
+                  // Links: bei Bestehen "Nochmal" als Nebenweg, sonst "Zurueck".
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () async {
                         Navigator.pop(context);
-                        await _checkModuleBadgesAndPop();
+                        if (bestanden) {
+                          _nochmal();
+                        } else {
+                          await _checkModuleBadgesAndPop();
+                        }
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: textMid,
@@ -519,23 +714,22 @@ class _TestFragenState extends State<TestFragen>
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Text('Zurück'),
+                      child: Text(bestanden ? 'Nochmal' : 'Zurück'),
                     ),
                   ),
                   const SizedBox(width: 10),
+                  // Rechts (Hauptweg): naechstes Thema / fertig / nochmal.
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.pop(context);
-                        setState(() {
-                          currentIndex = 0;
-                          selectedAnswer = null;
-                          hasAnswered = false;
-                          generatedExplanation = null;
-                          calculationAnswer = null;
-                          _flashcardSaved = false;
-                        });
-                        _fadeController.forward(from: 0);
+                        if (zeigeNaechstes) {
+                          await _checkModuleBadgesAndPop(result: 'next');
+                        } else if (bestanden) {
+                          await _checkModuleBadgesAndPop();
+                        } else {
+                          _nochmal();
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: text,
@@ -546,7 +740,11 @@ class _TestFragenState extends State<TestFragen>
                         ),
                         textStyle: AppTextStyles.labelLarge(bg),
                       ),
-                      child: const Text('Nochmal'),
+                      child: Text(
+                        zeigeNaechstes
+                            ? 'Nächstes Thema'
+                            : (bestanden ? 'Fertig' : 'Nochmal'),
+                      ),
                     ),
                   ),
                 ],
@@ -558,7 +756,24 @@ class _TestFragenState extends State<TestFragen>
     );
   }
 
-  Future<void> _checkModuleBadgesAndPop() async {
+  /// Neue Runde: alle Zaehler zuruecksetzen und die volle Fragenliste
+  /// neu laden (nach "Fortsetzen" war sie auf die offenen Fragen gekuerzt).
+  void _nochmal() {
+    _rundeRichtig.clear();
+    _rundeBeantwortet.clear();
+    setState(() {
+      loading = true;
+      currentIndex = 0;
+      selectedAnswer = null;
+      hasAnswered = false;
+      generatedExplanation = null;
+      calculationAnswer = null;
+      _flashcardSaved = false;
+    });
+    _loadFragen();
+  }
+
+  Future<void> _checkModuleBadgesAndPop({String? result}) async {
     try {
       final completedModules = await _progressService
           .getCompletedModulesCount();
@@ -584,8 +799,13 @@ class _TestFragenState extends State<TestFragen>
     } catch (e) {
       debugPrint('Badge-Fehler: $e');
     }
-    if (mounted) Navigator.pop(context);
+    if (mounted) Navigator.pop(context, result);
   }
+
+  /// Position in der gesamten Runde, auch nach "Fortsetzen" (dann ist
+  /// `fragen` nur der Rest).
+  int get _frageNummer => _rundeGesamt - fragen.length + currentIndex + 1;
+  int get _frageAnzahl => _rundeGesamt > 0 ? _rundeGesamt : fragen.length;
 
   @override
   Widget build(BuildContext context) {
@@ -607,7 +827,7 @@ class _TestFragenState extends State<TestFragen>
           // Progress Bar
           if (!loading && fragen.isNotEmpty)
             LinearProgressIndicator(
-              value: (currentIndex + 1) / fragen.length,
+              value: _frageNummer / _frageAnzahl,
               backgroundColor: border,
               valueColor: const AlwaysStoppedAnimation(AppColors.accent),
               minHeight: 2,
@@ -684,7 +904,7 @@ class _TestFragenState extends State<TestFragen>
                     Row(
                       children: [
                         Text(
-                          'FRAGE ${(currentIndex + 1).toString().padLeft(2, '0')} / ${fragen.length.toString().padLeft(2, '0')}',
+                          'FRAGE ${_frageNummer.toString().padLeft(2, '0')} / ${_frageAnzahl.toString().padLeft(2, '0')}',
                           style: AppTextStyles.monoSmall(textDim),
                         ),
                         // Stufe der aktuellen Frage: Fragen laufen aufsteigend
@@ -811,7 +1031,7 @@ class _TestFragenState extends State<TestFragen>
           const SizedBox(height: 14),
 
           // Frage (groß, Instrument Serif)
-          Text(
+          FrageText(
             frage['frage'] ?? '',
             style: AppTextStyles.instrumentSerif(
               size: 26,
@@ -985,8 +1205,9 @@ class _TestFragenState extends State<TestFragen>
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text(
+                    child: FrageText(
                       antwort['text'] ?? '',
+                      codeSize: 13,
                       style: AppTextStyles.interTight(
                         size: 15,
                         weight: isSelected || showCorrect

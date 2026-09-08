@@ -1,6 +1,7 @@
 // lib/screens/learning/review_questions_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../widgets/frage_text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/spaced_repetition_service.dart';
 import '../../services/sound_service.dart';
@@ -492,7 +493,7 @@ class _ReviewQuestionsScreenState extends State<ReviewQuestionsScreen> {
           const SizedBox(height: 14),
 
           // Frage
-          Text(
+          FrageText(
             frage['frage'] ?? '',
             style: AppTextStyles.instrumentSerif(
               size: 24,

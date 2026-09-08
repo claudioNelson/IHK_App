@@ -63,10 +63,15 @@ class _ThemenListeState extends State<ThemenListe> {
     await Future.wait([_loadThemen(), _loadScores()]);
     await _loadFragenCount();
 
-    final cacheService = AppCacheService();
-    cacheService.cachedThemen[widget.modulId] = themen;
-    cacheService.cachedFragenCount[widget.modulId] = fragenCount;
-    cacheService.themenLoaded[widget.modulId] = true;
+    // Nur ein erfolgreiches Ergebnis cachen. Vorher wurde auch eine leere
+    // Liste nach einem Netzfehler gemerkt, und das Modul zeigte bis zum
+    // App-Neustart "Keine Themen verfuegbar" (Befund 09.09.2026, WISO).
+    if (themen.isNotEmpty) {
+      final cacheService = AppCacheService();
+      cacheService.cachedThemen[widget.modulId] = themen;
+      cacheService.cachedFragenCount[widget.modulId] = fragenCount;
+      cacheService.themenLoaded[widget.modulId] = true;
+    }
 
     if (!mounted) return;
     setState(() => loading = false);
@@ -191,17 +196,29 @@ class _ThemenListeState extends State<ThemenListe> {
   void _openThema(Map<String, dynamic> thema) async {
     final id = thema['id'] as int;
     widget.onThemaSelected?.call(id);
-    await Navigator.push(
+    final index = themen.indexWhere((t) => t['id'] == id);
+    final hatNaechstes = index >= 0 && index < themen.length - 1;
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => TestFragen(
           modulId: widget.modulId,
           modulName: '${widget.modulName} • ${thema['name']}',
           themaId: id,
+          requiredScore: (thema['required_score'] ?? 80) as int,
+          hatNaechstesThema: hatNaechstes,
         ),
       ),
     );
     await _load();
+    // "Naechstes Thema" im Ergebnis-Dialog: direkt weiter, sofern es
+    // nach dem frischen Score freigeschaltet ist.
+    if (result == 'next' && hatNaechstes && mounted) {
+      final naechstes = Map<String, dynamic>.from(themen[index + 1] as Map);
+      if (_isUnlocked(naechstes)) {
+        _openThema(naechstes);
+      }
+    }
   }
 
   void _showLockedDialog(Map<String, dynamic> thema) {

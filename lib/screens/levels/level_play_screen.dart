@@ -1,6 +1,7 @@
 // lib/screens/levels/level_play_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../widgets/frage_text.dart';
 import '../../services/level_service.dart';
 import '../../services/sound_service.dart';
 import '../../theme/app_colors.dart';
@@ -440,7 +441,7 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
           ),
           const SizedBox(height: 14),
           if ((q['question_type'] as String?) != 'fill_blank') ...[
-            Text(
+            FrageText(
               q['frage'] ?? '',
               style: AppTextStyles.instrumentSerif(
                 size: 24,
