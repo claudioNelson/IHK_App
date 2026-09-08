@@ -185,8 +185,39 @@ Deno.serve(async (req) => {
       return json({ ok: false, error: `Unbekannter Plan: ${basePlanId}` }, 402)
     }
 
-    // ─── 5. Premium serverseitig freischalten ───────────────
+    // ─── 5. Kauf an dieses Konto binden ─────────────────────
+    // Der purchaseToken haengt am Google-Konto des Geraets, nicht am
+    // Lernarena-Nutzer. Ohne Bindung koennte ein Abo beliebig viele
+    // Lernarena-Konten freischalten (gleiches Muster wie bei Apple,
+    // Befund 09.09.2026). false = gehoert schon einem anderen Konto.
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+    const { data: claimed_ok, error: claimError } = await admin.rpc(
+      'claim_store_transaktion',
+      {
+        p_store: 'google',
+        p_transaktion: purchaseToken,
+        p_user_id: user.id,
+        p_product_id: `${SUBSCRIPTION_ID}:${basePlanId}`,
+        p_environment: purchase.testPurchase ? 'Test' : 'Production',
+      },
+    )
+    if (claimError) {
+      console.error('Bindung fehlgeschlagen:', claimError)
+      return json({ ok: false, error: 'Freischaltung fehlgeschlagen' }, 500)
+    }
+    if (claimed_ok !== true) {
+      console.warn(`purchaseToken gehoert einem anderen Konto (Anfrage von ${user.id})`)
+      return json(
+        {
+          ok: false,
+          error:
+            'Dieses Abo ist bereits mit einem anderen Lernarena-Konto verknüpft.',
+        },
+        409,
+      )
+    }
+
+    // ─── 6. Premium serverseitig freischalten ───────────────
     const { error: rpcError } = await admin.rpc('grant_premium_from_server', {
       p_user_id: user.id,
       p_tier: plan.tier,

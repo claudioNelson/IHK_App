@@ -429,9 +429,18 @@ class BillingService {
       if (fresh) _premiumActivated.add(true);
     } catch (e) {
       debugPrint('❌ Premium-Freischaltung fehlgeschlagen: $e');
+      // Server-Meldung durchreichen, wenn es eine gibt (z. B. "Dieses Abo
+      // ist bereits mit einem anderen Lernarena-Konto verknüpft" bei
+      // Status 409 aus verify-purchase / verify-purchase-ios).
+      String? serverText;
+      if (e is FunctionException) {
+        final d = e.details;
+        if (d is Map && d['error'] is String) serverText = d['error'] as String;
+      }
       _purchaseError.add(
-        'Kauf erfolgreich, aber Freischaltung fehlgeschlagen. '
-        'Bitte App neu starten oder Support kontaktieren.',
+        serverText ??
+            'Kauf erfolgreich, aber Freischaltung fehlgeschlagen. '
+                'Bitte App neu starten oder Support kontaktieren.',
       );
     }
   }

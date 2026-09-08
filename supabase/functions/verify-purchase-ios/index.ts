@@ -232,8 +232,44 @@ Deno.serve(async (req) => {
       return json({ ok: false, error: 'Abo ist abgelaufen' }, 402)
     }
 
-    // ─── 5. Premium serverseitig freischalten ───────────────
+    // ─── 5. Transaktion an dieses Konto binden ──────────────
+    // Apple liefert beim Restore alle Abos der Apple-ID, egal welcher
+    // Lernarena-Nutzer eingeloggt ist. Ohne diese Bindung bekam jedes
+    // Konto auf dem Geraet Premium (Befund 09.09.2026). Die RPC gibt
+    // false zurueck, wenn die Transaktion schon einem anderen, noch
+    // existierenden Konto gehoert. Schluessel: originalTransactionId
+    // (bleibt ueber Verlaengerungen gleich).
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+    const bindKey: string = String(
+      tx.originalTransactionId ?? tx.transactionId ?? transactionId,
+    )
+    const { data: claimed_ok, error: claimError } = await admin.rpc(
+      'claim_store_transaktion',
+      {
+        p_store: 'apple',
+        p_transaktion: bindKey,
+        p_user_id: user.id,
+        p_product_id: tx.productId,
+        p_environment: tx.environment,
+      },
+    )
+    if (claimError) {
+      console.error('Bindung fehlgeschlagen:', claimError)
+      return json({ ok: false, error: 'Freischaltung fehlgeschlagen' }, 500)
+    }
+    if (claimed_ok !== true) {
+      console.warn(`Transaktion ${bindKey} gehoert einem anderen Konto (Anfrage von ${user.id})`)
+      return json(
+        {
+          ok: false,
+          error:
+            'Dieses Abo ist bereits mit einem anderen Lernarena-Konto verknüpft.',
+        },
+        409,
+      )
+    }
+
+    // ─── 6. Premium serverseitig freischalten ───────────────
     const { error: rpcError } = await admin.rpc('grant_premium_from_server', {
       p_user_id: user.id,
       p_tier: plan.tier,
