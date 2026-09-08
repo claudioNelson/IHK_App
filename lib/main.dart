@@ -129,8 +129,20 @@ class _AppInitializerState extends State<AppInitializer> {
       );
 
       if (session != null) {
-        await AppCacheService().preloadAllData();
-        await SubscriptionService().load();
+        // Vorladen mit Zeitlimit. Haengt eine Verbindung (z. B. TLS-Abbruch
+        // im WLAN), wartete die App frueher bis zum Socket-Timeout des
+        // Betriebssystems (ueber eine Minute) auf dem Ladebildschirm.
+        // Jetzt startet sie nach 12 s trotzdem; jeder Screen laedt seine
+        // Daten selbst nach, wenn der Cache leer ist.
+        await AppCacheService().preloadAllData().timeout(
+          const Duration(seconds: 12),
+          onTimeout: () =>
+              print('⚠️ Vorladen abgebrochen (Timeout) – App startet ohne Cache'),
+        );
+        await SubscriptionService().load().timeout(
+          const Duration(seconds: 8),
+          onTimeout: () => print('⚠️ Premium-Status: Timeout, wird nachgeladen'),
+        );
         // Aktive Abos wiederherstellen/verlängern (still im Hintergrund)
         BillingService().restorePurchases();
       }
