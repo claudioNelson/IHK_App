@@ -87,40 +87,19 @@ class AppCacheService {
           .select()
           .neq('kategorie', 'kernthema')
           .order('id');
-      final alleFragen = await supabase.from('fragen').select('id, modul_id');
-
+      // Zaehler serverseitig (RPC modul_zaehler, Migration 20260908020000).
+      // Frueher wurden ALLE Fragen und alle user_progress-Zeilen geladen und
+      // hier gezaehlt; PostgREST deckelt ohne Range bei 1000 Zeilen, der
+      // Bestand liegt darueber -> Zaehler waren zu niedrig. Jetzt eine
+      // Zeile je Modul.
       final Map<int, int> fragenCount = {};
-      for (var frage in alleFragen) {
-        final modulId = frage['modul_id'];
-        if (modulId != null && modulId is int) {
-          fragenCount[modulId] = (fragenCount[modulId] ?? 0) + 1;
-        }
-      }
-
-      // Beantwortete Fragen je Modul — EINE Abfrage fuer alle Module.
-      //
-      // Frueher stand hier prefs.getStringList('fortschritt_modul_<id>').
-      // Diesen Schluessel hat nie jemand geschrieben, er war also immer leer
-      // und die Modeluebersicht zeigte dauerhaft 0 von X. Die Antworten
-      // selbst lagen die ganze Zeit korrekt in user_progress, geschrieben
-      // von ProgressService.saveAnswer().
-      //
-      // Zeilen zu zaehlen ist exakt: saveAnswer upsertet mit
-      // onConflict 'user_id,frage_id', pro Nutzer und Frage existiert also
-      // genau eine Zeile. Keine Dubletten.
       final Map<int, int> beantwortetProModul = {};
-      final userId = supabase.auth.currentUser?.id;
-      if (userId != null) {
-        final progress = await supabase
-            .from('user_progress')
-            .select('modul_id')
-            .eq('user_id', userId);
-        for (final zeile in progress) {
-          final m = zeile['modul_id'];
-          if (m is int) {
-            beantwortetProModul[m] = (beantwortetProModul[m] ?? 0) + 1;
-          }
-        }
+      final zaehler = await supabase.rpc('modul_zaehler');
+      for (final z in (zaehler as List)) {
+        final m = z['modul_id'];
+        if (m is! int) continue;
+        fragenCount[m] = (z['fragen_gesamt'] as num?)?.toInt() ?? 0;
+        beantwortetProModul[m] = (z['beantwortet'] as num?)?.toInt() ?? 0;
       }
 
       final prefs = await SharedPreferences.getInstance();

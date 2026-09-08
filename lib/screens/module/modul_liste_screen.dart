@@ -80,16 +80,14 @@ class _ModulListeState extends State<ModulListe> {
           .select()
           .neq('kategorie', 'kernthema')
           .order('id');
-      // Fortschritt einmal fuer alle Module holen statt pro Modul.
-      final fortschritt = await _ladeFortschrittProModul();
+      // Fragen- und Fortschrittszaehler in EINER RPC (modul_zaehler),
+      // siehe AppCacheService._preloadModules.
+      final zaehler = await _ladeZaehler();
 
       for (var modul in response) {
-        final fragen = await supabase
-            .from('fragen')
-            .select('id')
-            .eq('modul_id', modul['id']);
-        anzahlFragen[modul['id']] = fragen.length;
-        beantworteteFragen[modul['id']] = fortschritt[modul['id']] ?? 0;
+        final z = zaehler[modul['id']];
+        anzahlFragen[modul['id']] = z?.$1 ?? 0;
+        beantworteteFragen[modul['id']] = z?.$2 ?? 0;
         letzteThemaId[modul['id']] = await _ladeLetzteThemaId(modul['id']);
       }
       if (!mounted) return;
@@ -110,33 +108,24 @@ class _ModulListeState extends State<ModulListe> {
     }
   }
 
-  /// Beantwortete Fragen je Modul, aus der Datenbank.
-  ///
-  /// Vorher las diese Stelle prefs.getStringList('fortschritt_modul_<id>').
-  /// Diesen Schluessel hat nie jemand geschrieben — die Liste zeigte deshalb
-  /// bei jedem Nutzer dauerhaft 0 von X, obwohl die Antworten in
-  /// user_progress lagen. Siehe ProgressService.saveAnswer().
-  ///
-  /// Eine Abfrage fuer alle Module. Zeilen zaehlen ist exakt, weil
-  /// saveAnswer mit onConflict 'user_id,frage_id' upsertet.
-  Future<Map<int, int>> _ladeFortschrittProModul() async {
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null) return {};
-
+  /// Je Modul (fragen_gesamt, beantwortet) aus der RPC modul_zaehler.
+  /// Ersetzt das Laden aller Fragen bzw. aller user_progress-Zeilen
+  /// (PostgREST-Limit 1000 Zeilen, Bestand liegt darueber).
+  Future<Map<int, (int, int)>> _ladeZaehler() async {
     try {
-      final zeilen = await supabase
-          .from('user_progress')
-          .select('modul_id')
-          .eq('user_id', userId);
-
-      final Map<int, int> zaehler = {};
-      for (final zeile in zeilen) {
-        final m = zeile['modul_id'];
-        if (m is int) zaehler[m] = (zaehler[m] ?? 0) + 1;
+      final zeilen = await supabase.rpc('modul_zaehler');
+      final Map<int, (int, int)> zaehler = {};
+      for (final z in (zeilen as List)) {
+        final m = z['modul_id'];
+        if (m is! int) continue;
+        zaehler[m] = (
+          (z['fragen_gesamt'] as num?)?.toInt() ?? 0,
+          (z['beantwortet'] as num?)?.toInt() ?? 0,
+        );
       }
       return zaehler;
     } catch (e) {
-      debugPrint('Fortschritt konnte nicht geladen werden: $e');
+      debugPrint('Modul-Zaehler konnten nicht geladen werden: $e');
       return {};
     }
   }
@@ -188,14 +177,7 @@ class _ModulListeState extends State<ModulListe> {
   Map<String, List<Map<String, dynamic>>> _groupedModules() {
     final grouped = <String, List<Map<String, dynamic>>>{};
     for (final m in module) {
-      // DB-Kategorie -> Anzeigename ("standard" ist ein Datenbankbegriff)
-      final roh = (m['kategorie'] as String?)?.toLowerCase() ?? '';
-      final kat = switch (roh) {
-        'standard' => 'MODULE',
-        'kernthema' => 'KERNTHEMEN',
-        '' => 'ALLGEMEIN',
-        _ => roh.toUpperCase(),
-      };
+      final kat = (m['kategorie'] as String?)?.toUpperCase() ?? 'ALLGEMEIN';
       grouped.putIfAbsent(kat, () => []).add(m as Map<String, dynamic>);
     }
     return grouped;
