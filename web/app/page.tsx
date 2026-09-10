@@ -240,7 +240,15 @@ export default function LandingPage() {
           .nav-mobile.open { display: flex; }
           .nav-inner { padding: 12px 20px; }
           .nav-actions { gap: 8px; }
+          /* Eingeloggt: Avatar + E-Mail + PREMIUM + Logout + Burger passten
+             nicht in 360-412px, die Seite scrollte seitlich (Android 10.09.).
+             Auf Handybreite nur der Avatar, der Name steht im Profil. */
+          .nav-user { padding: 6px; }
+          .nav-user-name { display: none; }
         }
+        /* Sicherheitsnetz gegen seitliches Scrollen durch einzelne breite
+           Elemente (Hero-Grid, Badges, Code-Bloecke). */
+        html, body { overflow-x: hidden; }
         .theme-btn {
           width: 36px; height: 36px;
           border-radius: 8px;
@@ -345,7 +353,9 @@ export default function LandingPage() {
         .store-badges { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
         .store-badges a { display: inline-flex; align-items: center; }
         .store-badges img { height: 50px; width: auto; }
-        .store-badges .badge-play img { height: 62px; margin: -6px 0; }
+        /* Lokales Play-Badge ist bereits auf den Rahmen zugeschnitten (kein
+           Innenabstand mehr) - gleiche Hoehe wie das Apple-Badge. */
+        .store-badges .badge-play img { height: 50px; margin: 0; }
         @media (max-width: 600px) {
           /* Auf Handybreite: Button volle Breite, darunter die zwei Badges
              nebeneinander und zentriert. Vorher wrappte die Reihe auf
@@ -355,7 +365,7 @@ export default function LandingPage() {
           .hero-actions .btn-primary { justify-content: center; }
           .store-badges { justify-content: center; }
           .store-badges img { height: 44px; }
-          .store-badges .badge-play img { height: 55px; margin: -5px 0; }
+          .store-badges .badge-play img { height: 44px; margin: 0; }
           .hero-title br, .final-cta-title br { display: none; }
           .hero-title { letter-spacing: -1px; }
           .final-cta-title { letter-spacing: -1px; }
@@ -1356,7 +1366,7 @@ export default function LandingPage() {
               <>
                 <Link href="/profil" className="nav-user" title="Dein Profil">
                   <span className="nav-user-avatar">{username.charAt(0).toUpperCase()}</span>
-                  {username}
+                  <span className="nav-user-name">{username}</span>
                 </Link>
                 {subscription.loaded && subscription.isPremium && (
                   <span
@@ -1421,7 +1431,10 @@ export default function LandingPage() {
             Live · AP1 & AP2 · 937 Fragen · 3 Lernpfade
           </div>
           <h1 className="hero-title">
-            Prüfungsangst war<br />
+            {/* {" "} vor dem <br />: Auf Handybreite ist der Umbruch per CSS
+                ausgeblendet, JSX verschluckt den Zeilenumbruch, ohne das
+                Leerzeichen stand dort "wargestern" (Befund Android 10.09.). */}
+            Prüfungsangst war{" "}<br />
             gestern. Heute <em>übst du smart.</em>
           </h1>
           <p className="hero-sub">
@@ -1443,10 +1456,10 @@ export default function LandingPage() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="https://play.google.com/intl/en_us/badges/static/images/badges/de_badge_web_generic.png"
+                  src="/badges/google-play-de.png"
                   alt="Jetzt bei Google Play"
-                  width={646}
-                  height={250}
+                  width={811}
+                  height={241}
                 />
               </a>
               <a
@@ -2046,7 +2059,7 @@ export default function LandingPage() {
             Los geht&apos;s
           </div>
           <h2 className="final-cta-title">
-            Bestehen ist<br />
+            Bestehen ist{" "}<br />
             kein <em>Zufall.</em>
           </h2>
           <p className="final-cta-sub">
@@ -2067,10 +2080,10 @@ export default function LandingPage() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="https://play.google.com/intl/en_us/badges/static/images/badges/de_badge_web_generic.png"
+                  src="/badges/google-play-de.png"
                   alt="Jetzt bei Google Play"
-                  width={646}
-                  height={250}
+                  width={811}
+                  height={241}
                 />
               </a>
               <a
