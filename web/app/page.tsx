@@ -1443,7 +1443,7 @@ export default function LandingPage() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="https://play.google.com/intl/de_de/badges/static/images/badges/de_badge_web_generic.png"
+                  src="https://play.google.com/intl/en_us/badges/static/images/badges/de_badge_web_generic.png"
                   alt="Jetzt bei Google Play"
                   width={646}
                   height={250}
@@ -2067,7 +2067,7 @@ export default function LandingPage() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="https://play.google.com/intl/de_de/badges/static/images/badges/de_badge_web_generic.png"
+                  src="https://play.google.com/intl/en_us/badges/static/images/badges/de_badge_web_generic.png"
                   alt="Jetzt bei Google Play"
                   width={646}
                   height={250}
