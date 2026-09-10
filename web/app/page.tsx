@@ -245,6 +245,9 @@ export default function LandingPage() {
              Auf Handybreite nur der Avatar, der Name steht im Profil. */
           .nav-user { padding: 6px; }
           .nav-user-name { display: none; }
+          /* PREMIUM-Badge und Logout-Knopf schoben den Burger aus dem Bild;
+             beides steht auf Handybreite im Burger-Menue. */
+          .nav-premium, .nav-logout { display: none; }
         }
         /* Sicherheitsnetz gegen seitliches Scrollen durch einzelne breite
            Elemente (Hero-Grid, Badges, Code-Bloecke). */
@@ -1370,6 +1373,7 @@ export default function LandingPage() {
                 </Link>
                 {subscription.loaded && subscription.isPremium && (
                   <span
+                    className="nav-premium"
                     style={{
                       background: "linear-gradient(135deg, #7C6DFF, #22D3EE)",
                       color: "#FFFFFF",
@@ -1388,7 +1392,7 @@ export default function LandingPage() {
                 )}
                 <button
                   onClick={handleLogout}
-                  className="nav-cta"
+                  className="nav-cta nav-logout"
                   style={{ cursor: "pointer", border: "none" }}
                 >
                   Logout
@@ -1420,6 +1424,16 @@ export default function LandingPage() {
           <a href="#pricing">Preise</a>
           <Link href="/lernen">Lernen</Link>
           <Link href="/pruefungen">Prüfungen</Link>
+          {username && (
+            <>
+              <Link href="/profil">
+                Profil{subscription.loaded && subscription.isPremium ? " · Premium" : ""}
+              </Link>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
+                Logout
+              </a>
+            </>
+          )}
         </div>
       </nav>
 
