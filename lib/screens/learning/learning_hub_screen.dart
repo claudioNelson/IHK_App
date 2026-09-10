@@ -18,6 +18,9 @@ import '../kurse/kurs_uebersicht_screen.dart';
 import '../../data/kurse/sql_kurs.dart';
 import '../../data/kurse/python_kurs.dart';
 import '../../widgets/header_wash.dart';
+import '../../services/ziel_service.dart';
+import '../../services/daily_goal_service.dart';
+import '../onboarding/ziel_screen.dart';
 
 class LearningHubScreen extends StatefulWidget {
   const LearningHubScreen({super.key});
@@ -33,12 +36,31 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   int _flashcardCount = 0;
   bool _loading = true;
   String? _username;
+  PruefungsZiel? _ziel;
 
   @override
   void initState() {
     super.initState();
     _loadCounts();
     _loadUsername();
+    _loadZiel();
+  }
+
+  /// Pruefungsziel fuer den Countdown (lokale Kopie sofort, DB danach).
+  Future<void> _loadZiel() async {
+    final ziel = await ZielService().laden();
+    if (!mounted) return;
+    setState(() => _ziel = ziel);
+  }
+
+  Future<void> _zielBearbeiten() async {
+    final geaendert = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const ZielScreen()),
+    );
+    if (geaendert == true && mounted) {
+      setState(() => _ziel = ZielService().ziel);
+    }
   }
 
   Future<void> _loadUsername() async {
@@ -70,6 +92,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       _flashcardCount = fcCount;
       _loading = false;
     });
+    _loadTagesZeile();
   }
 
   String _getGreeting() {
@@ -439,10 +462,294 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               'Dein Lernhub — alles an einem Ort.',
               style: AppTextStyles.bodyMedium(textMid),
             ),
+            const SizedBox(height: 20),
+            _buildCountdown(text, textMid, textDim),
           ],
         ),
       ),
     );
+  }
+
+  // ─── COUNTDOWN (Pruefungsziel, Phase 1) ─────────────
+  // Hero-Karte: Tage gross mit Glow, Pruefung + Termin daneben, darunter
+  // der Tagesbezug (Fragen heute vs. Tagesziel, Streak). Ohne Ziel eine
+  // Einladung; ohne Termin nur Pruefung + Fachrichtung.
+  Widget _buildCountdown(Color text, Color textMid, Color textDim) {
+    final isDark = context.read<ThemeProvider>().isDark;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final ziel = _ziel;
+
+    final karte = BoxDecoration(
+      color: surface,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: AppColors.accent.withOpacity(0.35)),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [AppColors.accent.withOpacity(isDark ? 0.16 : 0.10), surface],
+      ),
+      boxShadow: isDark
+          ? [
+              BoxShadow(
+                color: AppColors.accent.withOpacity(0.18),
+                blurRadius: 28,
+                offset: const Offset(0, 8),
+              ),
+            ]
+          : [
+              const BoxShadow(
+                color: AppColors.lightShadow,
+                blurRadius: 18,
+                offset: Offset(0, 6),
+              ),
+            ],
+    );
+
+    if (ziel == null) {
+      return GestureDetector(
+        onTap: _zielBearbeiten,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(18, 16, 16, 16),
+          decoration: karte,
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.flag_rounded,
+                    color: AppColors.accent, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Wann ist deine Prüfung?',
+                        style: AppTextStyles.h3(text)),
+                    const SizedBox(height: 2),
+                    Text('Termin eintragen und den Countdown starten.',
+                        style: AppTextStyles.bodySmall(textMid)),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: textDim),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final tage = ziel.tageBis;
+    final vorbei = tage != null && tage < 0;
+    final heute = tage == 0;
+    final zahl = tage == null ? '?' : (vorbei ? '✓' : '$tage');
+    final einheit = tage == null
+        ? 'TERMIN OFFEN'
+        : vorbei
+            ? 'GESCHAFFT?'
+            : heute
+                ? 'HEUTE'
+                : (tage == 1 ? 'TAG' : 'TAGE');
+    final titel = ziel.pruefung == 'AP1'
+        ? 'bis zur Abschlussprüfung Teil 1'
+        : 'bis zur Abschlussprüfung Teil 2';
+    final untertitel = ziel.datum == null
+        ? '${ziel.fachrichtungLabel} · Termin noch eintragen'
+        : '${ziel.fachrichtungLabel} · ${_wochentag(ziel.datum!)}, ${ZielScreen.datumText(ziel.datum!)}';
+
+    return GestureDetector(
+      onTap: _zielBearbeiten,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 14, 16, 16),
+        decoration: karte,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(width: 16, height: 1, color: AppColors.accent),
+                const SizedBox(width: 10),
+                Text('PRÜFUNGS-COUNTDOWN',
+                    style: AppTextStyles.monoLabel(AppColors.accent)),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${ziel.pruefung} · ${ziel.fachrichtung}',
+                    style: AppTextStyles.mono(
+                      size: 10,
+                      color: AppColors.accent,
+                      weight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.edit_outlined, size: 15, color: textDim),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Zahl mit Glow
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (isDark)
+                      Container(
+                        width: 84,
+                        height: 84,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.accent.withOpacity(0.35),
+                              blurRadius: 40,
+                              spreadRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          zahl,
+                          style: AppTextStyles.instrumentSerif(
+                            size: zahl.length > 2 ? 52 : 64,
+                            color: AppColors.accent,
+                            letterSpacing: -2.5,
+                          ).copyWith(height: 1.0),
+                        ),
+                        Text(
+                          einheit,
+                          style: AppTextStyles.mono(
+                            size: 10,
+                            color: textDim,
+                            weight: FontWeight.w600,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        vorbei ? 'Prüfung liegt hinter dir' : titel,
+                        style: AppTextStyles.instrumentSerif(
+                          size: 22,
+                          color: text,
+                          letterSpacing: -0.6,
+                        ).copyWith(height: 1.15),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        vorbei ? 'Neues Ziel setzen →' : untertitel,
+                        style: AppTextStyles.bodySmall(textMid),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            // Tagesbezug: Fragen heute gegen ein Tagesziel (15, bis der
+            // Tagesplan in Phase 2 den Wert liefert) + Streak.
+            _buildTagesZeile(text, textMid, textDim, border),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static const int _tagesziel = 15;
+  int _heuteFragen = 0;
+  int _streak = 0;
+
+  Future<void> _loadTagesZeile() async {
+    final heute = await DailyGoalService().getTodayAnsweredCount();
+    final profil = AppCacheService().cachedMyProfile;
+    final streak = (profil?['streak_days'] as num?)?.toInt() ?? 0;
+    if (!mounted) return;
+    setState(() {
+      _heuteFragen = heute;
+      _streak = streak;
+    });
+  }
+
+  Widget _buildTagesZeile(Color text, Color textMid, Color textDim, Color border) {
+    final anteil = (_heuteFragen / _tagesziel).clamp(0.0, 1.0);
+    final fertig = _heuteFragen >= _tagesziel;
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text('HEUTE', style: AppTextStyles.monoSmall(textDim)),
+                  const SizedBox(width: 8),
+                  Text(
+                    fertig
+                        ? 'Tagesziel erreicht'
+                        : '$_heuteFragen / $_tagesziel Fragen',
+                    style: AppTextStyles.labelMedium(fertig ? AppColors.success : text),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(
+                  value: anteil,
+                  minHeight: 4,
+                  backgroundColor: border,
+                  valueColor: AlwaysStoppedAnimation(
+                    fertig ? AppColors.success : AppColors.accent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        Row(
+          children: [
+            Icon(
+              Icons.local_fire_department_rounded,
+              size: 16,
+              color: _streak > 0 ? AppColors.warning : textDim,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _streak == 1 ? '1 Tag' : '$_streak Tage',
+              style: AppTextStyles.labelMedium(_streak > 0 ? text : textDim),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  static String _wochentag(DateTime d) {
+    const wt = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+    return wt[d.weekday - 1];
   }
 
   // ─── SECTION LABEL ──────────────────────────────────
