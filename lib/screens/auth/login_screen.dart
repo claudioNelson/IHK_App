@@ -186,29 +186,6 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
 
-          // Theme-Toggle oben rechts
-          Positioned(
-            top: 16,
-            right: 16,
-            child: SafeArea(
-              child: IconButton(
-                onPressed: () => themeProvider.toggleTheme(),
-                icon: Icon(
-                  isDark ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
-                  color: textMid,
-                  size: 20,
-                ),
-                style: IconButton.styleFrom(
-                  backgroundColor: surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: border),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
           SafeArea(
             child: FadeTransition(
               opacity: _fadeAnim,
@@ -483,6 +460,31 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                       ),
                     ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Theme-Toggle oben rechts. Muss als LETZTES Kind im Stack
+          // stehen: Der Scroll-View darueber schluckt sonst den Tipp
+          // (auf dem Handy deckt er den ganzen Bildschirm ab; auf Windows
+          // war der Knopf ausserhalb der 440 px und ging deshalb).
+          Positioned(
+            top: 16,
+            right: 16,
+            child: SafeArea(
+              child: IconButton(
+                onPressed: () => themeProvider.toggleTheme(),
+                icon: Icon(
+                  isDark ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
+                  color: textMid,
+                  size: 20,
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(color: border),
                   ),
                 ),
               ),

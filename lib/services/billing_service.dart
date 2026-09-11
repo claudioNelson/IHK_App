@@ -240,6 +240,12 @@ class BillingService {
     return pd.rawPrice;
   }
 
+  /// Waehrungssymbol des Store-Produkts (Storefront des Nutzers), fuer die
+  /// €/Monat-Zeile im Kauf-Sheet. Sandbox-Konten haben oft eine US-Storefront
+  /// und liefern Dollar - dann darf da kein festes Euro-Zeichen stehen.
+  String currencySymbolFor(PremiumPlan plan) =>
+      _products[plan]?.currencySymbol ?? '€';
+
   /// Einfuehrungsangebot, das Google Play fuer diesen Nutzer auf dem Plan
   /// liefert (null = keins oder nicht berechtigt). Apple: Einfuehrungs-
   /// angebote wendet StoreKit im Kaufdialog selbst an; die App zeigt dort
@@ -305,6 +311,15 @@ class BillingService {
       }
 
       _products.clear();
+      // Was der Store liefert, pro Eintrag: Base Plan, Angebots-ID, erste
+      // Preisphase. Ohne das raet man nur, warum ein Angebot fehlt.
+      for (final pd in response.productDetails) {
+        final o = _offerOf(pd);
+        debugPrint(
+          '💳 Store-Eintrag ${pd.id}: basePlan=${o?.basePlanId} '
+          'offer=${o?.offerId} phasen=${o?.pricingPhases.map((f) => f.formattedPrice).join(' > ') ?? pd.price}',
+        );
+      }
       for (final pd in response.productDetails) {
         for (final plan in PremiumPlan.values) {
           final passt = _isApple

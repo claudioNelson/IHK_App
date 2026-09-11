@@ -231,7 +231,7 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
               _planCard(
                 plan: PremiumPlan.annual,
                 title: 'Jährlich',
-                subtitle: '12 Monate · nur ${_perMonth(PremiumPlan.annual)} €/Monat',
+                subtitle: '12 Monate · nur ${_perMonth(PremiumPlan.annual)}/Monat',
                 badge: 'BESTER PREIS',
                 surface: surface,
                 border: border,
@@ -242,7 +242,7 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
               _planCard(
                 plan: PremiumPlan.halfYear,
                 title: 'Halbjährlich',
-                subtitle: '6 Monate · nur ${_perMonth(PremiumPlan.halfYear)} €/Monat',
+                subtitle: '6 Monate · nur ${_perMonth(PremiumPlan.halfYear)}/Monat',
                 surface: surface,
                 border: border,
                 text: text,
@@ -494,10 +494,14 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
     );
   }
 
-  /// €/Monat aus dem echten Google-Preis (oder Fallback) berechnen.
+  /// Preis je Monat (aus dem echten Store-Preis oder Fallback) mit dem Waehrungssymbol des Store-Produkts, z. B.
+  /// "7,08 €" (Euro-Storefront) oder "$6.67" (US-Storefront, Sandbox).
   String _perMonth(PremiumPlan plan) {
     final total = _billing.rawPriceFor(plan);
-    return (total / plan.months).toStringAsFixed(2).replaceAll('.', ',');
+    final symbol = _billing.currencySymbolFor(plan);
+    final betrag = (total / plan.months).toStringAsFixed(2);
+    if (symbol == '€') return '${betrag.replaceAll('.', ',')} €';
+    return '$symbol$betrag';
   }
 
   Widget _planCard({
