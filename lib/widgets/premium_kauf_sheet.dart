@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 
 import '../screens/auth/upgrade_account_screen.dart';
 import '../screens/legal/legal_document_screen.dart';
+import '../services/aktions_service.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../theme/app_colors.dart';
@@ -104,6 +105,10 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
     _billing.loadProducts().then((_) {
       if (mounted) setState(() {});
     });
+    // Aktionstext nachladen, falls der Lernhub das noch nicht getan hat.
+    AktionsService().laden().then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -147,6 +152,11 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // Laufende Aktion (Text aus der DB) und, auf Google Play, das echte
+    // Einfuehrungsangebot aus dem Store. Apple wendet sein Angebot im
+    // Kaufdialog selbst an, dort gibt es nur den Text.
+    final aktion = AktionsService().fuerPlan(PremiumPlan.monthly.basePlanId);
+    final angebot = _billing.angebotFor(PremiumPlan.monthly);
     final isDark = context.watch<ThemeProvider>().isDark;
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
@@ -242,12 +252,25 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
               _planCard(
                 plan: PremiumPlan.monthly,
                 title: 'Monatlich',
-                subtitle: '1 Monat · flexibel kündbar',
+                subtitle: angebot != null
+                    ? 'Erster Monat ${angebot.einfuehrungsPreis}, '
+                        'danach ${angebot.regulaerPreis}/Monat'
+                    : aktion != null
+                        ? 'Erster Monat zum halben Preis, '
+                            'danach ${_billing.priceFor(PremiumPlan.monthly)}/Monat'
+                        : '1 Monat · flexibel kündbar',
+                badge: (angebot != null || aktion != null) ? 'AKTION' : null,
+                badgeColor: AppColors.warning,
+                aktionsPreis: angebot?.einfuehrungsPreis,
                 surface: surface,
                 border: border,
                 text: text,
                 textMid: textMid,
               ),
+              if (aktion?.hinweis != null) ...[
+                const SizedBox(height: 10),
+                Text(aktion!.hinweis!, style: AppTextStyles.bodySmall(textMid)),
+              ],
 
               if (_error != null) ...[
                 const SizedBox(height: 14),
@@ -482,6 +505,8 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
     required String title,
     required String subtitle,
     String? badge,
+    Color badgeColor = AppColors.accent,
+    String? aktionsPreis,
     required Color surface,
     required Color border,
     required Color text,
@@ -498,7 +523,7 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
           color: surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: highlighted ? AppColors.accent : border,
+            color: highlighted ? badgeColor : border,
             width: highlighted ? 1.5 : 1,
           ),
         ),
@@ -526,14 +551,14 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.accent.withOpacity(0.12),
+                            color: badgeColor.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             badge,
                             style: AppTextStyles.mono(
                               size: 9,
-                              color: AppColors.accent,
+                              color: badgeColor,
                               weight: FontWeight.w700,
                               letterSpacing: 0.5,
                             ),
@@ -557,14 +582,34 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
                       color: textMid,
                     ),
                   )
-                : Text(
-                    _billing.priceFor(plan),
-                    style: AppTextStyles.interTight(
-                      size: 16,
-                      weight: FontWeight.w700,
-                      color: highlighted ? AppColors.accent : text,
-                    ),
-                  ),
+                : aktionsPreis != null
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            aktionsPreis,
+                            style: AppTextStyles.interTight(
+                              size: 16,
+                              weight: FontWeight.w700,
+                              color: badgeColor,
+                            ),
+                          ),
+                          Text(
+                            _billing.priceFor(plan),
+                            style: AppTextStyles.bodySmall(textMid).copyWith(
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        _billing.priceFor(plan),
+                        style: AppTextStyles.interTight(
+                          size: 16,
+                          weight: FontWeight.w700,
+                          color: highlighted ? badgeColor : text,
+                        ),
+                      ),
           ],
         ),
       ),

@@ -25,12 +25,21 @@
 //
 // iOS seit 1.6 (05.09.2026): StoreKit 2 (in_app_purchase_storekit ≥ 0.4,
 // iOS ≥ 15). `serverVerificationData` ist dort die JWS-Transaktion.
+//
+// Angebote (seit 10.09.2026, Aktion "Pruefungs-Endspurt"): Google liefert
+// je Base Plan und Angebot einen eigenen ProductDetails-Eintrag; wir waehlen
+// den mit der guenstigsten ersten Zahlung, das Offer-Token geht damit
+// automatisch in den Kauf. priceFor() liefert den regulaeren Preis,
+// angebotFor() das Einfuehrungsangebot. Apple wendet Einfuehrungsangebote im
+// Kaufdialog selbst an, dort nichts zu tun.
 
 import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart'
+    show SubscriptionOfferDetailsWrapper;
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -127,6 +136,25 @@ extension PremiumPlanX on PremiumPlan {
   }
 }
 
+/// Einfuehrungsangebot auf einem Plan (Google Play: Angebot auf dem Base
+/// Plan, vom Store nur geliefert, wenn der Nutzer berechtigt ist).
+class PlanAngebot {
+  /// Preis der ersten Zahlung(en), z. B. "5,99 €".
+  final String einfuehrungsPreis;
+
+  /// Regulaerer Preis danach, z. B. "11,99 €".
+  final String regulaerPreis;
+
+  /// Anzahl der verguenstigten Abrechnungsperioden (1 = erster Monat).
+  final int perioden;
+
+  const PlanAngebot({
+    required this.einfuehrungsPreis,
+    required this.regulaerPreis,
+    required this.perioden,
+  });
+}
+
 class BillingService {
   static final BillingService _instance = BillingService._internal();
   factory BillingService() => _instance;
@@ -190,14 +218,46 @@ class BillingService {
 
   bool get isAvailable => _available;
 
-  /// Anzeigepreis für einen Plan (echter Google-Play-Preis oder Fallback).
-  String priceFor(PremiumPlan plan) =>
-      _products[plan]?.price ?? plan.fallbackPrice;
+  /// Regulaerer Anzeigepreis für einen Plan (Store-Preis oder Fallback).
+  /// Bei einem Google-Angebot ist `pd.price` der Einfuehrungspreis; der
+  /// regulaere Preis steht in der letzten Preisphase.
+  String priceFor(PremiumPlan plan) {
+    final pd = _products[plan];
+    if (pd == null) return plan.fallbackPrice;
+    final phasen = _offerOf(pd)?.pricingPhases;
+    if (phasen != null && phasen.length > 1) return phasen.last.formattedPrice;
+    return pd.price;
+  }
 
-  /// Preis als Zahl (echter Google-Play-Preis oder Fallback) —
-  /// für die €/Monat-Berechnung im Kauf-Sheet.
-  double rawPriceFor(PremiumPlan plan) =>
-      _products[plan]?.rawPrice ?? plan.fallbackRawPrice;
+  /// Regulaerer Preis als Zahl — für die €/Monat-Berechnung im Kauf-Sheet.
+  double rawPriceFor(PremiumPlan plan) {
+    final pd = _products[plan];
+    if (pd == null) return plan.fallbackRawPrice;
+    final phasen = _offerOf(pd)?.pricingPhases;
+    if (phasen != null && phasen.length > 1) {
+      return phasen.last.priceAmountMicros / 1000000;
+    }
+    return pd.rawPrice;
+  }
+
+  /// Einfuehrungsangebot, das Google Play fuer diesen Nutzer auf dem Plan
+  /// liefert (null = keins oder nicht berechtigt). Apple: Einfuehrungs-
+  /// angebote wendet StoreKit im Kaufdialog selbst an; die App zeigt dort
+  /// nur den Hinweistext der Aktion (aktions_service.dart).
+  PlanAngebot? angebotFor(PremiumPlan plan) {
+    final pd = _products[plan];
+    if (pd == null) return null;
+    final offer = _offerOf(pd);
+    if (offer == null || offer.offerId == null) return null;
+    final phasen = offer.pricingPhases;
+    if (phasen.length < 2) return null;
+    final erste = phasen.first;
+    return PlanAngebot(
+      einfuehrungsPreis: erste.formattedPrice,
+      regulaerPreis: phasen.last.formattedPrice,
+      perioden: erste.billingCycleCount == 0 ? 1 : erste.billingCycleCount,
+    );
+  }
 
   // ─── INIT ────────────────────────────────────────────────
 
@@ -250,10 +310,20 @@ class BillingService {
           final passt = _isApple
               // App Store: je Laufzeit ein eigenes Produkt.
               ? pd.id == plan.appleProductId
-              // Google Play: pro Base Plan ein ProductDetails-Eintrag mit
-              // derselben Produkt-ID -> Zuordnung ueber die Base-Plan-ID.
+              // Google Play: pro Base Plan UND pro Angebot ein
+              // ProductDetails-Eintrag mit derselben Produkt-ID ->
+              // Zuordnung ueber die Base-Plan-ID.
               : _basePlanIdOf(pd) == plan.basePlanId;
-          if (passt) _products[plan] = pd;
+          if (!passt) continue;
+          // Google liefert nur Angebote, fuer die der Nutzer berechtigt
+          // ist. Liegt zu einem Base Plan mehr als ein Eintrag vor, nehmen
+          // wir den mit der guenstigsten ersten Zahlung (Aktion vor
+          // Grundpreis). Das Offer-Token haengt an diesem Eintrag und geht
+          // beim Kauf automatisch mit.
+          final bisher = _products[plan];
+          if (bisher == null || _erstePhase(pd) < _erstePhase(bisher)) {
+            _products[plan] = pd;
+          }
         }
       }
       debugPrint(
@@ -265,19 +335,30 @@ class BillingService {
     }
   }
 
-  String? _basePlanIdOf(ProductDetails pd) {
+  String? _basePlanIdOf(ProductDetails pd) => _offerOf(pd)?.basePlanId;
+
+  /// Der Google-Play-Eintrag (Base Plan + ggf. Angebot), zu dem dieses
+  /// ProductDetails gehoert. null auf Apple oder wenn nicht lesbar.
+  SubscriptionOfferDetailsWrapper? _offerOf(ProductDetails pd) {
     try {
       if (pd is GooglePlayProductDetails) {
         final index = pd.subscriptionIndex;
         final offers = pd.productDetails.subscriptionOfferDetails;
         if (index != null && offers != null && index < offers.length) {
-          return offers[index].basePlanId;
+          return offers[index];
         }
       }
     } catch (e) {
-      debugPrint('⚠️ basePlanId nicht lesbar: $e');
+      debugPrint('⚠️ Angebot nicht lesbar: $e');
     }
     return null;
+  }
+
+  /// Betrag der ersten Zahlung in Micros (zum Vergleich der Eintraege).
+  int _erstePhase(ProductDetails pd) {
+    final phasen = _offerOf(pd)?.pricingPhases;
+    if (phasen == null || phasen.isEmpty) return (pd.rawPrice * 1000000).round();
+    return phasen.first.priceAmountMicros;
   }
 
   // ─── KAUF ────────────────────────────────────────────────

@@ -21,6 +21,9 @@ import '../../widgets/header_wash.dart';
 import '../../services/ziel_service.dart';
 import '../../services/daily_goal_service.dart';
 import '../onboarding/ziel_screen.dart';
+import '../../services/aktions_service.dart';
+import '../../services/subscription_service.dart';
+import '../../widgets/premium_kauf_sheet.dart';
 
 class LearningHubScreen extends StatefulWidget {
   const LearningHubScreen({super.key});
@@ -37,6 +40,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   bool _loading = true;
   String? _username;
   PruefungsZiel? _ziel;
+  Aktion? _aktion;
 
   @override
   void initState() {
@@ -44,6 +48,21 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     _loadCounts();
     _loadUsername();
     _loadZiel();
+    _loadAktion();
+  }
+
+  /// Laufende Aktion (z. B. Pruefungs-Endspurt). Nur fuer Free-Nutzer auf
+  /// Plattformen, auf denen gekauft werden kann.
+  Future<void> _loadAktion() async {
+    if (!premiumKaufMoeglich) return;
+    final aktion = await AktionsService().laden();
+    if (!mounted) return;
+    setState(() => _aktion = aktion);
+  }
+
+  Future<void> _aktionOeffnen() async {
+    final gekauft = await showPremiumKaufSheet(context);
+    if (gekauft == true && mounted) setState(() {});
   }
 
   /// Pruefungsziel fuer den Countdown (lokale Kopie sofort, DB danach).
@@ -506,8 +525,11 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             ],
     );
 
+    final aktionSichtbar =
+        _aktion != null && !SubscriptionService().isPremium;
+
     if (ziel == null) {
-      return GestureDetector(
+      final einladung = GestureDetector(
         onTap: _zielBearbeiten,
         child: Container(
           padding: const EdgeInsets.fromLTRB(18, 16, 16, 16),
@@ -541,6 +563,23 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             ],
           ),
         ),
+      );
+      return Column(
+        children: [
+          einladung,
+          if (aktionSichtbar) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.fromLTRB(18, 10, 12, 10),
+              decoration: BoxDecoration(
+                color: surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: border),
+              ),
+              child: _buildAktionsZeile(_aktion!, text, textMid, textDim),
+            ),
+          ],
+        ],
       );
     }
 
@@ -671,6 +710,12 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             // Tagesbezug: Fragen heute gegen ein Tagesziel (15, bis der
             // Tagesplan in Phase 2 den Wert liefert) + Streak.
             _buildTagesZeile(text, textMid, textDim, border),
+            if (aktionSichtbar) ...[
+              const SizedBox(height: 12),
+              Container(height: 1, color: border),
+              const SizedBox(height: 10),
+              _buildAktionsZeile(_aktion!, text, textMid, textDim),
+            ],
           ],
         ),
       ),
@@ -750,6 +795,76 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   static String _wochentag(DateTime d) {
     const wt = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
     return wt[d.weekday - 1];
+  }
+
+  // ─── AKTION (z. B. Pruefungs-Endspurt) ───────────────
+  // Schmale Zeile am Fuss der Countdown-Karte statt eigener Karte: die
+  // Aktion gehoert zur Pruefung, und drei Hero-Karten uebereinander waren
+  // zu viel. Bernstein nur auf Icon und Frist-Chip. Preise stehen nicht
+  // hier, die zeigt das Kauf-Sheet aus dem Store.
+  Widget _buildAktionsZeile(
+    Aktion aktion,
+    Color text,
+    Color textMid,
+    Color textDim,
+  ) {
+    const farbe = AppColors.warning;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _aktionOeffnen,
+      child: Row(
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: farbe.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.local_offer_rounded,
+                color: farbe, size: 15),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '${aktion.titel}: ',
+                    style: AppTextStyles.labelMedium(text),
+                  ),
+                  TextSpan(
+                    text: aktion.text,
+                    style: AppTextStyles.bodySmall(textMid),
+                  ),
+                ],
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: farbe.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              aktion.fristLabel,
+              style: AppTextStyles.mono(
+                size: 9,
+                color: farbe,
+                weight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(Icons.chevron_right_rounded, size: 18, color: textDim),
+        ],
+      ),
+    );
   }
 
   // ─── SECTION LABEL ──────────────────────────────────
