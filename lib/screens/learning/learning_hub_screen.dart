@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../screens/module/modul_liste_screen.dart';
@@ -42,9 +44,15 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   PruefungsZiel? _ziel;
   Aktion? _aktion;
 
+  /// Laesst die Stunden/Minuten-Zeile im Countdown mitlaufen.
+  Timer? _countdownTick;
+
   @override
   void initState() {
     super.initState();
+    _countdownTick = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted && _ziel?.datum != null) setState(() {});
+    });
     _loadCounts();
     _loadUsername();
     _loadZiel();
@@ -94,6 +102,12 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     if (name != null && name.trim().isNotEmpty) {
       setState(() => _username = name!.trim());
     }
+  }
+
+  @override
+  void dispose() {
+    _countdownTick?.cancel();
+    super.dispose();
   }
 
   @override
@@ -586,14 +600,31 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     final tage = ziel.tageBis;
     final vorbei = tage != null && tage < 0;
     final heute = tage == 0;
-    final zahl = tage == null ? '?' : (vorbei ? '✓' : '$tage');
+    // Restdauer bis 0:00 Uhr am Pruefungstag: grosse Zahl = volle Tage,
+    // darunter laufen Stunden und Minuten mit (Timer, minuetlich).
+    final rest = ziel.datum == null || tage == null || tage <= 0
+        ? null
+        : DateTime(ziel.datum!.year, ziel.datum!.month, ziel.datum!.day)
+            .difference(DateTime.now());
+    final restTage = rest?.inDays;
+    final zahl = tage == null
+        ? '?'
+        : vorbei
+            ? '✓'
+            : heute
+                ? '0'
+                : '${restTage ?? tage}';
+    final ticker = rest == null
+        ? null
+        : '${(rest.inHours % 24).toString().padLeft(2, '0')} STD · '
+            '${(rest.inMinutes % 60).toString().padLeft(2, '0')} MIN';
     final einheit = tage == null
         ? 'TERMIN OFFEN'
         : vorbei
             ? 'GESCHAFFT?'
             : heute
                 ? 'HEUTE'
-                : (tage == 1 ? 'TAG' : 'TAGE');
+                : ((restTage ?? tage) == 1 ? 'TAG' : 'TAGE');
     final titel = ziel.pruefung == 'AP1'
         ? 'bis zur Abschlussprüfung Teil 1'
         : 'bis zur Abschlussprüfung Teil 2';
@@ -679,6 +710,26 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                             letterSpacing: 1.5,
                           ),
                         ),
+                        if (ticker != null) ...[
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.accent.withOpacity(0.14),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              ticker,
+                              style: AppTextStyles.mono(
+                                size: 12,
+                                color: AppColors.accent,
+                                weight: FontWeight.w700,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
