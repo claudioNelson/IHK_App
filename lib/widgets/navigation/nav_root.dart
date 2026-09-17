@@ -17,6 +17,11 @@ import '../../screens/learning/review_screen.dart';
 class NavRoot extends StatefulWidget {
   const NavRoot({super.key});
 
+  /// Tab-Wechsel von aussen (z. B. Tagesplan im Lernhub -> Pruefen-Tab):
+  /// `NavRoot.tabWechsel.value = 1`. Wird nach dem Wechsel wieder auf null
+  /// gesetzt, damit derselbe Tab mehrfach angefordert werden kann.
+  static final ValueNotifier<int?> tabWechsel = ValueNotifier<int?>(null);
+
   @override
   State<NavRoot> createState() => _NavRootState();
 }
@@ -43,9 +48,23 @@ class _NavRootState extends State<NavRoot> {
   @override
   void initState() {
     super.initState();
+    NavRoot.tabWechsel.addListener(_onTabWechsel);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeShowStreakGreeting();
     });
+  }
+
+  @override
+  void dispose() {
+    NavRoot.tabWechsel.removeListener(_onTabWechsel);
+    super.dispose();
+  }
+
+  void _onTabWechsel() {
+    final ziel = NavRoot.tabWechsel.value;
+    if (ziel == null || ziel < 0 || ziel >= _pages.length) return;
+    if (mounted) setState(() => _index = ziel);
+    NavRoot.tabWechsel.value = null;
   }
 
   Future<void> _maybeShowStreakGreeting() async {

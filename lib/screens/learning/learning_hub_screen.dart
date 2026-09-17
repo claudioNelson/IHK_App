@@ -21,7 +21,9 @@ import '../../data/kurse/sql_kurs.dart';
 import '../../data/kurse/python_kurs.dart';
 import '../../widgets/header_wash.dart';
 import '../../services/ziel_service.dart';
-import '../../services/daily_goal_service.dart';
+import '../../services/lernplan_service.dart';
+import '../../widgets/navigation/nav_root.dart';
+import '../module/test_fragen_screen.dart';
 import '../onboarding/ziel_screen.dart';
 import '../../services/aktions_service.dart';
 import '../../services/subscription_service.dart';
@@ -87,6 +89,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     );
     if (geaendert == true && mounted) {
       setState(() => _ziel = ZielService().ziel);
+      _loadTagesZeile(neu: true);
     }
   }
 
@@ -194,7 +197,10 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       backgroundColor: bg,
       body: RefreshIndicator(
         color: AppColors.accent,
-        onRefresh: _loadCounts,
+        onRefresh: () async {
+          await _loadCounts();
+          await _loadTagesZeile(neu: true);
+        },
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
@@ -625,12 +631,11 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             : heute
                 ? 'HEUTE'
                 : ((restTage ?? tage) == 1 ? 'TAG' : 'TAGE');
-    final titel = ziel.pruefung == 'AP1'
-        ? 'bis zur Abschlussprüfung Teil 1'
-        : 'bis zur Abschlussprüfung Teil 2';
+    // Kurz: Pruefung und Fachrichtung stehen schon im Chip oben rechts.
+    final titel = 'bis zur ${ziel.pruefung}';
     final untertitel = ziel.datum == null
-        ? '${ziel.fachrichtungLabel} · Termin noch eintragen'
-        : '${ziel.fachrichtungLabel} · ${_wochentag(ziel.datum!)}, ${ZielScreen.datumText(ziel.datum!)}';
+        ? 'Termin noch eintragen'
+        : '${_wochentag(ziel.datum!)}, ${ZielScreen.datumText(ziel.datum!)}';
 
     return GestureDetector(
       onTap: _zielBearbeiten,
@@ -668,96 +673,50 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               ],
             ),
             const SizedBox(height: 10),
+            // Kompakt: eine Zeile "12 TAGE · 11 STD · 17 MIN" (bzw. HEUTE /
+            // GESCHAFFT? / TERMIN OFFEN), darunter klein "bis zur AP1 · Datum".
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
               children: [
-                // Zahl mit Glow
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    if (isDark)
-                      Container(
-                        width: 84,
-                        height: 84,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.accent.withOpacity(0.35),
-                              blurRadius: 40,
-                              spreadRadius: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          zahl,
-                          style: AppTextStyles.instrumentSerif(
-                            size: zahl.length > 2 ? 52 : 64,
-                            color: AppColors.accent,
-                            letterSpacing: -2.5,
-                          ).copyWith(height: 1.0),
-                        ),
-                        Text(
-                          einheit,
-                          style: AppTextStyles.mono(
-                            size: 10,
-                            color: textDim,
-                            weight: FontWeight.w600,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        if (ticker != null) ...[
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppColors.accent.withOpacity(0.14),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              ticker,
-                              style: AppTextStyles.mono(
-                                size: 12,
-                                color: AppColors.accent,
-                                weight: FontWeight.w700,
-                                letterSpacing: 0.6,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
+                Text(
+                  zahl,
+                  style: AppTextStyles.instrumentSerif(
+                    size: 34,
+                    color: AppColors.accent,
+                    letterSpacing: -1.2,
+                  ).copyWith(height: 1.0),
                 ),
-                const SizedBox(width: 18),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        vorbei ? 'Prüfung liegt hinter dir' : titel,
-                        style: AppTextStyles.instrumentSerif(
-                          size: 22,
-                          color: text,
-                          letterSpacing: -0.6,
-                        ).copyWith(height: 1.15),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        vorbei ? 'Neues Ziel setzen →' : untertitel,
-                        style: AppTextStyles.bodySmall(textMid),
-                      ),
-                    ],
+                const SizedBox(width: 6),
+                Text(
+                  einheit,
+                  style: AppTextStyles.mono(
+                    size: 10,
+                    color: textDim,
+                    weight: FontWeight.w600,
+                    letterSpacing: 1.5,
                   ),
                 ),
+                if (ticker != null) ...[
+                  const SizedBox(width: 10),
+                  Text(
+                    '·  $ticker',
+                    style: AppTextStyles.mono(
+                      size: 11,
+                      color: AppColors.accent.withOpacity(0.85),
+                      weight: FontWeight.w600,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                ],
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 2),
+            Text(
+              vorbei ? 'Prüfung liegt hinter dir · Neues Ziel setzen' : '$titel · $untertitel',
+              style: AppTextStyles.bodySmall(textMid),
+            ),
+            const SizedBox(height: 12),
             // Tagesbezug: Fragen heute gegen ein Tagesziel (15, bis der
             // Tagesplan in Phase 2 den Wert liefert) + Streak.
             _buildTagesZeile(text, textMid, textDim, border),
@@ -773,73 +732,260 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     );
   }
 
-  static const int _tagesziel = 15;
-  int _heuteFragen = 0;
+  Tagesplan? _plan;
   int _streak = 0;
 
-  Future<void> _loadTagesZeile() async {
-    final heute = await DailyGoalService().getTodayAnsweredCount();
+  /// Tagesplan aufgeklappt (alle Posten) oder nur der naechste offene.
+  bool _planOffen = false;
+
+  /// Tagesplan (Phase 2): eine RPC liefert alles, LernplanService rechnet
+  /// die Posten. Streak kommt weiter aus dem Profil-Cache.
+  Future<void> _loadTagesZeile({bool neu = false}) async {
+    final plan = await LernplanService().laden(neu: neu);
     final profil = AppCacheService().cachedMyProfile;
     final streak = (profil?['streak_days'] as num?)?.toInt() ?? 0;
     if (!mounted) return;
     setState(() {
-      _heuteFragen = heute;
+      _plan = plan;
       _streak = streak;
     });
   }
 
+  /// Posten antippen: Thema, Wiederholungen oder Pruefen oeffnen; danach
+  /// Plan und Zaehler neu laden.
+  Future<void> _postenOeffnen(LernPosten p) async {
+    switch (p.typ) {
+      case PostenTyp.thema:
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TestFragen(
+              modulId: p.modulId!,
+              modulName: '${p.modulName} • ${p.themaName}',
+              themaId: p.themaId!,
+              requiredScore: p.requiredScore,
+            ),
+          ),
+        );
+        break;
+      case PostenTyp.wiederholen:
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ReviewScreen(totalCount: _dueCount)),
+        );
+        break;
+      case PostenTyp.pruefung:
+        // Pruefen-Tab (Index 1) statt eines eigenen Screens; der Plan wird
+        // beim naechsten Aufruf des Hubs neu geladen.
+        NavRoot.tabWechsel.value = 1;
+        return;
+    }
+    if (!mounted) return;
+    _loadCounts();
+    _loadTagesZeile(neu: true);
+  }
+
   Widget _buildTagesZeile(Color text, Color textMid, Color textDim, Color border) {
-    final anteil = (_heuteFragen / _tagesziel).clamp(0.0, 1.0);
-    final fertig = _heuteFragen >= _tagesziel;
-    return Row(
+    final plan = _plan;
+    final tagesziel = plan?.tagesziel ?? 15;
+    final heute = plan?.heuteFragen ?? 0;
+    final anteil = (heute / tagesziel).clamp(0.0, 1.0);
+    final fertig = heute >= tagesziel;
+    final alles = plan?.allesFertig ?? false;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('HEUTE', style: AppTextStyles.monoSmall(textDim)),
-                  const SizedBox(width: 8),
-                  Text(
-                    fertig
-                        ? 'Tagesziel erreicht'
-                        : '$_heuteFragen / $_tagesziel Fragen',
-                    style: AppTextStyles.labelMedium(fertig ? AppColors.success : text),
+                  Row(
+                    children: [
+                      Text('HEUTE', style: AppTextStyles.monoSmall(textDim)),
+                      const SizedBox(width: 8),
+                      Text(
+                        alles
+                            ? 'Alles erledigt'
+                            : fertig
+                                ? 'Tagesziel erreicht'
+                                : '$heute / $tagesziel Fragen',
+                        style: AppTextStyles.labelMedium(
+                            (fertig || alles) ? AppColors.success : text),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      value: anteil,
+                      minHeight: 4,
+                      backgroundColor: border,
+                      valueColor: AlwaysStoppedAnimation(
+                        fertig ? AppColors.success : AppColors.accent,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(3),
-                child: LinearProgressIndicator(
-                  value: anteil,
-                  minHeight: 4,
-                  backgroundColor: border,
-                  valueColor: AlwaysStoppedAnimation(
-                    fertig ? AppColors.success : AppColors.accent,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 16),
-        Row(
-          children: [
-            Icon(
-              Icons.local_fire_department_rounded,
-              size: 16,
-              color: _streak > 0 ? AppColors.warning : textDim,
             ),
-            const SizedBox(width: 4),
-            Text(
-              _streak == 1 ? '1 Tag' : '$_streak Tage',
-              style: AppTextStyles.labelMedium(_streak > 0 ? text : textDim),
+            const SizedBox(width: 16),
+            Row(
+              children: [
+                Icon(
+                  Icons.local_fire_department_rounded,
+                  size: 16,
+                  color: _streak > 0 ? AppColors.warning : textDim,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _streak == 1 ? '1 Tag' : '$_streak Tage',
+                  style: AppTextStyles.labelMedium(_streak > 0 ? text : textDim),
+                ),
+              ],
             ),
           ],
         ),
+        if (plan != null && plan.posten.isNotEmpty && !alles) ...[
+          const SizedBox(height: 10),
+          ..._buildPlanZeilen(plan, text, textMid, textDim),
+        ],
       ],
+    );
+  }
+
+  /// Schlank: standardmaessig nur der naechste offene Posten, rechts ein
+  /// "+2 weitere", das die ganze Liste aufklappt. Erledigte rutschen nach
+  /// hinten und werden erst im aufgeklappten Zustand gezeigt.
+  List<Widget> _buildPlanZeilen(Tagesplan plan, Color text, Color textMid, Color textDim) {
+    final offen = plan.posten.where((p) => !p.fertig).toList();
+    final fertig = plan.posten.where((p) => p.fertig).toList();
+    if (!_planOffen) {
+      final naechster = offen.first;
+      final weitere = plan.posten.length - 1;
+      return [
+        _buildPosten(
+          naechster, text, textMid, textDim,
+          label: 'ALS NÄCHSTES',
+          trailing: weitere > 0
+              ? GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() => _planOffen = true),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    child: Text(
+                      '+$weitere weitere',
+                      style: AppTextStyles.mono(
+                        size: 10,
+                        color: AppColors.accent,
+                        weight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+        ),
+      ];
+    }
+    return [
+      for (final p in [...offen, ...fertig]) _buildPosten(p, text, textMid, textDim),
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() => _planOffen = false),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            'WENIGER',
+            style: AppTextStyles.mono(size: 10, color: textDim, weight: FontWeight.w600),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  /// Ein Posten des Tagesplans: Haken-Kreis, Titel, Untertitel, rechts der
+  /// Stand ("6/12") oder ein gruener Haken. Antippbar.
+  Widget _buildPosten(
+    LernPosten p,
+    Color text,
+    Color textMid,
+    Color textDim, {
+    String? label,
+    Widget? trailing,
+  }) {
+    final fertig = p.fertig;
+    final icon = switch (p.typ) {
+      PostenTyp.thema => Icons.menu_book_rounded,
+      PostenTyp.wiederholen => Icons.replay_rounded,
+      PostenTyp.pruefung => Icons.timer_outlined,
+    };
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _postenOeffnen(p),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: fertig ? AppColors.success.withOpacity(0.18) : Colors.transparent,
+                border: Border.all(
+                  color: fertig ? AppColors.success : AppColors.accent.withOpacity(0.5),
+                  width: 1.5,
+                ),
+              ),
+              child: Icon(
+                fertig ? Icons.check_rounded : icon,
+                size: 14,
+                color: fertig ? AppColors.success : AppColors.accent,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    p.titel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.labelMedium(fertig ? textMid : text).copyWith(
+                      decoration: fertig ? TextDecoration.lineThrough : null,
+                      decorationColor: textDim,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    label != null ? '$label · ${p.untertitel}' : p.untertitel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall(textDim),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            if (trailing != null) trailing,
+            if (!fertig && p.ziel > 1)
+              Text(
+                '${p.erledigt}/${p.ziel}',
+                style: AppTextStyles.mono(
+                  size: 11,
+                  color: p.erledigt > 0 ? AppColors.accent : textDim,
+                  weight: FontWeight.w600,
+                ),
+              ),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right_rounded, size: 18, color: textDim),
+          ],
+        ),
+      ),
     );
   }
 

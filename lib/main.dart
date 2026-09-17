@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/app_cache_service.dart';
 import 'services/ziel_service.dart';
+import 'services/lernplan_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
@@ -104,6 +105,7 @@ class _AppInitializerState extends State<AppInitializer> {
         } else if (data.event == AuthChangeEvent.signedOut) {
           SubscriptionService().clear();
           ZielService().zuruecksetzen();
+          LernplanService().zuruecksetzen();
         } else if (data.event == AuthChangeEvent.passwordRecovery) {
           // User hat den Link aus der Passwort-vergessen-Mail geöffnet:
           // Supabase hat eine Recovery-Session erstellt → Screen zum
