@@ -126,6 +126,20 @@ async function appleApiToken(): Promise<string> {
   return `${unsigned}.${b64url(sig)}`
 }
 
+/// Kurzkennung des Apple-Angebots fuer die Kaufmeldung, null = Listenpreis.
+function appleAngebot(tx: any): string | null {
+  switch (tx.offerType) {
+    case 1:
+      return 'intro'
+    case 2:
+      return `promo:${tx.offerIdentifier ?? '?'}`
+    case 3:
+      return `code:${tx.offerIdentifier ?? '?'}`
+    default:
+      return null
+  }
+}
+
 /// Transaktion bei Apple nachschlagen. Liefert den Payload der von Apple
 /// signierten Transaktion oder null, wenn Apple sie nicht kennt.
 async function fetchTransaction(
@@ -251,6 +265,13 @@ Deno.serve(async (req) => {
         p_user_id: user.id,
         p_product_id: tx.productId,
         p_environment: tx.environment,
+        // Fuer die Telegram-Meldung (notify_premium_kauf): Apple liefert in
+        // der signierten Transaktion price (Milli-Einheiten, 5990 = 5,99),
+        // currency und offerType (1 = Einfuehrungsangebot, 2 = Werbeangebot,
+        // 3 = Angebotscode). Aeltere Transaktionen haben kein price-Feld.
+        p_preis: typeof tx.price === 'number' ? tx.price / 1000 : null,
+        p_waehrung: tx.currency ?? null,
+        p_angebot: appleAngebot(tx),
       },
     )
     if (claimError) {

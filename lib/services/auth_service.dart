@@ -1,6 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'plattform.dart';
+
 class AuthService {
   final _supabase = Supabase.instance.client;
 
@@ -35,7 +37,7 @@ class AuthService {
         UserAttributes(
           email: email,
           password: password,
-          data: {'username': username},
+          data: {'username': username, 'plattform': plattformName},
         ),
         emailRedirectTo: 'https://lernarena.app/auth/callback',
       );
@@ -66,7 +68,9 @@ class AuthService {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: {'username': username},
+        // plattform: fuer die Store-Auswertung (profiles.plattform, Signup-
+        // Telegram-Meldung), siehe Migration 20260920030000.
+        data: {'username': username, 'plattform': plattformName},
         emailRedirectTo: 'https://lernarena.app/auth/callback',
       );
 

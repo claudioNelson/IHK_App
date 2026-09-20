@@ -199,6 +199,10 @@ Deno.serve(async (req) => {
         p_user_id: user.id,
         p_product_id: `${SUBSCRIPTION_ID}:${basePlanId}`,
         p_environment: purchase.testPurchase ? 'Test' : 'Production',
+        // Fuer die Telegram-Meldung (notify_premium_kauf): Angebots-ID,
+        // z. B. 'endspurt-2026'. Einen gezahlten Betrag liefert die
+        // subscriptionsv2-API nicht, deshalb kein Preis.
+        p_angebot: lineItem.offerDetails?.offerId ?? null,
       },
     )
     if (claimError) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import '../../services/plattform.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
@@ -102,7 +103,9 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _isLoading = true);
 
     try {
-      await Supabase.instance.client.auth.signInAnonymously();
+      await Supabase.instance.client.auth.signInAnonymously(
+        data: {'plattform': plattformName},
+      );
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const NavRoot()),

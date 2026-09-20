@@ -1069,30 +1069,40 @@ class _NewProfilePageState extends State<NewProfilePage> {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: border),
         ),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          iconColor: AppColors.accent,
-          collapsedIconColor: textDim,
-          title: Row(
+        // Eigenes Material dazwischen (transparent, damit die Karte ihre
+        // Farbe behaelt): ExpansionTile malt Hintergrund und Tipp-Effekt
+        // auf das naechste Material - liegt das ueber der Karte, deckt der
+        // Container es ab und Flutter meldet im Debug "ink splashes may be
+        // invisible". Gleiches Muster wie in kurs_aufgaben_widgets.dart.
+        child: Material(
+          type: MaterialType.transparency,
+          borderRadius: BorderRadius.circular(14),
+          clipBehavior: Clip.antiAlias,
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            iconColor: AppColors.accent,
+            collapsedIconColor: textDim,
+            title: Row(
+              children: [
+                Container(width: 16, height: 1, color: AppColors.accent),
+                const SizedBox(width: 10),
+                Text(
+                  'AKTIVITÄT · 12 WOCHEN',
+                  style: AppTextStyles.monoLabel(AppColors.accent),
+                ),
+              ],
+            ),
             children: [
-              Container(width: 16, height: 1, color: AppColors.accent),
-              const SizedBox(width: 10),
-              Text(
-                'AKTIVITÄT · 12 WOCHEN',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+              StreakCalendar(
+                dayCounts: _activeDayCounts,
+                surface: surface,
+                border: border,
+                text: text,
+                textDim: textDim,
               ),
             ],
           ),
-          children: [
-            StreakCalendar(
-              dayCounts: _activeDayCounts,
-              surface: surface,
-              border: border,
-              text: text,
-              textDim: textDim,
-            ),
-          ],
         ),
       ),
     );

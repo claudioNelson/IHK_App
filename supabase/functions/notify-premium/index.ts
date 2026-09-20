@@ -24,6 +24,13 @@ interface Payload {
   tier?: string | null;
   premium_until?: string | null;
   premium_count?: number;
+  // seit 20.09.2026 aus store_transaktionen (fehlt bei Stripe/Web):
+  store?: string | null; // 'apple' | 'google'
+  environment?: string | null; // Apple: Sandbox/Production, Google: Test/Production
+  product_id?: string | null;
+  preis?: number | string | null;
+  waehrung?: string | null;
+  angebot?: string | null; // Google offerId, Apple intro/promo:<id>/code:<id>
 }
 
 function esc(value: unknown): string {
@@ -34,13 +41,60 @@ function esc(value: unknown): string {
 }
 
 const TIER_NAMEN: Record<string, string> = {
-  monthly: "Monatlich (11,99 EUR)",
-  "half-year": "Halbjahr (47,99 EUR)",
-  annual: "Jahr (84,99 EUR)",
+  monthly: "Monatlich",
+  "half-year": "Halbjahr",
+  yearly: "Jahr",
+  annual: "Jahr",
+  lifetime: "Lifetime",
 };
+
+// Listenpreise (DE, inkl. MwSt.) - nur als Anhaltspunkt, wenn der Store
+// keinen gezahlten Betrag mitliefert (Google).
+const LISTENPREIS: Record<string, string> = {
+  monthly: "11,99 EUR",
+  "half-year": "47,99 EUR",
+  yearly: "84,99 EUR",
+  annual: "84,99 EUR",
+};
+
+const STORE_NAMEN: Record<string, string> = {
+  apple: "App Store",
+  google: "Google Play",
+};
+
+function istTestkauf(p: Payload): boolean {
+  const env = (p.environment ?? "").toLowerCase();
+  return env === "sandbox" || env === "test";
+}
+
+function preisText(p: Payload): string {
+  const betrag = p.preis == null ? null : Number(p.preis);
+  if (betrag != null && !Number.isNaN(betrag)) {
+    const w = (p.waehrung ?? "").toUpperCase() || "?";
+    return `${betrag.toFixed(2).replace(".", ",")} ${w}`;
+  }
+  const liste = LISTENPREIS[p.tier ?? ""];
+  if (!liste) return "unbekannt";
+  // Google nennt keinen Betrag: mit Angebot ist der Listenpreis falsch.
+  return p.angebot ? `Angebotspreis (Liste ${liste})` : `${liste} (Liste)`;
+}
+
+function angebotText(p: Payload): string | null {
+  const a = p.angebot;
+  if (!a) return null;
+  if (a === "intro") return "Einführungsangebot";
+  if (a.startsWith("promo:")) return `Werbeangebot ${a.slice(6)}`;
+  if (a.startsWith("code:")) return `Angebotscode ${a.slice(5)}`;
+  return a; // Google offerId, z. B. endspurt-2026
+}
 
 function buildMessage(p: Payload): string {
   const plan = TIER_NAMEN[p.tier ?? ""] ?? esc(p.tier ?? "unbekannt");
+  const test = istTestkauf(p);
+  const store = p.store
+    ? (STORE_NAMEN[p.store] ?? esc(p.store))
+    : "Web (Stripe)";
+  const angebot = angebotText(p);
 
   const bis = p.premium_until
     ? new Date(p.premium_until).toLocaleString("de-DE", {
@@ -51,15 +105,19 @@ function buildMessage(p: Payload): string {
       })
     : "?";
 
-  return [
-    "💰 <b>Neuer Premium-Kauf!</b>",
+  const zeilen = [
+    test
+      ? `🧪 <b>Testkauf (${esc(p.environment)}) – kein echter Umsatz</b>`
+      : "💰 <b>Neuer Premium-Kauf!</b>",
     "",
     `<b>${esc(p.email ?? "unbekannt")}</b>`,
-    `Plan: <b>${plan}</b>`,
-    `Laeuft bis: ${esc(bis)}`,
+    `Plan: <b>${plan}</b> · ${esc(store)}`,
+    `Preis: <b>${esc(preisText(p))}</b>${angebot ? ` · ${esc(angebot)}` : ""}`,
+    `Läuft bis: ${esc(bis)}`,
     "",
     `Premium-Nutzer gesamt: <b>${p.premium_count ?? "?"}</b>`,
-  ].join("\n");
+  ];
+  return zeilen.join("\n");
 }
 
 serve(async (req: Request) => {

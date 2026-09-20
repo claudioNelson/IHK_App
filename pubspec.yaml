@@ -55,6 +55,7 @@ dependencies:
   in_app_purchase: ^3.3.0
   in_app_purchase_android: ^0.5.2
   in_app_purchase_storekit: ^0.4.4
+  in_app_purchase_platform_interface: ^1.4.0
 
   # SQL-Kurs: echte SQLite-Datenbank im Gerät
   sqlite3: ^2.4.0

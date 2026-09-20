@@ -2,6 +2,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'plattform.dart';
+
 /// Service zum Verwalten des Premium-Status eines Users.
 ///
 /// Singleton — Status wird einmal pro Session gecacht.
@@ -45,7 +47,7 @@ class SubscriptionService {
     try {
       final profile = await _supabase
           .from('profiles')
-          .select('is_premium, premium_until, premium_tier')
+          .select('is_premium, premium_until, premium_tier, plattform, plattform_gesehen')
           .eq('id', user.id)
           .maybeSingle();
 
@@ -82,12 +84,35 @@ class SubscriptionService {
       _premiumUntil = until;
       _loaded = true;
 
+      _plattformMelden(user.id, profile);
+
       debugPrint('✅ Subscription loaded: isPremium=$_isPremium, tier=$tier');
     } catch (e) {
       debugPrint('❌ Subscription load error: $e');
       _resetState();
       _loaded = true;
     }
+  }
+
+  /// Schreibt die Plattform ins Profil (profiles.plattform), damit sich in
+  /// der DB auswerten laesst, wie viele Nutzer ueber Google Play, App Store
+  /// oder Web kommen (Migration 20260920030000). Hoechstens einmal am Tag
+  /// bzw. wenn sich die Plattform geaendert hat; Fehler sind egal.
+  void _plattformMelden(String userId, Map<String, dynamic> profile) {
+    final bisher = profile['plattform'] as String?;
+    final gesehen = DateTime.tryParse(profile['plattform_gesehen'] as String? ?? '');
+    final frisch = gesehen != null &&
+        DateTime.now().difference(gesehen) < const Duration(hours: 24);
+    if (bisher == plattformName && frisch) return;
+    _supabase
+        .from('profiles')
+        .update({
+          'plattform': plattformName,
+          'plattform_gesehen': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', userId)
+        .then((_) => debugPrint('✅ Plattform gemeldet: $plattformName'))
+        .catchError((e) => debugPrint('⚠️ Plattform melden: $e'));
   }
 
   /// Aktualisiert den Status (z.B. nach Stripe-Checkout).

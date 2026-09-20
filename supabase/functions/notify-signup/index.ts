@@ -33,12 +33,15 @@ interface Stats {
   today?: number;
   premium?: number;
   active7?: number;
+  // seit 20.09.2026: {"android": 120, "ios": 15, "web": 30, "unbekannt": 200}
+  plattformen?: Record<string, number>;
 }
 
 interface Payload {
   user_id?: string;
   email?: string | null;
   provider?: string | null;
+  plattform?: string | null; // android | ios | web | windows | ... | null
   is_anonymous?: boolean;
   created_at?: string | null;
   stats?: Stats;
@@ -143,6 +146,35 @@ function num(value: number | undefined): string {
   return typeof value === "number" ? value.toLocaleString("de-DE") : "?";
 }
 
+const PLATTFORM_NAMEN: Record<string, string> = {
+  android: "Android",
+  ios: "iOS",
+  macos: "macOS",
+  windows: "Windows",
+  linux: "Linux",
+  web: "Web",
+  unbekannt: "unbekannt",
+};
+
+function plattformName(key: string | null | undefined): string {
+  if (!key) return "unbekannt";
+  return PLATTFORM_NAMEN[key] ?? key;
+}
+
+// "Android 120 · iOS 15 · Web 30 · unbekannt 200" (absteigend, unbekannt zuletzt)
+function plattformVerteilung(v: Record<string, number> | undefined): string | null {
+  if (!v) return null;
+  const teile = Object.entries(v)
+    .filter(([, n]) => typeof n === "number")
+    .sort((a, b) => {
+      if (a[0] === "unbekannt") return 1;
+      if (b[0] === "unbekannt") return -1;
+      return b[1] - a[1];
+    })
+    .map(([k, n]) => `${esc(plattformName(k))} ${n}`);
+  return teile.length ? teile.join(" · ") : null;
+}
+
 function buildMessage(p: Payload, ip: string | null, google: boolean): string {
   const s = p.stats ?? {};
   const isGuest = p.is_anonymous === true;
@@ -170,7 +202,7 @@ function buildMessage(p: Payload, ip: string | null, google: boolean): string {
     kopf,
     "",
     wer,
-    `Weg: ${esc(p.provider ?? "email")} · ${esc(zeit)} Uhr`,
+    `Weg: ${esc(p.provider ?? "email")} · ${esc(plattformName(p.plattform))} · ${esc(zeit)} Uhr`,
   ];
   if (ip) zeilen.push(`IP: <code>${esc(ip.split("/")[0])}</code>`);
 
@@ -182,6 +214,8 @@ function buildMessage(p: Payload, ip: string | null, google: boolean): string {
     `Premium: <b>${num(s.premium)}</b>`,
     `Aktiv (7 Tage): <b>${num(s.active7)}</b>`,
   );
+  const verteilung = plattformVerteilung(s.plattformen);
+  if (verteilung) zeilen.push(`Plattformen: ${verteilung}`);
   return zeilen.join("\n");
 }
 

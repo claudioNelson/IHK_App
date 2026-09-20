@@ -48,7 +48,9 @@ export async function signup(formData: FormData) {
         password,
         options: {
             emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
-            data: { username },  // → wird in user_metadata gespeichert, Trigger erstellt profiles-Eintrag
+            // → user_metadata; Trigger erstellt den profiles-Eintrag und liest
+            // 'plattform' fuer die Store-Auswertung (Migration 20260920030000).
+            data: { username, plattform: "web" },
         },
     });
 
