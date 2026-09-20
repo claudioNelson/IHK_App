@@ -101,9 +101,12 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
       }
     });
 
-    // Preise nachladen, falls noch nicht geschehen.
-    _billing.loadProducts().then((_) {
-      if (mounted) setState(() {});
+    // Preise nachladen, falls noch nicht geschehen; danach fragen, ob
+    // dieser Nutzer das Einfuehrungsangebot ueberhaupt bekommt (Apple:
+    // StoreKit, Google: Angebot im Store-Eintrag). Erst dann Badge zeigen.
+    _billing.loadProducts().then((_) async {
+      final b = await _billing.introBerechtigt(PremiumPlan.monthly);
+      if (mounted) setState(() => _introBerechtigt = b);
     });
     // Aktionstext nachladen, falls der Lernhub das noch nicht getan hat.
     AktionsService().laden().then((_) {
@@ -119,6 +122,9 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
     _verifyingSub?.cancel();
     super.dispose();
   }
+
+  /// null = noch nicht bekannt (oder Plattform ohne Store).
+  bool? _introBerechtigt;
 
   Future<void> _buy(PremiumPlan plan) async {
     if (_busy) return;
@@ -154,9 +160,21 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
   Widget build(BuildContext context) {
     // Laufende Aktion (Text aus der DB) und, auf Google Play, das echte
     // Einfuehrungsangebot aus dem Store. Apple wendet sein Angebot im
-    // Kaufdialog selbst an, dort gibt es nur den Text.
-    final aktion = AktionsService().fuerPlan(PremiumPlan.monthly.basePlanId);
+    // Kaufdialog selbst an und nennt der App keinen Preis, nur ob der
+    // Nutzer berechtigt ist. Ohne Berechtigung (oder solange unbekannt)
+    // keine Aktion auf der Karte - sonst verspricht sie 5,99 und der
+    // Kaufdialog verlangt 11,99. Ohne Store (Windows) bleibt der Text.
     final angebot = _billing.angebotFor(PremiumPlan.monthly);
+    final aktionSichtbar = angebot != null ||
+        _introBerechtigt == true ||
+        (!_billing.isAvailable && !BillingService.platformSupported);
+    final aktion = aktionSichtbar
+        ? AktionsService().fuerPlan(PremiumPlan.monthly.basePlanId)
+        : null;
+    // Badge "-50 %": Google aus den Preisphasen, Apple aus der Aktion.
+    final rabattLabel = angebot != null && angebot.rabattProzent > 0
+        ? '-${angebot.rabattProzent} %'
+        : aktion?.rabattLabel;
     final isDark = context.watch<ThemeProvider>().isDark;
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
@@ -259,7 +277,9 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
                         ? 'Erster Monat zum halben Preis, '
                             'danach ${_billing.priceFor(PremiumPlan.monthly)}/Monat'
                         : '1 Monat · flexibel kündbar',
-                badge: (angebot != null || aktion != null) ? 'AKTION' : null,
+                badge: (angebot != null || aktion != null)
+                    ? (rabattLabel ?? 'AKTION')
+                    : null,
                 badgeColor: AppColors.warning,
                 aktionsPreis: angebot?.einfuehrungsPreis,
                 surface: surface,

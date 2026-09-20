@@ -25,6 +25,10 @@ class Aktion {
   final String? plan;
   final DateTime gueltigBis;
 
+  /// Rabatt in Prozent fuer den Badge im Kauf-Sheet (z. B. 50 -> "-50 %").
+  /// Nur Anzeige; der echte Preis kommt aus dem Store. null = kein Badge.
+  final int? rabattProzent;
+
   const Aktion({
     required this.schluessel,
     required this.titel,
@@ -32,7 +36,15 @@ class Aktion {
     required this.gueltigBis,
     this.hinweis,
     this.plan,
+    this.rabattProzent,
   });
+
+  /// "-50 %" oder null.
+  String? get rabattLabel {
+    final r = rabattProzent;
+    if (r == null || r <= 0) return null;
+    return '-$r %';
+  }
 
   /// Kalendertage bis zum letzten Aktionstag (heute = 0).
   int get tageBis {
@@ -76,7 +88,7 @@ class AktionsService {
     try {
       final rows = await Supabase.instance.client
           .from('aktionen')
-          .select('schluessel, titel, text, hinweis, plan, gueltig_bis')
+          .select('schluessel, titel, text, hinweis, plan, gueltig_bis, rabatt_prozent')
           .order('gueltig_bis')
           .limit(1);
       final list = rows as List;
@@ -94,6 +106,7 @@ class AktionsService {
                 hinweis: r['hinweis'] as String?,
                 plan: r['plan'] as String?,
                 gueltigBis: bis,
+                rabattProzent: (r['rabatt_prozent'] as num?)?.toInt(),
               );
       }
       _geladen = true;

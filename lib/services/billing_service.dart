@@ -31,7 +31,13 @@
 // den mit der guenstigsten ersten Zahlung, das Offer-Token geht damit
 // automatisch in den Kauf. priceFor() liefert den regulaeren Preis,
 // angebotFor() das Einfuehrungsangebot. Apple wendet Einfuehrungsangebote im
-// Kaufdialog selbst an, dort nichts zu tun.
+// Kaufdialog selbst an; die Dart-API (in_app_purchase_storekit 0.4.x)
+// liefert weder Preis noch Laufzeit des Einfuehrungsangebots, nur die
+// Berechtigung (isIntroductoryOfferEligible). Deshalb introBerechtigt():
+// die App zeigt den Aktions-Badge nur Nutzern, die das Angebot auch
+// bekommen (Google: Angebot im ProductDetails vorhanden; Apple: StoreKit
+// gefragt). Der Prozentwert fuer den Badge kommt bei Google aus den
+// Preisphasen, bei Apple aus aktionen.rabatt_prozent.
 
 import 'dart:async';
 import 'dart:io' show Platform;
@@ -41,6 +47,8 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart'
     show SubscriptionOfferDetailsWrapper;
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'subscription_service.dart';
@@ -148,10 +156,15 @@ class PlanAngebot {
   /// Anzahl der verguenstigten Abrechnungsperioden (1 = erster Monat).
   final int perioden;
 
+  /// Rabatt der ersten Zahlung gegenueber dem regulaeren Preis in Prozent
+  /// (gerundet), z. B. 50. 0, wenn nicht berechenbar.
+  final int rabattProzent;
+
   const PlanAngebot({
     required this.einfuehrungsPreis,
     required this.regulaerPreis,
     required this.perioden,
+    this.rabattProzent = 0,
   });
 }
 
@@ -191,6 +204,9 @@ class BillingService {
 
   /// Pro Base Plan das passende Google-Play-Produkt (für Preis + Kauf).
   final Map<PremiumPlan, ProductDetails> _products = {};
+
+  /// Ergebnis von [introBerechtigt] je Plan (nur bekannte Antworten).
+  final Map<PremiumPlan, bool> _introBerechtigt = {};
 
   bool _available = false;
   bool _initialized = false;
@@ -258,11 +274,47 @@ class BillingService {
     final phasen = offer.pricingPhases;
     if (phasen.length < 2) return null;
     final erste = phasen.first;
+    final regulaer = phasen.last.priceAmountMicros;
+    final rabatt = regulaer > 0
+        ? ((1 - erste.priceAmountMicros / regulaer) * 100).round()
+        : 0;
     return PlanAngebot(
       einfuehrungsPreis: erste.formattedPrice,
       regulaerPreis: phasen.last.formattedPrice,
       perioden: erste.billingCycleCount == 0 ? 1 : erste.billingCycleCount,
+      rabattProzent: rabatt.clamp(0, 100),
     );
+  }
+
+  /// Bekommt dieser Nutzer das Einfuehrungsangebot auf dem Plan?
+  ///   Google Play: ja, wenn der Store einen Angebots-Eintrag geliefert hat
+  ///                (Google filtert die Berechtigung selbst).
+  ///   App Store:   StoreKit 2 `isIntroductoryOfferEligible` (nein, wenn
+  ///                die Apple-ID in der Abo-Gruppe schon mal ein Abo hatte).
+  ///   Sonst (Windows/Web, Store nicht erreichbar): null = unbekannt.
+  /// Antwort wird je Plan gemerkt; [neu] fragt erneut.
+  Future<bool?> introBerechtigt(PremiumPlan plan, {bool neu = false}) async {
+    if (!_available) return null;
+    if (!neu && _introBerechtigt.containsKey(plan)) return _introBerechtigt[plan];
+    bool? ergebnis;
+    if (!_isApple) {
+      ergebnis = _products.isEmpty ? null : angebotFor(plan) != null;
+    } else {
+      try {
+        final platform = InAppPurchasePlatform.instance;
+        if (platform is InAppPurchaseStoreKitPlatform) {
+          ergebnis = await platform.isIntroductoryOfferEligible(plan.appleProductId);
+        }
+      } catch (e) {
+        // z. B. storekit2_not_subscription oder Produkt (noch) nicht da:
+        // lieber keinen Badge zeigen als einen falschen.
+        debugPrint('⚠️ introBerechtigt(${plan.name}): $e');
+        ergebnis = null;
+      }
+    }
+    if (ergebnis != null) _introBerechtigt[plan] = ergebnis;
+    debugPrint('💳 Einfuehrungsangebot ${plan.name}: berechtigt=$ergebnis');
+    return ergebnis;
   }
 
   // ─── INIT ────────────────────────────────────────────────
@@ -311,6 +363,7 @@ class BillingService {
       }
 
       _products.clear();
+      _introBerechtigt.clear();
       // Was der Store liefert, pro Eintrag: Base Plan, Angebots-ID, erste
       // Preisphase. Ohne das raet man nur, warum ein Angebot fehlt.
       for (final pd in response.productDetails) {
