@@ -207,7 +207,7 @@ class LernplanService {
         typ: PostenTyp.wiederholen,
         titel: '$z Wiederholungen',
         untertitel: faellig > 0
-            ? '$faellig fällig · Spaced Repetition'
+            ? '$faellig fällig'
             : 'Alles wiederholt',
         ziel: z,
         erledigt: min(heuteWiederholt, z),

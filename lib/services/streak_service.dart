@@ -24,6 +24,17 @@ class StreakService {
 
   final SupabaseClient _supabase;
 
+  /// Zuletzt berechneter Streak (nach [evaluate]). Der Lernhub hoert darauf,
+  /// damit die Countdown-Karte nicht den veralteten Profil-Cache zeigt
+  /// (Befund 21.09.: Karte "0 Tage", Begruessung "4 Tage").
+  static final ValueNotifier<int> aktuell = ValueNotifier<int>(0);
+
+  /// Tage, an denen das Meilenstein-Sheet erscheint. Sonst keine Begruessung
+  /// (Entscheidung 21.09.: kein Popup bei jedem Start, Streak steht im Hub).
+  static const meilensteine = {7, 14, 30, 50, 100, 365};
+
+  static bool istMeilenstein(int tage) => meilensteine.contains(tage);
+
   /// Pro Account ein eigener Key, damit zwei Accounts auf einem Gerät
   /// sich nicht gegenseitig den Dialog unterdrücken.
   static const _greetingKeyPrefix = 'streak_greeting_shown_';
@@ -37,6 +48,7 @@ class StreakService {
     if (userId == null) return null;
 
     final streak = await _calcStreak(userId);
+    aktuell.value = streak; // 0 bei Fehler: Hub nimmt dann den Cache
     final shouldShow = await _greetingPending(userId);
 
     return StreakResult(streakDays: streak, shouldShowGreeting: shouldShow);
@@ -57,8 +69,9 @@ class StreakService {
 
   /// true, wenn für heute noch kein Dialog gezeigt wurde.
   Future<bool> _greetingPending(String userId) async {
-    if (kDebugMode)
-      return true; // DEV: Dialog beim Testen immer zeigen – vor Release entfernen!
+    // DEV: im Debug-Build immer zeigen, damit das Sheet testbar ist
+    // (NavRoot ueberspringt dort auch die Meilenstein-Pruefung).
+    if (kDebugMode) return true;
     try {
       final prefs = await SharedPreferences.getInstance();
       final shown = prefs.getString('$_greetingKeyPrefix$userId');

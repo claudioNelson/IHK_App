@@ -6,6 +6,7 @@ import '../../screens/module/modul_liste_screen.dart';
 import '../../services/app_cache_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/spaced_repetition_service.dart';
+import '../../services/streak_service.dart';
 import '../../services/flashcard_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -59,6 +60,12 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     _loadUsername();
     _loadZiel();
     _loadAktion();
+    StreakService.aktuell.addListener(_onStreak);
+  }
+
+  void _onStreak() {
+    final w = StreakService.aktuell.value;
+    if (mounted && w != _streak) setState(() => _streak = w);
   }
 
   /// Laufende Aktion (z. B. Pruefungs-Endspurt). Nur fuer Free-Nutzer auf
@@ -109,6 +116,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
 
   @override
   void dispose() {
+    StreakService.aktuell.removeListener(_onStreak);
     _countdownTick?.cancel();
     super.dispose();
   }
@@ -219,20 +227,14 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // Due-Stripe (nur wenn fällig)
-                  if (_dueCount > 0) ...[
-                    _buildDueStripe(surface, border, text, textMid),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // SECTION: QUICK ACTIONS
-                  _buildSectionLabel('QUICK ACTIONS', textDim),
+                  // SECTION: SCHNELLZUGRIFF
+                  _buildSectionLabel('Schnellzugriff', textMid),
                   const SizedBox(height: 14),
                   Row(
                     children: [
                       Expanded(
                         child: _buildActionCard(
-                          number: '01',
+                          icon: Icons.replay_rounded,
                           label: 'Wiederholen',
                           sub: _loading
                               ? '…'
@@ -262,8 +264,8 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _buildActionCard(
-                          number: '02',
-                          label: 'Flashcards',
+                          icon: Icons.style_outlined,
+                          label: 'Karteikarten',
                           sub: _loading
                               ? '…'
                               : _flashcardCount > 0
@@ -292,7 +294,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   const SizedBox(height: 36),
 
                   // SECTION: LERNBEREICHE
-                  _buildSectionLabel('LERNBEREICHE', textDim),
+                  _buildSectionLabel('Lernbereiche', textMid),
                   const SizedBox(height: 14),
 
                   // Kernthemen ausgeblendet — Inhalte sind als Lernpfade (Levels) migriert.
@@ -382,7 +384,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   const SizedBox(height: 36),
 
                   // SECTION: KURSE (interaktive Kurse mit echter Ausführung)
-                  _buildSectionLabel('KURSE', textDim),
+                  _buildSectionLabel('Kurse', textMid),
                   const SizedBox(height: 14),
                   _buildKursRow(
                     tag: 'SQL',
@@ -435,7 +437,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   const SizedBox(height: 36),
 
                   // SECTION: ZERTIFIKATE-HIGHLIGHT
-                  _buildSectionLabel('CLOUD-ZERTIFIKATE', textDim),
+                  _buildSectionLabel('Cloud-Zertifikate', textMid),
                   const SizedBox(height: 14),
                   _buildCertStrip(
                     surface: surface,
@@ -498,7 +500,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Dein Lernhub — alles an einem Ort.',
+              'Dein Plan für heute.',
               style: AppTextStyles.bodyMedium(textMid),
             ),
             const SizedBox(height: 20),
@@ -647,10 +649,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           children: [
             Row(
               children: [
-                Container(width: 16, height: 1, color: AppColors.accent),
-                const SizedBox(width: 10),
-                Text('PRÜFUNGS-COUNTDOWN',
-                    style: AppTextStyles.monoLabel(AppColors.accent)),
+                // Kein Kicker: "8 Tage bis zur AP1" erklaert sich selbst.
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -743,7 +742,9 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   Future<void> _loadTagesZeile({bool neu = false}) async {
     final plan = await LernplanService().laden(neu: neu);
     final profil = AppCacheService().cachedMyProfile;
-    final streak = (profil?['streak_days'] as num?)?.toInt() ?? 0;
+    // Frisch berechneter Wert aus StreakService hat Vorrang vor dem Cache.
+    final live = StreakService.aktuell.value;
+    final streak = live > 0 ? live : (profil?['streak_days'] as num?)?.toInt() ?? 0;
     if (!mounted) return;
     setState(() {
       _plan = plan;
@@ -832,21 +833,25 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                 ],
               ),
             ),
-            const SizedBox(width: 16),
-            Row(
-              children: [
-                Icon(
-                  Icons.local_fire_department_rounded,
-                  size: 16,
-                  color: _streak > 0 ? AppColors.warning : textDim,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _streak == 1 ? '1 Tag' : '$_streak Tage',
-                  style: AppTextStyles.labelMedium(_streak > 0 ? text : textDim),
-                ),
-              ],
-            ),
+            // Streak nur zeigen, wenn es einen gibt ("0 Tage" war ein
+            // Negativ-Signal an prominenter Stelle).
+            if (_streak > 0) ...[
+              const SizedBox(width: 16),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.local_fire_department_rounded,
+                    size: 16,
+                    color: AppColors.warning,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _streak == 1 ? '1 Tag' : '$_streak Tage',
+                    style: AppTextStyles.labelMedium(text),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
         if (plan != null && plan.posten.isNotEmpty && !alles) ...[
@@ -858,7 +863,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   }
 
   /// Schlank: standardmaessig nur der naechste offene Posten, rechts ein
-  /// "+2 weitere", das die ganze Liste aufklappt. Erledigte rutschen nach
+  /// "2 weitere", das die ganze Liste aufklappt. Erledigte rutschen nach
   /// hinten und werden erst im aufgeklappten Zustand gezeigt.
   List<Widget> _buildPlanZeilen(Tagesplan plan, Color text, Color textMid, Color textDim) {
     final offen = plan.posten.where((p) => !p.fertig).toList();
@@ -869,7 +874,6 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       return [
         _buildPosten(
           naechster, text, textMid, textDim,
-          label: 'ALS NÄCHSTES',
           trailing: weitere > 0
               ? GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -877,7 +881,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                     child: Text(
-                      '+$weitere weitere',
+                      '$weitere weitere',
                       style: AppTextStyles.mono(
                         size: 10,
                         color: AppColors.accent,
@@ -1065,135 +1069,15 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   }
 
   // ─── SECTION LABEL ──────────────────────────────────
+  // Schlichte Ueberschrift in der Textschrift; kein Mono-Kicker mit Strich
+  // (Befund Design-Review 21.09.: wirkte wie Deko auf jedem Abschnitt).
   Widget _buildSectionLabel(String label, Color color) {
-    return Row(
-      children: [
-        Container(width: 16, height: 1, color: AppColors.accent),
-        const SizedBox(width: 10),
-        Text(label, style: AppTextStyles.monoLabel(AppColors.accent)),
-      ],
-    );
-  }
-
-  // ─── DUE STRIPE (Hero für fällige Wiederholungen) ───
-  Widget _buildDueStripe(
-    Color surface,
-    Color border,
-    Color text,
-    Color textMid,
-  ) {
-    return GestureDetector(
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ReviewScreen(totalCount: _dueCount),
-          ),
-        );
-        _loadCounts();
-      },
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.accent.withOpacity(0.3)),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.accent.withOpacity(0.08), surface],
-          ),
-        ),
-        child: Row(
-          children: [
-            // Pulsating Dot
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.warning,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.warning.withOpacity(0.6),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'FÄLLIG HEUTE',
-                        style: AppTextStyles.monoSmall(AppColors.warning),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.warning.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '$_dueCount',
-                          style: AppTextStyles.mono(
-                            size: 10,
-                            color: AppColors.warning,
-                            weight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _dueCount == 1
-                        ? '1 Wiederholung wartet'
-                        : '$_dueCount Wiederholungen warten',
-                    style: AppTextStyles.h3(text),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Spaced Repetition — der schnellste Weg zum Behalten.',
-                    style: AppTextStyles.bodySmall(textMid),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            // Play Button
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: text,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.arrow_forward_rounded,
-                color: surface,
-                size: 20,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return Text(label, style: AppTextStyles.labelLarge(color));
   }
 
   // ─── ACTION CARD (2er-Grid) ─────────────────────────
   Widget _buildActionCard({
-    required String number,
+    required IconData icon,
     required String label,
     required String sub,
     required bool accent,
@@ -1219,18 +1103,14 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Number-Badge
+            // Icon statt laufender Nummer ("01"/"02" trug keine Information)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  number,
-                  style: AppTextStyles.mono(
-                    size: 11,
-                    color: accent ? AppColors.accent : textDim,
-                    weight: FontWeight.w600,
-                    letterSpacing: 1.2,
-                  ),
+                Icon(
+                  icon,
+                  size: 20,
+                  color: accent ? AppColors.accent : textDim,
                 ),
                 if (onTap != null)
                   Icon(Icons.arrow_outward_rounded, color: textMid, size: 16)

@@ -9,10 +9,6 @@ import '../../screens/pruefen/pruefen_screen.dart';
 import '../../screens/simulation/async_match_demo_screen.dart';
 import '../../screens/profile/new_profile_page.dart';
 import '../../services/streak_service.dart';
-import '../../services/spaced_repetition_service.dart';
-import '../../services/daily_goal_service.dart';
-import '../dialogs/streak_greeting_dialog.dart';
-import '../../screens/learning/review_screen.dart';
 
 class NavRoot extends StatefulWidget {
   const NavRoot({super.key});
@@ -67,29 +63,11 @@ class _NavRootState extends State<NavRoot> {
     NavRoot.tabWechsel.value = null;
   }
 
+  /// Streak nur berechnen (einmal am Tag in der DB fortschreiben) und an
+  /// den Lernhub melden (StreakService.aktuell). Kein Popup mehr
+  /// (Entscheidung 21.09.2026): der Streak steht in der Countdown-Karte.
   Future<void> _maybeShowStreakGreeting() async {
-    final result = await _streakService.evaluate();
-    if (result == null) return;
-    if (!result.shouldShowGreeting || result.streakDays <= 0) return;
-
-    final dueCount = await SpacedRepetitionService().getDueCount();
-    final answeredYesterday = await DailyGoalService()
-        .getYesterdayAnsweredCount();
-    if (!mounted) return;
-
-    final wantsReview = await showStreakGreetingDialog(
-      context,
-      result.streakDays,
-      dueCount,
-      answeredYesterday,
-    );
-    await _streakService.markGreetingShown();
-
-    if (wantsReview != true) return;
-    if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ReviewScreen(totalCount: dueCount)),
-    );
+    await _streakService.evaluate();
   }
 
   @override
