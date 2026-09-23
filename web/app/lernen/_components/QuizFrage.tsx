@@ -1,133 +1,112 @@
 "use client";
 
-import { useState } from "react";
+// Eine Quizfrage mit sofortigem Feedback (.ls-quiz, nach mockup-thema.html).
+// Buchstaben-Marker A bis D, SVG-Haken bzw. -Kreuz, nicht gewaehlte Antworten
+// werden abgeblendet, Feedback per aria-live. "Nochmal versuchen" setzt den
+// Fokus auf die erste Antwort.
+//
+// Props frage/optionen/erklaerung bleiben wie bisher (rund 50 Aufrufe).
+// Neu und optional: nr und von fuer den Zaehler "1 / 5".
+
+import { useEffect, useRef, useState } from "react";
+import { HakenIcon, KreuzIcon, LeerIcon } from "./LsIcons";
 
 type Option = { text: string; richtig: boolean };
+
+const BUCHSTABEN = "ABCDEFGH";
 
 export default function QuizFrage({
   frage,
   optionen,
   erklaerung,
+  nr,
+  von,
 }: {
   frage: string;
   optionen: Option[];
   erklaerung: string;
+  nr?: number;
+  von?: number;
 }) {
   const [gewaehlt, setGewaehlt] = useState<number | null>(null);
+  const ersteOption = useRef<HTMLButtonElement>(null);
+  const fokusNachReset = useRef(false);
+
   const beantwortet = gewaehlt !== null;
-  const richtigIndex = optionen.findIndex((o) => o.richtig);
   const istRichtig = beantwortet && optionen[gewaehlt].richtig;
 
+  // Fokus erst setzen, wenn die Buttons wieder aktiv sind (disabled ist nicht fokussierbar)
+  useEffect(() => {
+    if (!beantwortet && fokusNachReset.current) {
+      fokusNachReset.current = false;
+      ersteOption.current?.focus();
+    }
+  }, [beantwortet]);
+
+  function zustand(i: number): "ok" | "err" | "off" | undefined {
+    if (!beantwortet) return undefined;
+    if (optionen[i].richtig) return "ok";
+    if (i === gewaehlt) return "err";
+    return "off";
+  }
+
   return (
-    <div
-      style={{
-        background: "var(--surface, #12121C)",
-        border: "1px solid var(--border, rgba(255,255,255,0.08))",
-        borderRadius: 16,
-        padding: "22px 24px",
-        margin: "18px 0",
-      }}
-    >
-      <p
-        style={{
-          color: "var(--text, #F5F5F7)",
-          fontWeight: 600,
-          margin: "0 0 16px",
-          fontSize: 17,
-          lineHeight: 1.5,
-        }}
-      >
-        {frage}
-      </p>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {optionen.map((o, i) => {
-          let bg = "var(--chip-bg, rgba(255,255,255,0.04))";
-          let border = "1px solid var(--chip-border, rgba(255,255,255,0.12))";
-          let color = "var(--text-body, #E0E0E8)";
-          let mark = "";
-
-          if (beantwortet) {
-            if (i === richtigIndex) {
-              bg = "var(--ok-bg, rgba(52,199,89,0.16))";
-              border = "1px solid var(--ok-border, rgba(52,199,89,0.6))";
-              color = "var(--ok-text, #B8F0C4)";
-              mark = "  ✓";
-            } else if (i === gewaehlt) {
-              bg = "var(--err-bg, rgba(255,69,58,0.16))";
-              border = "1px solid var(--err-border, rgba(255,69,58,0.6))";
-              color = "var(--err-text, #FFC1BC)";
-              mark = "  ✗";
-            }
-          }
-
-          return (
-            <button
-              key={i}
-              onClick={() => {
-                if (!beantwortet) setGewaehlt(i);
-              }}
-              disabled={beantwortet}
-              style={{
-                textAlign: "left",
-                padding: "12px 16px",
-                borderRadius: 10,
-                background: bg,
-                border,
-                color,
-                fontSize: 15,
-                cursor: beantwortet ? "default" : "pointer",
-                fontFamily: "inherit",
-                transition: "background .12s ease, border-color .12s ease",
-              }}
-            >
-              {o.text}
-              {mark}
-            </button>
-          );
-        })}
+    <div className="ls-quiz">
+      <div className="ls-quiz-head">
+        {nr !== undefined && (
+          <span>
+            {nr}
+            {von !== undefined ? ` / ${von}` : ""}
+          </span>
+        )}
+        <p className="ls-quiz-q">{frage}</p>
       </div>
 
-      {beantwortet && (
-        <div style={{ marginTop: 16 }}>
-          <p
-            style={{
-              color: istRichtig ? "var(--ok, #5FD98A)" : "var(--err, #FF6B63)",
-              fontWeight: 600,
-              margin: "0 0 6px",
-              fontSize: 16,
-            }}
-          >
-            {istRichtig ? "Richtig!" : "Nicht ganz."}
-          </p>
-          <p
-            style={{
-              color: "var(--text-body, #C8C8D2)",
-              margin: 0,
-              fontSize: 15,
-              lineHeight: 1.6,
-            }}
-          >
-            {erklaerung}
-          </p>
-          <button
-            onClick={() => setGewaehlt(null)}
-            style={{
-              marginTop: 14,
-              padding: "8px 16px",
-              borderRadius: 8,
-              background: "var(--accent-soft, rgba(124,109,255,0.14))",
-              border: "1px solid var(--accent, #7C6DFF)",
-              color: "var(--accent-text, #C4BBFF)",
-              fontSize: 14,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
-          >
-            Nochmal versuchen
-          </button>
-        </div>
-      )}
+      <ul className="ls-quiz-opts" role="group" aria-label="Antworten">
+        {optionen.map((o, i) => {
+          const z = zustand(i);
+          return (
+            <li key={i}>
+              <button
+                ref={i === 0 ? ersteOption : undefined}
+                className="ls-opt"
+                type="button"
+                disabled={beantwortet}
+                data-state={z}
+                onClick={() => {
+                  if (!beantwortet) setGewaehlt(i);
+                }}
+              >
+                <b>{BUCHSTABEN[i] ?? i + 1}</b>
+                <span>{o.text}</span>
+                {z === "ok" ? <HakenIcon /> : z === "err" ? <KreuzIcon /> : <LeerIcon />}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Live-Region bleibt immer im DOM, sonst wird das Feedback nicht sicher vorgelesen */}
+      <div aria-live="polite">
+        {beantwortet && (
+          <div className="ls-quiz-fb in" data-result={istRichtig ? "ok" : "err"}>
+            <p className="ls-quiz-verdict">
+              {istRichtig ? "Richtig." : "Nicht ganz. Die richtige Antwort ist markiert."}
+            </p>
+            <p className="ls-quiz-expl">{erklaerung}</p>
+            <button
+              className="btn btn-ghost btn-sm"
+              type="button"
+              onClick={() => {
+                fokusNachReset.current = true;
+                setGewaehlt(null);
+              }}
+            >
+              Nochmal versuchen
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

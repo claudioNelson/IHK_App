@@ -1,678 +1,592 @@
 "use client";
 
-import { useState, useEffect } from "react";
+// Ablauf einer Pruefung: Intro, laufende Pruefung, Ergebnis.
+//
+// Zustand in localStorage (siehe app/pruefungen/exam-state.ts):
+//   exam-{id}-answers      Antworten als JSON
+//   exam-{id}-startedAt    Startzeit in ms, Timer rechnet daraus die Restzeit
+//   exam-{id}-mode         "uebung" = Uebungsmodus ohne Zeitlimit
+//   exam-{id}-submitted    "true" nach der Abgabe
+//   exam-{id}-submittedAt  Abgabezeit in ms
+//   exam-{id}-ergebnis     Adas Korrektur (ExamResult)
+//
+// Waehrend der Pruefung ersetzt die Fokusleiste (.ex-bar) den SiteHeader,
+// der Footer entfaellt. Intro und Ergebnis nutzen den normalen PageShell.
+
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
+import type { Exam, Question } from "@/data/exam-types";
 import DiagramTool from "@/app/components/DiagramTool/DiagramTool";
 import FillBlanks from "@/app/components/FillBlanks";
-import ExamTimer from "@/app/components/ExamTimer";
-import { Exam } from "@/data/exam-types";
-import SubmitExam from "@/app/components/SubmitExam";
-import ExamResult from "@/app/components/ExamResult";
-import ExamIntro from "@/app/components/ExamIntro";
-import ImageLightbox from "@/app/components/ImageLightbox";
 import DecisionMatrix from "@/app/components/DecisionMatrix";
 import TableInput from "@/app/components/TableInput";
 import CodeCorrection from "@/app/components/CodeCorrection";
+import ImageLightbox from "@/app/components/ImageLightbox";
+import ExamIntro from "@/app/components/ExamIntro";
+import ExamTimer from "@/app/components/ExamTimer";
+import ExamResult from "@/app/components/ExamResult";
+import SubmitExam, { SubmitDialog, TimeUpDialog, type OpenQuestion } from "@/app/components/SubmitExam";
+import Icon from "@/app/components/ExamIcons";
+import { QuestionText, TextBlocks } from "@/app/components/ExamText";
+import {
+  answerableQuestions,
+  clearExamStore,
+  hasAnswer,
+  questionLabels,
+  readJson,
+  readNumber,
+  readStore,
+  removeStore,
+  writeStore,
+  type StoredErgebnis,
+} from "@/app/pruefungen/exam-state";
 
 interface ExamContentProps { exam: Exam; }
 
+type View = "loading" | "intro" | "exam" | "result";
+
+// Wie lange nach der letzten Eingabe "Gespeichert" ausgeblendet bleibt.
+// Gespeichert wird sofort, die Anzeige soll nur beim Tippen nicht flackern.
+const SAVED_DELAY_MS = 450;
+
 export default function ExamContent({ exam }: ExamContentProps) {
+  const [view, setView] = useState<View>("loading");
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [completed, setCompleted] = useState<Record<string, boolean>>({});
-  const [loaded, setLoaded] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [started, setStarted] = useState(false);
-  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [submittedAt, setSubmittedAt] = useState<number | null>(null);
+  const [practice, setPractice] = useState(false);
+  const [ergebnis, setErgebnis] = useState<StoredErgebnis | null>(null);
+  const [timeUp, setTimeUp] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
+  const [typing, setTyping] = useState<Record<string, boolean>>({});
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
 
+  const answersRef = useRef<Record<string, string>>({});
+  const typingTimers = useRef<Record<string, number>>({});
+  const focusAfterStart = useRef(false);
+
+  // ---------- Laden ----------
+  // localStorage gibt es erst im Browser. Der erste Render (Server und
+  // Hydration) zeigt deshalb "loading", danach wird einmal umgeschaltet.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    const s = (k: string) => localStorage.getItem(`exam-${exam.id}-${k}`);
-    if (s('started')) setStarted(JSON.parse(s('started')!));
-    if (s('answers')) setAnswers(JSON.parse(s('answers')!));
-    if (s('completed')) setCompleted(JSON.parse(s('completed')!));
-    if (s('submitted')) setSubmitted(JSON.parse(s('submitted')!));
-    setLoaded(true);
+    const raw = readJson<Record<string, unknown>>(exam.id, "answers");
+    const loaded: Record<string, string> = {};
+    if (raw && typeof raw === "object") {
+      for (const [k, v] of Object.entries(raw)) if (typeof v === "string") loaded[k] = v;
+    }
+    const started = readNumber(exam.id, "startedAt");
+    const submitted = readStore(exam.id, "submitted") === "true";
+
+    answersRef.current = loaded;
+    setAnswers(loaded);
+    setStartedAt(started);
+    setSubmittedAt(readNumber(exam.id, "submittedAt"));
+    setPractice(readStore(exam.id, "mode") === "uebung");
+    setErgebnis(readJson<StoredErgebnis>(exam.id, "ergebnis"));
+    setTimeUp(false);
+    // Alter Stand ohne startedAt: zurueck ins Intro, die Antworten bleiben.
+    setView(submitted ? "result" : started ? "exam" : "intro");
   }, [exam.id]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
-    if (!loaded) return;
-    localStorage.setItem(`exam-${exam.id}-answers`, JSON.stringify(answers));
-    localStorage.setItem(`exam-${exam.id}-completed`, JSON.stringify(completed));
-  }, [answers, completed, exam.id, loaded]);
+    const timers = typingTimers.current;
+    return () => {
+      for (const h of Object.values(timers)) window.clearTimeout(h);
+    };
+  }, []);
 
-  const updateAnswer = (id: string, val: string) => setAnswers(p => ({ ...p, [id]: val }));
-  const toggleCompleted = (id: string) => setCompleted(p => ({ ...p, [id]: !p[id] }));
-  const handleStart = () => { setStarted(true); localStorage.setItem(`exam-${exam.id}-started`, 'true'); };
-  const clearAll = () => {
-    if (!confirm("Alle Antworten löschen?")) return;
-    setAnswers({}); setCompleted({});
-    ['answers', 'completed'].forEach(k => localStorage.removeItem(`exam-${exam.id}-${k}`));
+  // Nach "Pruefung starten": nach oben und ins erste Antwortfeld
+  useEffect(() => {
+    if (view !== "exam" || !focusAfterStart.current) return;
+    focusAfterStart.current = false;
+    window.scrollTo(0, 0);
+    document.querySelector<HTMLElement>(".ex-body textarea, .ex-body input, .ex-body select")?.focus({ preventScroll: true });
+  }, [view]);
+
+  // ---------- Ableitungen ----------
+  const labels = useMemo(() => questionLabels(exam), [exam]);
+  const parts = useMemo(() => answerableQuestions(exam), [exam]);
+  const answered = useMemo(() => {
+    const set = new Set<string>();
+    for (const q of parts) if (hasAnswer(answers[q.id])) set.add(q.id);
+    return set;
+  }, [parts, answers]);
+  const openQuestions: OpenQuestion[] = useMemo(
+    () => parts.filter((q) => !answered.has(q.id)).map((q) => ({ id: q.id, label: labels[q.id] ?? "", title: q.title })),
+    [parts, answered, labels]
+  );
+
+  // ---------- Handler ----------
+  const updateAnswer = useCallback(
+    (qid: string, val: string) => {
+      const next = { ...answersRef.current, [qid]: val };
+      answersRef.current = next;
+      setAnswers(next);
+      writeStore(exam.id, "answers", JSON.stringify(next));
+
+      setTyping((t) => (t[qid] ? t : { ...t, [qid]: true }));
+      window.clearTimeout(typingTimers.current[qid]);
+      typingTimers.current[qid] = window.setTimeout(() => {
+        setTyping((t) => {
+          const rest = { ...t };
+          delete rest[qid];
+          return rest;
+        });
+      }, SAVED_DELAY_MS);
+    },
+    [exam.id]
+  );
+
+  const handleStart = (practiceMode: boolean) => {
+    const now = Date.now();
+    writeStore(exam.id, "startedAt", String(now));
+    if (practiceMode) writeStore(exam.id, "mode", "uebung");
+    else removeStore(exam.id, "mode");
+    setStartedAt(now);
+    setPractice(practiceMode);
+    focusAfterStart.current = true;
+    setView("exam");
   };
-  const handleSubmit = () => { setSubmitted(true); localStorage.setItem(`exam-${exam.id}-submitted`, 'true'); };
+
+  const submit = useCallback(
+    (auto: boolean) => {
+      const now = Date.now();
+      writeStore(exam.id, "submitted", "true");
+      writeStore(exam.id, "submittedAt", String(now));
+      setSubmittedAt(now);
+      setSubmitOpen(false);
+      if (auto) {
+        setTimeUp(true);
+      } else {
+        setView("result");
+        window.scrollTo(0, 0);
+      }
+    },
+    [exam.id]
+  );
+
+  const handleTimeUp = useCallback(() => submit(true), [submit]);
+
+  const goToResult = () => {
+    setTimeUp(false);
+    setView("result");
+    window.scrollTo(0, 0);
+  };
+
   const handleReset = () => {
-    if (!confirm("Prüfung zurücksetzen?")) return;
-    setAnswers({}); setCompleted({}); setSubmitted(false);
-    ['answers', 'completed', 'submitted'].forEach(k => localStorage.removeItem(`exam-${exam.id}-${k}`));
+    clearExamStore(exam.id);
+    answersRef.current = {};
+    setAnswers({});
+    setStartedAt(null);
+    setSubmittedAt(null);
+    setPractice(false);
+    setErgebnis(null);
+    setTimeUp(false);
+    setView("intro");
+    window.scrollTo(0, 0);
   };
 
-  const allQ = exam.sections.flatMap(s => s.questions);
-  const doneCount = allQ.filter(q => completed[q.id]).length;
-  const totalQ = allQ.length;
-  const pct = totalQ > 0 ? (doneCount / totalQ) * 100 : 0;
+  // ---------- Ansichten ----------
+  if (view === "loading") return <div className="site ex" aria-busy="true" />;
 
-  // Light-Theme-Farben (immer hell für Fokus)
-  const t = {
-    bg: "#FAFAF9",
-    bgMuted: "#F4F4F1",
-    surface: "#FFFFFF",
-    surfaceElev: "#FFFFFF",
-    border: "rgba(10,10,15,0.08)",
-    borderStrong: "rgba(10,10,15,0.12)",
-    text: "#0A0A0F",
-    textMid: "#55555F",
-    textDim: "#8A8A92",
-    accent: "#7C6DFF",
-    accentSoft: "rgba(124,109,255,0.08)",
-    accent2: "#22D3EE",
-    success: "#10B981",
-    successSoft: "rgba(16,185,129,0.08)",
-    warn: "#D97706",
-    warnSoft: "rgba(217,119,6,0.08)",
-    danger: "#EF4444",
-    dangerSoft: "rgba(239,68,68,0.08)",
-  };
+  if (view === "intro") return <ExamIntro exam={exam} onStart={handleStart} />;
 
-  if (!loaded) {
+  if (view === "result") {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter Tight', sans-serif", background: t.bg, color: t.textMid }}>
-        Lädt…
-      </div>
+      <ExamResult
+        exam={exam}
+        answers={answers}
+        startedAt={startedAt}
+        submittedAt={submittedAt}
+        practice={practice}
+        initialErgebnis={ergebnis}
+        onErgebnis={setErgebnis}
+        onReset={handleReset}
+      />
     );
   }
-  if (!started) return <ExamIntro exam={exam} onStart={handleStart} />;
-  if (submitted) return <ExamResult exam={exam} completed={completed} answers={answers} onReset={handleReset} />;
+
+  const locked = timeUp;
 
   return (
-    <div style={{ fontFamily: "'Inter Tight', system-ui, sans-serif", background: t.bg, color: t.text, minHeight: "100vh" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+    <div className="site ex ex-focus-mode">
+      <FocusBar
+        exam={exam}
+        parts={parts}
+        answered={answered}
+        startedAt={startedAt}
+        practice={practice}
+        locked={locked}
+        onTimeUp={handleTimeUp}
+        onOpenSubmit={() => setSubmitOpen(true)}
+      />
 
-        /* NAV */
-        .nav {
-          position: sticky; top: 0; z-index: 50;
-          backdrop-filter: blur(12px);
-          background: rgba(250,250,249,0.85);
-          border-bottom: 1px solid ${t.border};
-        }
-        .nav-inner {
-          max-width: 1200px; margin: 0 auto;
-          padding: 14px 32px;
-          display: flex; align-items: center; gap: 12px;
-        }
-        .logo {
-          font-family: 'Instrument Serif', serif;
-          font-size: 24px; font-style: italic;
-          letter-spacing: -0.5px;
-          color: ${t.text};
-          text-decoration: none;
-          display: flex; align-items: center; gap: 2px;
-          margin-right: auto;
-        }
-        .logo-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: ${t.accent};
-          margin-right: 4px;
-          box-shadow: 0 0 12px ${t.accent};
-        }
-        .nav-btn {
-          display: flex; align-items: center; gap: 8px;
-          color: ${t.textMid}; text-decoration: none;
-          font-size: 13px; font-weight: 500;
-          padding: 7px 14px; border-radius: 8px;
-          border: 1px solid ${t.border};
-          background: ${t.surface};
-          cursor: pointer;
-          font-family: inherit;
-          transition: all 0.2s;
-        }
-        .nav-btn:hover { color: ${t.text}; border-color: ${t.borderStrong}; }
-        .nav-btn.danger { color: ${t.danger}; }
-        .nav-btn.danger:hover { background: ${t.dangerSoft}; border-color: ${t.danger}40; }
+      <main>
+        <div className="ex-body">
+          {exam.scenario && (
+            <details className="ex-panel ex-context">
+              <summary>
+                Ausgangssituation
+                <Icon name="chev" className={null} />
+              </summary>
+              <TextBlocks text={exam.scenario} />
+            </details>
+          )}
 
-        /* BODY */
-        .body { max-width: 1000px; margin: 0 auto; padding: 24px 20px 120px; }
+          {exam.sections.map((section, sIdx) => (
+            <section key={section.id} className="ex-section" id={`sec-${section.id}`} aria-labelledby={`h-sec-${section.id}`}>
+              <div className="ex-section-head">
+                <h2 id={`h-sec-${section.id}`}>
+                  Aufgabe {sIdx + 1} <span>{section.title}</span>
+                </h2>
+                <span className="ex-pts">{section.totalPoints} Punkte</span>
+              </div>
+              {section.description && <p className="ex-section-desc">{section.description}</p>}
 
-        /* HEADER CARD */
-        .header-card {
-          background: ${t.surface};
-          border: 1px solid ${t.border};
-          border-radius: 14px;
-          padding: 22px 24px;
-          margin-bottom: 14px;
-          position: relative;
-          overflow: hidden;
-        }
-        .header-card::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, ${t.accent}, ${t.accent2});
-        }
-        .header-eyebrows {
-          display: flex; gap: 6px; flex-wrap: wrap;
-          margin-bottom: 10px;
-        }
-        .header-pill {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px; font-weight: 600;
-          padding: 4px 10px;
-          border-radius: 6px;
-          letter-spacing: 1px;
-          border: 1px solid ${t.border};
-          background: ${t.bgMuted};
-          color: ${t.textMid};
-        }
-        .header-pill.accent {
-          background: ${t.accentSoft};
-          color: ${t.accent};
-          border-color: ${t.accent}40;
-        }
-        .header-title {
-          font-size: 19px; font-weight: 600;
-          color: ${t.text};
-          letter-spacing: -0.5px;
-          line-height: 1.2;
-          margin-bottom: 4px;
-        }
-        .header-company {
-          font-family: 'JetBrains Mono', monospace;
-          color: ${t.textDim};
-          font-size: 11px;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-        }
+              {section.questions.map((q) => (
+                <QuestionBlock
+                  key={q.id}
+                  q={q}
+                  label={labels[q.id] ?? ""}
+                  value={answers[q.id] ?? ""}
+                  saved={answered.has(q.id) && !typing[q.id]}
+                  locked={locked}
+                  onChange={updateAnswer}
+                  onZoom={(src, alt) => setLightbox({ src, alt })}
+                />
+              ))}
+            </section>
+          ))}
 
-        /* SCENARIO */
-        .scenario {
-          background: ${t.surface};
-          border: 1px solid ${t.border};
-          border-radius: 12px;
-          padding: 16px 20px;
-          margin-bottom: 14px;
-        }
-        .scenario summary {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px; font-weight: 600;
-          color: ${t.textMid};
-          cursor: pointer;
-          display: flex; align-items: center; gap: 8px;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          list-style: none;
-        }
-        .scenario summary::-webkit-details-marker { display: none; }
-        .scenario summary::before {
-          content: '+';
-          font-family: 'Inter Tight', sans-serif;
-          width: 18px; height: 18px;
-          display: inline-flex; align-items: center; justify-content: center;
-          border: 1px solid ${t.border};
-          border-radius: 4px;
-          font-size: 13px;
-          color: ${t.accent};
-        }
-        .scenario[open] summary::before { content: '−'; }
-        .scenario-text {
-          color: ${t.textMid};
-          font-size: 14px;
-          line-height: 1.7;
-          white-space: pre-line;
-          margin-top: 14px;
-          padding-top: 14px;
-          border-top: 1px solid ${t.border};
-        }
+          {!locked && <SubmitExam open={openQuestions} onOpenDialog={() => setSubmitOpen(true)} />}
+        </div>
+      </main>
 
-        /* STICKY BAR */
-        .sticky {
-          position: sticky; top: 56px; z-index: 40;
-          margin: 0 -20px 22px;
-          padding: 12px 20px 14px;
-          background: ${t.bg};
-          display: flex; flex-direction: column;
-          gap: 8px;
-          border-bottom: 1px solid ${t.border};
-        }
-          
-        .sticky-card {
-          background: ${t.surface};
-          border: 1px solid ${t.border};
-          border-radius: 12px;
-          overflow: hidden;
-          backdrop-filter: blur(8px);
-        }
-        .navbar-inner {
-          padding: 10px 16px;
-          display: flex; align-items: center; gap: 8px;
-          overflow-x: auto;
-        }
-        .navbar-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px; font-weight: 600;
-          color: ${t.textDim};
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          white-space: nowrap;
-        }
-        .navchip {
-          padding: 5px 12px;
-          border-radius: 6px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px; font-weight: 600;
-          letter-spacing: 0.5px;
-          text-decoration: none;
-          white-space: nowrap;
-          transition: all 0.2s;
-          border: 1px solid ${t.border};
-        }
-        .navchip.done {
-          background: ${t.successSoft};
-          color: ${t.success};
-          border-color: ${t.success}40;
-        }
-        .navchip.partial {
-          background: ${t.warnSoft};
-          color: ${t.warn};
-          border-color: ${t.warn}40;
-        }
-        .navchip.none {
-          background: ${t.bgMuted};
-          color: ${t.textMid};
-        }
-        .navchip:hover { color: ${t.accent}; border-color: ${t.accent}40; }
+      <SubmitDialog
+        isOpen={submitOpen && !locked}
+        open={openQuestions}
+        total={parts.length}
+        onCancel={() => setSubmitOpen(false)}
+        onConfirm={() => submit(false)}
+      />
+      <TimeUpDialog isOpen={timeUp} answered={answered.size} total={parts.length} onContinue={goToResult} />
 
-        .progress-inner {
-          padding: 12px 18px;
-          display: flex; align-items: center; gap: 14px;
-        }
-        .prog-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px; font-weight: 600;
-          color: ${t.textMid};
-          letter-spacing: 0.5px;
-          white-space: nowrap;
-        }
-        .prog-track {
-          flex: 1; height: 6px;
-          background: ${t.bgMuted};
-          border-radius: 3px;
-          overflow: hidden;
-        }
-        .prog-fill {
-          height: 100%; border-radius: 3px;
-          background: linear-gradient(90deg, ${t.accent}, ${t.accent2});
-          transition: width 0.4s;
-        }
-        .prog-done {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px; font-weight: 700;
-          color: ${t.success};
-          letter-spacing: 1px;
-          white-space: nowrap;
-          text-transform: uppercase;
-        }
+      {lightbox && <ImageLightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
+    </div>
+  );
+}
 
-        /* SECTION CARD */
-        .section-card {
-          background: ${t.surface};
-          border: 1px solid ${t.border};
-          border-radius: 14px;
-          padding: 26px;
-          margin-bottom: 14px;
-          scroll-margin-top: 260px;
-        }
+// ==================================================================
+// Fokusleiste: Uebersicht, Titel, Sprungmarken, Zaehler, Timer, Abgeben,
+// Theme, mobil ein Menue mit Sprungmarken und Abgabe.
+// ==================================================================
+function FocusBar({
+  exam,
+  parts,
+  answered,
+  startedAt,
+  practice,
+  locked,
+  onTimeUp,
+  onOpenSubmit,
+}: {
+  exam: Exam;
+  parts: Question[];
+  answered: Set<string>;
+  startedAt: number | null;
+  practice: boolean;
+  locked: boolean;
+  onTimeUp: () => void;
+  onOpenSubmit: () => void;
+}) {
+  const [current, setCurrent] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
 
-        .section-title {
-          font-size: 16px; font-weight: 600;
-          color: ${t.text};
-          letter-spacing: -0.3px;
-          margin-bottom: 22px;
-          padding-bottom: 14px;
-          border-bottom: 1px solid ${t.border};
-          display: flex; align-items: center; gap: 10px;
-        }
-        .section-num {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px; font-weight: 700;
-          color: ${t.accent};
-          background: ${t.accentSoft};
-          border: 1px solid ${t.accent}40;
-          padding: 3px 8px;
-          border-radius: 5px;
-          letter-spacing: 0.5px;
-        }
+  // Stand je Aufgabe: beantwortete von beantwortbaren Teilaufgaben
+  const sectionState = exam.sections.map((s, i) => {
+    const qs = s.questions.filter((q) => q.type !== "info");
+    const done = qs.filter((q) => answered.has(q.id)).length;
+    const cls = qs.length > 0 && done === qs.length ? "is-done" : done > 0 ? "is-part" : "";
+    const label = qs.length > 0 && done === qs.length ? "beantwortet" : done > 0 ? `${done} von ${qs.length} beantwortet` : "offen";
+    return { id: s.id, n: i + 1, title: s.title, done, total: qs.length, cls, label };
+  });
 
-        /* QUESTION */
-        .q {
-          padding: 22px 0;
-          border-top: 1px solid ${t.border};
+  // Aktuelle Aufgabe in der Sprungleiste markieren
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) setCurrent(e.target.id.replace(/^sec-/, ""));
         }
-        .q:first-of-type {
-          border-top: none;
-          padding-top: 0;
-        }
-        .q.done {
-          background: ${t.successSoft};
-          border: 1px solid ${t.success}40;
-          border-radius: 10px;
-          padding: 18px;
-          margin: 6px -12px;
-        }
-        .q.done + .q { border-top: 1px solid ${t.border}; }
+      },
+      { rootMargin: "-45% 0px -50% 0px" }
+    );
+    for (const s of exam.sections) {
+      const el = document.getElementById(`sec-${s.id}`);
+      if (el) io.observe(el);
+    }
+    return () => io.disconnect();
+  }, [exam.sections]);
 
-        .q-header {
-          display: flex; align-items: flex-start; justify-content: space-between;
-          gap: 12px; margin-bottom: 12px;
-        }
-        .q-title {
-          font-size: 14px; font-weight: 600;
-          color: ${t.text};
-          line-height: 1.4;
-          display: flex; align-items: center; gap: 8px;
-        }
-        .q-done-mark {
-          color: ${t.success};
-          font-size: 13px;
-          flex-shrink: 0;
-        }
-        .q-pts {
-          font-family: 'JetBrains Mono', monospace;
-          background: ${t.accent};
-          color: #fff;
-          font-size: 10px; font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 6px;
-          white-space: nowrap;
-          flex-shrink: 0;
-          letter-spacing: 0.5px;
-        }
+  // Menue: Escape und Klick daneben schliessen, Fokus hinein und zurueck
+  useEffect(() => {
+    if (!menuOpen) return;
+    menuRef.current?.querySelector<HTMLElement>("a, button")?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        menuBtnRef.current?.focus();
+      }
+    };
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (menuRef.current?.contains(t) || menuBtnRef.current?.contains(t)) return;
+      setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [menuOpen]);
 
-        .q-desc {
-          background: ${t.bgMuted};
-          border: 1px solid ${t.border};
-          border-radius: 10px;
-          padding: 16px;
-          font-size: 13px;
-          color: ${t.text};
-          line-height: 1.5;
-          white-space: pre-wrap;
-          overflow-x: auto;
-          margin-bottom: 14px;
-          font-family: 'JetBrains Mono', monospace;
-        }
+  const ratio = parts.length > 0 ? answered.size / parts.length : 0;
+  const progressStyle = { "--p": String(ratio) } as CSSProperties;
 
-        .q-image {
-          margin-bottom: 14px;
-          border-radius: 10px;
-          width: 100%;
-          height: auto;
-          display: block;
-          border: 1px solid ${t.border};
-          cursor: zoom-in;
-          transition: opacity 0.15s;
-        }
-        .q-image:hover {
-          opacity: 0.85;
-        }
-
-        .hint {
-          background: ${t.warnSoft};
-          border: 1px solid ${t.warn}40;
-          border-radius: 8px;
-          padding: 10px 14px;
-          font-size: 13px;
-          color: ${t.warn};
-          margin-bottom: 14px;
-          display: flex; gap: 8px; align-items: flex-start;
-        }
-        .hint-icon { flex-shrink: 0; }
-        .hint-text { color: ${t.text}; line-height: 1.5; }
-
-        .answer-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px; font-weight: 700;
-          color: ${t.accent};
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-          margin-bottom: 8px;
-        }
-        .answer-ta {
-          width: 100%; min-height: 180px;
-          padding: 14px 16px;
-          background: ${t.surface};
-          border: 1px solid ${t.border};
-          border-radius: 10px;
-          color: ${t.text};
-          font-size: 14px;
-          line-height: 1.6;
-          font-family: 'Inter Tight', sans-serif;
-          resize: vertical;
-          outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .answer-ta::placeholder { color: ${t.textDim}; }
-        .answer-ta:focus {
-          border-color: ${t.accent};
-          box-shadow: 0 0 0 3px ${t.accentSoft};
-        }
-
-        .done-row {
-          margin-top: 12px;
-          display: flex; justify-content: flex-end;
-        }
-        .done-btn {
-          padding: 8px 16px;
-          border-radius: 8px;
-          font-family: 'Inter Tight', sans-serif;
-          font-size: 13px; font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-          border: 1px solid;
-        }
-        .done-btn.yes {
-          background: ${t.successSoft};
-          color: ${t.success};
-          border-color: ${t.success}40;
-        }
-        .done-btn.yes:hover {
-          background: ${t.success}20;
-        }
-        .done-btn.no {
-          background: ${t.surface};
-          color: ${t.textMid};
-          border-color: ${t.border};
-        }
-        .done-btn.no:hover {
-          color: ${t.accent};
-          border-color: ${t.accent}40;
-          background: ${t.accentSoft};
-        }
-
-        @media (max-width: 768px) {
-          .nav-inner { padding: 12px 16px; }
-          .body { padding: 16px 14px 80px; }
-          .section-card { padding: 20px; }
-          .sticky { top: 56px; }
-        }
-      `}</style>
-
-      {/* NAV */}
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link href="/" className="logo">
-            <span className="logo-dot" />
-            Lernarena
+  return (
+    <>
+      <header className="ex-bar">
+        <div className="wrap ex-bar-inner">
+          <Link
+            className="ex-leave"
+            href="/pruefungen"
+            title={practice ? "Zur Übersicht. Deine Antworten bleiben gespeichert." : "Zur Übersicht. Die Zeit läuft weiter, deine Antworten bleiben gespeichert."}
+          >
+            <Icon name="arrow-l" className={null} />
+            <span className="ex-leave-text">Übersicht</span>
+            {!practice && <span className="ex-sr"> (die Zeit läuft weiter)</span>}
           </Link>
-          <Link href="/pruefungen" className="nav-btn">← Prüfungen</Link>
-          <button className="nav-btn danger" onClick={clearAll}>🗑 Löschen</button>
-        </div>
-      </nav>
+          <span className="ex-bar-title">{exam.title}</span>
+          <span className="ex-bar-spacer" />
 
-      <div className="body">
-        {/* Header */}
-        <div className="header-card">
-          <div className="header-eyebrows">
-            <span className="header-pill accent">{exam.level === "ap1" ? "AP1" : "AP2"}</span>
-            <span className="header-pill">{exam.season.toUpperCase()} {exam.year}</span>
-            <span className="header-pill">⏱ {exam.duration} MIN</span>
-            <span className="header-pill">📊 {exam.totalPoints} PKT</span>
-          </div>
-          <div className="header-title">{exam.title}</div>
-          <div className="header-company">{exam.company}</div>
-        </div>
-
-        {/* Szenario (einklappbar) */}
-        {exam.scenario && (
-          <details className="scenario">
-            <summary>Ausgangssituation anzeigen</summary>
-            <div className="scenario-text">{exam.scenario}</div>
-          </details>
-        )}
-
-        {/* Sticky Bar */}
-        <div className="sticky">
-          <div className="sticky-card">
-            <ExamTimer durationMinutes={exam.duration} onTimeUp={() => alert("Zeit abgelaufen!")} />
-          </div>
-          <div className="sticky-card">
-            <div className="navbar-inner">
-              <span className="navbar-label">Springen:</span>
-              {exam.sections.map((s, i) => {
-                const done = s.questions.every(q => completed[q.id]);
-                const partial = s.questions.some(q => completed[q.id]);
-                return (
-                  <a key={s.id} href={`#${s.id}`} className={`navchip ${done ? "done" : partial ? "partial" : "none"}`}>
-                    {done && "✓ "}AUFG {i + 1}
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-          <div className="sticky-card">
-            <div className="progress-inner">
-              <span className="prog-label">{doneCount} / {totalQ} ERLEDIGT</span>
-              <div className="prog-track">
-                <div className="prog-fill" style={{ width: `${pct}%` }} />
-              </div>
-              {doneCount === totalQ && totalQ > 0 && <span className="prog-done">✓ KOMPLETT</span>}
-            </div>
-          </div>
-        </div>
-
-        {/* Sections */}
-        {exam.sections.map((section, sIdx) => (
-          <div key={section.id} id={section.id} className="section-card">
-            <h2 className="section-title">
-              <span className="section-num">AUFG {sIdx + 1}</span>
-              {section.title}
-            </h2>
-
-            {section.questions.map(q => (
-              <div key={q.id} className={`q ${completed[q.id] ? "done" : ""}`}>
-                <div className="q-header">
-                  <div className="q-title">
-                    {completed[q.id] && <span className="q-done-mark">✓</span>}
-                    {q.title}
-                  </div>
-                  {q.type !== "info" && <span className="q-pts">{q.points} PKT</span>}
-                </div>
-
-                <pre className="q-desc">{q.description}</pre>
-
-                {q.image && (
-                  <img
-                    src={q.image}
-                    alt="Grafik"
-                    className="q-image"
-                    onClick={() => setLightboxSrc(q.image!)}
-                  />
-                )}
-                {q.hint && (
-                  <div className="hint">
-                    <span className="hint-icon">💡</span>
-                    <span className="hint-text">{q.hint}</span>
-                  </div>
-                )}
-
-                {q.type !== "info" && (
-                  <>
-                    <div className="answer-label">Deine Antwort</div>
-                    {q.type === "diagram" && q.diagram ? (
-                      <DiagramTool
-                        data={q.diagram}
-                        value={answers[q.id] || ""}
-                        onChange={val => updateAnswer(q.id, val)}
-                      />
-                    ) : q.type === "fillBlanks" && q.fillBlanks ? (
-                      <FillBlanks
-                        data={q.fillBlanks}
-                        value={answers[q.id] || ""}
-                        onChange={val => updateAnswer(q.id, val)}
-                      />
-                    ) : q.type === "decisionMatrix" && q.matrix ? (
-                      <DecisionMatrix
-                        questionId={q.id}
-                        matrix={q.matrix}
-                        value={answers[q.id] || ""}
-                        onChange={val => updateAnswer(q.id, val)}
-                      />
-                    ) : q.type === "tableInput" && q.table ? (
-                      <TableInput
-                        questionId={q.id}
-                        table={q.table}
-                        value={answers[q.id] || ""}
-                        onChange={val => updateAnswer(q.id, val)}
-                      />
-                    ) : q.type === "codeCorrection" && q.codeCorrection ? (
-                      <CodeCorrection
-                        questionId={q.id}
-                        data={q.codeCorrection}
-                        value={answers[q.id] || ""}
-                        onChange={val => updateAnswer(q.id, val)}
-                      />
-                    ) : (
-                      <textarea
-                        className="answer-ta"
-                        placeholder="Antwort hier eingeben…"
-                        value={answers[q.id] || ""}
-                        onChange={e => updateAnswer(q.id, e.target.value)}
-                      />
-                    )}
-                    <div className="done-row">
-                      <button
-                        onClick={() => toggleCompleted(q.id)}
-                        className={`done-btn ${completed[q.id] ? "yes" : "no"}`}
-                      >
-                        {completed[q.id] ? "✓ Erledigt" : "Als erledigt markieren"}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+          <nav className="ex-jump" aria-label="Zu Aufgabe springen">
+            <span className="ex-jump-label" aria-hidden="true">Aufgabe</span>
+            {sectionState.map((s) => (
+              <a key={s.id} href={`#sec-${s.id}`} className={s.cls || undefined} aria-current={current === s.id ? "true" : undefined}>
+                <span className="ex-jump-dot" aria-hidden="true" />
+                {s.n}
+                <span className="ex-sr"> {s.title}, {s.label}</span>
+              </a>
             ))}
-          </div>
-        ))}
+          </nav>
 
-        <SubmitExam sections={exam.sections} completed={completed} onSubmit={handleSubmit} />
+          <span className="ex-count">
+            <b>{answered.size}</b> von {parts.length} <span className="ex-count-long">beantwortet</span>
+          </span>
+
+          {startedAt !== null && (
+            <ExamTimer startedAt={startedAt} durationMinutes={exam.duration} practice={practice} onTimeUp={onTimeUp} />
+          )}
+
+          {!locked && (
+            <button className="btn btn-primary btn-sm ex-bar-submit" type="button" onClick={onOpenSubmit}>
+              Abgeben
+            </button>
+          )}
+          <ThemeButton />
+          <button
+            ref={menuBtnRef}
+            className="ex-menu-btn"
+            type="button"
+            aria-label="Aufgaben und Abgabe"
+            aria-expanded={menuOpen}
+            aria-controls="ex-menu"
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            <Icon name="list" className={null} />
+          </button>
+        </div>
+        <div className="ex-progress" aria-hidden="true">
+          <span style={progressStyle} />
+        </div>
+      </header>
+
+      {menuOpen && (
+        <div className="ex-menu is-open" id="ex-menu" ref={menuRef}>
+          <nav aria-label="Aufgaben">
+            {sectionState.map((s) => (
+              <a key={s.id} href={`#sec-${s.id}`} className={s.cls || undefined} onClick={() => setMenuOpen(false)}>
+                <span className="ex-jump-dot" aria-hidden="true" />
+                Aufgabe {s.n} {s.title}
+                <small>
+                  {s.done}/{s.total}
+                  <span className="ex-sr"> beantwortet</span>
+                </small>
+              </a>
+            ))}
+          </nav>
+          {!locked && (
+            <>
+              <hr />
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onOpenSubmit();
+                }}
+              >
+                Prüfung abgeben
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+// Gleiche Logik wie im SiteHeader: localStorage "lernarena-farbschema" und
+// data-theme="dark" am <html>. Hell ist Standard.
+function ThemeButton() {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    let dark = document.documentElement.getAttribute("data-theme") === "dark";
+    try {
+      dark = dark || localStorage.getItem("lernarena-farbschema") === "dunkel";
+    } catch {}
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Farbschema steht erst nach dem Mount fest
+    setIsDark(dark);
+  }, []);
+
+  const toggle = () => {
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    try {
+      localStorage.setItem("lernarena-farbschema", nextDark ? "dunkel" : "hell");
+    } catch {}
+    if (nextDark) document.documentElement.setAttribute("data-theme", "dark");
+    else document.documentElement.removeAttribute("data-theme");
+  };
+
+  return (
+    <button className="theme-btn" type="button" onClick={toggle} aria-label={isDark ? "Hellen Modus einschalten" : "Dunklen Modus einschalten"}>
+      <Icon name={isDark ? "sun" : "moon"} className={null} />
+    </button>
+  );
+}
+
+// ==================================================================
+// Eine Teilaufgabe mit Text, Abbildung, Hinweis und Antwortfeld
+// ==================================================================
+function QuestionBlock({
+  q,
+  label,
+  value,
+  saved,
+  locked,
+  onChange,
+  onZoom,
+}: {
+  q: Question;
+  label: string;
+  value: string;
+  saved: boolean;
+  locked: boolean;
+  onChange: (qid: string, val: string) => void;
+  onZoom: (src: string, alt: string) => void;
+}) {
+  const isInfo = q.type === "info";
+  const set = (val: string) => {
+    if (!locked) onChange(q.id, val);
+  };
+  const figAlt = `Abbildung zu ${label ? label + " " : ""}${q.title}`;
+
+  let special: ReactNode = null;
+  if (q.type === "diagram" && q.diagram) {
+    special = <DiagramTool data={q.diagram} value={value} onChange={set} />;
+  } else if (q.type === "fillBlanks" && q.fillBlanks) {
+    special = <FillBlanks data={q.fillBlanks} value={value} onChange={set} />;
+  } else if (q.type === "decisionMatrix" && q.matrix) {
+    special = <DecisionMatrix questionId={q.id} matrix={q.matrix} value={value} onChange={set} />;
+  } else if (q.type === "tableInput" && q.table) {
+    special = <TableInput questionId={q.id} table={q.table} value={value} onChange={set} />;
+  } else if (q.type === "codeCorrection" && q.codeCorrection) {
+    special = <CodeCorrection questionId={q.id} data={q.codeCorrection} value={value} onChange={set} />;
+  }
+
+  const chars = value.trim().length;
+  const savedMark = (
+    <span className={`ex-saved${saved ? " is-on" : ""}`}>
+      <Icon name="check" />
+      Gespeichert
+    </span>
+  );
+
+  return (
+    <article className="ex-q" id={`q-${q.id}`} aria-labelledby={`h-q-${q.id}`}>
+      <div className="ex-q-head">
+        <span className="ex-q-id">{label}</span>
+        <h3 id={`h-q-${q.id}`}>{q.title}</h3>
+        {!isInfo && <span className="ex-pts">{q.points} Punkte</span>}
       </div>
 
-      {lightboxSrc && (
-        <ImageLightbox
-          src={lightboxSrc}
-          alt="Aufgaben-Grafik"
-          onClose={() => setLightboxSrc(null)}
-        />
-      )}
-    </div>
+      <div className="ex-q-text" id={`t-${q.id}`}>
+        {q.description && <QuestionText text={q.description} />}
+        {q.image && (
+          <figure className="ex-figure">
+            <button className="ex-figure-frame" type="button" onClick={() => onZoom(q.image!, figAlt)} aria-label={`${figAlt} vergrößern`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={q.image} alt={figAlt} loading="lazy" />
+              <span className="ex-figure-zoom" aria-hidden="true">
+                <Icon name="zoom" style={{ width: 14, height: 14, verticalAlign: 0 }} />
+                Vergrößern
+              </span>
+            </button>
+          </figure>
+        )}
+        {q.hint && (
+          <div className="ex-note is-accent">
+            <Icon name="bulb" />
+            <span><b>Hinweis:</b> {q.hint}</span>
+          </div>
+        )}
+      </div>
+
+      {!isInfo &&
+        (special ? (
+          <div className="ex-answer">
+            <span className="ex-answer-label" id={`l-${q.id}`}>Deine Antwort</span>
+            <div className="ex-scroll" role="group" aria-labelledby={`l-${q.id}`} aria-describedby={`t-${q.id}`}>
+              {special}
+            </div>
+            <div className="ex-answer-foot">{savedMark}</div>
+          </div>
+        ) : (
+          <div className="ex-answer">
+            <label htmlFor={`a-${q.id}`}>Deine Antwort</label>
+            <textarea
+              className={`ex-textarea${q.type === "code" ? " is-code" : ""}`}
+              id={`a-${q.id}`}
+              aria-describedby={`t-${q.id}`}
+              value={value}
+              readOnly={locked}
+              spellCheck={q.type === "code" ? false : undefined}
+              onChange={(e) => set(e.target.value)}
+            />
+            <div className="ex-answer-foot">
+              {savedMark}
+              <span>{chars > 0 ? `${chars} Zeichen` : ""}</span>
+            </div>
+          </div>
+        ))}
+    </article>
   );
 }

@@ -1,30 +1,34 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
 import { exams } from "@/data/exams";
 import { createClient } from "@/lib/supabase/server";
 import ExamContent from "./ExamContent";
 
-export default async function Pruefung({ params }: { params: Promise<{ id: string }> }) {
+type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const exam = exams[id];
+  return {
+    title: exam ? exam.title : "Prüfung nicht gefunden",
+    robots: { index: false },
+  };
+}
+
+export default async function Pruefung({ params }: Props) {
   const { id } = await params;
   const exam = exams[id];
 
-  if (!exam) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-600">Prüfung nicht gefunden</p>
-      </div>
-    );
-  }
+  if (!exam) notFound();
 
-  // ─── ACCESS GUARD ──────────────────────────────────────────
+  // Zugriff: angemeldet und Premium, sonst Login bzw. Upgrade mit Rueckweg
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Nicht eingeloggt → Login mit Redirect zurück
   if (!user) {
     redirect(`/login?next=/pruefung/${id}`);
   }
 
-  // Premium-Status prüfen
   const { data: profile } = await supabase
     .from("profiles")
     .select("is_premium, premium_tier, premium_until")
@@ -33,7 +37,7 @@ export default async function Pruefung({ params }: { params: Promise<{ id: strin
 
   let isPremium = profile?.is_premium === true;
 
-  // Auto-Expire: abgelaufenes Abo erkennen
+  // Abgelaufenes Abo erkennen und in der Datenbank nachziehen
   if (
     isPremium &&
     profile?.premium_tier !== "lifetime" &&
@@ -42,7 +46,6 @@ export default async function Pruefung({ params }: { params: Promise<{ id: strin
     const until = new Date(profile.premium_until);
     if (!isNaN(until.getTime()) && until < new Date()) {
       isPremium = false;
-      // DB updaten — Abo ist abgelaufen
       await supabase
         .from("profiles")
         .update({ is_premium: false })
@@ -50,11 +53,9 @@ export default async function Pruefung({ params }: { params: Promise<{ id: strin
     }
   }
 
-  // Eingeloggt aber kein Premium → Paywall
   if (!isPremium) {
     redirect(`/upgrade?next=/pruefung/${id}`);
   }
 
-  // Premium ✓ → Prüfung anzeigen
   return <ExamContent exam={exam} />;
 }

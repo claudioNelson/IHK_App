@@ -2,26 +2,34 @@
 
 /* ------------------------------------------------------------------ */
 /* Design-Tokens (Referenz: Startseite, Neuaufbau 23.09.2026)          */
-/* Dunkel ist Standard, hell ueber data-theme="light" am <html>        */
-/* (layout.tsx setzt es vor dem ersten Paint aus localStorage).        */
+/* Hell ist Standard (seit 23.09.2026), dunkel ueber data-theme="dark"  */
+/* am <html>; layout.tsx setzt es vor dem ersten Paint aus localStorage */
+/* ("lernarena-farbschema" = "dunkel").                                 */
 /* ------------------------------------------------------------------ */
 :root {
+  --bg: #FBFBFD; --bg-2: #F1F2F7; --surface: #FFFFFF; --surface-2: #F6F7FB;
+  --line: rgba(20,26,46,.13); --line-2: rgba(20,26,46,.22);
+  --shadow: 0 1px 2px rgba(20,26,46,.05), 0 10px 28px -14px rgba(20,26,46,.14);
+  --header-bg: rgba(255,255,255,.86);
+  --text: #0F1222; --text-2: #4E5364; --text-3: #676C7E;
+  --accent: #5B4BE0; --accent-2: #4C3ED0; --accent-soft: rgba(91,75,224,.12);
+  --ok: #03694B; --warn: #9A4A05; --err: #B42318;
+  --ok-soft: rgba(3,105,75,.08); --warn-soft: rgba(154,74,5,.08); --err-soft: rgba(180,35,24,.07);
+  --r: 14px; --r-btn: 10px; --r-shot: 22px; --wrap: 1200px;
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
   --bg: #0B0B10; --bg-2: #101018; --surface: #14141D; --surface-2: #1B1B27;
   --line: rgba(255,255,255,.08); --line-2: rgba(255,255,255,.14);
   --text: #F2F2F6; --text-2: #A9A9B8; --text-3: #7C7C8C;
   --accent: #7C6DFF; --accent-2: #6B5DF0; --accent-soft: rgba(124,109,255,.14);
-  --ok: #10B981; --warn: #F59E0B; --err: #EF4444;
-  --r: 14px; --r-btn: 10px; --r-shot: 22px; --wrap: 1200px;
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --ok: #10B981; --warn: #F59E0B; --err: #F87171;
+  --ok-soft: rgba(16,185,129,.13); --warn-soft: rgba(245,158,11,.13); --err-soft: rgba(248,113,113,.13);
+  --shadow: none;
+  --header-bg: color-mix(in srgb, var(--bg) 84%, transparent);
   color-scheme: dark;
-}
-:root[data-theme="light"] {
-  --bg: #F3F4F9; --bg-2: #ECEDF4; --surface: #FFFFFF; --surface-2: #FFFFFF;
-  --line: rgba(20,26,46,.10); --line-2: rgba(20,26,46,.18);
-  --text: #0F1222; --text-2: #4E5364; --text-3: #7A7F90;
-  --accent: #5B4BE0; --accent-2: #4C3ED0; --accent-soft: rgba(91,75,224,.12);
-  color-scheme: light;
 }
 
 @theme inline {
@@ -48,15 +56,16 @@ body {
 
 .btn { font: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 0 22px; border-radius: var(--r-btn); font-weight: 600; font-size: 15px; white-space: nowrap; border: 1px solid transparent; text-decoration: none; transition: transform .15s ease, background .2s ease, border-color .2s ease; cursor: pointer; }
 .btn:active { transform: translateY(1px) scale(.985); }
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: var(--accent-2); }
+.btn-primary { background: var(--accent-2); color: #fff; }
+.btn-primary:hover { background: color-mix(in srgb, var(--accent-2) 86%, #000); }
 .btn-ghost { background: transparent; color: var(--text); border-color: var(--line-2); }
 .btn-ghost:hover { border-color: var(--accent); }
 .btn-sm { min-height: 42px; padding: 0 16px; font-size: 14px; }
 
 /* Header */
-.site-header { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.site-header { position: sticky; top: 0; z-index: 20; background: var(--header-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 .site-header a { color: inherit; text-decoration: none; }
+.site-header .btn-primary { color: #fff; }
 .site-header svg { display: block; }
 .nav { height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; letter-spacing: -.02em; color: var(--text); text-decoration: none; }
@@ -81,7 +90,7 @@ body {
 .nav-mobile.open { display: flex; }
 
 /* Footer */
-.site-footer { border-top: 1px solid var(--line); padding: 40px 0 32px; }
+.site-footer { border-top: 1px solid var(--line); padding: 40px 0 32px; background: var(--bg-2); }
 .site-footer a { color: var(--text-3); text-decoration: none; }
 .site-footer a:hover { color: var(--text); }
 .site-footer ul { list-style: none; margin: 0; padding: 0; }

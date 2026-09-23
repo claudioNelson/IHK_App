@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { LsAbschnitt, LsHinweis } from "../../lernen/_components/LsBausteine";
 import PythonRunner from "../_components/PythonRunner";
 import LektionLayout from "../_components/LektionLayout";
+import { Aufgabe, Loesung } from "../_components/KursBausteine";
 
 export const metadata: Metadata = {
-  title: "Python Lektion 10: Klassen & Objekte (OOP-Basics)",
+  title: "Python Lektion 10: Klassen und Objekte (OOP-Basics)",
   description:
     "Objektorientierung verständlich: Klassen, Objekte, Attribute, Methoden und Vererbung in Python, mit Bezug zum UML-Klassendiagramm der IHK-Prüfung. Lektion 10 des kostenlosen Python-Kurses.",
   alternates: { canonical: "https://lernarena.app/python-kurs/lektion-10" },
@@ -11,18 +13,24 @@ export const metadata: Metadata = {
 
 export default function Lektion10() {
   return (
-    <LektionLayout nr={10}>
-      <p>
-        Jetzt kommt das Thema, das in der IHK-Prüfung am häufigsten
-        drankommt: <strong>Objektorientierung</strong>. Die Idee: Statt Daten
-        (Variablen) und Verhalten (Funktionen) getrennt zu halten, packst du
-        beides zusammen in eine <strong>Klasse</strong>. Eine Klasse ist der
-        Bauplan, ein <strong>Objekt</strong> ist ein konkretes Exemplar davon.
-      </p>
+    <LektionLayout
+      nr={10}
+      lead="Objektorientierung verständlich: Klassen, Objekte, Attribute, Methoden und Vererbung in Python, mit Bezug zum UML-Klassendiagramm der IHK-Prüfung."
+      uebungen={2}
+    >
+      <LsAbschnitt id="klassen" titel="Klassen und Objekte">
+        <p>
+          Jetzt kommt das Thema, das in der IHK-Prüfung am häufigsten drankommt:{" "}
+          <strong>Objektorientierung</strong>. Die Idee: Statt Daten (Variablen) und Verhalten
+          (Funktionen) getrennt zu halten, packst du beides zusammen in eine{" "}
+          <strong>Klasse</strong>. Eine Klasse ist der Bauplan, ein <strong>Objekt</strong> ist
+          ein konkretes Exemplar davon.
+        </p>
 
-      <PythonRunner
-        rows={13}
-        initialCode={`class Azubi:
+        <PythonRunner
+          rows={13}
+          dateiname="azubi.py"
+          initialCode={`class Azubi:
     def __init__(self, name, jahr):
         self.name = name
         self.jahr = jahr
@@ -36,40 +44,37 @@ a2 = Azubi("Sam", 1)
 
 a1.vorstellen()
 a2.vorstellen()`}
-      />
+        />
 
-      <p>
-        Die Bausteine im Einzelnen:{" "}
-        <span className="lp-mono">__init__</span> ist der{" "}
-        <strong>Konstruktor</strong>, er läuft automatisch beim Erzeugen des
-        Objekts und füllt die <strong>Attribute</strong> (
-        <span className="lp-mono">self.name</span>,{" "}
-        <span className="lp-mono">self.jahr</span>).{" "}
-        <span className="lp-mono">self</span> ist das Objekt selbst, darüber
-        greifen <strong>Methoden</strong> (Funktionen in der Klasse) auf die
-        eigenen Attribute zu.
-      </p>
-
-      <div className="lp-tip">
         <p>
-          <strong>Brücke zur IHK:</strong> Das hier ist exakt das, was im
-          UML-Klassendiagramm steht. Oben der Klassenname (Azubi), in der
-          Mitte die Attribute (name, jahr), unten die Methoden
-          (vorstellen()). Wenn du eine Klasse in Python schreiben kannst,
-          kannst du auch das Diagramm dazu zeichnen, und umgekehrt.
+          Die Bausteine im Einzelnen: <code>__init__</code> ist der <strong>Konstruktor</strong>,
+          er läuft automatisch beim Erzeugen des Objekts und füllt die{" "}
+          <strong>Attribute</strong> (<code>self.name</code>, <code>self.jahr</code>).{" "}
+          <code>self</code> ist das Objekt selbst, darüber greifen <strong>Methoden</strong>{" "}
+          (Funktionen in der Klasse) auf die eigenen Attribute zu.
         </p>
-      </div>
 
-      <p>
-        Das zweite große OOP-Konzept ist <strong>Vererbung</strong>: Eine
-        Klasse übernimmt alles von einer anderen und ergänzt oder ändert nur,
-        was anders ist. Die &quot;ist-ein&quot;-Beziehung aus dem
-        UML-Diagramm:
-      </p>
+        <LsHinweis titel="Brücke zur IHK" icon="buch" label="Prüfungsbezug">
+          <p>
+            Das hier ist exakt das, was im UML-Klassendiagramm steht. Oben der Klassenname
+            (Azubi), in der Mitte die Attribute (name, jahr), unten die Methoden (vorstellen()).
+            Wenn du eine Klasse in Python schreiben kannst, kannst du auch das Diagramm dazu
+            zeichnen, und umgekehrt.
+          </p>
+        </LsHinweis>
+      </LsAbschnitt>
 
-      <PythonRunner
-        rows={12}
-        initialCode={`class Azubi:
+      <LsAbschnitt id="vererbung" titel="Vererbung">
+        <p>
+          Das zweite große OOP-Konzept ist <strong>Vererbung</strong>: Eine Klasse übernimmt
+          alles von einer anderen und ergänzt oder ändert nur, was anders ist. Die
+          „ist-ein“-Beziehung aus dem UML-Diagramm:
+        </p>
+
+        <PythonRunner
+          rows={12}
+          dateiname="vererbung.py"
+          initialCode={`class Azubi:
     def __init__(self, name):
         self.name = name
 
@@ -84,27 +89,28 @@ a = Azubi("Sam")
 f = Fachinformatiker("Alex")
 a.vorstellen()
 f.vorstellen()`}
-      />
+        />
+      </LsAbschnitt>
 
-      <div className="pk-aufgabe">
-        <p>
-          <strong>Übung 10.1:</strong> Schreib eine Klasse{" "}
-          <span className="lp-mono">Rechteck</span> mit den Attributen{" "}
-          <span className="lp-mono">breite</span> und{" "}
-          <span className="lp-mono">hoehe</span> und einer Methode{" "}
-          <span className="lp-mono">flaeche()</span>, die die Fläche
-          zurückgibt. Erzeuge zwei Rechtecke und gib ihre Flächen aus.
-        </p>
-      </div>
-      <PythonRunner
-        rows={10}
-        initialCode={`# Dein Code:
+      <LsAbschnitt id="uebungen" titel="Übungen">
+        <p>Erst selbst versuchen, dann die Lösung aufklappen.</p>
+
+        <Aufgabe nr="10.1">
+          <p>
+            Schreib eine Klasse <code>Rechteck</code> mit den Attributen <code>breite</code> und{" "}
+            <code>hoehe</code> und einer Methode <code>flaeche()</code>, die die Fläche
+            zurückgibt. Erzeuge zwei Rechtecke und gib ihre Flächen aus.
+          </p>
+          <PythonRunner
+            rows={10}
+            dateiname="uebung_10_1.py"
+            label="Python-Code: Übung 10.1"
+            initialCode={`# Dein Code:
 
 `}
-      />
-      <details className="pk-loesung">
-        <summary>Musterlösung anzeigen</summary>
-        <pre>{`class Rechteck:
+          />
+          <Loesung
+            code={`class Rechteck:
     def __init__(self, breite, hoehe):
         self.breite = breite
         self.hoehe = hoehe
@@ -115,21 +121,21 @@ f.vorstellen()`}
 r1 = Rechteck(4, 5)
 r2 = Rechteck(10, 3)
 print(r1.flaeche())   # 20
-print(r2.flaeche())   # 30`}</pre>
-      </details>
+print(r2.flaeche())   # 30`}
+          />
+        </Aufgabe>
 
-      <div className="pk-aufgabe">
-        <p>
-          <strong>Übung 10.2:</strong> Erweitere die Azubi-Klasse um eine
-          Methode <span className="lp-mono">geburtstag()</span>, die das
-          Lehrjahr um 1 erhöht (okay, fachlich eher &quot;neues
-          Ausbildungsjahr&quot;, aber du verstehst das Prinzip). Rufe sie auf
-          und lass das Objekt sich davor und danach vorstellen.
-        </p>
-      </div>
-      <PythonRunner
-        rows={13}
-        initialCode={`class Azubi:
+        <Aufgabe nr="10.2">
+          <p>
+            Erweitere die Azubi-Klasse um eine Methode <code>geburtstag()</code>, die das Lehrjahr
+            um 1 erhöht (okay, fachlich eher „neues Ausbildungsjahr“, aber du verstehst das
+            Prinzip). Rufe sie auf und lass das Objekt sich davor und danach vorstellen.
+          </p>
+          <PythonRunner
+            rows={13}
+            dateiname="uebung_10_2.py"
+            label="Python-Code: Übung 10.2"
+            initialCode={`class Azubi:
     def __init__(self, name, jahr):
         self.name = name
         self.jahr = jahr
@@ -141,18 +147,19 @@ print(r2.flaeche())   # 30`}</pre>
 
 a = Azubi("Alex", 1)
 a.vorstellen()`}
-      />
-      <details className="pk-loesung">
-        <summary>Musterlösung anzeigen</summary>
-        <pre>{`    def geburtstag(self):
+          />
+          <Loesung
+            code={`    def geburtstag(self):
         self.jahr = self.jahr + 1
 
 # Und unten:
 a = Azubi("Alex", 1)
 a.vorstellen()
 a.geburtstag()
-a.vorstellen()   # jetzt 2. Lehrjahr`}</pre>
-      </details>
+a.vorstellen()   # jetzt 2. Lehrjahr`}
+          />
+        </Aufgabe>
+      </LsAbschnitt>
     </LektionLayout>
   );
 }

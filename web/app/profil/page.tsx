@@ -503,23 +503,23 @@ export default function ProfilPage() {
 
 const pfCss = `
   .pf-wrap {
-    --bg: #08080C; --surface: #12121C; --surface-2: #171724;
-    --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.16);
-    --text: #F5F5F7; --text-body: #C8C8D2; --text-dim: #8E8EA0;
-    --accent: #7C6DFF; --accent-soft: rgba(124,109,255,0.16); --accent-text: #C4BBFF;
-    --cyan: #22D3EE; --ok: #34C759; --warn: #F59E0B; --err: #FF6B63; --info: #3B82F6;
-    --chip-bg: rgba(255,255,255,0.05); --chip-border: rgba(255,255,255,0.10);
-    font-family: var(--font-geist-sans), system-ui, sans-serif;
-    background: var(--bg); color: var(--text);
-    min-height: 100vh; padding: 56px 20px 100px; line-height: 1.5;
-  }
-  html[data-theme="light"] .pf-wrap {
     --bg: #FAFAF9; --surface: #FFFFFF; --surface-2: #F4F4F1;
     --border: rgba(10,10,15,0.10); --border-strong: rgba(10,10,15,0.18);
     --text: #0A0A0F; --text-body: #3A3A44; --text-dim: #6A6A74;
     --accent: #6A5AE8; --accent-soft: rgba(106,90,232,0.10); --accent-text: #5B4BE0;
     --ok: #1E9E50; --err: #D93B33;
     --chip-bg: rgba(10,10,15,0.04); --chip-border: rgba(10,10,15,0.12);
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; padding: 56px 20px 100px; line-height: 1.5;
+  }
+  html[data-theme="dark"] .pf-wrap {
+    --bg: #08080C; --surface: #12121C; --surface-2: #171724;
+    --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.16);
+    --text: #F5F5F7; --text-body: #C8C8D2; --text-dim: #8E8EA0;
+    --accent: #7C6DFF; --accent-soft: rgba(124,109,255,0.16); --accent-text: #C4BBFF;
+    --cyan: #22D3EE; --ok: #34C759; --warn: #F59E0B; --err: #FF6B63; --info: #3B82F6;
+    --chip-bg: rgba(255,255,255,0.05); --chip-border: rgba(255,255,255,0.10);
   }
   .pf-inner { max-width: 680px; margin: 0 auto; }
   .pf-back {

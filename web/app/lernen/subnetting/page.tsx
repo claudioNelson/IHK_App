@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LernSeite, { type Abschnitt, type MetaEintrag, type Verwandt } from "../_components/LernSeite";
+import { LsAbschnitt, LsFaq, LsHinweis, type FaqEintrag } from "../_components/LsBausteine";
 import QuizFrage from "../_components/QuizFrage";
 import SubnetzRechner from "../_components/SubnetzRechner";
 
 export const metadata: Metadata = {
-  title: "Subnetting üben: Rechner, Aufgaben & Lösungen (IHK)",
+  title: "Subnetting üben: Rechner, Aufgaben und Lösungen (IHK)",
   description:
     "Subnetting einfach erklärt: mit kostenlosem Subnetz-Rechner inklusive Binär-Rechenweg, Schritt-für-Schritt-Beispiel und interaktiven Übungsaufgaben für die IHK-Prüfung als Fachinformatiker.",
   alternates: {
@@ -12,14 +14,37 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "article",
-    locale: "de_DE",
     url: "https://lernarena.app/lernen/subnetting",
-    siteName: "Lernarena",
-    title: "Subnetting üben: Rechner, Aufgaben & Lösungen (IHK)",
+    title: "Subnetting üben: Rechner, Aufgaben und Lösungen (IHK)",
     description:
       "Subnetting Schritt für Schritt: Subnetzmaske, CIDR, Netz- und Broadcast-Adresse. Mit interaktiven Übungsaufgaben für die Fachinformatiker-Prüfung.",
+    images: ["/og-image.png"],
   },
 };
+
+const abschnitte: Abschnitt[] = [
+  { id: "was-ist-subnetting", titel: "Was ist Subnetting?" },
+  { id: "tabelle", titel: "Werte auf einen Blick" },
+  { id: "beispiel", titel: "Beispiel Schritt für Schritt" },
+  { id: "fehler", titel: "Häufige Fehler" },
+  { id: "rechner", titel: "Subnetz-Rechner" },
+  { id: "quiz", titel: "Selbst testen" },
+  { id: "faq", titel: "Häufige Fragen" },
+];
+
+const meta: MetaEintrag[] = [
+  { icon: "zeit", text: "Etwa 10 Minuten" },
+  { icon: "rechner", text: "Rechner mit Binär-Rechenweg" },
+  { icon: "quiz", text: "5 Quizfragen" },
+  { icon: "pruefung", text: "AP1 und AP2 Systemintegration" },
+];
+
+const verwandt: Verwandt[] = [
+  { href: "/lernen/ip-adressen", titel: "IP-Adressen und IPv6", untertitel: "Private Bereiche, APIPA, IPv6-Kürzung" },
+  { href: "/lernen/zahlensysteme", titel: "Zahlensysteme umrechnen", untertitel: "Binär, dezimal, hexadezimal" },
+  { href: "/lernen", titel: "Alle Lernthemen", untertitel: "10 Themen für AP1 und AP2" },
+  { href: "/pruefungen", titel: "Übungsprüfungen", untertitel: "Aufgaben im IHK-Stil mit Korrektur" },
+];
 
 const cidrTable: { cidr: string; mask: string; addr: string; hosts: string }[] = [
   { cidr: "/24", mask: "255.255.255.0", addr: "256", hosts: "254" },
@@ -31,7 +56,7 @@ const cidrTable: { cidr: string; mask: string; addr: string; hosts: string }[] =
   { cidr: "/30", mask: "255.255.255.252", addr: "4", hosts: "2" },
 ];
 
-const faq: { q: string; a: string }[] = [
+const faq: FaqEintrag[] = [
   {
     q: "Was ist Subnetting?",
     a: "Subnetting ist das Aufteilen eines IP-Netzes in mehrere kleinere Teilnetze (Subnetze). Dazu werden Bits aus dem Host-Teil der IP-Adresse für den Netz-Teil verwendet. So lassen sich IP-Adressen effizient nutzen und Netze logisch trennen.",
@@ -59,241 +84,141 @@ const faq: { q: string; a: string }[] = [
 ];
 
 export default function SubnettingPage() {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faq.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  };
-
   return (
-    <main className="sn-wrap">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
-      <style>{`
-        .sn-wrap {
-          --bg: #08080C; --bg-muted: #0E0E14; --surface: #12121C; --surface-2: #151521;
-          --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.14);
-          --text: #F5F5F7; --text-body: #C8C8D2; --text-dim: #A0A0B0;
-          --accent: #7C6DFF; --accent-soft: rgba(124,109,255,0.14); --accent-text: #C4BBFF;
-          --chip-bg: rgba(255,255,255,0.05); --chip-border: rgba(255,255,255,0.1);
-          --input-bg: rgba(255,255,255,0.05); --input-border: rgba(255,255,255,0.15);
-          --pre-bg: rgba(0,0,0,0.35);
-          --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
-          --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #A32620;
-          --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
-          font-family: var(--font-geist-sans), system-ui, sans-serif;
-          background: var(--bg);
-          color: var(--text);
-          min-height: 100vh;
-          line-height: 1.65;
-        }
-        html[data-theme="light"] .sn-wrap {
-          --bg: #FAFAF9; --bg-muted: #F4F4F1; --surface: #FFFFFF; --surface-2: #FFFFFF;
-          --border: rgba(10,10,15,0.10); --border-strong: rgba(10,10,15,0.18);
-          --text: #0A0A0F; --text-body: #3A3A44; --text-dim: #6A6A74;
-          --accent: #6A5AE8; --accent-soft: rgba(106,90,232,0.10); --accent-text: #5B4BE0;
-          --chip-bg: rgba(10,10,15,0.04); --chip-border: rgba(10,10,15,0.12);
-          --input-bg: #FFFFFF; --input-border: rgba(10,10,15,0.18);
-          --pre-bg: rgba(10,10,15,0.05);
-          --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
-          --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
-          --warn-bg: rgba(180,120,0,0.10); --warn-border: rgba(180,120,0,0.45); --warn-text: #8A5A00;
-        }
-        .sn-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
-        .sn-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
-        .sn-crumb a { color: var(--accent); text-decoration: none; }
-        .sn-crumb a:hover { text-decoration: underline; }
-        .sn-wrap h1 {
-          font-size: clamp(32px, 5vw, 46px);
-          line-height: 1.1; letter-spacing: -0.02em;
-          margin: 0 0 16px; font-weight: 700;
-        }
-        .sn-lead { font-size: 19px; color: var(--text-dim); margin: 0 0 32px; }
-        .sn-wrap h2 { font-size: 26px; letter-spacing: -0.01em; margin: 48px 0 16px; font-weight: 650; }
-        .sn-wrap h3 { font-size: 19px; margin: 28px 0 8px; font-weight: 600; }
-        .sn-wrap p { color: var(--text-body); margin: 0 0 16px; }
-        .sn-wrap strong { color: var(--text); }
-        .sn-cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
-        .sn-btn {
-          display: inline-block; padding: 13px 26px; border-radius: 12px;
-          font-weight: 600; font-size: 16px; text-decoration: none; transition: transform .12s ease;
-        }
-        .sn-btn-primary { background: #7C6DFF; color: #fff; box-shadow: 0 10px 30px rgba(124,109,255,0.35); }
-        .sn-btn-primary:hover { transform: translateY(-2px); }
-        .sn-btn-ghost { background: var(--chip-bg); color: var(--text); border: 1px solid var(--chip-border); }
-        .sn-btn-ghost:hover { background: var(--accent-soft); }
-        .sn-table { width: 100%; border-collapse: collapse; margin: 16px 0 8px; font-size: 15px; }
-        .sn-table th, .sn-table td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); }
-        .sn-table th { color: var(--text-dim); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
-        .sn-table td { color: var(--text-body); }
-        .sn-table td:first-child { font-weight: 600; color: var(--accent-text); white-space: nowrap; }
-        .sn-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px 26px; margin: 20px 0; }
-        .sn-mono {
-          font-family: var(--font-geist-mono), ui-monospace, monospace;
-          background: var(--accent-soft); color: var(--accent-text);
-          padding: 2px 7px; border-radius: 6px; font-size: 0.92em;
-        }
-        .sn-related { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
-        .sn-chip {
-          display: inline-block; padding: 10px 16px; border-radius: 10px;
-          background: var(--chip-bg); border: 1px solid var(--chip-border);
-          color: var(--text-body); text-decoration: none; font-size: 15px;
-        }
-        .sn-chip:hover { background: var(--accent-soft); border-color: var(--accent); }
-        .sn-final {
-          text-align: center; background: linear-gradient(180deg, var(--surface), var(--bg-muted));
-          border: 1px solid rgba(124,109,255,0.25); border-radius: 20px;
-          padding: 40px 28px; margin: 56px 0 0;
-        }
-        .sn-final h2 { margin-top: 0; }
-        .sn-tip { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
-        .sn-tip p { margin: 0; }
-        .sn-tip strong { color: var(--accent-text); }
-        .sn-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 14px; padding: 18px 22px; margin: 22px 0; }
-        .sn-warn p { margin: 0 0 8px; }
-        .sn-warn strong { color: var(--warn-text); }
-        .sn-warn ul { margin: 8px 0 0; padding-left: 20px; }
-        .sn-warn li { color: var(--text-body); margin: 6px 0; }
-        .sn-faq { margin: 8px 0; }
-        .sn-faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2px 22px; margin: 10px 0; transition: border-color .15s ease; }
-        .sn-faq details[open] { border-color: var(--border-strong); }
-        .sn-faq summary { cursor: pointer; font-weight: 600; color: var(--text); padding: 16px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-        .sn-faq summary::-webkit-details-marker { display: none; }
-        .sn-faq summary::after { content: "+"; color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1; }
-        .sn-faq details[open] summary::after { content: "−"; }
-        .sn-faq details p { padding: 0 0 16px; margin: 0; color: var(--text-body); }
-`}</style>
-
-      <div className="sn-container">
-        <nav className="sn-crumb">
-          <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · Subnetting üben
-        </nav>
-
-        <h1>Subnetting üben: einfach erklärt, mit Aufgaben und Lösungen</h1>
-        <p className="sn-lead">
-          Subnetting gehört zu den Klassikern der IHK-Prüfung für Fachinformatiker.
-          Hier lernst du Schritt für Schritt, wie du Subnetzmaske, Netz- und
-          Broadcast-Adresse sowie die Anzahl der Hosts berechnest. Danach übst du es
-          interaktiv in der Lernarena.
-        </p>
-
-        <div className="sn-cta-row">
-          <Link href="/signup" className="sn-btn sn-btn-primary">Kostenlos üben</Link>
-          <Link href="/pruefungen" className="sn-btn sn-btn-ghost">Zu den Prüfungen</Link>
-        </div>
-
-        <h2>Was ist Subnetting?</h2>
+    <LernSeite
+      titel="Subnetting üben: einfach erklärt, mit Aufgaben und Lösungen"
+      lead="Subnetting gehört zu den Klassikern der IHK-Prüfung für Fachinformatiker. Hier lernst du Schritt für Schritt, wie du Subnetzmaske, Netz- und Broadcast-Adresse sowie die Anzahl der Hosts berechnest. Danach übst du es interaktiv in der Lernarena."
+      pfad="Subnetting"
+      meta={meta}
+      abschnitte={abschnitte}
+      seitenNotiz={
+        <>
+          Zahlensysteme noch nicht sicher? Dann zuerst{" "}
+          <Link href="/lernen/zahlensysteme">Binär und Dezimal umrechnen</Link>, danach fällt
+          Subnetting leichter.
+        </>
+      }
+      verwandt={verwandt}
+      cta={{
+        titel: "Subnetting interaktiv trainieren.",
+        text: "In der Lernarena rechnest du Subnetting-Aufgaben mit sofortigem Feedback, Aufgaben im IHK-Stil und der KI-Tutorin Ada, die dir jeden Rechenschritt erklärt.",
+      }}
+    >
+      <LsAbschnitt id="was-ist-subnetting" titel="Was ist Subnetting?">
         <p>
-          Beim <strong>Subnetting</strong> teilst du ein großes IP-Netz in mehrere
-          kleinere Teilnetze auf. Dazu „leihst" du dir Bits aus dem Host-Teil der
-          IP-Adresse und schlägst sie dem Netz-Teil zu. So nutzt du Adressbereiche
-          effizienter und trennst Netze logisch, etwa Abteilungen in einer Firma.
+          Beim <strong>Subnetting</strong> teilst du ein großes IP-Netz in mehrere kleinere
+          Teilnetze auf. Dazu „leihst“ du dir Bits aus dem Host-Teil der IP-Adresse und
+          schlägst sie dem Netz-Teil zu. So nutzt du Adressbereiche effizienter und trennst
+          Netze logisch, etwa Abteilungen in einer Firma.
         </p>
         <p>
-          Eine IPv4-Adresse besteht aus 32 Bit. Die <strong>Subnetzmaske</strong>{" "}
-          legt fest, welcher Teil davon das Netz beschreibt und welcher die Hosts.
-          In der CIDR-Schreibweise steht das als Präfix hinter der Adresse, z. B.{" "}
-          <span className="sn-mono">192.168.10.0/26</span>. Die ersten 26 Bit sind
-          der Netz-Teil.
+          Eine IPv4-Adresse besteht aus 32 Bit. Die <strong>Subnetzmaske</strong> legt fest,
+          welcher Teil davon das Netz beschreibt und welcher die Hosts. In der
+          CIDR-Schreibweise steht das als Präfix hinter der Adresse, z. B.{" "}
+          <code>192.168.10.0/26</code>. Die ersten 26 Bit sind der Netz-Teil.
         </p>
-
-        <div className="sn-tip">
+        <LsHinweis titel="Merkhilfe: das Wohnhaus" icon="haus" label="Merkhilfe">
           <p>
-            <strong>🏢 Stell es dir wie ein Wohnhaus vor:</strong> Die IP-Adresse ist
-            die komplette Anschrift. Der <strong>Netz-Teil</strong> ist wie
-            Straße + Hausnummer (welches Gebäude), der <strong>Host-Teil</strong> ist
-            die Wohnungsnummer (welches Gerät im Netz). Subnetting heißt: Du machst aus
-            einem großen Haus mehrere kleinere Häuser. Die Subnetzmaske ist die Grenze,
-            die sagt „ab hier beginnt die Wohnungsnummer". Je mehr Bits du dem Netz-Teil
-            gibst (größeres Präfix wie /27, /28), desto mehr, aber kleinere Häuser
-            bekommst du.
+            Die IP-Adresse ist die komplette Anschrift. Der <strong>Netz-Teil</strong> ist
+            Straße und Hausnummer (welches Gebäude), der <strong>Host-Teil</strong> ist die
+            Wohnungsnummer (welches Gerät im Netz). Subnetting heißt: Du machst aus einem
+            großen Haus mehrere kleinere Häuser. Die Subnetzmaske ist die Grenze, die sagt
+            „ab hier beginnt die Wohnungsnummer“. Je mehr Bits du dem Netz-Teil gibst
+            (größeres Präfix wie /27, /28), desto mehr, aber kleinere Häuser bekommst du.
           </p>
-        </div>
+        </LsHinweis>
+      </LsAbschnitt>
 
-        <h2>Die wichtigsten Werte auf einen Blick</h2>
+      <LsAbschnitt id="tabelle" titel="Die wichtigsten Werte auf einen Blick">
         <p>
-          Diese Tabelle solltest du für die Prüfung im Kopf haben. Die nutzbaren
-          Hosts berechnen sich immer als <span className="sn-mono">2^(32−Präfix) − 2</span>{" "}
-          (Netz- und Broadcast-Adresse zählen nicht als Host).
+          Diese Tabelle solltest du für die Prüfung im Kopf haben. Die nutzbaren Hosts
+          berechnen sich immer als <code>2^(32 − Präfix) − 2</code>, weil Netz- und
+          Broadcast-Adresse nicht als Host zählen.
         </p>
-        <table className="sn-table">
-          <thead>
-            <tr>
-              <th>CIDR</th>
-              <th>Subnetzmaske</th>
-              <th>Adressen</th>
-              <th>Nutzbare Hosts</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cidrTable.map((r) => (
-              <tr key={r.cidr}>
-                <td>{r.cidr}</td>
-                <td>{r.mask}</td>
-                <td>{r.addr}</td>
-                <td>{r.hosts}</td>
+        <div className="ls-table-wrap" role="region" aria-label="CIDR-Tabelle, seitlich scrollbar" tabIndex={0}>
+          <table className="ls-table">
+            <thead>
+              <tr>
+                <th scope="col">CIDR</th>
+                <th scope="col">Subnetzmaske</th>
+                <th scope="col" className="num">Adressen</th>
+                <th scope="col" className="num">Nutzbare Hosts</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <h2>Beispiel Schritt für Schritt</h2>
-        <div className="sn-card">
-          <p>
-            <strong>Aufgabe:</strong> Gegeben ist das Netz{" "}
-            <span className="sn-mono">192.168.10.0/26</span>. Wie lauten Subnetzmaske,
-            Blockgröße, Netz- und Broadcast-Adresse des ersten Subnetzes und wie viele
-            Hosts sind nutzbar?
-          </p>
-          <h3>1. Subnetzmaske bestimmen</h3>
-          <p>
-            /26 bedeutet 26 Einsen. Das letzte Oktett hat also 2 Netz-Bits:{" "}
-            <span className="sn-mono">11000000</span> = 192. Die Maske ist{" "}
-            <span className="sn-mono">255.255.255.192</span>.
-          </p>
-          <h3>2. Blockgröße berechnen</h3>
-          <p>
-            Blockgröße = 256 − 192 = <strong>64</strong>. Die Subnetze beginnen also
-            bei .0, .64, .128 und .192.
-          </p>
-          <h3>3. Netz- und Broadcast-Adresse</h3>
-          <p>
-            Erstes Subnetz: Netzadresse{" "}
-            <span className="sn-mono">192.168.10.0</span>, Broadcast{" "}
-            <span className="sn-mono">192.168.10.63</span>. Nutzbar sind{" "}
-            <span className="sn-mono">.1</span> bis <span className="sn-mono">.62</span>.
-          </p>
-          <h3>4. Anzahl Hosts</h3>
-          <p>
-            2^(32−26) − 2 = 2^6 − 2 = <strong>62 nutzbare Hosts</strong> pro Subnetz.
-          </p>
+            </thead>
+            <tbody>
+              {cidrTable.map((r) => (
+                <tr key={r.cidr}>
+                  <td>{r.cidr}</td>
+                  <td>{r.mask}</td>
+                  <td className="num">{r.addr}</td>
+                  <td className="num">{r.hosts}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </LsAbschnitt>
 
-        <div className="sn-tip">
+      <LsAbschnitt id="beispiel" titel="Beispiel Schritt für Schritt">
+        <p className="ls-task">
+          <strong>Aufgabe:</strong> Gegeben ist das Netz <code>192.168.10.0/26</code>. Wie
+          lauten Subnetzmaske, Blockgröße, Netz- und Broadcast-Adresse des ersten Subnetzes
+          und wie viele Hosts sind nutzbar?
+        </p>
+        <ol className="ls-steps">
+          <li className="ls-step">
+            <div>
+              <h3>Subnetzmaske bestimmen</h3>
+              <p>
+                /26 bedeutet 26 Einsen. Das letzte Oktett hat also 2 Netz-Bits:{" "}
+                <code>11000000</code> = 192. Die Maske ist <code>255.255.255.192</code>.
+              </p>
+            </div>
+          </li>
+          <li className="ls-step">
+            <div>
+              <h3>Blockgröße berechnen</h3>
+              <p>
+                Blockgröße = 256 − 192 = <strong>64</strong>. Die Subnetze beginnen also bei
+                .0, .64, .128 und .192.
+              </p>
+            </div>
+          </li>
+          <li className="ls-step">
+            <div>
+              <h3>Netz- und Broadcast-Adresse</h3>
+              <p>
+                Erstes Subnetz: Netzadresse <code>192.168.10.0</code>, Broadcast{" "}
+                <code>192.168.10.63</code>. Nutzbar sind <code>.1</code> bis <code>.62</code>.
+              </p>
+            </div>
+          </li>
+          <li className="ls-step">
+            <div>
+              <h3>Anzahl Hosts</h3>
+              <p>
+                2^(32 − 26) − 2 = 2^6 − 2 = <strong>62 nutzbare Hosts</strong> pro Subnetz.
+              </p>
+            </div>
+          </li>
+        </ol>
+        <LsHinweis titel="Der schnellste Trick ist die Blockgröße">
           <p>
-            <strong>💡 Der schnellste Trick ist die Blockgröße:</strong> Rechne einfach{" "}
-            <span className="sn-mono">256 − Maskenwert</span> des letzten Oktetts.
-            Bei /26 ist die Maske 192 → <span className="sn-mono">256 − 192 = 64</span>.
-            Diese 64 ist dein „Sprung": Die Subnetze starten bei .0, .64, .128, .192,
-            und der Broadcast liegt immer <strong>eins vor</strong> dem nächsten Start
-            (also .63, .127, .191, .255). Mit diesem einen Trick löst du fast jede
-            Subnetting-Aufgabe im Kopf.
+            Rechne einfach <code>256 − Maskenwert</code> des letzten Oktetts. Bei /26 ist die
+            Maske 192, also <code>256 − 192 = 64</code>. Diese 64 ist dein „Sprung“: Die
+            Subnetze starten bei .0, .64, .128, .192, und der Broadcast liegt immer{" "}
+            <strong>eins vor</strong> dem nächsten Start (also .63, .127, .191, .255). Mit
+            diesem einen Trick löst du fast jede Subnetting-Aufgabe im Kopf.
           </p>
-        </div>
+        </LsHinweis>
+      </LsAbschnitt>
 
-        <div className="sn-warn">
-          <p><strong>⚠️ Häufige Fehler in der Prüfung:</strong></p>
+      <LsAbschnitt id="fehler" titel="Häufige Fehler in der Prüfung">
+        <LsHinweis art="warnung" titel="Vier Stolperfallen, die regelmäßig Punkte kosten">
           <ul>
             <li>
-              Das <strong>−2</strong> bei den Hosts vergessen. Netz- und
-              Broadcast-Adresse sind keine nutzbaren Hosts, es sind immer 2 weniger.
+              Das <strong>−2</strong> bei den Hosts vergessen. Netz- und Broadcast-Adresse
+              sind keine nutzbaren Hosts, es sind immer 2 weniger.
             </li>
             <li>
               Broadcast und nächste Netzadresse verwechseln: Der Broadcast ist die{" "}
@@ -301,29 +226,35 @@ export default function SubnettingPage() {
               nächsten (.64).
             </li>
             <li>
-              Größeres Präfix = <strong>kleineres</strong> Netz. /28 hat weniger Hosts
-              als /26, nicht mehr. Das ist ein häufiger Denkfehler.
+              Größeres Präfix = <strong>kleineres</strong> Netz. /28 hat weniger Hosts als
+              /26, nicht mehr. Das ist ein häufiger Denkfehler.
             </li>
             <li>
-              Die Blockgröße im falschen Oktett anwenden. Prüfe zuerst, in welchem
-              Oktett sich die Maske überhaupt ändert.
+              Die Blockgröße im falschen Oktett anwenden. Prüfe zuerst, in welchem Oktett
+              sich die Maske überhaupt ändert.
             </li>
           </ul>
-        </div>
+        </LsHinweis>
+      </LsAbschnitt>
 
-        <h2>Subnetz-Rechner mit Rechenweg</h2>
+      <LsAbschnitt id="rechner" titel="Subnetz-Rechner mit Rechenweg">
         <p>
-          Gib eine IP-Adresse und ein Präfix ein. Der Rechner liefert Subnetzmaske,
-          Netz- und Broadcast-Adresse samt Host-Bereich. Und das Besondere: Er zeigt
-          dir auf Wunsch den <strong>kompletten Rechenweg in Binärdarstellung</strong>,
-          damit du das Verfahren für die Prüfung wirklich verstehst.
+          Gib eine IP-Adresse und ein Präfix ein. Der Rechner liefert Subnetzmaske, Netz- und
+          Broadcast-Adresse samt Host-Bereich. Auf Wunsch zeigt er dir den{" "}
+          <strong>kompletten Rechenweg in Binärdarstellung</strong>, mit farbig markierter
+          Grenze zwischen Netz- und Host-Teil.
         </p>
         <SubnetzRechner />
+      </LsAbschnitt>
 
-        <h2>Jetzt selbst testen</h2>
-        <p>Beantworte die Fragen und bekomme sofort Feedback, so viele Versuche du willst.</p>
+      <LsAbschnitt id="quiz" titel="Jetzt selbst testen">
+        <p style={{ marginBottom: 18 }}>
+          Beantworte die Fragen und bekomme sofort Feedback, so viele Versuche du willst.
+        </p>
 
         <QuizFrage
+          nr={1}
+          von={5}
           frage="Welche Subnetzmaske gehört zur CIDR-Notation /27?"
           optionen={[
             { text: "255.255.255.192", richtig: false },
@@ -335,6 +266,8 @@ export default function SubnettingPage() {
         />
 
         <QuizFrage
+          nr={2}
+          von={5}
           frage="Wie viele nutzbare Hosts hat ein /28-Netz?"
           optionen={[
             { text: "16", richtig: false },
@@ -342,10 +275,12 @@ export default function SubnettingPage() {
             { text: "14", richtig: true },
             { text: "8", richtig: false },
           ]}
-          erklaerung="2^(32−28) − 2 = 2^4 − 2 = 14. Netz- und Broadcast-Adresse zählen nicht als nutzbare Hosts."
+          erklaerung="2^(32 − 28) − 2 = 2^4 − 2 = 14. Netz- und Broadcast-Adresse zählen nicht als nutzbare Hosts."
         />
 
         <QuizFrage
+          nr={3}
+          von={5}
           frage="In welchem Subnetz liegt die Adresse 172.16.5.200 bei einem /26-Präfix?"
           optionen={[
             { text: "Netz 172.16.5.128, Broadcast 172.16.5.191", richtig: false },
@@ -353,10 +288,12 @@ export default function SubnettingPage() {
             { text: "Netz 172.16.5.200, Broadcast 172.16.5.255", richtig: false },
             { text: "Netz 172.16.5.64, Broadcast 172.16.5.127", richtig: false },
           ]}
-          erklaerung="Blockgröße bei /26 ist 64 → Subnetze .0, .64, .128, .192. Die .200 liegt im Block .192: Netzadresse 172.16.5.192, Broadcast 172.16.5.255, nutzbar .193–.254."
+          erklaerung="Blockgröße bei /26 ist 64, also Subnetze .0, .64, .128, .192. Die .200 liegt im Block .192: Netzadresse 172.16.5.192, Broadcast 172.16.5.255, nutzbar .193 bis .254."
         />
 
         <QuizFrage
+          nr={4}
+          von={5}
           frage="Wie lautet die Broadcast-Adresse des Netzes 192.168.1.0/28?"
           optionen={[
             { text: "192.168.1.7", richtig: false },
@@ -364,10 +301,12 @@ export default function SubnettingPage() {
             { text: "192.168.1.16", richtig: false },
             { text: "192.168.1.255", richtig: false },
           ]}
-          erklaerung="/28 → Maske 255.255.255.240, Blockgröße 256 − 240 = 16. Erstes Subnetz: .0 bis .15. Der Broadcast ist die letzte Adresse im Block, also 192.168.1.15."
+          erklaerung="/28 bedeutet Maske 255.255.255.240 und Blockgröße 256 − 240 = 16. Erstes Subnetz: .0 bis .15. Der Broadcast ist die letzte Adresse im Block, also 192.168.1.15."
         />
 
         <QuizFrage
+          nr={5}
+          von={5}
           frage="Du brauchst mindestens 50 nutzbare Hosts pro Subnetz. Welches Präfix ist das kleinste passende?"
           optionen={[
             { text: "/25", richtig: false },
@@ -377,38 +316,11 @@ export default function SubnettingPage() {
           ]}
           erklaerung="/26 liefert 2^6 − 2 = 62 Hosts. Das reicht für 50 und lässt am wenigsten Adressen ungenutzt. /27 hätte nur 30 Hosts (zu wenig), /25 mit 126 wäre unnötig groß."
         />
+      </LsAbschnitt>
 
-        <h2>Häufige Fragen</h2>
-        <div className="sn-faq">
-          {faq.map((f) => (
-            <details key={f.q}>
-              <summary>{f.q}</summary>
-              <p>{f.a}</p>
-            </details>
-          ))}
-        </div>
-
-        <h2>Verwandte Themen</h2>
-        <div className="sn-related">
-          <Link href="/lernen/ip-adressen" className="sn-chip">IP-Adressen & IPv6 →</Link>
-          <Link href="/lernen/zahlensysteme" className="sn-chip">Zahlensysteme umrechnen →</Link>
-          <Link href="/lernen" className="sn-chip">Alle Lernthemen →</Link>
-          <Link href="/pruefungen" className="sn-chip">Alle IHK-Prüfungen →</Link>
-        </div>
-
-        <section className="sn-final">
-          <h2>Subnetting interaktiv trainieren</h2>
-          <p>
-            In der Lernarena rechnest du Subnetting-Aufgaben mit sofortigem Feedback,
-            Aufgaben im IHK-Stil und der KI-Tutorin Ada, die dir jeden Rechenschritt
-            erklärt. Kostenlos starten, direkt üben.
-          </p>
-          <div className="sn-cta-row" style={{ justifyContent: "center" }}>
-            <Link href="/signup" className="sn-btn sn-btn-primary">Jetzt kostenlos starten</Link>
-            <Link href="/pruefungen" className="sn-btn sn-btn-ghost">Alle Prüfungen ansehen</Link>
-          </div>
-        </section>
-      </div>
-    </main>
+      <LsAbschnitt id="faq" titel="Häufige Fragen">
+        <LsFaq eintraege={faq} />
+      </LsAbschnitt>
+    </LernSeite>
   );
 }

@@ -1,1136 +1,737 @@
 "use client";
 
-import { useState } from "react";
+// Ergebnisseite nach der Abgabe.
+// Reihenfolge: Note gross, Punkte mit Bestanden-Status und Notenskala,
+// Adas Kommentar, Staerken, Verbesserungen, Lernempfehlungen, dann die
+// Aufgaben im Detail. Vor der Korrektur: Karte mit "Korrektur anfordern"
+// und die Abgabe ohne Punkte; waehrend der Korrektur gesperrt mit Skelett;
+// im Fehlerfall ein Hinweis mit "Erneut anfordern".
+//
+// Note, Prozent und Bestanden kommen fertig aus /api/ki-korrektur
+// (normalizeResult). Hier wird nur noch auf gueltige Werte begrenzt.
+// Das Ergebnis liegt in exam-{id}-ergebnis und uebersteht einen Reload,
+// damit ein Neuladen keine neue Korrektur und keinen neuen Versuch ausloest.
+
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
+import type { Exam } from "@/data/exam-types";
 import { createClient } from "@/lib/supabase/client";
+import PageShell from "@/app/components/shell/PageShell";
+import Icon from "./ExamIcons";
+import ExamDialog from "./ExamDialog";
+import { TextBlocks } from "./ExamText";
+import {
+  answerableQuestions,
+  groupLabel,
+  hasAnswer,
+  passPoints,
+  questionLabels,
+  writeStore,
+  type KiAufgabe,
+  type KiEmpfehlung,
+  type KiResult,
+  type KiTeilaufgabe,
+  type ProfileSave,
+  type StoredErgebnis,
+} from "@/app/pruefungen/exam-state";
 
 interface ExamResultProps {
-  onReset: () => void;
-  exam: {
-    id: string;
-    title: string;
-    company: string;
-    scenario?: string;
-    totalPoints: number;
-    sections: {
-      id: string;
-      title: string;
-      questions: { id: string; title: string; description: string; points: number; type?: string }[];
-    }[];
-  };
-  completed: Record<string, boolean>;
+  exam: Exam;
   answers: Record<string, string>;
+  startedAt: number | null;
+  submittedAt: number | null;
+  practice: boolean;
+  initialErgebnis: StoredErgebnis | null;
+  onErgebnis: (e: StoredErgebnis) => void;
+  onReset: () => void;
 }
 
-// Strukturiertes Bewertungs-Ergebnis von der KI (Adas Korrektur)
-interface KiTeilaufgabe {
-  titel: string;
-  punkte: number;
-  maxPunkte: number;
-  beantwortet?: boolean;
-  kommentar?: string;
-}
-interface KiAufgabe {
-  titel: string;
-  punkte: number;
-  maxPunkte: number;
-  teilaufgaben: KiTeilaufgabe[];
-}
-interface KiResult {
-  gesamt: {
-    punkte: number;
-    maxPunkte: number;
-    prozent: number;
-    note: number;
-    noteText: string;
-    bestanden: boolean;
-    kommentar?: string;
-  };
-  aufgaben: KiAufgabe[];
-  staerken?: string[];
-  verbesserungen?: string[];
-  lernempfehlungen?: string[];
-}
+// ------------------------------------------------------------------
+// Begrenzen statt neu berechnen
+// ------------------------------------------------------------------
+const num = (v: unknown, fallback = 0) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+};
+const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
+const text = (v: unknown): string | undefined => {
+  if (typeof v === "string") return v.trim() || undefined;
+  if (Array.isArray(v)) return v.filter((x) => typeof x === "string").join("\n\n").trim() || undefined;
+  return undefined;
+};
+const textList = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && x.trim() !== "") : [];
 
-// Sicherheitsnetz: Die KI bewertet die Aufgaben einzeln meist korrekt,
-// verrechnet sich aber gelegentlich im Gesamt-Block (oder behauptet
-// "nichts beantwortet", obwohl Teilaufgaben Punkte bekommen haben).
-// Deshalb rechnen wir das Gesamtergebnis selbst aus den Einzelbewertungen
-// zusammen und leiten Prozent, Note und Bestanden daraus ab.
-function reconcileKiResult(result: KiResult): KiResult {
-  if (!Array.isArray(result.aufgaben) || result.aufgaben.length === 0) {
-    return result;
-  }
-
-  const punkte = result.aufgaben.reduce(
-    (sum, a) => sum + (Number(a.punkte) || 0),
-    0
-  );
-  const maxPunkte =
-    result.aufgaben.reduce((sum, a) => sum + (Number(a.maxPunkte) || 0), 0) ||
-    result.gesamt?.maxPunkte ||
-    100;
-
-  const prozent = Math.round((punkte / maxPunkte) * 100);
-
-  let note = 6;
-  let noteText = "ungenügend";
-  if (prozent >= 92) { note = 1; noteText = "sehr gut"; }
-  else if (prozent >= 81) { note = 2; noteText = "gut"; }
-  else if (prozent >= 67) { note = 3; noteText = "befriedigend"; }
-  else if (prozent >= 50) { note = 4; noteText = "ausreichend"; }
-  else if (prozent >= 30) { note = 5; noteText = "mangelhaft"; }
-
-  const bestanden = prozent >= 50;
-
-  // Kommentar nur übernehmen, wenn er nicht offensichtlich widerspricht
-  const kommentar =
-    punkte > 0 &&
-    result.gesamt?.kommentar &&
-    /keine aufgaben|nicht beantwortet|nichts beantwortet/i.test(
-      result.gesamt.kommentar
-    )
-      ? undefined
-      : result.gesamt?.kommentar;
-
+function cleanTeil(raw: unknown): KiTeilaufgabe {
+  const t = (raw ?? {}) as Record<string, unknown>;
+  const maxPunkte = Math.max(0, num(t.maxPunkte));
   return {
-    ...result,
-    gesamt: { punkte, maxPunkte, prozent, note, noteText, bestanden, kommentar },
+    titel: text(t.titel),
+    maxPunkte,
+    punkte: clamp(num(t.punkte), 0, maxPunkte),
+    beantwortet: typeof t.beantwortet === "boolean" ? t.beantwortet : undefined,
+    kommentar: text(t.kommentar),
   };
 }
 
-export default function ExamResult({ exam, completed, answers, onReset }: ExamResultProps) {
-  const [kiLoading, setKiLoading] = useState(false);
-  const [kiFeedback, setKiFeedback] = useState<string | null>(null);
-  const [kiResult, setKiResult] = useState<KiResult | null>(null);
-  const [kiError, setKiError] = useState<string | null>(null);
-  // Speichern des Ergebnisses in user_exam_attempts (fuers Profil)
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "guest" | "error">("idle");
-
-  const allQuestions = exam.sections.flatMap((s) => s.questions);
-
-  // "Beantwortet" heisst: es steht wirklich etwas in der Antwort. Die
-  // Haekchen ("als bearbeitet markiert") waren dafuer unzuverlaessig, weil
-  // kaum jemand sie setzt, und dann stand ueberall 0/25 obwohl Ada laengst
-  // Punkte vergeben hatte. Tabellen/Matrix speichern JSON, "{}" zaehlt nicht.
-  const istBeantwortet = (id: string) => {
-    const v = (answers[id] ?? "").trim();
-    const hatText = v !== "" && v !== "{}" && v !== "[]";
-    // Haekchen zaehlt weiterhin mit (z. B. Diagramm auf Papier gezeichnet).
-    return hatText || completed[id] === true;
+function cleanAufgabe(raw: unknown): KiAufgabe {
+  const a = (raw ?? {}) as Record<string, unknown>;
+  const maxPunkte = Math.max(0, num(a.maxPunkte));
+  return {
+    titel: text(a.titel),
+    maxPunkte,
+    punkte: clamp(num(a.punkte), 0, maxPunkte),
+    teilaufgaben: Array.isArray(a.teilaufgaben) ? a.teilaufgaben.map(cleanTeil) : [],
   };
-  const answeredCount = allQuestions.filter((q) => istBeantwortet(q.id)).length;
+}
 
-  // Bewertetes Ergebnis in die Datenbank schreiben, damit es im Profil
-  // (Web und App) unter "Pruefungen" erscheint. Gleiche Tabelle wie die
-  // App: user_exam_attempts, Pruefung ueber exams.slug (z. B. "ap1-1").
-  const ergebnisSpeichern = async (result: KiResult) => {
+function cleanEmpfehlung(raw: unknown): KiEmpfehlung | null {
+  if (typeof raw === "string") return raw.trim() ? raw : null;
+  if (raw && typeof raw === "object") {
+    const r = raw as Record<string, unknown>;
+    const titel = text(r.titel);
+    return titel ? { titel, wo: text(r.wo) } : null;
+  }
+  return null;
+}
+
+function cleanResult(raw: unknown): KiResult | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const g = r.gesamt as Record<string, unknown> | undefined;
+  if (!g || typeof g !== "object") return null;
+  const note = num(g.note, NaN);
+  if (!Number.isFinite(note)) return null;
+  const maxPunkte = Math.max(0, num(g.maxPunkte));
+  return {
+    gesamt: {
+      punkte: clamp(num(g.punkte), 0, maxPunkte),
+      maxPunkte,
+      prozent: clamp(Math.round(num(g.prozent)), 0, 100),
+      note: clamp(Math.round(note), 1, 6),
+      noteText: text(g.noteText) ?? "",
+      bestanden: g.bestanden === true,
+      kommentar: text(g.kommentar),
+    },
+    aufgaben: Array.isArray(r.aufgaben) ? r.aufgaben.map(cleanAufgabe) : [],
+    staerken: textList(r.staerken),
+    verbesserungen: textList(r.verbesserungen),
+    lernempfehlungen: Array.isArray(r.lernempfehlungen)
+      ? r.lernempfehlungen.map(cleanEmpfehlung).filter((x): x is KiEmpfehlung => x !== null)
+      : [],
+  };
+}
+
+// IHK-Notenschluessel in Prozent: ab 92 / 81 / 67 / 50 / 30
+const SCALE = [
+  { n: 6, from: 0, to: 30 },
+  { n: 5, from: 30, to: 50 },
+  { n: 4, from: 50, to: 67 },
+  { n: 3, from: 67, to: 81 },
+  { n: 2, from: 81, to: 92 },
+  { n: 1, from: 92, to: 100 },
+];
+
+const pad = (n: number) => String(n).padStart(2, "0");
+function formatDate(ms: number): string {
+  const d = new Date(ms);
+  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} um ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+const punkteWort = (n: number) => (n === 1 ? "Punkt" : "Punkte");
+
+export default function ExamResult({
+  exam,
+  answers,
+  startedAt,
+  submittedAt,
+  practice,
+  initialErgebnis,
+  onErgebnis,
+  onReset,
+}: ExamResultProps) {
+  const [ergebnis, setErgebnis] = useState<StoredErgebnis | null>(initialErgebnis);
+  const [kiLoading, setKiLoading] = useState(false);
+  const [kiError, setKiError] = useState<string | null>(null);
+  const [step, setStep] = useState(1);
+  const [resetOpen, setResetOpen] = useState(false);
+  const inFlight = useRef(false);
+  const alive = useRef(true);
+  const gradeHeading = useRef<HTMLHeadingElement>(null);
+  const focusGrade = useRef(false);
+
+  const labels = useMemo(() => questionLabels(exam), [exam]);
+  const parts = useMemo(() => answerableQuestions(exam), [exam]);
+  const answeredCount = parts.filter((q) => hasAnswer(answers[q.id])).length;
+  const result = useMemo(() => (ergebnis?.result ? cleanResult(ergebnis.result) : null), [ergebnis]);
+  const feedback = !result && ergebnis?.feedback ? ergebnis.feedback : null;
+  const minutes = startedAt && submittedAt && submittedAt > startedAt ? Math.max(1, Math.round((submittedAt - startedAt) / 60000)) : null;
+
+  // Schrittzaehler waehrend der Korrektur ("Aufgabe 2 von 4")
+  useEffect(() => {
+    if (!kiLoading) return;
+    const h = window.setInterval(() => {
+      setStep((s) => Math.min(s + 1, Math.max(1, exam.sections.length)));
+    }, 4000);
+    return () => window.clearInterval(h);
+  }, [kiLoading, exam.sections.length]);
+
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+
+  // Beim Drucken alle Aufgaben aufklappen
+  useEffect(() => {
+    const open = () => document.querySelectorAll<HTMLDetailsElement>(".ex-task").forEach((d) => (d.open = true));
+    window.addEventListener("beforeprint", open);
+    return () => window.removeEventListener("beforeprint", open);
+  }, []);
+
+  // Nach einer frischen Korrektur den Fokus auf das Ergebnis setzen
+  useEffect(() => {
+    if (result && focusGrade.current) {
+      focusGrade.current = false;
+      gradeHeading.current?.focus();
+    }
+  }, [result]);
+
+  const persist = (next: StoredErgebnis) => {
+    // Nach "Neu beginnen" (Unmount) nichts mehr zurueckschreiben
+    if (!alive.current) return;
+    setErgebnis(next);
+    onErgebnis(next);
+    writeStore(exam.id, "ergebnis", JSON.stringify(next));
+  };
+
+  // Ergebnis in user_exam_attempts schreiben (Profil in Web und App).
+  const saveAttempt = async (res: KiResult, stored: StoredErgebnis) => {
+    let status: ProfileSave = "error";
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        setSaveStatus("guest");
-        return;
+        status = "guest";
+      } else {
+        const { data: examRow, error: examError } = await supabase
+          .from("exams")
+          .select("id")
+          .eq("slug", exam.id)
+          .maybeSingle();
+        if (examError || !examRow) {
+          console.warn("Kein exams-Eintrag fuer Slug", exam.id, examError?.message);
+        } else {
+          const jetzt = new Date();
+          const { error } = await supabase.from("user_exam_attempts").insert({
+            user_id: user.id,
+            exam_id: examRow.id,
+            started_at: new Date(startedAt ?? submittedAt ?? jetzt.getTime()).toISOString(),
+            submitted_at: jetzt.toISOString(),
+            total_points: res.gesamt.maxPunkte,
+            achieved_points: res.gesamt.punkte,
+            percentage: res.gesamt.prozent,
+            passed: res.gesamt.bestanden,
+            status: "graded",
+          });
+          if (error) console.warn("Ergebnis speichern fehlgeschlagen:", error.message);
+          else status = "saved";
+        }
       }
-      const { data: examRow, error: examError } = await supabase
-        .from("exams")
-        .select("id")
-        .eq("slug", exam.id)
-        .maybeSingle();
-      if (examError || !examRow) {
-        console.warn("Kein exams-Eintrag fuer Slug", exam.id, examError?.message);
-        setSaveStatus("error");
-        return;
-      }
-      const jetzt = new Date();
-      const { error } = await supabase.from("user_exam_attempts").insert({
-        user_id: user.id,
-        exam_id: examRow.id,
-        started_at: jetzt.toISOString(),
-        submitted_at: jetzt.toISOString(),
-        total_points: result.gesamt.maxPunkte,
-        achieved_points: result.gesamt.punkte,
-        percentage: result.gesamt.prozent,
-        passed: result.gesamt.bestanden,
-        status: "graded",
-      });
-      if (error) {
-        console.warn("Ergebnis speichern fehlgeschlagen:", error.message);
-        setSaveStatus("error");
-        return;
-      }
-      setSaveStatus("saved");
     } catch (e) {
       console.warn("Ergebnis speichern fehlgeschlagen:", e);
-      setSaveStatus("error");
     }
+    persist({ ...stored, profile: status });
   };
 
-  const requestKiKorrektur = async () => {
+  const requestKorrektur = async () => {
+    if (inFlight.current) return; // kein Doppelklick, keine doppelten Versuche
+    inFlight.current = true;
     setKiLoading(true);
     setKiError(null);
+    setStep(1);
     try {
+      // "completed" erwartet die Route weiterhin, abgeleitet aus den Antworten
+      const completed: Record<string, boolean> = {};
+      for (const q of parts) completed[q.id] = hasAnswer(answers[q.id]);
+
       const response = await fetch("/api/ki-korrektur", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Nur die ID: Die Prüfung selbst lädt der Server, der Zugriff wird
-        // dort geprüft.
         body: JSON.stringify({ examId: exam.id, answers, completed }),
       });
       let data: { error?: string; result?: unknown; feedback?: string } = {};
       try {
         data = await response.json();
       } catch {
-        // z. B. HTML-Fehlerseite vom Proxy statt JSON
+        // z. B. HTML-Fehlerseite statt JSON
       }
-      if (!response.ok) throw new Error(data.error || `Fehler ${response.status}`);
+      if (!response.ok) throw new Error(data.error || `Fehler ${response.status}.`);
+
       if (data.result) {
-        const result = reconcileKiResult(data.result as KiResult);
-        setKiResult(result);
-        setKiFeedback(null);
-        void ergebnisSpeichern(result);
+        const res = cleanResult(data.result);
+        if (!res) throw new Error("Adas Antwort war unvollständig.");
+        const stored: StoredErgebnis = { result: res, feedback: null, at: Date.now() };
+        focusGrade.current = true;
+        persist(stored);
+        void saveAttempt(res, stored);
+      } else if (data.feedback) {
+        persist({ result: null, feedback: data.feedback, at: Date.now() });
       } else {
-        setKiFeedback(data.feedback ?? "Keine Antwort erhalten");
-        setKiResult(null);
+        throw new Error("Keine Antwort erhalten.");
       }
     } catch (error) {
-      setKiError(error instanceof Error ? error.message : "Fehler bei der KI-Korrektur");
+      const msg = error instanceof Error ? error.message.trim() : "";
+      // "" = fehlgeschlagen ohne eigenen Text
+      setKiError(msg ? (/[.!?]$/.test(msg) ? msg : `${msg}.`) : "");
     } finally {
+      inFlight.current = false;
       setKiLoading(false);
     }
   };
 
-  const answeredPercent = allQuestions.length > 0 ? Math.round((answeredCount / allQuestions.length) * 100) : 0;
-
-  // Farbe/Status einer Teilaufgabe für den Punkt links
-  const subStatus = (t: KiTeilaufgabe): "full" | "part" | "zero" | "skip" => {
-    if (t.beantwortet === false) return "skip";
-    if (t.maxPunkte > 0 && t.punkte >= t.maxPunkte) return "full";
-    if (t.punkte > 0) return "part";
-    return "zero";
-  };
+  const failed = kiError !== null;
 
   return (
-    <div className="result-page">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+    <PageShell className="ex">
+      <div className="ex-result">
+        <header className="page-head">
+          <nav className="crumbs" aria-label="Brotkrumen">
+            <Link href="/pruefungen">Prüfungen</Link>
+            <span aria-hidden="true">/</span>
+            <span>Ergebnis</span>
+          </nav>
+          <h1>{exam.title}</h1>
+          <p className="ex-meta">
+            <span>{groupLabel(exam.level, exam.fachrichtung)}, {exam.season} {exam.year}</span>
+            {submittedAt !== null && <span>Abgegeben am {formatDate(submittedAt)}</span>}
+            {minutes !== null && <span>Bearbeitungszeit {minutes} Min{practice ? ", Übungsmodus" : ""}</span>}
+          </p>
+        </header>
 
-        .result-page {
-          font-family: 'Inter Tight', system-ui, sans-serif;
-          background: #FAFAF9;
-          color: #0A0A0F;
-          min-height: 100vh;
-        }
+        {result ? (
+          <>
+            <GradeBlock result={result} headingRef={gradeHeading} profile={ergebnis?.profile} />
+            <AdaBlock result={result} labels={labels} />
+            <DetailsBlock exam={exam} result={result} answers={answers} labels={labels} />
+          </>
+        ) : feedback && !kiLoading ? (
+          <>
+            <section className="ex-ada ex-reveal" aria-labelledby="ex-h-ada">
+              <span className="ex-avatar" aria-hidden="true">A</span>
+              <div>
+                <h2 className="ex-ada-name" id="ex-h-ada">Ada <span>KI-Tutorin</span></h2>
+                <TextBlocks text={feedback} className="ex-ada-text ex-feedback-text" />
+                {failed && (
+                  <div className="ex-note is-err" role="alert" style={{ marginTop: 16 }}>
+                    <Icon name="alert" />
+                    <span><b>Die Korrektur hat nicht geklappt.</b> {kiError ? `${kiError} ` : ""}Versuch es in einem Moment noch einmal.</span>
+                  </div>
+                )}
+              </div>
+            </section>
+            <SubmissionBlock exam={exam} answers={answers} labels={labels} />
+          </>
+        ) : (
+          <>
+            <section className="ex-panel ex-pending" aria-labelledby="ex-h-pending" aria-busy={kiLoading || undefined}>
+              <span className="ex-avatar" aria-hidden="true">A</span>
+              <div>
+                <h2 id="ex-h-pending">{kiLoading ? "Ada korrigiert deine Abgabe" : "Bereit für die Korrektur"}</h2>
+                <p>
+                  {kiLoading
+                    ? "Jede Teilaufgabe wird nach Punkteschema bewertet und kommentiert. Bitte lass die Seite geöffnet, bis das Ergebnis da ist."
+                    : "Ada bewertet jede Teilaufgabe nach dem Punkteschema und erklärt, wo Punkte fehlen. Das dauert meist unter einer Minute."}
+                </p>
+                <p className="ex-facts-row">
+                  <span>Beantwortet <b>{answeredCount} von {parts.length}</b> Teilaufgaben</span>
+                  {minutes !== null && <span>Bearbeitungszeit <b>{minutes} Min</b></span>}
+                </p>
+              </div>
+              {failed && !kiLoading && (
+                <div className="ex-note is-err" role="alert">
+                  <Icon name="alert" />
+                  <span>
+                    <b>Die Korrektur hat nicht geklappt.</b> {kiError ? `${kiError} ` : ""}Deine Abgabe ist gespeichert, es entstehen keine doppelten Versuche. Versuch es in einem Moment noch einmal.
+                  </span>
+                </div>
+              )}
+              <div className="ex-pending-actions">
+                {kiLoading ? (
+                  <>
+                    <button className="btn btn-primary" type="button" disabled aria-busy="true">Ada korrigiert</button>
+                    <span className="ex-progress-line" aria-live="polite">
+                      <span className="ex-dots" aria-hidden="true"><i /><i /><i /></span>
+                      <span>Aufgabe {step} von {exam.sections.length}</span>
+                    </span>
+                  </>
+                ) : (
+                  <button className="btn btn-primary" type="button" onClick={requestKorrektur}>
+                    {failed ? "Erneut anfordern" : "Korrektur anfordern"}
+                  </button>
+                )}
+              </div>
+            </section>
+            {kiLoading ? <Skeleton /> : <SubmissionBlock exam={exam} answers={answers} labels={labels} />}
+          </>
+        )}
 
-        /* NAV */
-        .result-nav {
-          position: sticky; top: 0; z-index: 50;
-          backdrop-filter: blur(12px);
-          background: rgba(250,250,249,0.85);
-          border-bottom: 1px solid rgba(10,10,15,0.08);
-        }
-        .result-nav-inner {
-          max-width: 1000px; margin: 0 auto;
-          padding: 14px 32px;
-          display: flex; align-items: center; gap: 12px;
-        }
-        .result-logo {
-          font-family: 'Instrument Serif', serif;
-          font-size: 24px; font-style: italic;
-          letter-spacing: -0.5px;
-          color: #0A0A0F;
-          text-decoration: none;
-          display: flex; align-items: center;
-          margin-right: auto;
-        }
-        .result-logo-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: #7C6DFF;
-          margin-right: 6px;
-          box-shadow: 0 0 12px #7C6DFF;
-        }
-        .result-back {
-          color: #55555F; text-decoration: none;
-          font-size: 13px; font-weight: 500;
-          padding: 7px 14px; border-radius: 8px;
-          border: 1px solid rgba(10,10,15,0.08);
-          background: #FFFFFF;
-          transition: all 0.2s;
-        }
-        .result-back:hover {
-          color: #0A0A0F;
-          border-color: rgba(10,10,15,0.16);
-        }
-
-        .result-wrap {
-          max-width: 1000px; margin: 0 auto;
-          padding: 48px 32px 100px;
-        }
-
-        /* HERO */
-        .result-hero {
-          background: #FFFFFF;
-          border: 1px solid rgba(10,10,15,0.08);
-          border-radius: 16px;
-          padding: 48px 32px;
-          margin-bottom: 16px;
-          text-align: center;
-          position: relative;
-          overflow: hidden;
-        }
-        .result-hero::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 3px;
-          background: linear-gradient(90deg, #7C6DFF, #22D3EE);
-        }
-        .result-hero-eyebrow {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px; font-weight: 700;
-          color: #7C6DFF;
-          letter-spacing: 2px;
-          text-transform: uppercase;
-          margin-bottom: 16px;
-        }
-        .result-hero-title {
-          font-size: clamp(32px, 5vw, 44px);
-          font-weight: 600;
-          color: #0A0A0F;
-          letter-spacing: -1.5px;
-          line-height: 1.05;
-          margin-bottom: 14px;
-        }
-        .result-hero-title em {
-          font-family: 'Instrument Serif', serif;
-          font-style: italic;
-          font-weight: 400;
-          color: #7C6DFF;
-        }
-        .result-hero-sub {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px;
-          color: #8A8A92;
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-        }
-
-        /* KEY NUMBERS */
-        .result-stats {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 12px;
-          margin-bottom: 16px;
-        }
-        .stat-card {
-          background: #FFFFFF;
-          border: 1px solid rgba(10,10,15,0.08);
-          border-radius: 14px;
-          padding: 22px;
-        }
-        .stat-card-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px; font-weight: 700;
-          color: #8A8A92;
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-          margin-bottom: 8px;
-        }
-        .stat-card-value {
-          font-family: 'Instrument Serif', serif;
-          font-size: 42px;
-          color: #0A0A0F;
-          letter-spacing: -1px;
-          line-height: 1;
-        }
-        .stat-card-value em {
-          font-style: italic;
-          color: #7C6DFF;
-        }
-        .stat-card-sub {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: #8A8A92;
-          margin-top: 6px;
-          letter-spacing: 0.5px;
-        }
-
-        /* KI BUTTON CARD */
-        .ki-card {
-          background: linear-gradient(135deg, rgba(124,109,255,0.06), rgba(34,211,238,0.04));
-          border: 1px solid rgba(124,109,255,0.20);
-          border-radius: 14px;
-          padding: 24px;
-          margin-bottom: 16px;
-        }
-        .ki-card-head {
-          display: flex; align-items: center; gap: 12px;
-          margin-bottom: 16px;
-        }
-        .ki-card-avatar {
-          width: 36px; height: 36px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #7C6DFF, #22D3EE);
-          color: #FFFFFF;
-          font-family: 'Instrument Serif', serif;
-          font-style: italic;
-          font-size: 18px;
-          font-weight: 600;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-        }
-        .ki-card-meta-name {
-          font-size: 14px;
-          font-weight: 600;
-          color: #0A0A0F;
-        }
-        .ki-card-meta-sub {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: #8A8A92;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-        }
-        .ki-btn {
-          width: 100%;
-          padding: 14px;
-          background: #7C6DFF;
-          color: #FFFFFF;
-          border: 1px solid #7C6DFF;
-          border-radius: 10px;
-          font-family: 'Inter Tight', system-ui, sans-serif;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.15s;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-        }
-        .ki-btn:hover:not(:disabled) {
-          background: #6856E6;
-          border-color: #6856E6;
-          transform: translateY(-1px);
-          box-shadow: 0 8px 20px rgba(124,109,255,0.25);
-        }
-        .ki-btn:disabled {
-          opacity: 0.55;
-          cursor: not-allowed;
-        }
-        .ki-spinner {
-          width: 14px; height: 14px;
-          border: 2px solid rgba(255,255,255,0.3);
-          border-top-color: #FFFFFF;
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .ki-error {
-          margin-top: 14px;
-          padding: 12px 14px;
-          background: rgba(220,38,38,0.06);
-          border: 1px solid rgba(220,38,38,0.30);
-          border-radius: 10px;
-          font-size: 13px;
-          color: #B91C1C;
-          font-family: 'JetBrains Mono', monospace;
-          line-height: 1.5;
-          word-break: break-word;
-        }
-
-        /* KI FEEDBACK (Fallback: roher Text) */
-        .ki-feedback {
-          background: #FFFFFF;
-          border: 1px solid rgba(124,109,255,0.20);
-          border-radius: 14px;
-          padding: 24px;
-          margin-bottom: 16px;
-          position: relative;
-          overflow: hidden;
-        }
-        .ki-feedback::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, #7C6DFF, #22D3EE);
-        }
-        .ki-feedback-head {
-          display: flex; align-items: center; gap: 12px;
-          margin-bottom: 18px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid rgba(10,10,15,0.08);
-        }
-        .ki-feedback-title {
-          font-size: 15px;
-          font-weight: 600;
-          color: #0A0A0F;
-        }
-        .ki-feedback-body {
-          font-size: 14px;
-          line-height: 1.7;
-          color: #1F1F2A;
-          white-space: pre-wrap;
-          font-family: 'Inter Tight', system-ui, sans-serif;
-        }
-
-        /* ─── STRUKTURIERTES KI-ERGEBNIS ─── */
-        .kir-summary {
-          display: flex;
-          align-items: center;
-          gap: 24px;
-          flex-wrap: wrap;
-          padding: 4px 0 18px;
-        }
-        .kir-score-big {
-          font-family: 'Instrument Serif', serif;
-          font-size: 52px;
-          letter-spacing: -1.5px;
-          line-height: 1;
-          color: #0A0A0F;
-        }
-        .kir-score-big em {
-          font-style: italic;
-          color: #7C6DFF;
-        }
-        .kir-score-max {
-          font-size: 24px;
-          color: #8A8A92;
-        }
-        .kir-score-sub {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: #8A8A92;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          margin-top: 6px;
-        }
-        .kir-save {
-          font-size: 12px;
-          color: #8A8A92;
-          margin-top: 8px;
-        }
-        .kir-save.ok { color: #1E9E50; }
-        .kir-save a { color: inherit; text-decoration: underline; }
-        .kir-badges {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          margin-left: auto;
-          align-items: flex-end;
-        }
-        .kir-badge {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          padding: 6px 12px;
-          border-radius: 7px;
-          border: 1px solid;
-          white-space: nowrap;
-        }
-        .kir-badge.pass {
-          color: #047857;
-          background: rgba(16,185,129,0.08);
-          border-color: rgba(16,185,129,0.35);
-        }
-        .kir-badge.fail {
-          color: #B91C1C;
-          background: rgba(220,38,38,0.06);
-          border-color: rgba(220,38,38,0.30);
-        }
-        .kir-note-card {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 10px 26px 12px;
-          border-radius: 14px;
-          border: 1.5px solid;
-          min-width: 110px;
-        }
-        .kir-note-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-          opacity: 0.75;
-        }
-        .kir-note-num {
-          font-size: 44px;
-          font-weight: 800;
-          line-height: 1.1;
-          letter-spacing: -1px;
-        }
-        .kir-note-text {
-          font-size: 13px;
-          font-weight: 600;
-          text-transform: capitalize;
-        }
-        .kir-note-card.n12 {
-          color: #047857;
-          background: rgba(16,185,129,0.08);
-          border-color: rgba(16,185,129,0.4);
-        }
-        .kir-note-card.n34 {
-          color: #B45309;
-          background: rgba(245,158,11,0.08);
-          border-color: rgba(245,158,11,0.4);
-        }
-        .kir-note-card.n56 {
-          color: #B91C1C;
-          background: rgba(220,38,38,0.07);
-          border-color: rgba(220,38,38,0.35);
-        }
-        .kir-progress {
-          height: 8px;
-          border-radius: 4px;
-          background: rgba(10,10,15,0.06);
-          overflow: hidden;
-          margin-bottom: 14px;
-        }
-        .kir-progress-fill {
-          height: 100%;
-          border-radius: 4px;
-          background: linear-gradient(90deg, #7C6DFF, #22D3EE);
-          transition: width 0.6s ease;
-        }
-        .kir-comment {
-          font-size: 14px;
-          line-height: 1.65;
-          color: #55555F;
-          background: #FAFAF9;
-          border: 1px solid rgba(10,10,15,0.06);
-          border-radius: 10px;
-          padding: 14px 16px;
-          margin-bottom: 4px;
-        }
-
-        .kir-task {
-          border: 1px solid rgba(10,10,15,0.08);
-          border-radius: 12px;
-          background: #FAFAF9;
-          padding: 16px 18px;
-          margin-top: 12px;
-        }
-        .kir-task-head {
-          display: flex;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 10px;
-        }
-        .kir-task-title {
-          font-size: 14px;
-          font-weight: 600;
-          color: #0A0A0F;
-        }
-        .kir-task-pts {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 13px;
-          font-weight: 700;
-          color: #0A0A0F;
-          white-space: nowrap;
-        }
-        .kir-task-bar {
-          height: 5px;
-          border-radius: 3px;
-          background: rgba(10,10,15,0.07);
-          overflow: hidden;
-          margin-bottom: 12px;
-        }
-        .kir-task-bar-fill {
-          height: 100%;
-          border-radius: 3px;
-          background: #7C6DFF;
-        }
-        .kir-sub {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          padding: 7px 0;
-          border-top: 1px solid rgba(10,10,15,0.05);
-        }
-        .kir-sub:first-of-type { border-top: none; }
-        .kir-sub-dot {
-          width: 8px; height: 8px;
-          border-radius: 50%;
-          margin-top: 5px;
-          flex-shrink: 0;
-        }
-        .kir-sub-dot.full { background: #10B981; }
-        .kir-sub-dot.part { background: #F59E0B; }
-        .kir-sub-dot.zero { background: #EF4444; }
-        .kir-sub-dot.skip { background: #C9C9CF; }
-        .kir-sub-main { flex: 1; min-width: 0; }
-        .kir-sub-title {
-          font-size: 13px;
-          font-weight: 500;
-          color: #1F1F2A;
-        }
-        .kir-sub-note {
-          display: block;
-          font-size: 12px;
-          color: #8A8A92;
-          line-height: 1.5;
-          margin-top: 1px;
-        }
-        .kir-sub-pts {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px;
-          font-weight: 600;
-          color: #55555F;
-          white-space: nowrap;
-        }
-        .kir-sub.skip .kir-sub-title,
-        .kir-sub.skip .kir-sub-pts { color: #B0B0B6; }
-
-        .kir-tips {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-          margin-top: 14px;
-        }
-        .kir-tip-box {
-          border-radius: 12px;
-          border: 1px solid rgba(10,10,15,0.08);
-          background: #FAFAF9;
-          padding: 16px 18px;
-        }
-        .kir-tip-box.wide { grid-column: 1 / -1; }
-        .kir-tip-title {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-          margin-bottom: 10px;
-        }
-        .kir-tip-title.good { color: #047857; }
-        .kir-tip-title.warn { color: #B45309; }
-        .kir-tip-title.learn { color: #7C6DFF; }
-        .kir-tip-item {
-          display: flex;
-          gap: 8px;
-          font-size: 13px;
-          line-height: 1.55;
-          color: #1F1F2A;
-          padding: 3px 0;
-        }
-        .kir-tip-item span:first-child { flex-shrink: 0; }
-
-        /* DETAILS PER SECTION */
-        .details-card {
-          background: #FFFFFF;
-          border: 1px solid rgba(10,10,15,0.08);
-          border-radius: 14px;
-          padding: 26px;
-          margin-bottom: 16px;
-        }
-        .details-title {
-          font-size: 16px;
-          font-weight: 600;
-          color: #0A0A0F;
-          letter-spacing: -0.3px;
-          margin-bottom: 18px;
-          padding-bottom: 14px;
-          border-bottom: 1px solid rgba(10,10,15,0.08);
-          display: flex; align-items: center; gap: 10px;
-        }
-        .details-title-pill {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          font-weight: 700;
-          color: #7C6DFF;
-          background: rgba(124,109,255,0.08);
-          border: 1px solid rgba(124,109,255,0.30);
-          padding: 3px 8px;
-          border-radius: 5px;
-          letter-spacing: 0.5px;
-        }
-        .section-row {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 14px 16px;
-          border: 1px solid rgba(10,10,15,0.08);
-          border-radius: 10px;
-          margin-bottom: 8px;
-          background: #FAFAF9;
-        }
-        .section-row:last-child { margin-bottom: 0; }
-        .section-row.complete {
-          background: rgba(16,185,129,0.04);
-          border-color: rgba(16,185,129,0.20);
-        }
-        .section-info-name {
-          font-size: 14px;
-          font-weight: 600;
-          color: #0A0A0F;
-          margin-bottom: 3px;
-        }
-        .section-info-meta {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: #8A8A92;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-        }
-        .section-pts {
-          text-align: right;
-        }
-        .section-pts-value {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 15px;
-          font-weight: 700;
-          letter-spacing: -0.3px;
-          color: #D97706;
-        }
-        .section-row.complete .section-pts-value { color: #047857; }
-        .section-pts-status {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: #10B981;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          margin-top: 3px;
-        }
-
-        /* ACTIONS */
-        .actions-row {
-          display: flex;
-          gap: 10px;
-          margin-top: 24px;
-        }
-        .action-btn {
-          flex: 1;
-          padding: 13px;
-          border-radius: 10px;
-          font-family: 'Inter Tight', system-ui, sans-serif;
-          font-size: 14px;
-          font-weight: 600;
-          text-decoration: none;
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.15s;
-          border: 1px solid;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-        }
-        .action-btn.outline {
-          background: #FFFFFF;
-          color: #55555F;
-          border-color: rgba(10,10,15,0.16);
-        }
-        .action-btn.outline:hover {
-          color: #0A0A0F;
-          background: #FAFAF9;
-        }
-        .action-btn.primary {
-          background: #0A0A0F;
-          color: #FAFAF9;
-          border-color: #0A0A0F;
-        }
-        .action-btn.primary:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 8px 20px rgba(10,10,15,0.15);
-        }
-        .action-btn.danger {
-          background: #FFFFFF;
-          color: #B91C1C;
-          border-color: rgba(220,38,38,0.30);
-        }
-        .action-btn.danger:hover {
-          background: rgba(220,38,38,0.06);
-        }
-
-        @media (max-width: 700px) {
-          .result-wrap { padding: 32px 20px 80px; }
-          .result-hero { padding: 36px 20px; }
-          .result-stats { grid-template-columns: 1fr; }
-          .actions-row { flex-direction: column; }
-          .kir-badges { margin-left: 0; align-items: flex-start; }
-          .kir-tips { grid-template-columns: 1fr; }
-        }
-      `}</style>
-
-      {/* NAV */}
-      <nav className="result-nav">
-        <div className="result-nav-inner">
-          <Link href="/" className="result-logo">
-            <span className="result-logo-dot" />
-            Lernarena
-          </Link>
-          <Link href="/pruefungen" className="result-back">← Übersicht</Link>
-        </div>
-      </nav>
-
-      <div className="result-wrap">
-
-        {/* HERO */}
-        <div className="result-hero">
-          <div className="result-hero-eyebrow">Abgegeben</div>
-          <h1 className="result-hero-title">
-            Prüfung <em>abgeschlossen.</em>
-          </h1>
-          <div className="result-hero-sub">
-            {exam.title} · {exam.company}
-          </div>
-        </div>
-
-        {/* STATS */}
-        <div className="result-stats">
-          <div className="stat-card">
-            <div className="stat-card-label">Beantwortet</div>
-            <div className="stat-card-value">
-              <em>{answeredCount}</em><span style={{ fontSize: 22, color: "#8A8A92" }}> / {allQuestions.length}</span>
-            </div>
-            <div className="stat-card-sub">{answeredPercent}% der Aufgaben</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-card-label">Punkte</div>
-            <div className="stat-card-value">
-              <em>{kiResult ? kiResult.gesamt.punkte : "–"}</em><span style={{ fontSize: 22, color: "#8A8A92" }}> / {kiResult ? kiResult.gesamt.maxPunkte : exam.totalPoints}</span>
-            </div>
-            <div className="stat-card-sub">{kiResult ? `${kiResult.gesamt.prozent}% erreicht` : "nach Adas Korrektur"}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-card-label">Modus</div>
-            <div className="stat-card-value">
-              <em>AP1</em>
-            </div>
-            <div className="stat-card-sub">Übungsmodus</div>
-          </div>
-        </div>
-
-        {/* KI-Tutor Button */}
-        <div className="ki-card">
-          <div className="ki-card-head">
-            <div className="ki-card-avatar">A</div>
-            <div>
-              <div className="ki-card-meta-name">Ada · KI-Tutor</div>
-              <div className="ki-card-meta-sub">Lass deine Antworten bewerten</div>
-            </div>
-          </div>
-          <button
-            onClick={requestKiKorrektur}
-            disabled={kiLoading}
-            className="ki-btn"
-          >
-            {kiLoading ? (
-              <>
-                <span className="ki-spinner" />
-                Ada analysiert…
-              </>
-            ) : (
-              <>Korrektur anfordern →</>
+        {!kiLoading && (
+          <nav className="ex-actions" aria-label="Weiter">
+            <Link className="btn btn-ghost" href="/pruefungen">
+              <Icon name="arrow-l" className={null} />
+              Zur Übersicht
+            </Link>
+            {result && (
+              <button className="btn btn-ghost" type="button" onClick={() => window.print()}>
+                <Icon name="print" className={null} />
+                Drucken
+              </button>
             )}
+            {feedback && (
+              <button className="btn btn-ghost" type="button" onClick={requestKorrektur}>
+                <Icon name="refresh" className={null} />
+                Nochmal korrigieren
+              </button>
+            )}
+            <button className={result ? "btn btn-primary" : "btn btn-ghost"} type="button" onClick={() => setResetOpen(true)}>
+              <Icon name="refresh" className={null} />
+              Nochmal versuchen
+            </button>
+          </nav>
+        )}
+      </div>
+
+      <ExamDialog open={resetOpen} onClose={() => setResetOpen(false)} labelledBy="ex-dlg-reset-h" describedBy="ex-dlg-reset-text">
+        <div className="ex-dialog-body">
+          <h2 id="ex-dlg-reset-h">Prüfung neu beginnen?</h2>
+          <p id="ex-dlg-reset-text">
+            Deine Antworten und Adas Korrektur auf diesem Gerät werden gelöscht. Ergebnisse, die schon im Profil gespeichert sind, bleiben erhalten.
+          </p>
+        </div>
+        <div className="ex-dialog-actions">
+          <button className="btn btn-ghost" type="button" onClick={() => setResetOpen(false)} data-autofocus>
+            Abbrechen
           </button>
-          {kiError && (
-            <div className="ki-error">
-              {kiError}
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={() => {
+              setResetOpen(false);
+              onReset();
+            }}
+          >
+            Neu beginnen
+          </button>
+        </div>
+      </ExamDialog>
+    </PageShell>
+  );
+}
+
+// ------------------------------------------------------------------
+// Note, Punkte, Notenskala
+// ------------------------------------------------------------------
+function GradeBlock({
+  result,
+  headingRef,
+  profile,
+}: {
+  result: KiResult;
+  headingRef: RefObject<HTMLHeadingElement | null>;
+  profile?: ProfileSave;
+}) {
+  const g = result.gesamt;
+  const next = SCALE.find((s) => s.n === g.note - 1);
+  const toNext = next ? Math.max(0, Math.ceil((next.from * g.maxPunkte) / 100) - g.punkte) : 0;
+
+  return (
+    <>
+      <section className="ex-panel ex-grade ex-reveal" aria-labelledby="ex-h-grade">
+        <h2 className="ex-sr" id="ex-h-grade" ref={headingRef} tabIndex={-1}>Gesamtergebnis</h2>
+        <p className="ex-grade-num">
+          <span className="ex-grade-label">Note</span>
+          <b>{g.note}</b>
+          {g.noteText && <span>{g.noteText}</span>}
+        </p>
+        <div className="ex-grade-side">
+          <div className="ex-score">
+            <b>
+              {g.punkte} <small>von {g.maxPunkte} Punkten</small>
+            </b>
+            <span className="ex-score-pct">{g.prozent} %</span>
+            {g.bestanden ? (
+              <span className="ex-status is-ok"><Icon name="check-c" />Bestanden</span>
+            ) : (
+              <span className="ex-status is-err"><Icon name="x-c" />Nicht bestanden</span>
+            )}
+          </div>
+          <div className="ex-scale" role="img" aria-label={`Notenskala: ${g.prozent} Prozent liegen im Bereich der Note ${g.note}.`}>
+            <div className="ex-scale-track">
+              {SCALE.map((s) => (
+                <i key={s.n} style={{ flex: s.to - s.from }} className={s.n === g.note ? "is-here" : undefined} />
+              ))}
             </div>
+            <span className="ex-scale-mark" style={{ left: `${g.prozent}%` }} />
+            <div className="ex-scale-labels" aria-hidden="true">
+              {SCALE.map((s) => (
+                <span key={s.n} style={{ flex: s.to - s.from }} className={s.n === g.note ? "is-here" : undefined}>
+                  {s.n}
+                </span>
+              ))}
+            </div>
+          </div>
+          <p className="ex-scale-note">
+            {next && toNext > 0 && (
+              <>
+                Noch <b>{toNext} {punkteWort(toNext)}</b> bis Note {next.n}.{" "}
+              </>
+            )}
+            Bestanden ab {passPoints(g.maxPunkte)} Punkten.
+          </p>
+        </div>
+      </section>
+      {profile === "saved" && (
+        <p className="ex-saveline ex-reveal">
+          <Icon name="check" />
+          Im Profil gespeichert. <Link href="/profil">Verlauf ansehen</Link>
+        </p>
+      )}
+      {profile === "guest" && (
+        <p className="ex-saveline ex-reveal">
+          <Icon name="alert" style={{ color: "var(--warn)" }} />
+          Nicht im Profil gespeichert, du bist nicht angemeldet. <Link href="/login?next=/profil">Anmelden</Link>
+        </p>
+      )}
+      {profile === "error" && (
+        <p className="ex-saveline ex-reveal">
+          <Icon name="alert" style={{ color: "var(--warn)" }} />
+          Das Ergebnis konnte nicht im Profil gespeichert werden. Auf diesem Gerät bleibt es erhalten.
+        </p>
+      )}
+    </>
+  );
+}
+
+// ------------------------------------------------------------------
+// Adas Kommentar, Staerken, Verbesserungen, Lernempfehlungen
+// ------------------------------------------------------------------
+function AdaBlock({ result, labels }: { result: KiResult; labels: Record<string, string> }) {
+  const known = new Set(Object.values(labels));
+  const hasLists = result.staerken.length > 0 || result.verbesserungen.length > 0 || result.lernempfehlungen.length > 0;
+
+  return (
+    <>
+      {result.gesamt.kommentar && (
+        <section className="ex-ada ex-reveal" aria-labelledby="ex-h-ada">
+          <span className="ex-avatar" aria-hidden="true">A</span>
+          <div>
+            <h2 className="ex-ada-name" id="ex-h-ada">Ada <span>KI-Tutorin</span></h2>
+            <TextBlocks text={result.gesamt.kommentar} className="ex-ada-text" />
+          </div>
+        </section>
+      )}
+      {hasLists && (
+        <div className="ex-lists ex-reveal">
+          {result.staerken.length > 0 && (
+            <section className="ex-panel is-ok" aria-labelledby="ex-h-good">
+              <h3 id="ex-h-good"><Icon name="check-c" />Das lief gut</h3>
+              <ul>
+                {result.staerken.map((s, i) => <li key={i}>{s}</li>)}
+              </ul>
+            </section>
+          )}
+          {result.verbesserungen.length > 0 && (
+            <section className="ex-panel is-warn" aria-labelledby="ex-h-more">
+              <h3 id="ex-h-more"><Icon name="trend" />Hier holst du Punkte</h3>
+              <ul>
+                {result.verbesserungen.map((s, i) => <li key={i}>{s}</li>)}
+              </ul>
+            </section>
+          )}
+          {result.lernempfehlungen.length > 0 && (
+            <section className="ex-panel is-accent is-wide" aria-labelledby="ex-h-learn">
+              <h3 id="ex-h-learn"><Icon name="book" />Lernempfehlungen</h3>
+              <ul className="ex-recs">
+                {result.lernempfehlungen.map((l, i) => {
+                  const titel = typeof l === "string" ? l : l.titel;
+                  const wo = typeof l === "string" ? undefined : l.wo;
+                  return (
+                    <li key={i}>
+                      <b>{titel}</b>
+                      {wo && known.has(wo) && <a href={`#sub-${wo}`}>Zu {wo}</a>}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           )}
         </div>
+      )}
+    </>
+  );
+}
 
-        {/* KI Feedback: strukturiert */}
-        {kiResult && (
-          <div className="ki-feedback">
-            <div className="ki-feedback-head">
-              <div className="ki-card-avatar">A</div>
-              <div>
-                <div className="ki-feedback-title">Adas Rückmeldung</div>
-                <div className="ki-card-meta-sub">Persönliche Korrektur</div>
-              </div>
-            </div>
-
-            {/* Gesamtergebnis */}
-            <div className="kir-summary">
-              <div>
-                <div className="kir-score-big">
-                  <em>{kiResult.gesamt.punkte}</em>
-                  <span className="kir-score-max"> / {kiResult.gesamt.maxPunkte}</span>
-                </div>
-                <div className="kir-score-sub">{kiResult.gesamt.prozent}% erreicht</div>
-                {saveStatus === "saved" && (
-                  <div className="kir-save ok">✓ Im Profil gespeichert · <Link href="/profil">ansehen</Link></div>
+// ------------------------------------------------------------------
+// Aufgaben im Detail
+// ------------------------------------------------------------------
+// Die KI liefert keine IDs. Zuordnung deshalb ueber die Reihenfolge
+// (Aufgabe i, Teilaufgabe j ohne Info-Bloecke, wie im Prompt). Fehlt ein
+// Eintrag, steht dort "keine Bewertung".
+function DetailsBlock({
+  exam,
+  result,
+  answers,
+  labels,
+}: {
+  exam: Exam;
+  result: KiResult;
+  answers: Record<string, string>;
+  labels: Record<string, string>;
+}) {
+  return (
+    <section className="ex-details ex-reveal" aria-labelledby="ex-h-details">
+      <h2 id="ex-h-details">Aufgaben im Detail</h2>
+      <div className="ex-panel">
+        {exam.sections.map((section, i) => {
+          const ki = result.aufgaben[i];
+          const qs = section.questions.filter((q) => q.type !== "info");
+          const max = ki ? ki.maxPunkte || section.totalPoints : section.totalPoints;
+          const pct = ki && max > 0 ? clamp(Math.round((ki.punkte / max) * 100), 0, 100) : 0;
+          return (
+            <details className="ex-task" open key={section.id}>
+              <summary>
+                <h3><span>{i + 1}</span>{section.title}</h3>
+                {ki ? (
+                  <>
+                    <span className="ex-task-bar" aria-hidden="true"><span style={{ width: `${pct}%` }} /></span>
+                    <span className="ex-task-pts">
+                      {ki.punkte} <small>/ {max}</small>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="ex-task-state">keine Bewertung</span>
+                    <span className="ex-task-pts"><small>max. </small>{section.totalPoints}</span>
+                  </>
                 )}
-                {saveStatus === "guest" && (
-                  <div className="kir-save"><Link href="/login?next=/profil">Einloggen</Link>, damit Ergebnisse im Profil gespeichert werden</div>
-                )}
-                {saveStatus === "error" && (
-                  <div className="kir-save">Ergebnis konnte nicht im Profil gespeichert werden</div>
-                )}
-              </div>
-              <div className="kir-badges">
-                <span className={`kir-badge ${kiResult.gesamt.bestanden ? "pass" : "fail"}`}>
-                  {kiResult.gesamt.bestanden ? "✓ Bestanden" : "✗ Nicht bestanden"}
-                </span>
-                <div
-                  className={`kir-note-card ${
-                    kiResult.gesamt.note <= 2
-                      ? "n12"
-                      : kiResult.gesamt.note <= 4
-                        ? "n34"
-                        : "n56"
-                  }`}
-                >
-                  <span className="kir-note-label">Note</span>
-                  <span className="kir-note-num">{kiResult.gesamt.note}</span>
-                  <span className="kir-note-text">{kiResult.gesamt.noteText}</span>
-                </div>
-              </div>
-            </div>
-            <div className="kir-progress">
-              <div
-                className="kir-progress-fill"
-                style={{ width: `${Math.min(100, Math.max(0, kiResult.gesamt.prozent))}%` }}
-              />
-            </div>
-            {kiResult.gesamt.kommentar && (
-              <p className="kir-comment">{kiResult.gesamt.kommentar}</p>
-            )}
-
-            {/* Aufgaben im Detail */}
-            {kiResult.aufgaben.map((a, i) => {
-              const pct = a.maxPunkte > 0 ? Math.round((a.punkte / a.maxPunkte) * 100) : 0;
-              return (
-                <div key={i} className="kir-task">
-                  <div className="kir-task-head">
-                    <span className="kir-task-title">{a.titel}</span>
-                    <span className="kir-task-pts">{a.punkte} / {a.maxPunkte} Pkt</span>
-                  </div>
-                  <div className="kir-task-bar">
-                    <div className="kir-task-bar-fill" style={{ width: `${pct}%` }} />
-                  </div>
-                  {a.teilaufgaben?.map((t, j) => {
-                    const st = subStatus(t);
+                <Icon name="chev" className={null} />
+              </summary>
+              <div className="ex-subs">
+                {qs.map((q, j) => {
+                  const t = ki?.teilaufgaben[j];
+                  const label = labels[q.id] ?? "";
+                  if (!t) {
                     return (
-                      <div key={j} className={`kir-sub ${st}`}>
-                        <span className={`kir-sub-dot ${st}`} />
-                        <div className="kir-sub-main">
-                          <span className="kir-sub-title">{t.titel}</span>
-                          {t.kommentar && st !== "skip" && (
-                            <span className="kir-sub-note">{t.kommentar}</span>
-                          )}
-                          {st === "skip" && (
-                            <span className="kir-sub-note">Nicht beantwortet</span>
-                          )}
-                        </div>
-                        <span className="kir-sub-pts">{t.punkte}/{t.maxPunkte}</span>
+                      <div className="ex-sub is-open" id={label ? `sub-${label}` : undefined} key={q.id}>
+                        <Icon name="alert" />
+                        <span className="ex-sub-id">{label}</span>
+                        <span className="ex-sub-title">{q.title}</span>
+                        <span className="ex-pts">keine Bewertung</span>
                       </div>
                     );
-                  })}
-                </div>
-              );
-            })}
-
-            {/* Tipps */}
-            {(kiResult.staerken?.length || kiResult.verbesserungen?.length || kiResult.lernempfehlungen?.length) ? (
-              <div className="kir-tips">
-                {kiResult.staerken && kiResult.staerken.length > 0 && (
-                  <div className="kir-tip-box">
-                    <div className="kir-tip-title good">Das war gut</div>
-                    {kiResult.staerken.map((s, i) => (
-                      <div key={i} className="kir-tip-item"><span>✓</span><span>{s}</span></div>
-                    ))}
-                  </div>
-                )}
-                {kiResult.verbesserungen && kiResult.verbesserungen.length > 0 && (
-                  <div className="kir-tip-box">
-                    <div className="kir-tip-title warn">Hier geht mehr</div>
-                    {kiResult.verbesserungen.map((s, i) => (
-                      <div key={i} className="kir-tip-item"><span>→</span><span>{s}</span></div>
-                    ))}
-                  </div>
-                )}
-                {kiResult.lernempfehlungen && kiResult.lernempfehlungen.length > 0 && (
-                  <div className="kir-tip-box wide">
-                    <div className="kir-tip-title learn">Lernempfehlungen</div>
-                    {kiResult.lernempfehlungen.map((s, i) => (
-                      <div key={i} className="kir-tip-item"><span>📚</span><span>{s}</span></div>
-                    ))}
-                  </div>
-                )}
+                  }
+                  const empty = t.beantwortet === false || !hasAnswer(answers[q.id]);
+                  const st = t.maxPunkte > 0 && t.punkte >= t.maxPunkte ? "full" : t.punkte > 0 ? "part" : "none";
+                  const icon = st === "full" ? "check-c" : st === "part" ? "part" : "x-c";
+                  const sr = st === "full" ? "volle Punktzahl" : st === "part" ? "teilweise" : empty ? "nicht beantwortet" : "keine Punkte";
+                  const note = st === "none" && empty ? "Nicht beantwortet." : t.kommentar;
+                  return (
+                    <div className={`ex-sub is-${st}`} id={label ? `sub-${label}` : undefined} key={q.id}>
+                      <Icon name={icon} />
+                      <span className="ex-sub-id">{label}</span>
+                      <span className="ex-sub-title">
+                        {q.title}
+                        <span className="ex-sr">, {sr}</span>
+                      </span>
+                      <span className="ex-pts">{t.punkte} / {t.maxPunkte}</span>
+                      {note && <p className="ex-sub-note">{note}</p>}
+                    </div>
+                  );
+                })}
               </div>
-            ) : null}
-          </div>
-        )}
+            </details>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
-        {/* KI Feedback: Fallback als Text */}
-        {!kiResult && kiFeedback && (
-          <div className="ki-feedback">
-            <div className="ki-feedback-head">
-              <div className="ki-card-avatar">A</div>
-              <div>
-                <div className="ki-feedback-title">Adas Rückmeldung</div>
-                <div className="ki-card-meta-sub">Persönliche Korrektur</div>
+// ------------------------------------------------------------------
+// Abgabe ohne Punkte (vor der Korrektur)
+// ------------------------------------------------------------------
+function SubmissionBlock({
+  exam,
+  answers,
+  labels,
+}: {
+  exam: Exam;
+  answers: Record<string, string>;
+  labels: Record<string, string>;
+}) {
+  return (
+    <section className="ex-details" aria-labelledby="ex-h-sub">
+      <h2 id="ex-h-sub">Deine Abgabe</h2>
+      <div className="ex-panel">
+        {exam.sections.map((section, i) => {
+          const qs = section.questions.filter((q) => q.type !== "info");
+          const done = qs.filter((q) => hasAnswer(answers[q.id])).length;
+          return (
+            <details className="ex-task" key={section.id}>
+              <summary>
+                <h3><span>{i + 1}</span>{section.title}</h3>
+                <span className="ex-task-state">{done} von {qs.length} beantwortet</span>
+                <span className="ex-task-pts"><small>max. </small>{section.totalPoints}</span>
+                <Icon name="chev" className={null} />
+              </summary>
+              <div className="ex-subs">
+                {qs.map((q) => {
+                  const ok = hasAnswer(answers[q.id]);
+                  return (
+                    <div className={ok ? "ex-sub" : "ex-sub is-part"} key={q.id}>
+                      <Icon name={ok ? "check" : "alert"} />
+                      <span className="ex-sub-id">{labels[q.id] ?? ""}</span>
+                      <span className="ex-sub-title">{q.title}</span>
+                      <span className="ex-pts">{ok ? "beantwortet" : "leer"}</span>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-            <div className="ki-feedback-body">{kiFeedback}</div>
-          </div>
-        )}
+            </details>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
-        {/* DETAILS */}
-        <div className="details-card">
-          <div className="details-title">
-            <span className="details-title-pill">Aufgaben</span>
-            Details pro Handlungsschritt
-          </div>
-          {exam.sections.map((section, index) => {
-            const sectionAnswered = section.questions.filter((q) => istBeantwortet(q.id)).length;
-            const sectionTotal = section.questions.length;
-            const sectionTotalPoints = section.questions.reduce((sum, q) => sum + q.points, 0);
-            const isComplete = sectionAnswered === sectionTotal;
-
-            // Punkte kommen NUR aus Adas Bewertung (gleiche Reihenfolge wie
-            // die Handlungsschritte im Prompt). Vorher: Strich statt 0.
-            const kiAufgabe = kiResult?.aufgaben?.[index];
-            const punkteText = kiAufgabe
-              ? `${kiAufgabe.punkte} / ${kiAufgabe.maxPunkte || sectionTotalPoints} Pkt`
-              : `– / ${sectionTotalPoints} Pkt`;
-            const status = kiAufgabe
-              ? kiAufgabe.punkte >= (kiAufgabe.maxPunkte || sectionTotalPoints) * 0.5
-                ? "✓ Bestanden"
-                : ""
-              : isComplete
-                ? "✓ Vollständig beantwortet"
-                : "noch nicht bewertet";
-
-            return (
-              <div key={section.id} className={`section-row ${isComplete ? "complete" : ""}`}>
-                <div>
-                  <div className="section-info-name">Aufgabe {index + 1}</div>
-                  <div className="section-info-meta">
-                    {sectionAnswered} / {sectionTotal} Unteraufgaben beantwortet
-                  </div>
-                </div>
-                <div className="section-pts">
-                  <div className="section-pts-value">{punkteText}</div>
-                  {status && <div className="section-pts-status">{status}</div>}
-                </div>
-              </div>
-            );
-          })}
+// ------------------------------------------------------------------
+// Skelett in Form der Note waehrend der Korrektur
+// ------------------------------------------------------------------
+function Skeleton() {
+  return (
+    <>
+      <div className="ex-panel ex-grade is-loading" aria-hidden="true">
+        <div>
+          <span className="ex-skel" style={{ width: 40, height: 14 }} />
+          <span className="ex-skel" style={{ width: 84, height: 104, marginTop: 12 }} />
         </div>
-
-        {/* ACTIONS */}
-        <div className="actions-row">
-          <Link href="/pruefungen" className="action-btn outline">
-            ← Zur Übersicht
-          </Link>
-          <button onClick={() => window.print()} className="action-btn primary">
-            Drucken
-          </button>
-          <button onClick={onReset} className="action-btn danger">
-            Zurücksetzen
-          </button>
+        <div className="ex-grade-side">
+          <span className="ex-skel" style={{ width: "60%", height: 28 }} />
+          <span className="ex-skel" style={{ width: "100%", height: 10 }} />
+          <span className="ex-skel" style={{ width: "46%", height: 14 }} />
         </div>
       </div>
-    </div>
+      <div className="ex-ada" aria-hidden="true">
+        <span className="ex-skel" style={{ width: 44, height: 44, borderRadius: "50%" }} />
+        <div>
+          <span className="ex-skel" style={{ width: "30%", height: 14 }} />
+          <span className="ex-skel" style={{ width: "92%", height: 14, marginTop: 14 }} />
+          <span className="ex-skel" style={{ width: "84%", height: 14, marginTop: 10 }} />
+          <span className="ex-skel" style={{ width: "60%", height: 14, marginTop: 10 }} />
+        </div>
+      </div>
+    </>
   );
 }

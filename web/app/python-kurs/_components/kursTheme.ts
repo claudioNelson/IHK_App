@@ -4,23 +4,6 @@
 
 export const kursCss = `
   .lp-wrap {
-    --bg: #08080C; --bg-muted: #0E0E14; --surface: #12121C; --surface-2: #151521;
-    --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.14);
-    --text: #F5F5F7; --text-body: #C8C8D2; --text-dim: #A0A0B0;
-    --accent: #7C6DFF; --accent-soft: rgba(124,109,255,0.14); --accent-text: #C4BBFF;
-    --chip-bg: rgba(255,255,255,0.05); --chip-border: rgba(255,255,255,0.1);
-    --input-bg: rgba(255,255,255,0.05); --input-border: rgba(255,255,255,0.15);
-    --pre-bg: rgba(0,0,0,0.35);
-    --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
-    --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #FFC1BC;
-    --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
-    font-family: var(--font-geist-sans), system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    line-height: 1.65;
-  }
-  html[data-theme="light"] .lp-wrap {
     --bg: #FAFAF9; --bg-muted: #F4F4F1; --surface: #FFFFFF; --surface-2: #FFFFFF;
     --border: rgba(10,10,15,0.10); --border-strong: rgba(10,10,15,0.18);
     --text: #0A0A0F; --text-body: #3A3A44; --text-dim: #6A6A74;
@@ -31,6 +14,23 @@ export const kursCss = `
     --ok: #1E9E50; --ok-bg: rgba(30,158,80,0.10); --ok-border: rgba(30,158,80,0.45); --ok-text: #14713A;
     --err: #D93B33; --err-bg: rgba(217,59,51,0.08); --err-border: rgba(217,59,51,0.45); --err-text: #A32620;
     --warn-bg: rgba(180,120,0,0.10); --warn-border: rgba(180,120,0,0.45); --warn-text: #8A5A00;
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.65;
+  }
+  html[data-theme="dark"] .lp-wrap {
+    --bg: #08080C; --bg-muted: #0E0E14; --surface: #12121C; --surface-2: #151521;
+    --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.14);
+    --text: #F5F5F7; --text-body: #C8C8D2; --text-dim: #A0A0B0;
+    --accent: #7C6DFF; --accent-soft: rgba(124,109,255,0.14); --accent-text: #C4BBFF;
+    --chip-bg: rgba(255,255,255,0.05); --chip-border: rgba(255,255,255,0.1);
+    --input-bg: rgba(255,255,255,0.05); --input-border: rgba(255,255,255,0.15);
+    --pre-bg: rgba(0,0,0,0.35);
+    --ok: #5FD98A; --ok-bg: rgba(52,199,89,0.16); --ok-border: rgba(52,199,89,0.6); --ok-text: #B8F0C4;
+    --err: #FF6B63; --err-bg: rgba(255,69,58,0.16); --err-border: rgba(255,69,58,0.6); --err-text: #FFC1BC;
+    --warn-bg: rgba(255,159,10,0.14); --warn-border: rgba(255,159,10,0.55); --warn-text: #FFD79A;
   }
   .lp-container { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
   .lp-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }

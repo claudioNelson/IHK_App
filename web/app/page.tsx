@@ -132,7 +132,7 @@ export default function LandingPage() {
 
         /* Funktionen: Bento, 5 Zellen */
         .bento { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: minmax(200px, auto); gap: 14px; margin-top: 40px; }
-        .cell { position: relative; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 26px; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; overflow: hidden; }
+        .cell { position: relative; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow); padding: 26px; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; overflow: hidden; }
         .cell p { color: var(--text-2); font-size: 14.5px; max-width: 40ch; }
         .cell-a { grid-column: span 4; grid-row: span 2; display: grid; grid-template-columns: minmax(0, 1fr) 260px; grid-template-rows: auto 1fr; gap: 20px 28px; align-items: end; }
         .cell-a .ico { grid-column: 1; grid-row: 1; align-self: start; margin-bottom: 0; }
@@ -164,7 +164,7 @@ export default function LandingPage() {
 
         /* Preise */
         .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 40px; }
-        .plan { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 30px; display: flex; flex-direction: column; gap: 22px; }
+        .plan { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow); padding: 30px; display: flex; flex-direction: column; gap: 22px; }
         .plan.pro { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-soft), transparent 45%), var(--surface); }
         .price { font-size: 40px; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
         .price small { font-size: 15px; color: var(--text-2); font-weight: 500; letter-spacing: 0; margin-left: 6px; }
@@ -187,7 +187,7 @@ export default function LandingPage() {
         .faq p { padding: 0 0 22px; color: var(--text-2); font-size: 15.5px; max-width: 62ch; }
 
         /* Schluss */
-        .cta-box { border: 1px solid var(--line-2); border-radius: var(--r); background: var(--surface); padding: clamp(32px, 5vw, 56px); display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, auto); gap: 32px; align-items: center; }
+        .cta-box { border: 1px solid var(--line-2); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow); padding: clamp(32px, 5vw, 56px); display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, auto); gap: 32px; align-items: center; }
         .stores { display: flex; gap: 12px; flex-wrap: wrap; min-width: 0; }
         .stores a { display: block; }
         .stores img { height: 52px; width: auto; }

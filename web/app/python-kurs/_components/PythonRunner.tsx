@@ -1,10 +1,18 @@
 "use client";
 
-// Interaktiver Python-Editor für den Programmierkurs.
-// Führt echten Python-Code direkt im Browser aus (Pyodide/WebAssembly),
-// komplett clientseitig — kein Server nötig.
+// Interaktiver Python-Editor fuer den Programmierkurs. Markup, Zustaende und
+// Tastatur nach kurs-design/mockup-lektion.html und runner.js; die Farben kommen
+// aus kurs.css (--pk-run-*, in beiden Themes dunkel).
+// Fuehrt echten Python-Code direkt im Browser aus (Pyodide/WebAssembly),
+// komplett clientseitig, kein Server noetig.
+//
+// Zustaende (data-state): idle, loading (Pyodide wird geladen), running, done,
+// error. Die Ausgabe ist eine Live-Region (role="status", aria-live="polite").
+// Tastatur: Tab rueckt ein, Umschalt+Tab rueckt aus, Esc gibt Tab frei (das
+// naechste Tab verlaesst den Editor), Strg/Cmd+Enter fuehrt aus.
 
-import { useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { DateiIcon, FehlerIcon, PlayIcon, ResetIcon, TerminalIcon, UhrIcon } from "./KursIcons";
 
 // Pyodide wird nur EINMAL pro Seite geladen (geteiltes Promise auf window).
 declare global {
@@ -16,20 +24,25 @@ declare global {
 
 const PYODIDE_VERSION = "0.26.4";
 const PYODIDE_BASE = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+const EINRUECKUNG = "    ";
+
+// Merkt sich, ob Pyodide schon bereitsteht (dann ohne Ladezustand ausfuehren).
+let pyodideBereit = false;
 
 function getPyodide(): Promise<any> {
   if (typeof window === "undefined") return Promise.reject();
   if (window.__pyodidePromise) return window.__pyodidePromise;
 
-  window.__pyodidePromise = new Promise((resolve, reject) => {
+  const promise = new Promise<any>((resolve, reject) => {
     const boot = () => {
       window
         .loadPyodide!({ indexURL: PYODIDE_BASE })
         .then(async (py: any) => {
-          // input() → Browser-Prompt, damit interaktive Programme laufen
+          // input() ruft den Browser-Prompt auf, damit interaktive Programme laufen
           await py.runPythonAsync(
             `import builtins\nfrom js import window\ndef _input(prompt=""):\n    res = window.prompt(str(prompt))\n    return "" if res is None else str(res)\nbuiltins.input = _input\n`
           );
+          pyodideBereit = true;
           resolve(py);
         })
         .catch(reject);
@@ -45,218 +58,239 @@ function getPyodide(): Promise<any> {
       document.head.appendChild(s);
     }
   });
-  return window.__pyodidePromise;
+
+  // Nach einem Ladefehler beim naechsten Klick neu versuchen
+  promise.catch(() => {
+    if (window.__pyodidePromise === promise) window.__pyodidePromise = undefined;
+  });
+
+  window.__pyodidePromise = promise;
+  return promise;
 }
+
+/** Wartet, bis der Browser einmal gezeichnet hat (damit "Läuft" sichtbar wird,
+    bevor synchroner Python-Code den Hauptthread belegt). */
+function nachZeichnen(): Promise<void> {
+  return new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+}
+
+/** Startcode: Leerraum am Ende weg, eine abschliessende Leerzeile bleibt
+    (damit man bei "# Dein Code:" direkt in der naechsten Zeile tippt). */
+function startCode(code: string): string {
+  return code.replace(/\s+$/, (rest) => (rest.includes("\n") ? "\n" : ""));
+}
+
+type Zustand = "idle" | "loading" | "running" | "done" | "error";
+
+const KOPF: Record<Exclude<Zustand, "idle">, string> = {
+  loading: "Python lädt",
+  running: "Läuft",
+  done: "Ausgabe",
+  error: "Fehler",
+};
 
 export default function PythonRunner({
   initialCode,
   rows = 8,
+  dateiname = "main.py",
+  label,
 }: {
   initialCode: string;
   rows?: number;
+  /** Name in der Werkzeugleiste, z. B. "uebung_1_1.py" */
+  dateiname?: string;
+  /** aria-label des Editors, z. B. "Python-Code: Übung 1.1" */
+  label?: string;
 }) {
-  const [code, setCode] = useState(initialCode.trimEnd());
-  const [output, setOutput] = useState<string | null>(null);
-  const [isError, setIsError] = useState(false);
-  const [status, setStatus] = useState<"idle" | "loading" | "running">("idle");
+  const start = startCode(initialCode);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const outRef = useRef<HTMLDivElement>(null);
+  const laeuftRef = useRef(false);
+  const [zustand, setZustand] = useState<Zustand>("idle");
+  const [ausgabe, setAusgabe] = useState("");
+  const [wechsel, setWechsel] = useState(0);
+  const [esc, setEsc] = useState(false);
+  const hinweisId = useId();
 
-  async function run() {
-    setIsError(false);
-    setOutput(null);
+  const beschaeftigt = zustand === "loading" || zustand === "running";
+
+  function setze(z: Zustand, text?: string) {
+    setZustand(z);
+    if (text !== undefined) setAusgabe(text);
+    setWechsel((n) => n + 1);
+  }
+
+  // Ausgabe bei jedem Zustandswechsel kurz einblenden (.in, 180ms). Dieselbe
+  // Live-Region bleibt dabei im DOM, damit Screenreader die Aenderung ansagen.
+  useEffect(() => {
+    const el = outRef.current;
+    if (!el || zustand === "idle") return;
+    el.classList.remove("in");
+    void el.offsetWidth;
+    el.classList.add("in");
+  }, [wechsel, zustand]);
+
+  async function ausfuehren() {
+    if (laeuftRef.current) return;
+    laeuftRef.current = true;
+    const code = taRef.current?.value ?? "";
+
+    let py: any;
+    try {
+      if (!pyodideBereit) setze("loading");
+      py = await getPyodide();
+    } catch {
+      setze(
+        "error",
+        "Python konnte nicht geladen werden. Prüf deine Internetverbindung und versuch es noch einmal."
+      );
+      laeuftRef.current = false;
+      return;
+    }
+
+    setze("running");
+    await nachZeichnen();
+
+    let out = "";
+    py.setStdout({ batched: (line: string) => (out += line + "\n") });
+    py.setStderr({ batched: (line: string) => (out += line + "\n") });
 
     try {
-      setStatus("loading");
-      const py = await getPyodide();
-      setStatus("running");
-
-      let out = "";
-      py.setStdout({ batched: (line: string) => (out += line + "\n") });
-      py.setStderr({ batched: (line: string) => (out += line + "\n") });
-
       await py.runPythonAsync(code);
-      setOutput(out.trimEnd() === "" ? "(keine Ausgabe)" : out.trimEnd());
+      setze("done", out.trimEnd() === "" ? "(keine Ausgabe)" : out.trimEnd());
     } catch (err: any) {
       // Nur den Python-Fehler zeigen, nicht den JS-Stacktrace
       const msg = String(err?.message ?? err);
-      const pyPart = msg.includes("Traceback")
-        ? msg.slice(msg.indexOf("Traceback"))
-        : msg;
-      setOutput(pyPart.trim());
-      setIsError(true);
+      const pyPart = msg.includes("Traceback") ? msg.slice(msg.indexOf("Traceback")) : msg;
+      setze("error", pyPart.trim());
     } finally {
-      setStatus("idle");
+      laeuftRef.current = false;
     }
   }
 
-  // Tab-Taste rückt ein statt das Feld zu verlassen
-  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Tab") {
+  function zuruecksetzen() {
+    const ta = taRef.current;
+    if (ta) {
+      ta.value = start;
+      ta.focus();
+    }
+    setze("idle");
+  }
+
+  function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    const ta = e.currentTarget;
+
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
       e.preventDefault();
-      const ta = taRef.current!;
-      const { selectionStart: s, selectionEnd: eN } = ta;
-      const next = code.slice(0, s) + "    " + code.slice(eN);
-      setCode(next);
-      requestAnimationFrame(() => {
-        ta.selectionStart = ta.selectionEnd = s + 4;
-      });
+      void ausfuehren();
+      return;
     }
+    if (e.key === "Escape") {
+      setEsc(true);
+      return;
+    }
+    if (e.key === "Tab" && !esc) {
+      e.preventDefault();
+      const s = ta.selectionStart;
+      const en = ta.selectionEnd;
+      const v = ta.value;
+      const zeilenStart = v.lastIndexOf("\n", s - 1) + 1;
+      if (e.shiftKey) {
+        // Ausruecken: bis zu 4 Leerzeichen am Zeilenanfang entfernen
+        let n = 0;
+        while (n < 4 && v.charAt(zeilenStart + n) === " ") n++;
+        if (!n) return;
+        ta.setRangeText("", zeilenStart, zeilenStart + n, "preserve");
+        ta.selectionStart = ta.selectionEnd = Math.max(zeilenStart, s - n);
+      } else {
+        ta.setRangeText(EINRUECKUNG, s, en, "end");
+      }
+      return;
+    }
+    if (e.key !== "Tab" && e.key !== "Shift" && esc) setEsc(false);
   }
 
-  // Der Editor hat bewusst eine EIGENE dunkle Farbwelt (Terminal-Look,
-  // GitHub-Dark-Palette), damit er sich klar vom Seitenhintergrund abhebt —
-  // im Dunkel-Modus durch den blauen Unterton + hellere Kopfleiste,
-  // im Hell-Modus als dunkler Codeblock.
+  const KopfIcon =
+    zustand === "error" ? FehlerIcon : zustand === "loading" || zustand === "running" ? UhrIcon : TerminalIcon;
+
   return (
-    <div
-      style={{
-        border: "1px solid rgba(139,148,158,0.3)",
-        borderRadius: 14,
-        overflow: "hidden",
-        margin: "18px 0",
-        background: "#0D1117",
-        boxShadow: "0 6px 24px rgba(0,0,0,0.35)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "8px 14px",
-          background: "#161B26",
-          borderBottom: "1px solid rgba(139,148,158,0.25)",
-        }}
-      >
-        <span
-          style={{
-            fontSize: 12,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "#8B949E",
-            fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
-          }}
-        >
-          Python-Editor
+    <div className="pk-runner" data-state={zustand} aria-busy={beschaeftigt}>
+      <div className="pk-runner-bar">
+        <span className="pk-runner-name">
+          <DateiIcon />
+          {dateiname}
         </span>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="pk-runner-actions">
           <button
-            onClick={() => {
-              setCode(initialCode.trimEnd());
-              setOutput(null);
-              setIsError(false);
-            }}
-            style={{
-              padding: "6px 12px",
-              borderRadius: 8,
-              background: "transparent",
-              border: "1px solid rgba(139,148,158,0.4)",
-              color: "#8B949E",
-              fontSize: 13,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
+            type="button"
+            className="pk-runner-btn pk-runner-reset"
+            aria-label="Code zurücksetzen"
+            onClick={zuruecksetzen}
           >
-            Zurücksetzen
+            <ResetIcon />
+            <span className="pk-hide-sm" aria-hidden="true">
+              Zurücksetzen
+            </span>
           </button>
           <button
-            onClick={run}
-            disabled={status !== "idle"}
-            style={{
-              padding: "6px 16px",
-              borderRadius: 8,
-              background: "#7C6DFF",
-              border: "none",
-              color: "#fff",
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: status === "idle" ? "pointer" : "wait",
-              fontFamily: "inherit",
-              opacity: status === "idle" ? 1 : 0.7,
-            }}
+            type="button"
+            className="pk-runner-btn pk-runner-run"
+            onClick={() => void ausfuehren()}
+            disabled={beschaeftigt}
           >
-            {status === "loading"
-              ? "Python lädt…"
-              : status === "running"
-                ? "Läuft…"
-                : "▶ Ausführen"}
+            <PlayIcon />
+            <span className="pk-run-label">
+              {zustand === "loading" ? "Python lädt" : zustand === "running" ? "Läuft" : "Ausführen"}
+            </span>
           </button>
         </div>
+        <span className="pk-runner-load" aria-hidden="true" />
       </div>
 
       <textarea
         ref={taRef}
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        onKeyDown={onKeyDown}
+        className="pk-runner-code"
+        defaultValue={start}
         rows={rows}
         spellCheck={false}
-        style={{
-          display: "block",
-          width: "100%",
-          resize: "vertical",
-          padding: "14px 16px",
-          background: "transparent",
-          border: "none",
-          outline: "none",
-          color: "#E6EDF3",
-          caretColor: "#7C6DFF",
-          fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
-          fontSize: 14.5,
-          lineHeight: 1.6,
-          tabSize: 4,
-        }}
+        autoCapitalize="off"
+        autoComplete="off"
+        autoCorrect="off"
+        aria-label={label ?? `Python-Code: ${dateiname}`}
+        aria-describedby={hinweisId}
+        onKeyDown={onKeyDown}
+        onFocus={() => setEsc(false)}
       />
+      <p className="pk-runner-hint" id={hinweisId}>
+        {esc ? (
+          <span className="pk-runner-hint-text">
+            <kbd>Tab</kbd> springt jetzt zum nächsten Element.
+          </span>
+        ) : (
+          <span className="pk-runner-hint-text">
+            <kbd>Tab</kbd> rückt ein. <kbd>Esc</kbd>, dann <kbd>Tab</kbd> verlässt den Editor.{" "}
+            <kbd>Strg</kbd> + <kbd>Enter</kbd> führt aus.
+          </span>
+        )}
+      </p>
 
-      {status === "loading" && (
-        <div
-          style={{
-            padding: "10px 16px",
-            borderTop: "1px solid rgba(139,148,158,0.25)",
-            color: "#8B949E",
-            fontSize: 13.5,
-          }}
-        >
-          Python wird einmalig im Browser geladen (ein paar Sekunden). Danach
-          laufen alle Übungen sofort.
+      <div
+        ref={outRef}
+        className="pk-runner-out"
+        role="status"
+        aria-live="polite"
+        hidden={zustand === "idle"}
+      >
+        <div className="pk-runner-out-head">
+          <KopfIcon />
+          <span>{zustand === "idle" ? "Ausgabe" : KOPF[zustand]}</span>
         </div>
-      )}
-
-      {output !== null && (
-        <div
-          style={{
-            borderTop: "1px solid rgba(139,148,158,0.25)",
-            background: "#0A0E14",
-          }}
-        >
-          <div
-            style={{
-              padding: "8px 16px 0",
-              fontSize: 11,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: isError ? "#FF6B63" : "#8B949E",
-              fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
-            }}
-          >
-            {isError ? "Fehler" : "Ausgabe"}
-          </div>
-          <pre
-            style={{
-              margin: 0,
-              padding: "6px 16px 14px",
-              color: isError ? "#FFC1BC" : "#E6EDF3",
-              fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
-              fontSize: 14,
-              lineHeight: 1.55,
-              whiteSpace: "pre-wrap",
-              overflowX: "auto",
-            }}
-          >
-            {output}
-          </pre>
-        </div>
-      )}
+        <p hidden={zustand !== "loading"}>
+          Python wird einmalig im Browser geladen (ein paar Sekunden). Danach laufen alle Übungen
+          sofort.
+        </p>
+        <pre hidden={zustand === "idle" || zustand === "loading" || zustand === "running"}>{ausgabe}</pre>
+      </div>
     </div>
   );
 }

@@ -1,205 +1,173 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LsToc from "./_components/LsToc";
+import { LsCta } from "./_components/LsBausteine";
+import { MetaIcon, PfeilIcon } from "./_components/LsIcons";
 
 export const metadata: Metadata = {
-  title: "Lernthemen — IT-Grundlagen für die IHK-Prüfung üben",
+  title: "Lernthemen: IT-Grundlagen für die IHK-Prüfung üben",
   description:
-    "Alle Lernthemen für die Fachinformatiker-Prüfung: Subnetting, RAID, OSI-Modell, SQL, Normalisierung, Sortieralgorithmen und mehr — kostenlos erklärt mit interaktiven Übungsaufgaben.",
+    "Alle Lernthemen für die Fachinformatiker-Prüfung: Subnetting, RAID, OSI-Modell, SQL, Normalisierung, Sortieralgorithmen und mehr, kostenlos erklärt mit interaktiven Übungsaufgaben.",
   alternates: {
     canonical: "https://lernarena.app/lernen",
   },
   openGraph: {
     type: "website",
-    locale: "de_DE",
     url: "https://lernarena.app/lernen",
-    siteName: "Lernarena",
-    title: "Lernthemen — IT-Grundlagen für die IHK-Prüfung üben",
+    title: "Lernthemen: IT-Grundlagen für die IHK-Prüfung üben",
     description:
-      "Subnetting, RAID, OSI-Modell, SQL und mehr — kostenlos erklärt mit interaktiven Übungsaufgaben für Fachinformatiker.",
+      "Subnetting, RAID, OSI-Modell, SQL und mehr: kostenlos erklärt mit interaktiven Übungsaufgaben für Fachinformatiker.",
+    images: ["/og-image.png"],
   },
 };
 
-const themen: { href: string; titel: string; desc: string; tag: string }[] = [
+type Thema = { href: string; titel: string; desc: string };
+type Gruppe = { id: string; titel: string; themen: Thema[] };
+
+const gruppen: Gruppe[] = [
   {
-    href: "/lernen/subnetting",
-    titel: "Subnetting üben",
-    desc: "Subnetzmaske, CIDR, Netz- und Broadcast-Adresse Schritt für Schritt berechnen.",
-    tag: "Netzwerk",
+    id: "netzwerk",
+    titel: "Netzwerk und Infrastruktur",
+    themen: [
+      {
+        href: "/lernen/subnetting",
+        titel: "Subnetting üben",
+        desc: "Subnetzmaske, CIDR, Netz- und Broadcast-Adresse Schritt für Schritt berechnen. Mit Rechner und Binär-Rechenweg.",
+      },
+      {
+        href: "/lernen/ip-adressen",
+        titel: "IP-Adressen und IPv6",
+        desc: "Private Bereiche, APIPA und die IPv6-Kürzungsregeln sicher beherrschen.",
+      },
+      {
+        href: "/lernen/osi-modell",
+        titel: "OSI-Modell",
+        desc: "Die 7 Schichten mit Protokollen, Geräten und Merksatz.",
+      },
+      {
+        href: "/lernen/raid",
+        titel: "RAID-Level",
+        desc: "RAID 0, 1, 5, 6 und 10 im Vergleich, mit Kapazitätsberechnung.",
+      },
+    ],
   },
   {
-    href: "/lernen/ip-adressen",
-    titel: "IP-Adressen & IPv6",
-    desc: "Private Bereiche, APIPA und die IPv6-Kürzungsregeln sicher beherrschen.",
-    tag: "Netzwerk",
+    id: "datenbanken",
+    titel: "Datenbanken",
+    themen: [
+      {
+        href: "/lernen/sql",
+        titel: "SQL üben",
+        desc: "SELECT, JOIN, GROUP BY und HAVING mit typischen Prüfungsbeispielen.",
+      },
+      {
+        href: "/lernen/er-diagramm",
+        titel: "ER-Diagramm",
+        desc: "Entitäten, Kardinalitäten und die n:m-Auflösung über Zwischentabellen.",
+      },
+      {
+        href: "/lernen/normalisierung",
+        titel: "Normalisierung",
+        desc: "1. bis 3. Normalform mit Beispielen, Anomalien und Merksätzen.",
+      },
+    ],
   },
   {
-    href: "/lernen/osi-modell",
-    titel: "OSI-Modell",
-    desc: "Die 7 Schichten mit Protokollen, Geräten und Merksatz.",
-    tag: "Netzwerk",
-  },
-  {
-    href: "/lernen/raid",
-    titel: "RAID Level",
-    desc: "RAID 0, 1, 5, 6 und 10 im Vergleich — mit Kapazitätsberechnung.",
-    tag: "Systemintegration",
-  },
-  {
-    href: "/lernen/zahlensysteme",
-    titel: "Zahlensysteme",
-    desc: "Binär, dezimal und hexadezimal umrechnen — die Grundlage für AP1 und Subnetting.",
-    tag: "Grundlagen",
-  },
-  {
-    href: "/lernen/sql",
-    titel: "SQL üben",
-    desc: "SELECT, JOIN, GROUP BY und HAVING mit typischen Prüfungsbeispielen.",
-    tag: "Datenbanken",
-  },
-  {
-    href: "/lernen/er-diagramm",
-    titel: "ER-Diagramm",
-    desc: "Entitäten, Kardinalitäten und die n:m-Auflösung über Zwischentabellen.",
-    tag: "Datenbanken",
-  },
-  {
-    href: "/lernen/normalisierung",
-    titel: "Normalisierung",
-    desc: "1. bis 3. Normalform mit Beispielen, Anomalien und Merksätzen.",
-    tag: "Datenbanken",
-  },
-  {
-    href: "/lernen/sortieralgorithmen",
-    titel: "Sortieralgorithmen",
-    desc: "Bubblesort, Quicksort und Mergesort — Laufzeiten, Stabilität, Durchläufe.",
-    tag: "Anwendungsentwicklung",
-  },
-  {
-    href: "/lernen/nutzwertanalyse",
-    titel: "Nutzwertanalyse",
-    desc: "Kriterien gewichten, Punkte vergeben, Nutzwert berechnen — der AP1-Klassiker.",
-    tag: "WiSo / AP1",
+    id: "grundlagen",
+    titel: "Grundlagen und Projektmanagement",
+    themen: [
+      {
+        href: "/lernen/zahlensysteme",
+        titel: "Zahlensysteme",
+        desc: "Binär, dezimal und hexadezimal umrechnen, die Grundlage für AP1 und Subnetting.",
+      },
+      {
+        href: "/lernen/sortieralgorithmen",
+        titel: "Sortieralgorithmen",
+        desc: "Bubblesort, Quicksort und Mergesort: Laufzeiten, Stabilität, Durchläufe.",
+      },
+      {
+        href: "/lernen/nutzwertanalyse",
+        titel: "Nutzwertanalyse",
+        desc: "Kriterien gewichten, Punkte vergeben, Nutzwert berechnen: der AP1-Klassiker.",
+      },
+    ],
   },
 ];
 
+const anzahlThemen = gruppen.reduce((n, g) => n + g.themen.length, 0);
+
 export default function LernenUebersicht() {
   return (
-    <main className="lv-wrap">
-      <style>{`
-        .lv-wrap {
-          --bg: #08080C; --bg-muted: #0E0E14; --surface: #12121C; --surface-2: #151521;
-          --border: rgba(255,255,255,0.08);
-          --text: #F5F5F7; --text-body: #C8C8D2; --text-dim: #A0A0B0;
-          --accent: #7C6DFF; --accent-soft: rgba(124,109,255,0.14); --accent-text: #C4BBFF;
-          --chip-bg: rgba(255,255,255,0.06); --chip-border: rgba(255,255,255,0.12);
-          font-family: var(--font-geist-sans), system-ui, sans-serif;
-          background: var(--bg);
-          color: var(--text);
-          min-height: 100vh;
-          line-height: 1.65;
-        }
-        html[data-theme="light"] .lv-wrap {
-          --bg: #FAFAF9; --bg-muted: #F4F4F1; --surface: #FFFFFF; --surface-2: #FFFFFF;
-          --border: rgba(10,10,15,0.10);
-          --text: #0A0A0F; --text-body: #3A3A44; --text-dim: #6A6A74;
-          --accent: #6A5AE8; --accent-soft: rgba(106,90,232,0.10); --accent-text: #5B4BE0;
-          --chip-bg: rgba(10,10,15,0.04); --chip-border: rgba(10,10,15,0.12);
-        }
-        .lv-container { max-width: 900px; margin: 0 auto; padding: 72px 24px 96px; }
-        .lv-crumb { font-size: 14px; color: var(--accent); margin-bottom: 24px; }
-        .lv-crumb a { color: var(--accent); text-decoration: none; }
-        .lv-crumb a:hover { text-decoration: underline; }
-        .lv-wrap h1 {
-          font-size: clamp(32px, 5vw, 46px);
-          line-height: 1.1; letter-spacing: -0.02em;
-          margin: 0 0 16px; font-weight: 700;
-        }
-        .lv-lead { font-size: 19px; color: var(--text-dim); margin: 0 0 40px; max-width: 640px; }
-        .lv-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-          gap: 16px;
-        }
-        .lv-card {
-          display: block;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 16px;
-          padding: 22px 24px;
-          text-decoration: none;
-          transition: transform .12s ease, border-color .12s ease, background .12s ease;
-        }
-        .lv-card:hover {
-          transform: translateY(-3px);
-          border-color: var(--accent);
-          background: var(--surface-2);
-        }
-        .lv-tag {
-          display: inline-block;
-          font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-          color: var(--accent-text);
-          background: var(--accent-soft);
-          border-radius: 6px;
-          padding: 3px 8px;
-          margin-bottom: 12px;
-        }
-        .lv-card h2 { color: var(--text); font-size: 19px; margin: 0 0 8px; font-weight: 650; }
-        .lv-card p { color: var(--text-dim); font-size: 14.5px; margin: 0; }
-        .lv-final {
-          text-align: center; background: linear-gradient(180deg, var(--surface), var(--bg-muted));
-          border: 1px solid rgba(124,109,255,0.25); border-radius: 20px;
-          padding: 40px 28px; margin: 56px 0 0;
-        }
-        .lv-final h2 { margin: 0 0 12px; font-size: 26px; }
-        .lv-final p { color: var(--text-body); max-width: 520px; margin: 0 auto 20px; }
-        .lv-cta-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-        .lv-btn {
-          display: inline-block; padding: 13px 26px; border-radius: 12px;
-          font-weight: 600; font-size: 16px; text-decoration: none; transition: transform .12s ease;
-        }
-        .lv-btn-primary { background: #7C6DFF; color: #fff; box-shadow: 0 10px 30px rgba(124,109,255,0.35); }
-        .lv-btn-primary:hover { transform: translateY(-2px); }
-        .lv-btn-ghost { background: var(--chip-bg); color: var(--text); border: 1px solid var(--chip-border); }
-        .lv-btn-ghost:hover { background: var(--accent-soft); }
-      `}</style>
-
-      <div className="lv-container">
-        <nav className="lv-crumb">
-          <Link href="/">Lernarena</Link> · Lernen
-        </nav>
-
-        <h1>Lernthemen für die IHK-Prüfung</h1>
-        <p className="lv-lead">
-          Die wichtigsten Themen der Fachinformatiker-Prüfung — kostenlos erklärt,
-          mit Tabellen, Rechenwegen und interaktiven Übungsaufgaben. Wähle ein Thema
-          und leg los.
-        </p>
-
-        <div className="lv-grid">
-          {themen.map((t) => (
-            <Link key={t.href} href={t.href} className="lv-card">
-              <span className="lv-tag">{t.tag}</span>
-              <h2>{t.titel}</h2>
-              <p>{t.desc}</p>
-            </Link>
-          ))}
-        </div>
-
-        <section className="lv-final">
-          <h2>Mehr als nur Theorie</h2>
-          <p>
-            In der Lernarena übst du alle Themen mit Aufgaben im IHK-Stil,
-            sofortigem Feedback und der KI-Tutorin Ada, die dir jeden Schritt erklärt.
+    <>
+      <div className="wrap">
+        <div className="page-head">
+          <nav className="crumbs" aria-label="Pfad">
+            <Link href="/">Lernarena</Link>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Lernseiten</span>
+          </nav>
+          <h1>Lernthemen für die IHK-Prüfung</h1>
+          <p className="lead">
+            Die wichtigsten Themen der Fachinformatiker-Prüfung, kostenlos erklärt: mit
+            Tabellen, Rechenwegen und Übungsaufgaben mit sofortigem Feedback. Wähle ein
+            Thema und leg los.
           </p>
-          <div className="lv-cta-row">
-            <Link href="/signup" className="lv-btn lv-btn-primary">Jetzt kostenlos starten</Link>
-            <Link href="/pruefungen" className="lv-btn lv-btn-ghost">Alle Prüfungen ansehen</Link>
-          </div>
-        </section>
+          <ul className="ls-meta" aria-label="Auf einen Blick">
+            <li>
+              <MetaIcon name="themen" />
+              {anzahlThemen} Themen
+            </li>
+            <li>
+              <MetaIcon name="quiz" />
+              Quiz zu jedem Thema
+            </li>
+            <li>
+              <MetaIcon name="offen" />
+              Ohne Konto lesbar
+            </li>
+          </ul>
+        </div>
       </div>
-    </main>
+
+      <div className="wrap ls-layout">
+        <aside className="ls-side" aria-label="Themenbereiche">
+          <LsToc titel="Bereiche" abschnitte={gruppen.map((g) => ({ id: g.id, titel: g.titel }))} />
+          <p className="ls-side-note">
+            Du weißt nicht, wo du anfangen sollst? Der{" "}
+            <Link href="/fachinformatiker-pruefung">Prüfungs-Guide</Link> erklärt Aufbau,
+            Zeitplan und Gewichtung von AP1 und AP2.
+          </p>
+        </aside>
+
+        <div className="ls-main">
+          {gruppen.map((g) => (
+            <section key={g.id} className="ls-group" id={g.id} aria-labelledby={`h-${g.id}`}>
+              <div className="ls-group-head">
+                <h2 id={`h-${g.id}`}>{g.titel}</h2>
+                <span>
+                  {g.themen.length} {g.themen.length === 1 ? "Thema" : "Themen"}
+                </span>
+              </div>
+              <ul className="ls-rows">
+                {g.themen.map((t) => (
+                  <li key={t.href}>
+                    <Link className="ls-row" href={t.href}>
+                      <div>
+                        <h3>{t.titel}</h3>
+                        <p>{t.desc}</p>
+                      </div>
+                      <PfeilIcon />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+
+          <LsCta />
+        </div>
+      </div>
+    </>
   );
 }

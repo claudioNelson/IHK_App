@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { kursCss } from "./_components/kursTheme";
-import { lektionen } from "./_components/lektionen";
+import LsToc, { type Abschnitt } from "../lernen/_components/LsToc";
+import { LsAbschnitt, LsCta, LsFaq, LsHinweis, type FaqEintrag } from "../lernen/_components/LsBausteine";
+import { MetaIcon, PfeilIcon } from "../lernen/_components/LsIcons";
+import PythonRunner from "./_components/PythonRunner";
+import { BrowserIcon, GamepadIcon, ListeIcon } from "./_components/KursIcons";
+import { lektionen, nrText } from "./_components/lektionen";
 
 export const metadata: Metadata = {
-  title: "Python lernen für Fachinformatiker – kostenloser Kurs im Browser",
+  title: "Python lernen für Fachinformatiker: kostenloser Kurs im Browser",
   description:
-    "Python von null lernen, direkt im Browser programmieren – ohne Installation. Kostenloser Kurs für angehende Fachinformatiker (Anwendungsentwicklung), von der ersten Zeile Code bis zum eigenen Spiel.",
+    "Python von null lernen, direkt im Browser programmieren, ohne Installation. Kostenloser Kurs für angehende Fachinformatiker (Anwendungsentwicklung), von der ersten Zeile Code bis zum eigenen Spiel.",
   alternates: {
     canonical: "https://lernarena.app/python-kurs",
   },
@@ -15,13 +19,20 @@ export const metadata: Metadata = {
     locale: "de_DE",
     url: "https://lernarena.app/python-kurs",
     siteName: "Lernarena",
-    title: "Python lernen für Fachinformatiker – kostenloser Kurs im Browser",
+    title: "Python lernen für Fachinformatiker: kostenloser Kurs im Browser",
     description:
       "Python von null lernen, direkt im Browser programmieren. Vom ersten print() bis zum eigenen Spiel.",
+    images: ["/og-image.png"],
   },
 };
 
-const faq: { q: string; a: string }[] = [
+const abschnitte: Abschnitt[] = [
+  { id: "kursplan", titel: "Kursplan" },
+  { id: "ablauf", titel: "So funktioniert der Kurs" },
+  { id: "faq", titel: "Häufige Fragen" },
+];
+
+const faq: FaqEintrag[] = [
   {
     q: "Muss ich etwas installieren, um den Kurs zu machen?",
     a: "Nein. Der Code läuft direkt in deinem Browser (per WebAssembly). Erst beim großen Abschlussprojekt installierst du Python auf deinem eigenen Rechner, mit Schritt-für-Schritt-Anleitung.",
@@ -40,115 +51,161 @@ const faq: { q: string; a: string }[] = [
   },
 ];
 
+// Gesamtdauer auf halbe Stunden gerundet, z. B. "Etwa 4,5 Stunden"
+const minuten = lektionen.reduce((summe, l) => summe + l.dauer, 0);
+const stunden = (Math.round((minuten / 60) * 2) / 2).toLocaleString("de-DE");
+
 export default function PythonKursSeite() {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faq.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  };
-
   return (
-    <main className="lp-wrap">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
-      <style>{kursCss}</style>
-
-      <div className="lp-container">
-        <nav className="lp-crumb">
-          <Link href="/">Lernarena</Link> · <Link href="/lernen">Lernen</Link> · Python-Kurs
-        </nav>
-
-        <h1>Python lernen: vom ersten Befehl zum eigenen Spiel</h1>
-        <p className="lp-lead">
-          Der kostenlose Programmierkurs für angehende Anwendungsentwickler.
-          Du schreibst echten Code direkt im Browser, ohne irgendetwas zu
-          installieren. Am Ende baust du dein eigenes Spiel.
-        </p>
-
-        <div className="lp-cta-row">
-          <Link href="/python-kurs/lektion-1" className="lp-btn lp-btn-primary">
-            Mit Lektion 1 starten
-          </Link>
-          <Link href="/lernen" className="lp-btn lp-btn-ghost">Alle Lernthemen</Link>
-        </div>
-
-        <h2>Der Kursplan</h2>
-        <p>
-          Zwölf Lektionen, jede baut auf der vorherigen auf. Zwei davon sind
-          Spiele-Projekte, bei denen du alles Gelernte zusammensetzt. Jede
-          Lektion hat eine eigene Seite mit Erklärungen, ausführbarem Code und
-          Übungen. Klick einfach auf eine verfügbare Lektion:
-        </p>
-        <div className="pk-lessons">
-          {lektionen.map((l) =>
-            l.status === "live" ? (
-              <Link
-                key={l.nr}
-                href={`/python-kurs/${l.slug}`}
-                className={`pk-lesson ${l.status}`}
-              >
-                <span className="nr">{String(l.nr).padStart(2, "0")}</span>
-                {l.titel}
-                <span className={`pk-badge ${l.status}`}>Verfügbar</span>
+    <>
+      <div className="wrap">
+        <div className="page-head pk-head">
+          <div>
+            <nav className="crumbs" aria-label="Pfad">
+              <Link href="/">Lernarena</Link>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">Python-Kurs</span>
+            </nav>
+            <h1>Python lernen: vom ersten Befehl zum eigenen Spiel</h1>
+            <p className="lead">
+              Der kostenlose Programmierkurs für angehende Anwendungsentwickler. Du schreibst echten
+              Code direkt im Browser, ohne Installation.
+            </p>
+            <ul className="ls-meta" aria-label="Auf einen Blick">
+              <li>
+                <ListeIcon />
+                {lektionen.length} Lektionen
+              </li>
+              <li>
+                <MetaIcon name="zeit" />
+                Etwa {stunden} Stunden
+              </li>
+              <li>
+                <BrowserIcon />
+                Läuft im Browser
+              </li>
+              <li>
+                <MetaIcon name="offen" />
+                Kostenlos
+              </li>
+            </ul>
+            <div className="pk-head-actions">
+              <Link className="btn btn-primary" href={`/python-kurs/${lektionen[0].slug}`}>
+                Mit Lektion 1 starten
+                <PfeilIcon />
               </Link>
-            ) : (
-              <div key={l.nr} className={`pk-lesson ${l.status}`}>
-                <span className="nr">{String(l.nr).padStart(2, "0")}</span>
-                {l.titel}
-                <span className={`pk-badge ${l.status}`}>Bald</span>
-              </div>
-            )
-          )}
-        </div>
-
-        <h2>So funktioniert der Kurs</h2>
-        <p>
-          In jeder Lektion liest du kurze Erklärungen und führst den Code
-          direkt darunter aus, in einem echten Python-Editor im Browser.
-          Danach löst du kleine Übungen mit einklappbaren Musterlösungen. Die
-          Konzepte sind genau die, die in der IHK-Abschlussprüfung (AP1) im
-          Pseudocode abgefragt werden: Variablen, Bedingungen, Schleifen,
-          Funktionen und Objektorientierung.
-        </p>
-
-        <h2>Häufige Fragen</h2>
-        <div className="lp-faq">
-          {faq.map((f) => (
-            <details key={f.q}>
-              <summary>{f.q}</summary>
-              <p>{f.a}</p>
-            </details>
-          ))}
-        </div>
-
-        <div className="lp-final">
-          <h2>Übe parallel für deine IHK-Prüfung</h2>
-          <p>
-            In der Lernarena-App warten Prüfungssimulationen mit KI-Korrektur,
-            Karteikarten und Lernpfade für AP1 &amp; AP2 auf dich.
-          </p>
-          <div className="lp-cta-row" style={{ justifyContent: "center" }}>
-            <Link href="/signup" className="lp-btn lp-btn-primary">
-              Kostenlos starten
-            </Link>
-            <a
-              href="https://play.google.com/store/apps/details?id=app.lernarena"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="lp-btn lp-btn-ghost"
-            >
-              Android-App laden
-            </a>
+              <a className="btn btn-ghost" href="#kursplan">
+                Kursplan ansehen
+              </a>
+            </div>
           </div>
+          <PythonRunner
+            rows={4}
+            dateiname="hallo.py"
+            label="Python-Code: Probier es aus"
+            initialCode={`print("Hallo Welt!")
+print("Ich lerne programmieren.")
+print(3 + 4)`}
+          />
         </div>
       </div>
-    </main>
+
+      <div className="wrap ls-layout">
+        <aside className="ls-side" aria-label="Inhalt dieser Seite">
+          <LsToc titel="Auf dieser Seite" abschnitte={abschnitte} />
+          <p className="ls-side-note">
+            Lieber Theorie für die Prüfung? Alle Themen mit Aufgaben findest du in den{" "}
+            <Link href="/lernen">Lernseiten</Link>.
+          </p>
+        </aside>
+
+        <article className="ls-main ls-article">
+          <LsAbschnitt id="kursplan" titel="Der Kursplan">
+            <p>
+              Zwölf Lektionen, jede baut auf der vorherigen auf. Zwei davon sind Spiele-Projekte, bei
+              denen du alles Gelernte zusammensetzt.
+            </p>
+            <ol className="pk-lessons">
+              {lektionen.map((l) => (
+                <li key={l.slug}>
+                  <Link
+                    className="pk-lesson"
+                    href={`/python-kurs/${l.slug}`}
+                    data-projekt={l.projekt ? "" : undefined}
+                  >
+                    <span className="pk-lesson-nr">{nrText(l.nr)}</span>
+                    <div>
+                      <h3>
+                        {l.titel}
+                        {l.projekt && (
+                          <span className="pk-tag">
+                            <GamepadIcon />
+                            Projekt
+                          </span>
+                        )}
+                      </h3>
+                      <p>{l.untertitel}</p>
+                    </div>
+                    <span className="pk-lesson-time">
+                      <span className="pk-sr">Dauer: </span>
+                      {l.dauer} Min.
+                    </span>
+                    <PfeilIcon />
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </LsAbschnitt>
+
+          <LsAbschnitt id="ablauf" titel="So funktioniert der Kurs">
+            <ol className="ls-steps">
+              <li className="ls-step">
+                <div>
+                  <h3>Kurz lesen</h3>
+                  <p>
+                    Jede Lektion erklärt ein Konzept in wenigen Absätzen, mit Beispielen aus dem
+                    Ausbildungsalltag.
+                  </p>
+                </div>
+              </li>
+              <li className="ls-step">
+                <div>
+                  <h3>Code direkt ausführen</h3>
+                  <p>
+                    Unter jeder Erklärung steht ein echter Python-Editor. Du änderst den Code und
+                    siehst sofort, was passiert.
+                  </p>
+                </div>
+              </li>
+              <li className="ls-step">
+                <div>
+                  <h3>Übungen lösen</h3>
+                  <p>
+                    Danach löst du kleine Übungen. Die Musterlösung klappst du erst auf, wenn du es
+                    selbst versucht hast.
+                  </p>
+                </div>
+              </li>
+            </ol>
+            <LsHinweis titel="Genau das fragt die AP1 ab" icon="buch" label="Prüfungsbezug">
+              <p>
+                Variablen, Bedingungen, Schleifen, Funktionen und Objektorientierung werden in der
+                IHK-Abschlussprüfung im Pseudocode geprüft. Lektion 12 übersetzt alles in diese
+                Schreibweise.
+              </p>
+            </LsHinweis>
+          </LsAbschnitt>
+
+          <LsAbschnitt id="faq" titel="Häufige Fragen">
+            <LsFaq eintraege={faq} />
+          </LsAbschnitt>
+
+          <LsCta
+            titel="Übe parallel für deine IHK-Prüfung."
+            text="In der Lernarena warten Prüfungssimulationen mit KI-Korrektur, Karteikarten und Lernpfade für AP1 und AP2 auf dich."
+          />
+        </article>
+      </div>
+    </>
   );
 }

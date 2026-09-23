@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { LsAbschnitt, LsHinweis } from "../../lernen/_components/LsBausteine";
 import LektionLayout from "../_components/LektionLayout";
+import { Aufgabe, CodeBlock } from "../_components/KursBausteine";
 
 export const metadata: Metadata = {
   title: "Python Lektion 11: Projekt Snake auf deinem Rechner",
@@ -8,67 +10,17 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://lernarena.app/python-kurs/lektion-11" },
 };
 
-export default function Lektion11() {
-  return (
-    <LektionLayout nr={11}>
-      <p>
-        Das große Finale: <strong>Snake</strong>, das Kult-Spiel. Dafür
-        verlässt du zum ersten Mal den Browser, denn ein echtes Spiel mit
-        Grafik und Tastatursteuerung braucht Python{" "}
-        <strong>auf deinem eigenen Rechner</strong>. Genau so arbeitest du
-        später auch im Betrieb, das gehört also sowieso ins Repertoire.
-      </p>
-
-      <h3>Schritt 1: Python installieren (einmalig, 5 Minuten)</h3>
-      <p>
-        Lade Python von <strong>python.org/downloads</strong> herunter und
-        starte den Installer. Wichtig bei Windows: Setz im ersten Fenster den
-        Haken bei <strong>&quot;Add python.exe to PATH&quot;</strong>, sonst
-        findet die Kommandozeile Python später nicht. Danach prüfst du die
-        Installation: Eingabeaufforderung öffnen (Windows-Taste, &quot;cmd&quot;
-        tippen) und eingeben:
-      </p>
-      <details className="pk-loesung" open>
-        <summary>Prüfbefehl</summary>
-        <pre>{`python --version
-# Ausgabe z. B.: Python 3.12.4`}</pre>
-      </details>
-
-      <h3>Schritt 2: Eine Code-Datei anlegen</h3>
-      <p>
-        Erstelle einen Ordner, z. B. <span className="lp-mono">snake</span>,
-        und darin eine Datei <span className="lp-mono">snake.py</span>. Am
-        bequemsten geht das mit einem Editor wie VS Code (kostenlos), zur Not
-        reicht sogar der Windows-Editor. Ausgeführt wird die Datei in der
-        Eingabeaufforderung mit:
-      </p>
-      <details className="pk-loesung" open>
-        <summary>Ausführen</summary>
-        <pre>{`cd snake
-python snake.py`}</pre>
-      </details>
-
-      <h3>Schritt 3: Das Spiel</h3>
-      <p>
-        Wir nutzen das <span className="lp-mono">turtle</span>-Modul, das bei
-        Python schon dabei ist (nichts extra zu installieren). Kopiere den
-        kompletten Code in deine <span className="lp-mono">snake.py</span> und
-        starte sie. Steuerung: Pfeiltasten.
-      </p>
-
-      <details className="pk-loesung" open>
-        <summary>snake.py (kompletter Code)</summary>
-        <pre>{`import turtle
+const snakeCode = `import turtle
 import random
 
-# ─── Fenster ───────────────────────────────
+# Fenster
 fenster = turtle.Screen()
 fenster.title("Snake - Lernarena Edition")
 fenster.bgcolor("#0D1117")
 fenster.setup(width=600, height=600)
 fenster.tracer(0)   # wir zeichnen selbst, wann wir wollen
 
-# ─── Schlange ──────────────────────────────
+# Schlange
 kopf = turtle.Turtle()
 kopf.shape("square")
 kopf.color("#5FD98A")
@@ -78,14 +30,14 @@ richtung = "stop"
 
 koerper = []   # Liste der Koerper-Segmente (Lektion 7!)
 
-# ─── Futter ────────────────────────────────
+# Futter
 futter = turtle.Turtle()
 futter.shape("circle")
 futter.color("#FF6B63")
 futter.penup()
 futter.goto(0, 100)
 
-# ─── Punkte ────────────────────────────────
+# Punkte
 punkte = 0
 anzeige = turtle.Turtle()
 anzeige.hideturtle()
@@ -94,7 +46,7 @@ anzeige.color("white")
 anzeige.goto(0, 260)
 anzeige.write("Punkte: 0", align="center", font=("Arial", 16, "bold"))
 
-# ─── Steuerung (Funktionen, Lektion 8!) ────
+# Steuerung (Funktionen, Lektion 8!)
 def hoch():
     global richtung
     if richtung != "runter":
@@ -121,7 +73,7 @@ fenster.onkey(runter, "Down")
 fenster.onkey(links, "Left")
 fenster.onkey(rechts, "Right")
 
-# ─── Spiel-Schleife (Lektion 5!) ───────────
+# Spiel-Schleife (Lektion 5!)
 def spiel_schritt():
     global punkte, richtung
 
@@ -175,53 +127,103 @@ def spiel_schritt():
     fenster.ontimer(spiel_schritt, 120)   # naechster Schritt in 120 ms
 
 spiel_schritt()
-fenster.mainloop()`}</pre>
-      </details>
+fenster.mainloop()`;
 
-      <p>
-        Schau dir den Code in Ruhe an: Da steckt <strong>alles</strong> aus
-        dem Kurs drin. Die Segmentliste ist Lektion 7, die
-        Steuerungsfunktionen sind Lektion 8, die Spiel-Schleife ist Lektion 5,
-        die Kollisionsprüfungen sind Lektion 4, und{" "}
-        <span className="lp-mono">random</span> kennst du aus Lektion 6.
-      </p>
+export default function Lektion11() {
+  return (
+    <LektionLayout
+      nr={11}
+      lead="Das Abschlussprojekt: Python lokal installieren und ein komplettes Snake-Spiel mit dem turtle-Modul bauen, Schritt für Schritt erklärt."
+      uebungen={3}
+      mitLoesung={false}
+      lokal
+    >
+      <LsAbschnitt id="finale" titel="Raus aus dem Browser">
+        <p>
+          Das große Finale: <strong>Snake</strong>, das Kult-Spiel. Dafür verlässt du zum ersten
+          Mal den Browser, denn ein echtes Spiel mit Grafik und Tastatursteuerung braucht Python{" "}
+          <strong>auf deinem eigenen Rechner</strong>. Genau so arbeitest du später auch im
+          Betrieb, das gehört also sowieso ins Repertoire.
+        </p>
+      </LsAbschnitt>
 
-      <div className="lp-tip">
+      <LsAbschnitt id="installieren" titel="Schritt 1: Python installieren (einmalig, 5 Minuten)">
         <p>
-          <strong>Falls etwas nicht läuft:</strong> Lies die Fehlermeldung
-          (Lektion 9!). Häufigste Ursachen: Tippfehler beim Abtippen
-          (deshalb: kopieren), oder auf manchen Linux-Systemen fehlt
-          turtle/tkinter (dann{" "}
-          <span className="lp-mono">sudo apt install python3-tk</span>).
+          Lade Python von <strong>python.org/downloads</strong> herunter und starte den
+          Installer. Wichtig bei Windows: Setz im ersten Fenster den Haken bei{" "}
+          <strong>„Add python.exe to PATH“</strong>, sonst findet die Kommandozeile Python später
+          nicht. Danach prüfst du die Installation: Eingabeaufforderung öffnen (Windows-Taste,
+          „cmd“ tippen) und eingeben:
         </p>
-      </div>
+        <CodeBlock
+          code={`python --version
+# Ausgabe z. B.: Python 3.12.4`}
+        />
+      </LsAbschnitt>
 
-      <div className="pk-aufgabe">
+      <LsAbschnitt id="datei" titel="Schritt 2: Eine Code-Datei anlegen">
         <p>
-          <strong>Übung 11.1:</strong> Mach das Spiel schneller oder
-          langsamer: Ändere den Wert{" "}
-          <span className="lp-mono">120</span> beim{" "}
-          <span className="lp-mono">ontimer</span>-Aufruf und finde deine
-          Lieblingsgeschwindigkeit.
+          Erstelle einen Ordner, z. B. <code>snake</code>, und darin eine Datei{" "}
+          <code>snake.py</code>. Am bequemsten geht das mit einem Editor wie VS Code (kostenlos),
+          zur Not reicht sogar der Windows-Editor. Ausgeführt wird die Datei in der
+          Eingabeaufforderung mit:
         </p>
-      </div>
-      <div className="pk-aufgabe">
+        <CodeBlock
+          code={`cd snake
+python snake.py`}
+        />
+      </LsAbschnitt>
+
+      <LsAbschnitt id="spiel" titel="Schritt 3: Das Spiel">
         <p>
-          <strong>Übung 11.2:</strong> Jedes gefressene Futter soll das Spiel
-          um 2 ms schneller machen. Tipp: Mach aus der 120 eine Variable{" "}
-          <span className="lp-mono">tempo</span> (mit{" "}
-          <span className="lp-mono">global tempo</span> in der Funktion) und
-          verringere sie beim Fressen.
+          Wir nutzen das <code>turtle</code>-Modul, das bei Python schon dabei ist (nichts extra zu
+          installieren). Kopiere den kompletten Code in deine <code>snake.py</code> und starte
+          sie. Steuerung: Pfeiltasten.
         </p>
-      </div>
-      <div className="pk-aufgabe">
+
+        <CodeBlock code={snakeCode} />
+
         <p>
-          <strong>Übung 11.3 (Königsklasse):</strong> Bau einen Highscore ein,
-          der auch nach Game Over stehen bleibt, oder lass die Schlange bei
-          Wandberührung auf der gegenüberliegenden Seite wieder erscheinen
-          statt zu sterben.
+          Schau dir den Code in Ruhe an: Da steckt <strong>alles</strong> aus dem Kurs drin. Die
+          Segmentliste ist Lektion 7, die Steuerungsfunktionen sind Lektion 8, die
+          Spiel-Schleife ist Lektion 5, die Kollisionsprüfungen sind Lektion 4, und{" "}
+          <code>random</code> kennst du aus Lektion 6.
         </p>
-      </div>
+
+        <LsHinweis titel="Falls etwas nicht läuft">
+          <p>
+            Lies die Fehlermeldung (Lektion 9!). Häufigste Ursachen: Tippfehler beim Abtippen
+            (deshalb: kopieren), oder auf manchen Linux-Systemen fehlt turtle/tkinter (dann{" "}
+            <code>sudo apt install python3-tk</code>).
+          </p>
+        </LsHinweis>
+      </LsAbschnitt>
+
+      <LsAbschnitt id="uebungen" titel="Übungen">
+        <p>Diese Übungen löst du direkt in deiner <code>snake.py</code>.</p>
+
+        <Aufgabe nr="11.1">
+          <p>
+            Mach das Spiel schneller oder langsamer: Ändere den Wert <code>120</code> beim{" "}
+            <code>ontimer</code>-Aufruf und finde deine Lieblingsgeschwindigkeit.
+          </p>
+        </Aufgabe>
+
+        <Aufgabe nr="11.2">
+          <p>
+            Jedes gefressene Futter soll das Spiel um 2 ms schneller machen. Tipp: Mach aus der 120
+            eine Variable <code>tempo</code> (mit <code>global tempo</code> in der Funktion) und
+            verringere sie beim Fressen.
+          </p>
+        </Aufgabe>
+
+        <Aufgabe nr="11.3" label="Übung 11.3 (Königsklasse)">
+          <p>
+            Bau einen Highscore ein, der auch nach Game Over stehen bleibt, oder lass die Schlange
+            bei Wandberührung auf der gegenüberliegenden Seite wieder erscheinen statt zu sterben.
+          </p>
+        </Aufgabe>
+      </LsAbschnitt>
     </LektionLayout>
   );
 }
