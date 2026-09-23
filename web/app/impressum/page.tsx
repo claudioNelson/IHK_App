@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Impressum – Lernarena",
+  title: "Impressum",
   description: "Impressum und Anbieterkennzeichnung gemäß § 5 DDG",
 };
 
@@ -18,7 +18,7 @@ export default function ImpressumPage() {
             href="/"
             className="text-sm text-gray-500 hover:text-blue-900 transition"
           >
-            ← Zurück zur Startseite
+            Zurück zur Startseite
           </Link>
         </div>
       </header>
@@ -59,29 +59,6 @@ export default function ImpressumPage() {
           </div>
         </section>
 
-        {/*
-          Steuerliche Angaben:
-          § 5 DDG verlangt die Umsatzsteuer-ID (sofern vorhanden) – NICHT die Steuernummer.
-          Die Steuernummer gehört aus Datenschutz-/Missbrauchsgründen nicht ins Impressum
-          und wurde deshalb entfernt.
-          Sobald du eine USt-IdNr vom Bundeszentralamt für Steuern erhalten hast,
-          den folgenden Block einkommentieren und befüllen:
-
-        <section className="bg-white rounded-2xl p-8 border border-gray-200 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Steuerliche Angaben
-          </h2>
-          <div className="text-gray-700 space-y-2">
-            <p>
-              <span className="text-gray-500 w-48 inline-block">
-                Umsatzsteuer-ID:
-              </span>
-              DE[NUMMER]
-            </p>
-          </div>
-        </section>
-        */}
-
         {/* Berufsbezeichnung */}
         <section className="bg-white rounded-2xl p-8 border border-gray-200 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -113,12 +90,6 @@ export default function ImpressumPage() {
               <h3 className="font-semibold text-gray-800 mb-1">
                 Haftung für Inhalte
               </h3>
-              {/*
-                Hinweis: Die Haftungsregeln für Diensteanbieter sind seit dem
-                EU Digital Services Act (DSA) teilweise überlagert. Die §§ 7–10 DDG
-                entsprechen den früheren §§ 7–10 TMG. Bei Gelegenheit über einen
-                aktuellen Impressums-Generator neu erzeugen lassen.
-              */}
               <p>
                 Als Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene
                 Inhalte auf diesen Seiten nach den allgemeinen Gesetzen
@@ -155,6 +126,18 @@ export default function ImpressumPage() {
               </p>
             </div>
           </div>
+        </section>
+
+        {/* Streitbeilegung */}
+        <section className="bg-white rounded-2xl p-8 border border-gray-200 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Verbraucherstreitbeilegung
+          </h2>
+          <p className="text-gray-700 text-sm leading-relaxed">
+            Wir sind nicht bereit und nicht verpflichtet, an
+            Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
+            teilzunehmen (§ 36 VSBG).
+          </p>
         </section>
 
         {/* Urheberrecht */}

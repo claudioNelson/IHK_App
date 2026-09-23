@@ -191,8 +191,8 @@ export default function LernenUebersicht() {
         <section className="lv-final">
           <h2>Mehr als nur Theorie</h2>
           <p>
-            In der Lernarena übst du alle Themen mit echten IHK-Prüfungsfragen,
-            sofortigem Feedback und einem KI-Tutor, der dir jeden Schritt erklärt.
+            In der Lernarena übst du alle Themen mit Aufgaben im IHK-Stil,
+            sofortigem Feedback und der KI-Tutorin Ada, die dir jeden Schritt erklärt.
           </p>
           <div className="lv-cta-row">
             <Link href="/signup" className="lv-btn lv-btn-primary">Jetzt kostenlos starten</Link>

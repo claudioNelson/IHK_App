@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s · Lernarena",
   },
   description:
-    "Strukturierte Lernpfade, echte IHK-Simulation und ein KI-Tutor: Bereite dich gezielt auf AP1 und AP2 als Fachinformatiker Anwendungsentwicklung oder Systemintegration vor. Hunderte Prüfungsfragen, mehrere Lernpfade.",
+    "Strukturierte Lernpfade, Prüfungssimulationen im IHK-Stil und die KI-Tutorin Ada: Bereite dich gezielt auf AP1 und AP2 als Fachinformatiker Anwendungsentwicklung oder Systemintegration vor. Hunderte Prüfungsfragen, mehrere Lernpfade.",
   keywords: [
     "IHK Prüfung",
     "Fachinformatiker",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     siteName: "Lernarena",
     title: "Lernarena: IHK-Prüfungsvorbereitung für Fachinformatiker",
     description:
-      "Strukturierte Lernpfade, echte IHK-Simulation und ein KI-Tutor. Bereite dich gezielt auf AP1 und AP2 vor.",
+      "Strukturierte Lernpfade, Prüfungssimulationen im IHK-Stil und die KI-Tutorin Ada. Bereite dich gezielt auf AP1 und AP2 vor.",
     images: [
       {
         url: "/og-image.png",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Lernarena: IHK-Prüfungsvorbereitung für Fachinformatiker",
     description:
-      "Strukturierte Lernpfade, echte IHK-Simulation, KI-Tutor. Mehrere Prüfungspfade.",
+      "Strukturierte Lernpfade, Prüfungssimulationen im IHK-Stil, KI-Tutorin Ada. Mehrere Prüfungspfade.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -138,7 +138,7 @@ export default function RootLayout({
                   url: "https://lernarena.app",
                   logo: "https://lernarena.app/android-chrome-512x512.png",
                   description:
-                    "Lernarena ist die Prüfungsvorbereitung für Fachinformatiker: strukturierte Lernpfade, echte IHK-Simulation und ein KI-Tutor.",
+                    "Lernarena ist die Prüfungsvorbereitung für Fachinformatiker: strukturierte Lernpfade, Prüfungssimulationen im IHK-Stil und die KI-Tutorin Ada.",
                 },
                 {
                   "@type": "WebSite",

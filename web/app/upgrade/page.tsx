@@ -276,7 +276,7 @@ export default async function UpgradePage({
                         Schalte alle Prüfungen <em>frei.</em>
                     </h1>
                     <p className="up-sub">
-                        Originalgetreue IHK-Prüfungen, KI-Tutor, Lernpfade
+                        Prüfungssimulationen im IHK-Stil, KI-Tutorin Ada, Lernpfade
                         und Zertifikate. Wähle den Plan, der zu dir passt.
                     </p>
                 </div>
@@ -295,8 +295,8 @@ export default async function UpgradePage({
                         <ul className="up-features">
                             <li className="up-feature">Alle 937 Prüfungsfragen</li>
             <li className="up-feature">Alle Lernpfade (33 Levels)</li>
-            <li className="up-feature">Echte IHK-Prüfungssimulation</li>
-            <li className="up-feature">Ada KI-Tutor unbegrenzt</li>
+            <li className="up-feature">Prüfungssimulation im IHK-Stil</li>
+            <li className="up-feature">KI-Tutorin Ada unbegrenzt</li>
             <li className="up-feature">Jederzeit kündbar</li>
         </ul>
     </div>

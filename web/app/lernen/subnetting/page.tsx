@@ -400,7 +400,7 @@ export default function SubnettingPage() {
           <h2>Subnetting interaktiv trainieren</h2>
           <p>
             In der Lernarena rechnest du Subnetting-Aufgaben mit sofortigem Feedback,
-            echten IHK-Prüfungsfragen und einem KI-Tutor, der dir jeden Rechenschritt
+            Aufgaben im IHK-Stil und der KI-Tutorin Ada, die dir jeden Rechenschritt
             erklärt. Kostenlos starten, direkt üben.
           </p>
           <div className="sn-cta-row" style={{ justifyContent: "center" }}>

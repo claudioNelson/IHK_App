@@ -239,14 +239,14 @@ export default function FachinformatikerPruefungPage() {
             und nicht wiederholbar ist, lohnt sich jeder Punkt.
           </p>
           <p>
-            <strong>2. Mit echten Prüfungen üben.</strong> Nichts bereitet besser vor
-            als Aufgaben im Originalformat. In der Lernarena findest du{" "}
-            <Link href="/pruefungen">echte IHK-Prüfungen</Link> zum Durcharbeiten.
+            <strong>2. Mit Prüfungssimulationen üben.</strong> Nichts bereitet besser vor
+            als Aufgaben im Format und Umfang der IHK. In der Lernarena findest du{" "}
+            <Link href="/pruefungen">Übungsprüfungen im IHK-Stil</Link> mit KI-Korrektur.
           </p>
           <p>
             <strong>3. Schwächen gezielt schließen.</strong> Nutze die Themenseiten
             oben, um genau die Bereiche zu üben, in denen du unsicher bist, mit
-            sofortigem Feedback und einem KI-Tutor, der jeden Schritt erklärt.
+            sofortigem Feedback und der KI-Tutorin Ada, die jeden Schritt erklärt.
           </p>
         </div>
 
@@ -261,8 +261,8 @@ export default function FachinformatikerPruefungPage() {
         <section className="pl-final">
           <h2>Bereit für deine Prüfung?</h2>
           <p>
-            Übe mit echten IHK-Prüfungen, interaktiven Aufgaben und einem KI-Tutor,
-            der dir jeden Schritt erklärt. Kostenlos starten und direkt loslegen.
+            Übe mit Prüfungssimulationen im IHK-Stil, interaktiven Aufgaben und der
+            KI-Tutorin Ada, die dir jeden Schritt erklärt. Kostenlos starten und direkt loslegen.
           </p>
           <div className="pl-cta-row" style={{ justifyContent: "center" }}>
             <Link href="/signup" className="pl-btn pl-btn-primary">Jetzt kostenlos starten</Link>

@@ -1,13 +1,13 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "AGB – Lernarena",
+  title: "AGB",
   description: "Allgemeine Geschäftsbedingungen von Lernarena",
 };
 
 // Festes Datum der letzten inhaltlichen Änderung.
 // Bei jeder echten Überarbeitung der AGB manuell anpassen.
-const STAND = "28. Juni 2026";
+const STAND = "23. September 2026";
 
 const sections = [
   {
@@ -31,11 +31,11 @@ const sections = [
               info@lernarena.app
             </a>
           </p>
-          <p className="text-gray-500 text-xs pt-1">(nachfolgend „Anbieter")</p>
+          <p className="text-gray-500 text-xs pt-1">(nachfolgend „Anbieter“)</p>
         </div>
         <p>
-          und den Nutzern der mobilen App sowie der Web-App „Lernarena"
-          (nachfolgend „Nutzer"). Abweichende Bedingungen des Nutzers werden
+          und den Nutzern der mobilen App sowie der Web-App „Lernarena“
+          (nachfolgend „Nutzer“). Abweichende Bedingungen des Nutzers werden
           nicht anerkannt, es sei denn, der Anbieter stimmt diesen ausdrücklich
           schriftlich zu.
         </p>
@@ -54,10 +54,10 @@ const sections = [
         </p>
         <ul className="list-disc list-inside text-gray-600 space-y-1">
           <li>Modulbasiertes Lernen mit Prüfungsfragen</li>
-          <li>Lernkarten (Flashcards) und Wiederholungssystem</li>
-          <li>Asynchrone Multiplayer-Quiz-Matches (AsyncMatch)</li>
-          <li>KI-gestützter Tutor „Ada"</li>
-          <li>Prüfungssimulation (Premium)</li>
+          <li>Karteikarten mit Wiederholungssystem</li>
+          <li>Arena-Duelle gegen andere Lernende</li>
+          <li>KI-Tutorin „Ada“</li>
+          <li>Prüfungssimulationen im IHK-Stil mit KI-Korrektur (Premium)</li>
           <li>Zertifizierungsvorbereitung (AWS, Azure, GCP, SAP)</li>
         </ul>
         <p className="mt-2 text-gray-500 italic">
@@ -75,10 +75,12 @@ const sections = [
     content: (
       <div className="text-gray-700 text-sm leading-relaxed space-y-2">
         <p>
-          Die Nutzung von Lernarena erfordert die Erstellung eines Nutzerkontos
-          mit einer gültigen E-Mail-Adresse. Der Nutzer ist verpflichtet,
-          wahrheitsgemäße Angaben zu machen und seine Zugangsdaten geheim zu
-          halten.
+          Lernarena kann zunächst als Gast ohne Registrierung ausprobiert
+          werden. Für den vollen Funktionsumfang, die Synchronisation zwischen
+          Geräten und den Abschluss eines Premium-Abonnements ist ein
+          Nutzerkonto mit einer gültigen E-Mail-Adresse erforderlich. Der
+          Nutzer ist verpflichtet, wahrheitsgemäße Angaben zu machen und seine
+          Zugangsdaten geheim zu halten.
         </p>
         <p>
           Die Registrierung ist ab einem Alter von 16 Jahren gestattet. Jüngere
@@ -94,13 +96,13 @@ const sections = [
   },
   {
     id: "free-premium",
-    title: "4. Free-Tarif und Premium",
+    title: "4. Kostenloser Tarif und Premium",
     content: (
       <div className="text-gray-700 text-sm leading-relaxed space-y-4">
         <div>
-          <h3 className="font-semibold text-gray-800 mb-1">4.1 Free-Tarif</h3>
+          <h3 className="font-semibold text-gray-800 mb-1">4.1 Kostenloser Tarif</h3>
           <p>
-            Der Free-Tarif ist kostenlos und beinhaltet einen eingeschränkten
+            Der kostenlose Tarif beinhaltet einen eingeschränkten
             Zugang zu den Lernfunktionen. Der Anbieter behält sich vor, den
             Umfang des kostenlosen Angebots jederzeit anzupassen.
           </p>
@@ -132,10 +134,13 @@ const sections = [
               von Google im Rahmen seines Bezahlsystems behandelt; es gelten die
               im Google Play Store angezeigten Endpreise.
             </li>
+            <li>
+              <strong>Kauf über den Apple App Store:</strong> Die Zahlung wird
+              über Apple abgewickelt. Eine etwaig anfallende Umsatzsteuer wird
+              von Apple im Rahmen seines Bezahlsystems behandelt; es gelten die
+              im App Store angezeigten Endpreise.
+            </li>
           </ul>
-          {/* ⚠️ HINWEIS: Sobald du die Kleinunternehmer-Grenze (§ 19 UStG)
-              überschreitest, muss der Stripe-/Web-Teil angepasst und USt.
-              ausgewiesen werden. */}
         </div>
         <div>
           <h3 className="font-semibold text-gray-800 mb-1">
@@ -159,7 +164,11 @@ const sections = [
         <ul className="list-disc list-inside text-gray-600 space-y-1">
           <li>
             In der <strong>Android-App</strong> erfolgt die Abrechnung über
-            Google Play Billing.
+            Google Play.
+          </li>
+          <li>
+            In der <strong>iOS-App</strong> erfolgt die Abrechnung über den
+            Apple App Store (In-App-Kauf).
           </li>
           <li>
             In der <strong>Web-App</strong> erfolgt die Abrechnung über den
@@ -194,8 +203,13 @@ const sections = [
               Abo-Einstellungen des Google-Play-Kontos gekündigt.
             </li>
             <li>
+              Über den Apple App Store gekaufte Abonnements werden in den
+              Abo-Einstellungen der Apple-ID (Einstellungen, Apple-ID,
+              Abonnements) gekündigt.
+            </li>
+            <li>
               Über die Web-App (Stripe) gekaufte Abonnements können jederzeit
-              selbst über die Abo-Verwaltung im eigenen Konto („Abo verwalten")
+              selbst über die Abo-Verwaltung im eigenen Konto („Abo verwalten“)
               gekündigt werden. Die Kündigung wird zum Ende des laufenden
               Abrechnungszeitraums wirksam; der Zugang bleibt bis dahin bestehen.
             </li>
@@ -217,34 +231,12 @@ const sections = [
               den Widerruf direkt an den Anbieter (siehe Widerrufsbelehrung).
             </li>
             <li>
-              Bei Kauf über <strong>Google Play</strong> erfolgt die
-              Rückabwicklung über den Erstattungsprozess von Google Play; dein
-              gesetzliches Widerrufsrecht gegenüber dem Anbieter bleibt
-              unberührt.
+              Bei Kauf über <strong>Google Play</strong> oder den{" "}
+              <strong>Apple App Store</strong> erfolgt die Rückabwicklung über
+              den Erstattungsprozess des jeweiligen Stores; dein gesetzliches
+              Widerrufsrecht gegenüber dem Anbieter bleibt unberührt.
             </li>
           </ul>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-3">
-            <p className="text-amber-800 font-semibold text-xs mb-1">
-              Hinweis zum vorzeitigen Erlöschen des Widerrufsrechts
-            </p>
-            <p className="text-amber-700 text-xs">
-              Bei digitalen Inhalten und sofort bereitgestellten digitalen
-              Leistungen erlischt das Widerrufsrecht, wenn der Nutzer
-              ausdrücklich zugestimmt hat, dass mit der Ausführung des Vertrags
-              vor Ablauf der Widerrufsfrist begonnen wird, und bestätigt hat,
-              dass er mit Beginn der Ausführung sein Widerrufsrecht verliert
-              (§ 356 Abs. 5 BGB).
-            </p>
-          </div>
-          {/* ⚠️ TECHNISCHE PFLICHT (Dev-Task, nicht nur Text):
-              Das Erlöschen greift nur, wenn du beim Checkout die ausdrückliche
-              Zustimmung + Kenntnisnahme aktiv abfragst (Checkbox) UND dem Nutzer
-              danach eine Bestätigung auf dauerhaftem Datenträger (z. B. E-Mail)
-              schickst (§ 312f BGB). Ohne diese Umsetzung erlischt das
-              Widerrufsrecht NICHT.
-              ⚠️ Außerdem: Die Belehrungsvariante (digitale Inhalte vs.
-              Dienstleistung) sollte ein Anwalt für deinen konkreten Fall
-              bestätigen – Lernarena ist ein laufender digitaler Dienst. */}
         </div>
         <div>
           <h3 className="font-semibold text-gray-800 mb-1">
@@ -303,24 +295,24 @@ const sections = [
               (Wenn Sie den Vertrag widerrufen wollen, dann füllen Sie bitte
               dieses Formular aus und senden Sie es zurück.)
             </p>
-            <ul className="space-y-1">
+            <ul className="list-disc list-inside space-y-1">
               <li>
-                – An Claudio Medeiros Magalhaes, Westfalenweg 3, 49504 Lotte,
+                An Claudio Medeiros Magalhaes, Westfalenweg 3, 49504 Lotte,
                 E-Mail: info@lernarena.app:
               </li>
               <li>
-                – Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*)
+                Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*)
                 abgeschlossenen Vertrag über die Erbringung der folgenden
                 Dienstleistung (*)
               </li>
-              <li>– Bestellt am (*)</li>
-              <li>– Name des/der Verbraucher(s)</li>
-              <li>– Anschrift des/der Verbraucher(s)</li>
+              <li>Bestellt am (*)</li>
+              <li>Name des/der Verbraucher(s)</li>
+              <li>Anschrift des/der Verbraucher(s)</li>
               <li>
-                – Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf
+                Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf
                 Papier)
               </li>
-              <li>– Datum</li>
+              <li>Datum</li>
             </ul>
             <p className="text-gray-500 text-xs">
               (*) Unzutreffendes streichen.
@@ -332,9 +324,13 @@ const sections = [
             6.5 Kontolöschung
           </h3>
           <p>
-            Der Nutzer kann sein Konto jederzeit durch eine E-Mail an den
-            Anbieter löschen lassen. Mit der Löschung endet der Zugang zu allen
-            gespeicherten Daten und Fortschritten.
+            Der Nutzer kann sein Konto jederzeit löschen lassen. Wie das geht,
+            steht auf der Seite{" "}
+            <Link href="/account-loeschung" className="text-blue-700 hover:underline">
+              Konto löschen
+            </Link>
+            . Mit der Löschung endet der Zugang zu allen gespeicherten Daten
+            und Fortschritten.
           </p>
         </div>
       </div>
@@ -417,8 +413,8 @@ const sections = [
             9.2 Wesentliche Änderungen
           </h3>
           <p>
-            Wesentliche Änderungen – insbesondere Änderungen der Preise, des
-            Leistungsumfangs oder sonstiger vertraglicher Hauptpflichten –
+            Wesentliche Änderungen, insbesondere Änderungen der Preise, des
+            Leistungsumfangs oder sonstiger vertraglicher Hauptpflichten,
             bedürfen der ausdrücklichen Zustimmung des Nutzers. Bloßes Schweigen
             gilt insoweit nicht als Zustimmung. Ohne ausdrückliche Zustimmung
             gilt der Vertrag zu den bisherigen Bedingungen fort; der Anbieter
@@ -450,6 +446,11 @@ const sections = [
           unberührt.
         </p>
         <p>
+          Der Anbieter ist nicht bereit und nicht verpflichtet, an
+          Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
+          teilzunehmen (§ 36 VSBG).
+        </p>
+        <p>
           Sollten einzelne Bestimmungen dieser AGB unwirksam sein, bleibt die
           Wirksamkeit der übrigen Bestimmungen davon unberührt.
         </p>
@@ -472,7 +473,7 @@ export default function AGBPage() {
             href="/"
             className="text-sm text-gray-500 hover:text-blue-900 transition"
           >
-            ← Zurück zur Startseite
+            Zurück zur Startseite
           </Link>
         </div>
       </header>

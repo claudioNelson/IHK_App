@@ -536,7 +536,7 @@ export default function LandingPage() {
                 <Link className="btn btn-primary" href="/upgrade">Premium starten</Link>
               </article>
             </div>
-            <p className="plan-note">In der App über Google Play oder den App Store, im Web per Karte. Jederzeit kündbar, Preise inkl. MwSt.</p>
+            <p className="plan-note">In der App über Google Play oder den App Store, im Web per Karte. Jederzeit kündbar. Alle Preise sind Endpreise.</p>
           </div>
         </section>
 

@@ -347,8 +347,7 @@ export default function LernSeite() {
         <section className="lp-final">
           <h2>SQL interaktiv trainieren</h2>
           <p>
-            In der Lernarena schreibst du SQL-Abfragen mit sofortigem Feedback, echten
-            IHK-Prüfungsfragen und einem KI-Tutor, der dir jede Klausel erklärt.
+            In der Lernarena schreibst du SQL-Abfragen mit sofortigem Feedback, Aufgaben im IHK-Stil und der KI-Tutorin Ada, die dir jede Klausel erklärt.
             Kostenlos starten, direkt üben.
           </p>
           <div className="lp-cta-row" style={{ justifyContent: "center" }}>

@@ -353,7 +353,7 @@ export default function LernSeite() {
           <h2>IP-Adressierung interaktiv trainieren</h2>
           <p>
             In der Lernarena übst du IPv4, IPv6 und Subnetting mit sofortigem Feedback,
-            echten IHK-Prüfungsfragen und einem KI-Tutor. Kostenlos starten, direkt üben.
+            Aufgaben im IHK-Stil und der KI-Tutorin Ada. Kostenlos starten, direkt üben.
           </p>
           <div className="lp-cta-row" style={{ justifyContent: "center" }}>
             <Link href="/signup" className="lp-btn lp-btn-primary">Jetzt kostenlos starten</Link>

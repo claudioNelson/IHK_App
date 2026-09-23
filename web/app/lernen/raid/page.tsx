@@ -386,7 +386,7 @@ export default function RaidPage() {
           <h2>RAID interaktiv trainieren</h2>
           <p>
             In der Lernarena rechnest du RAID- und Netzwerkaufgaben mit sofortigem
-            Feedback, echten IHK-Prüfungsfragen und einem KI-Tutor, der dir jeden
+            Feedback, Aufgaben im IHK-Stil und der KI-Tutorin Ada, die dir jeden
             Schritt erklärt. Kostenlos starten, direkt üben.
           </p>
           <div className="lp-cta-row" style={{ justifyContent: "center" }}>

@@ -393,8 +393,7 @@ export default function LernSeite() {
         <section className="lp-final">
           <h2>Zahlensysteme interaktiv trainieren</h2>
           <p>
-            In der Lernarena übst du Umrechnungen mit sofortigem Feedback, echten
-            IHK-Prüfungsfragen und einem KI-Tutor, der dir jeden Rechenweg erklärt.
+            In der Lernarena übst du Umrechnungen mit sofortigem Feedback, Aufgaben im IHK-Stil und der KI-Tutorin Ada, die dir jeden Rechenweg erklärt.
             Kostenlos starten, direkt üben.
           </p>
           <div className="lp-cta-row" style={{ justifyContent: "center" }}>

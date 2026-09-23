@@ -1,13 +1,13 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Datenschutzerklärung – Lernarena",
+  title: "Datenschutzerklärung",
   description: "Datenschutzerklärung gemäß DSGVO für Lernarena",
 };
 
 // Festes Datum der letzten inhaltlichen Änderung.
 // Bei jeder echten Überarbeitung der Datenschutzerklärung manuell anpassen.
-const STAND = "30. August 2026";
+const STAND = "23. September 2026";
 
 const sections = [
   {
@@ -61,7 +61,9 @@ const sections = [
           <p>
             E-Mail-Adresse und Passwort (verschlüsselt gespeichert). Diese
             Daten sind zur Vertragserfüllung erforderlich (Art. 6 Abs. 1 lit. b
-            DSGVO).
+            DSGVO). Zusätzlich speichern wir, über welche Plattform du
+            Lernarena nutzt (Android, iOS oder Web), um zu sehen, auf welchen
+            Geräten die App genutzt wird (Art. 6 Abs. 1 lit. f DSGVO).
           </p>
         </div>
         <div>
@@ -70,8 +72,8 @@ const sections = [
           </h3>
           <ul className="list-disc list-inside space-y-1 text-gray-600">
             <li>Lernfortschritte und Testergebnisse</li>
-            <li>Erstellte Lernkarten (Flashcards)</li>
-            <li>Elo-Bewertung aus Multiplayer-Matches</li>
+            <li>Erstellte Karteikarten und Wiederholungsdaten</li>
+            <li>Elo-Wertung aus Arena-Duellen</li>
             <li>Abzeichen und freigeschaltete Inhalte</li>
           </ul>
           <p className="mt-2">
@@ -84,8 +86,9 @@ const sections = [
             Bei der Nutzung der KI-Funktion (Ada)
           </h3>
           <p>
-            Deine Fragen an den KI-Tutor werden zur Verarbeitung an einen
-            externen KI-Anbieter weitergeleitet. Der Inhalt deiner Anfrage kann
+            Deine Fragen an die KI-Tutorin Ada und deine Antworten in
+            Übungsprüfungen mit KI-Korrektur werden zur Verarbeitung an externe
+            KI-Anbieter weitergeleitet. Der Inhalt deiner Anfrage kann
             personenbezogene Daten enthalten, sofern du solche eingibst.
             Stammdaten wie Name oder E-Mail-Adresse übermitteln wir dabei
             nicht. Welche Anbieter das sind und wie sie mit den Inhalten
@@ -148,11 +151,12 @@ const sections = [
   },
   {
     id: "ki-anbieter",
-    title: "6. KI-Anbieter (KI-Tutor Ada)",
+    title: "6. KI-Anbieter (KI-Tutorin Ada)",
     content: (
       <div className="text-gray-700 text-sm leading-relaxed space-y-2">
         <p>
-          Für die KI-Tutorfunktion „Ada" arbeiten wir mit zwei Anbietern. Deine
+          Für die KI-Tutorin „Ada“ und die KI-Korrektur von Übungsprüfungen
+          arbeiten wir mit zwei Anbietern. Deine
           Anfrage geht nie direkt von deinem Gerät an sie, sondern zunächst an
           unseren eigenen Server; dieser leitet sie weiter. Angefragt wird
           zuerst Anthropic. Nur wenn dieser Dienst nicht erreichbar ist, wird
@@ -160,7 +164,8 @@ const sections = [
         </p>
         <p>
           Übertragen wird ausschließlich der Inhalt deiner Anfrage samt dem
-          bisherigen Gesprächsverlauf. Dieser kann personenbezogene Daten
+          bisherigen Gesprächsverlauf, bei der Prüfungskorrektur die
+          Aufgabenstellung und deine Antworten. Dieser kann personenbezogene Daten
           enthalten, sofern du solche eingibst. Stammdaten wie Name,
           Nutzername oder E-Mail-Adresse übermitteln wir nicht.
         </p>
@@ -197,8 +202,7 @@ const sections = [
         </p>
         <p>
           Die Verarbeitung erfolgt jeweils im Auftrag auf Grundlage eines
-          Auftragsverarbeitungsvertrags (Data Processing Addendum, Art. 28
-          DSGVO). Die Übertragung in die USA erfolgt auf Grundlage der
+          Auftragsverarbeitungsvertrags (Art. 28 DSGVO). Die Übertragung in die USA erfolgt auf Grundlage der
           Standardvertragsklauseln (Art. 46 DSGVO). Rechtsgrundlage für die
           Nutzung ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
         </p>
@@ -278,8 +282,81 @@ const sections = [
     ),
   },
   {
+    id: "app-stores",
+    title: "9. Google Play und Apple App Store (In-App-Käufe)",
+    content: (
+      <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+        <p>
+          In der Android-App wird Premium über Google Play abgerechnet, in der
+          iOS-App über den Apple App Store. Anbieter sind Google Ireland
+          Limited, Gordon House, Barrow Street, Dublin 4, Irland, und Apple
+          Distribution International Ltd., Hollyhill Industrial Estate, Cork,
+          Irland.
+        </p>
+        <p>
+          Die Zahlung läuft vollständig über den jeweiligen Store; Zahlungsdaten
+          erhalten wir nicht. Um dein Abonnement freizuschalten und zu
+          verwalten, prüfen wir die Kaufbestätigung des Stores auf unserem
+          Server und speichern dazu die Transaktionskennung, das gekaufte
+          Produkt, den Preis und die Laufzeit. Rechtsgrundlage ist Art. 6 Abs. 1
+          lit. b DSGVO (Vertragserfüllung).
+        </p>
+        <p>
+          Datenschutzerklärungen:{" "}
+          <a
+            href="https://policies.google.com/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-700 hover:underline"
+          >
+            policies.google.com/privacy
+          </a>{" "}
+          und{" "}
+          <a
+            href="https://www.apple.com/legal/privacy/de-ww/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-700 hover:underline"
+          >
+            apple.com/legal/privacy
+          </a>
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: "benachrichtigungen",
+    title: "10. Interne Benachrichtigungen (Telegram)",
+    content: (
+      <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+        <p>
+          Bei einer Registrierung und bei einem Premium-Kauf schicken wir uns
+          selbst eine kurze Benachrichtigung über den Messenger Telegram
+          (Telegram FZ-LLC, Dubai, Vereinigte Arabische Emirate). Sie enthält
+          die E-Mail-Adresse des Kontos, die genutzte Plattform und beim Kauf
+          das Produkt und den Preis.
+        </p>
+        <p>
+          Zweck ist die Überwachung des laufenden Betriebs und die Erkennung
+          von Missbrauch. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO
+          (berechtigtes Interesse). Die Nachrichten werden nur von uns gelesen
+          und nach spätestens 90 Tagen gelöscht. Datenschutzerklärung von
+          Telegram:{" "}
+          <a
+            href="https://telegram.org/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-700 hover:underline"
+          >
+            telegram.org/privacy
+          </a>
+        </p>
+      </div>
+    ),
+  },
+  {
     id: "rechte",
-    title: "9. Deine Rechte",
+    title: "11. Deine Rechte",
     content: (
       <div className="text-gray-700 text-sm leading-relaxed space-y-2">
         <p>Du hast gemäß DSGVO folgende Rechte:</p>
@@ -294,7 +371,7 @@ const sections = [
           </li>
           <li>
             <strong>Löschung</strong> (Art. 17 DSGVO): „Recht auf
-            Vergessenwerden"
+            Vergessenwerden“
           </li>
           <li>
             <strong>Einschränkung</strong> (Art. 18 DSGVO): Eingeschränkte
@@ -319,21 +396,25 @@ const sections = [
           </a>
         </p>
         <p>
-          Du hast außerdem das Recht, dich bei einer Datenschutzbehörde zu
-          beschweren. In Deutschland ist dies der Bundesbeauftragte für den
-          Datenschutz und die Informationsfreiheit (BfDI) oder die zuständige
-          Landesbehörde.
+          Du hast außerdem das Recht, dich bei einer Datenschutzaufsichtsbehörde
+          zu beschweren. Für uns zuständig ist die Landesbeauftragte für
+          Datenschutz und Informationsfreiheit Nordrhein-Westfalen (LDI NRW),
+          Kavalleriestraße 2-4, 40213 Düsseldorf.
         </p>
       </div>
     ),
   },
   {
     id: "loeschung",
-    title: "10. Datenlöschung und Account-Löschung",
+    title: "12. Datenlöschung und Kontolöschung",
     content: (
       <p className="text-gray-700 text-sm leading-relaxed">
-        Du kannst deinen Account und alle damit verbundenen Daten jederzeit
-        löschen lassen, indem du uns per E-Mail kontaktierst. Daten werden
+        Du kannst dein Konto und alle damit verbundenen Daten jederzeit
+        löschen lassen. Wie das geht, steht auf der Seite{" "}
+        <Link href="/account-loeschung" className="text-blue-700 hover:underline">
+          Konto löschen
+        </Link>
+        . Daten werden
         gelöscht, sobald sie für den Zweck der Verarbeitung nicht mehr
         erforderlich sind und keine gesetzlichen Aufbewahrungspflichten
         entgegenstehen (z. B. steuerliche Aufbewahrungspflichten von 10
@@ -343,7 +424,7 @@ const sections = [
   },
   {
     id: "aenderungen",
-    title: "11. Änderungen dieser Datenschutzerklärung",
+    title: "13. Änderungen dieser Datenschutzerklärung",
     content: (
       <p className="text-gray-700 text-sm leading-relaxed">
         Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen,
@@ -368,7 +449,7 @@ export default function DatenschutzPage() {
             href="/"
             className="text-sm text-gray-500 hover:text-blue-900 transition"
           >
-            ← Zurück zur Startseite
+            Zurück zur Startseite
           </Link>
         </div>
       </header>
@@ -378,7 +459,7 @@ export default function DatenschutzPage() {
           Datenschutzerklärung
         </h1>
         <p className="text-gray-500 mb-12">
-          Gemäß Art. 13, 14 DSGVO – zuletzt aktualisiert: {STAND}
+          Gemäß Art. 13, 14 DSGVO. Zuletzt aktualisiert: {STAND}
         </p>
 
         {/* Table of contents */}

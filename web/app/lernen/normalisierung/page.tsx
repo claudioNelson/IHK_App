@@ -340,8 +340,7 @@ export default function LernSeite() {
         <section className="lp-final">
           <h2>Datenbanken interaktiv trainieren</h2>
           <p>
-            In der Lernarena normalisierst du Tabellen mit sofortigem Feedback, echten
-            IHK-Prüfungsaufgaben und einem KI-Tutor, der dir jeden Schritt erklärt.
+            In der Lernarena normalisierst du Tabellen mit sofortigem Feedback, Aufgaben im IHK-Stil und der KI-Tutorin Ada, die dir jeden Schritt erklärt.
             Kostenlos starten, direkt üben.
           </p>
           <div className="lp-cta-row" style={{ justifyContent: "center" }}>

@@ -345,7 +345,7 @@ export default function LernSeite() {
           <h2>Netzwerktechnik interaktiv trainieren</h2>
           <p>
             In der Lernarena übst du OSI-Modell, Subnetting und Co. mit sofortigem
-            Feedback, echten IHK-Prüfungsfragen und einem KI-Tutor, der dir jede
+            Feedback, Aufgaben im IHK-Stil und der KI-Tutorin Ada, die dir jede
             Zuordnung erklärt. Kostenlos starten, direkt üben.
           </p>
           <div className="lp-cta-row" style={{ justifyContent: "center" }}>

@@ -350,7 +350,7 @@ export default function LernSeite() {
           <h2>Algorithmen interaktiv trainieren</h2>
           <p>
             In der Lernarena führst du Sortierdurchläufe Schritt für Schritt aus: mit
-            sofortigem Feedback, echten IHK-Prüfungsaufgaben und einem KI-Tutor.
+            sofortigem Feedback, Aufgaben im IHK-Stil und der KI-Tutorin Ada.
             Kostenlos starten, direkt üben.
           </p>
           <div className="lp-cta-row" style={{ justifyContent: "center" }}>

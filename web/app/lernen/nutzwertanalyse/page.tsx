@@ -339,7 +339,7 @@ export default function LernSeite() {
           <h2>AP1-Themen interaktiv trainieren</h2>
           <p>
             In der Lernarena rechnest du Nutzwertanalysen und andere AP1-Klassiker mit
-            sofortigem Feedback, echten IHK-Prüfungsaufgaben und einem KI-Tutor.
+            sofortigem Feedback, Aufgaben im IHK-Stil und der KI-Tutorin Ada.
             Kostenlos starten, direkt üben.
           </p>
           <div className="lp-cta-row" style={{ justifyContent: "center" }}>
