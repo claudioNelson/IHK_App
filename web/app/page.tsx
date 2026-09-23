@@ -1,2199 +1,625 @@
 "use client";
 
-import { useState, useEffect } from "react";
+// Startseite lernarena.app (Neuaufbau 23.09.2026, Vorlage lernarena-landing-v2).
+//
+// Bewusst erhalten aus der alten Seite: Client-Komponente mit Auth-Nav
+// (Name, Premium-Badge, Logout), Theme-Umschalter mit localStorage-Key
+// "lernarena-theme" (gilt fuer alle Seiten, siehe layout.tsx), die Anker
+// #product / #ada / #pricing und alle Routen. Schrift ist Geist aus
+// layout.tsx (next/font), Farben laufen ueber CSS-Variablen, damit der
+// Hellmodus ohne React-State funktioniert (data-theme am <html>).
+//
+// Screenshots liegen unter /public/screenshots/ (hub.png, pruefung.png,
+// ada.png; 1290x2796). Fehlt eine Datei, bleibt die Flaeche leer.
+
+import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/lib/hooks/useSubscription";
+
+const PLAY_URL = "https://play.google.com/store/apps/details?id=app.lernarena";
+const APPSTORE_URL = "https://apps.apple.com/de/app/id6802045311";
+
+function Check() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12l4 4L19 6" />
+    </svg>
+  );
+}
+
+function Shot({ src, alt, eager = false }: { src: string; alt: string; eager?: boolean }) {
+  const [broken, setBroken] = useState(false);
+  return (
+    <div className="shot">
+      {!broken && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt={alt}
+          loading={eager ? "eager" : "lazy"}
+          fetchPriority={eager ? "high" : "auto"}
+          onError={() => setBroken(true)}
+        />
+      )}
+    </div>
+  );
+}
+
+function Faq({ q, children }: { q: string; children: ReactNode }) {
+  return (
+    <details>
+      <summary>
+        {q}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </summary>
+      <p>{children}</p>
+    </details>
+  );
+}
 
 export default function LandingPage() {
   const [isDark, setIsDark] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
-  // Burger-Menue auf Handybreite (siehe .nav-burger / .nav-mobile im CSS)
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
   const supabase = createClient();
   const subscription = useSubscription();
 
-  // Auth-State laden + auf Änderungen reagieren
+  // Auth-State laden + auf Aenderungen reagieren (Login/Logout in anderem Tab)
   useEffect(() => {
-    let mounted = true;
-
+    let alive = true;
     const loadUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!mounted) return;
-      if (user) {
-        const name = (user.user_metadata?.username as string) ?? user.email ?? "User";
-        setUsername(name);
-      } else {
-        setUsername(null);
-      }
+      if (!alive) return;
+      setUsername(user ? ((user.user_metadata?.username as string) ?? user.email ?? "User") : null);
       setAuthLoaded(true);
     };
-
     loadUser();
-
-    // Auf Auth-Änderungen reagieren (Login/Logout in anderem Tab)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return;
-      if (session?.user) {
-        const name = (session.user.user_metadata?.username as string) ?? session.user.email ?? "User";
-        setUsername(name);
-      } else {
-        setUsername(null);
-      }
+    const { data: { subscription: sub } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!alive) return;
+      const u = session?.user;
+      setUsername(u ? ((u.user_metadata?.username as string) ?? u.email ?? "User") : null);
     });
-
     return () => {
-      mounted = false;
-      subscription.unsubscribe();
+      alive = false;
+      sub.unsubscribe();
     };
   }, [supabase]);
+
+  // Theme: layout.tsx setzt data-theme vor dem ersten Paint; hier nur State
+  // dazu synchronisieren und den Umschalter bedienen.
+  useEffect(() => {
+    setMounted(true);
+    try {
+      if (localStorage.getItem("lernarena-theme") === "light") setIsDark(false);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    try {
+      localStorage.setItem("lernarena-theme", isDark ? "dark" : "light");
+    } catch {}
+    if (isDark) document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", "light");
+  }, [isDark, mounted]);
+
+  // Einblenden beim Scrollen (IntersectionObserver, kein Scroll-Listener).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const els = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
+    if (reduce) {
+      els.forEach((el) => el.classList.add("in"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("in");
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { threshold: 0.15 },
+    );
+    els.forEach((el, i) => {
+      el.style.transitionDelay = `${(i % 4) * 60}ms`;
+      io.observe(el);
+    });
+    return () => io.disconnect();
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.refresh();
   };
-  const [activeDemo, setActiveDemo] = useState(0);
-  const [adaInput, setAdaInput] = useState("");
-  const [adaMessages, setAdaMessages] = useState([
-    {
-      role: "user",
-      text: "Was ist der Unterschied zwischen RAID 5 und RAID 6?",
-    },
-    {
-      role: "ada",
-      text: "Gute Frage. Beide nutzen Parity, aber RAID 5 verteilt **eine** Paritätsinformation über alle Platten (n-1 nutzbar), während RAID 6 **zwei** unabhängige Paritäten nutzt (n-2 nutzbar). Heißt: RAID 6 überlebt 2 gleichzeitige Plattenausfälle, RAID 5 nur einen.",
-    },
-    {
-      role: "user",
-      text: "Wann nehme ich welches?",
-    },
-    {
-      role: "ada",
-      text: "Faustregel: Bei **8+ Platten oder großen Kapazitäten (>2TB)** → RAID 6. Rebuild-Zeiten bei großen Platten sind so lang, dass während eines Rebuilds eine zweite Platte ausfallen kann. Das killt dein RAID 5 komplett.",
-    },
-  ]);
 
-  useEffect(() => {
-    setMounted(true);
-    const saved = typeof window !== "undefined" ? localStorage.getItem("lernarena-theme") : null;
-    if (saved === "light") setIsDark(false);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && typeof window !== "undefined") {
-      localStorage.setItem("lernarena-theme", isDark ? "dark" : "light");
-    }
-  }, [isDark, mounted]);
-
-  // Auto-rotate demo tabs
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveDemo((prev) => (prev + 1) % 3);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleAdaSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!adaInput.trim()) return;
-    setAdaMessages((prev) => [
-      ...prev,
-      { role: "user", text: adaInput },
-      {
-        role: "ada",
-        text: "Das ist eine Demo-Chat-Vorschau. In der App antworte ich dir natürlich echt: mit Beispielen, Eselsbrücken und Prüfungsfragen zum Üben.",
-      },
-    ]);
-    setAdaInput("");
-  };
-
-  const t = {
-    bg: isDark ? "#08080C" : "#FAFAF9",
-    bgMuted: isDark ? "#0E0E14" : "#F4F4F1",
-    surface: isDark ? "#12121C" : "#FFFFFF",
-    surfaceElev: isDark ? "#1A1A28" : "#FFFFFF",
-    border: isDark ? "rgba(255,255,255,0.08)" : "rgba(10,10,15,0.08)",
-    borderStrong: isDark ? "rgba(255,255,255,0.14)" : "rgba(10,10,15,0.12)",
-    text: isDark ? "#F5F5F7" : "#0A0A0F",
-    textMid: isDark ? "#A0A0B0" : "#55555F",
-    textDim: isDark ? "#606070" : "#8A8A92",
-    accent: "#7C6DFF",
-    accentSoft: isDark ? "rgba(124,109,255,0.14)" : "rgba(124,109,255,0.08)",
-    accent2: "#22D3EE",
-    grain: isDark
-      ? "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E\")"
-      : "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E\")",
-  };
+  const isPremium = subscription.loaded && subscription.isPremium;
 
   return (
-    <div
-      style={{
-        background: t.bg,
-        color: t.text,
-        minHeight: "100vh",
-        fontFamily: "'Inter Tight', system-ui, sans-serif",
-        transition: "background 0.3s, color 0.3s",
-      }}
-    >
+    <div className="lp">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        .lp {
+          --bg: #0B0B10; --bg-2: #101018; --surface: #14141D; --surface-2: #1B1B27;
+          --line: rgba(255,255,255,.08); --line-2: rgba(255,255,255,.14);
+          --text: #F2F2F6; --text-2: #A9A9B8; --text-3: #7C7C8C;
+          --accent: #7C6DFF; --accent-2: #6B5DF0; --accent-soft: rgba(124,109,255,.14);
+          --ok: #10B981;
+          --r: 14px; --r-btn: 10px; --r-shot: 22px; --wrap: 1200px;
+          background: var(--bg); color: var(--text); min-height: 100vh;
+          font-family: var(--font-geist-sans), system-ui, sans-serif;
+          line-height: 1.5; -webkit-font-smoothing: antialiased;
+        }
+        :root[data-theme="light"] .lp {
+          --bg: #F3F4F9; --bg-2: #ECEDF4; --surface: #FFFFFF; --surface-2: #FFFFFF;
+          --line: rgba(20,26,46,.10); --line-2: rgba(20,26,46,.18);
+          --text: #0F1222; --text-2: #4E5364; --text-3: #7A7F90;
+          --accent: #5B4BE0; --accent-2: #4C3ED0; --accent-soft: rgba(91,75,224,.12);
+        }
+        .lp a { color: inherit; text-decoration: none; }
+        .lp h1, .lp h2, .lp h3, .lp p, .lp ul, .lp figure { margin: 0; }
+        .lp ul { padding: 0; list-style: none; }
+        .lp img, .lp svg { display: block; max-width: 100%; }
+        .lp button { font: inherit; }
+        .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding-inline: 20px; }
+        .lp section { padding-block: clamp(64px, 8vw, 112px); }
+        .lp section + section { border-top: 1px solid var(--line); }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body { font-feature-settings: "ss01", "cv11"; }
+        .lp h1 { font-size: clamp(38px, 5vw, 64px); line-height: 1.04; letter-spacing: -.035em; font-weight: 600; }
+        .lp h2 { overflow-wrap: anywhere; font-size: clamp(30px, 3.4vw, 44px); line-height: 1.08; letter-spacing: -.03em; font-weight: 600; max-width: 22ch; }
+        .lp h3 { font-size: 19px; line-height: 1.3; letter-spacing: -.01em; font-weight: 600; }
+        .lead { font-size: clamp(16px, 1.4vw, 19px); color: var(--text-2); max-width: 56ch; }
+        .body { font-size: 15.5px; color: var(--text-2); max-width: 60ch; }
+        .eyebrow { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 11.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+        .num { font-family: var(--font-geist-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 
-        .grain::before {
-          content: '';
-          position: fixed; inset: 0;
-          background-image: ${t.grain};
-          pointer-events: none;
-          z-index: 1;
-          mix-blend-mode: ${isDark ? "overlay" : "multiply"};
-          opacity: 0.5;
-        }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 0 22px; border-radius: var(--r-btn); font-weight: 600; font-size: 15px; white-space: nowrap; border: 1px solid transparent; transition: transform .15s ease, background .2s ease, border-color .2s ease; cursor: pointer; }
+        .btn:active { transform: translateY(1px) scale(.985); }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-2); }
+        .btn-ghost { background: transparent; color: var(--text); border-color: var(--line-2); }
+        .btn-ghost:hover { border-color: var(--accent); }
 
-        /* NAV */
-        .nav {
-          position: sticky; top: 0; z-index: 50;
-          backdrop-filter: blur(12px);
-          background: ${isDark ? "rgba(8,8,12,0.72)" : "rgba(250,250,249,0.72)"};
-          border-bottom: 1px solid ${t.border};
-        }
-        .nav-inner {
-          max-width: 1200px; margin: 0 auto;
-          padding: 16px 32px;
-          display: flex; align-items: center; justify-content: space-between;
-        }
-        .logo {
-          font-family: 'Instrument Serif', serif;
-          font-size: 26px; font-style: italic;
-          letter-spacing: -0.5px;
-          color: ${t.text};
-          text-decoration: none;
-          display: flex; align-items: center; gap: 2px;
-        }
-        .logo-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: ${t.accent};
-          margin-right: 4px;
-          box-shadow: 0 0 12px ${t.accent};
-        }
-        .nav-links {
-          display: flex; gap: 32px;
-          font-size: 14px; font-weight: 500;
-        }
-        .nav-links a {
-          color: ${t.textMid};
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-        .nav-links a:hover { color: ${t.text}; }
-        .nav-actions { display: flex; gap: 12px; align-items: center; }
-        /* Mobile: Die fuenf Textlinks passen nicht neben Logo, Theme-Knopf,
-           Login und "Starten" (zusammen ~680px). Ohne diese Regel scrollte die
-           ganze Seite horizontal. Produkt/Ada/Preise sind Anker auf derselben
-           Seite und per Scrollen erreichbar, Lernen/Pruefungen stehen im Footer. */
-        .nav-burger {
-          display: none;
-          width: 36px; height: 36px;
-          border-radius: 8px;
-          border: 1px solid ${t.border};
-          background: transparent;
-          color: ${t.text};
-          cursor: pointer;
-          align-items: center; justify-content: center;
-          flex-direction: column; gap: 4px;
-        }
-        .nav-burger span {
-          display: block; width: 16px; height: 2px;
-          background: currentColor; border-radius: 2px;
-          transition: transform 0.2s, opacity 0.2s;
-        }
-        .nav-burger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-        .nav-burger.open span:nth-child(2) { opacity: 0; }
-        .nav-burger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-        .nav-mobile {
-          display: none;
-          border-top: 1px solid ${t.border};
-          padding: 8px 20px 16px;
-          flex-direction: column;
-        }
-        .nav-mobile a {
-          display: block;
-          padding: 12px 4px;
-          font-size: 16px; font-weight: 500;
-          color: ${t.text};
-          text-decoration: none;
-          border-bottom: 1px solid ${t.border};
-        }
-        .nav-mobile a:last-child { border-bottom: none; }
-        @media (max-width: 820px) {
-          /* Die fuenf Textlinks passen nicht neben Logo, Theme-Knopf, Login
-             und "Starten" (zusammen ~680px, Seite scrollte horizontal).
-             Deshalb hier ein Burger-Knopf, der sie als Liste aufklappt. */
-          .nav-links { display: none; }
-          .nav-burger { display: flex; }
-          .nav-mobile.open { display: flex; }
-          .nav-inner { padding: 12px 20px; }
-          .nav-actions { gap: 8px; }
-          /* Eingeloggt: Avatar + E-Mail + PREMIUM + Logout + Burger passten
-             nicht in 360-412px, die Seite scrollte seitlich (Android 10.09.).
-             Auf Handybreite nur der Avatar, der Name steht im Profil. */
-          .nav-user { padding: 6px; }
-          .nav-user-name { display: none; }
-          /* PREMIUM-Badge und Logout-Knopf schoben den Burger aus dem Bild;
-             beides steht auf Handybreite im Burger-Menue. */
-          .nav-premium, .nav-logout { display: none; }
-        }
-        /* Sicherheitsnetz gegen seitliches Scrollen durch einzelne breite
-           Elemente (Hero-Grid, Badges, Code-Bloecke). */
-        html, body { overflow-x: hidden; }
-        .theme-btn {
-          width: 36px; height: 36px;
-          border-radius: 8px;
-          border: 1px solid ${t.border};
-          background: transparent;
-          color: ${t.text};
-          cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          transition: all 0.2s;
-          font-size: 14px;
-        }
-        .theme-btn:hover { border-color: ${t.borderStrong}; background: ${t.surface}; }
-        .nav-cta {
-          padding: 8px 16px;
-          background: ${t.text};
-          color: ${t.bg};
-          border-radius: 8px;
-          font-size: 14px; font-weight: 600;
-          text-decoration: none;
-          transition: opacity 0.2s;
-        }
-        .nav-cta:hover { opacity: 0.85; }
-        .nav-user {
-          display: inline-flex; align-items: center; gap: 8px;
-          color: ${t.textMid}; font-size: 14px; font-weight: 500;
-          text-decoration: none; padding: 6px 10px; border-radius: 8px;
-          transition: background 0.2s, color 0.2s;
-        }
-        .nav-user:hover { color: ${t.text}; background: ${t.surface}; }
-        .nav-user-avatar {
-          width: 24px; height: 24px; border-radius: 50%;
-          display: inline-flex; align-items: center; justify-content: center;
-          background: rgba(124,109,255,0.16); color: #C4BBFF;
-          font-size: 12px; font-weight: 700;
-        }
+        /* Screenshots in natuerlicher Hoehe (kein Beschneiden); nur ein leerer
+           Slot bekommt eine feste Proportion, damit die Flaeche nicht kollabiert. */
+        .shot { border-radius: var(--r-shot); border: 1px solid var(--line-2); background: var(--surface); overflow: hidden; }
+        .shot:empty { aspect-ratio: 9 / 16; }
+        .shot img { width: 100%; height: auto; }
 
-        /* HERO */
-        .hero {
-          max-width: 1200px; margin: 0 auto;
-          padding: 80px 32px 60px;
-          display: grid; grid-template-columns: 1.1fr 1fr;
-          gap: 60px; align-items: center;
-          position: relative;
-        }
-        @media (max-width: 900px) {
-          .hero { grid-template-columns: 1fr; padding: 56px 20px 40px; gap: 40px; }
-        }
+        /* Nav */
+        .lp header { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+        .nav { height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; letter-spacing: -.02em; }
+        .logo-mark { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; }
+        .logo-mark svg { width: 14px; height: 14px; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { font-size: 14.5px; font-weight: 500; color: var(--text-2); }
+        .nav-links a:hover { color: var(--text); }
+        .nav-actions { display: flex; align-items: center; gap: 10px; }
+        .nav-actions .btn { min-height: 42px; padding: 0 16px; font-size: 14px; }
+        .theme-btn { width: 40px; height: 40px; border-radius: var(--r-btn); border: 1px solid var(--line-2); background: transparent; color: var(--text-2); display: grid; place-items: center; cursor: pointer; }
+        .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+        .theme-btn svg { width: 17px; height: 17px; }
+        .nav-user { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--text-2); }
+        .nav-user:hover { color: var(--text); }
+        .nav-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+        .nav-premium { font-family: var(--font-geist-mono), monospace; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 4px 7px; border-radius: 6px; }
+        .burger { display: none; width: 42px; height: 42px; border-radius: var(--r-btn); background: transparent; border: 1px solid var(--line-2); color: var(--text); place-items: center; cursor: pointer; }
+        .burger svg { width: 20px; height: 20px; }
+        .nav-mobile { display: none; flex-direction: column; padding: 6px 0 14px; border-top: 1px solid var(--line); }
+        .nav-mobile a, .nav-mobile button { padding: 12px 4px; font-size: 16px; font-weight: 500; color: var(--text-2); background: none; border: 0; text-align: left; cursor: pointer; }
+        .nav-mobile.open { display: flex; }
 
-        .eyebrow {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 6px 12px;
-          border: 1px solid ${t.border};
-          border-radius: 100px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px; font-weight: 500;
-          color: ${t.textMid};
-          margin-bottom: 28px;
-          background: ${t.surface};
-        }
-        .eyebrow-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: #10B981;
-          box-shadow: 0 0 8px #10B981;
-          animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
+        /* Hero */
+        .lp .hero { padding-top: clamp(40px, 6vw, 72px); padding-bottom: clamp(48px, 6vw, 80px); }
+        .hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .9fr); gap: clamp(32px, 6vw, 88px); align-items: center; }
+        .hero-copy { display: flex; flex-direction: column; gap: 26px; }
+        .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .hero-shot { justify-self: end; width: min(320px, 100%); }
+
+        /* Zahlen */
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+        .stat { padding: 8px 28px 8px 0; border-right: 1px solid var(--line); }
+        .stat + .stat { padding-left: 28px; }
+        .stat:last-child { border-right: 0; }
+        .stat b { display: block; font-size: clamp(28px, 3vw, 40px); font-weight: 600; letter-spacing: -.03em; line-height: 1; margin-bottom: 8px; }
+        .stat span { font-size: 14px; color: var(--text-2); }
+
+        /* Funktionen: Bento, 5 Zellen */
+        .bento { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: minmax(200px, auto); gap: 14px; margin-top: 40px; }
+        .cell { position: relative; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 26px; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; overflow: hidden; }
+        .cell p { color: var(--text-2); font-size: 14.5px; max-width: 40ch; }
+        .cell-a { grid-column: span 4; grid-row: span 2; display: grid; grid-template-columns: minmax(0, 1fr) 260px; grid-template-rows: auto 1fr; gap: 20px 28px; align-items: end; }
+        .cell-a .ico { grid-column: 1; grid-row: 1; align-self: start; margin-bottom: 0; }
+        .cell-a .cell-text { grid-column: 1; grid-row: 2; max-width: none; }
+        .cell-a .shot { grid-column: 2; grid-row: 1 / span 2; width: 100%; }
+        .cell-b { grid-column: span 2; background: linear-gradient(160deg, rgba(124,109,255,.22), rgba(124,109,255,.04) 60%), var(--surface); }
+        .cell-c { grid-column: span 2; }
+        .cell-d { grid-column: span 3; background: var(--bg-2); }
+        .cell-e { grid-column: span 3; background: linear-gradient(200deg, rgba(16,185,129,.16), rgba(16,185,129,.02) 55%), var(--surface); }
+        .ico { width: 34px; height: 34px; border-radius: 9px; background: var(--accent-soft); display: grid; place-items: center; color: var(--accent); margin-bottom: auto; }
+        .ico svg { width: 18px; height: 18px; }
+        .cell-e .ico { background: rgba(16,185,129,.14); color: var(--ok); }
+
+        /* Ablauf */
+        .steps { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
+        .steps-list { display: flex; flex-direction: column; margin: 0; padding: 0; }
+        .step { display: grid; grid-template-columns: 64px 1fr; gap: 20px; padding: 26px 0; border-top: 1px solid var(--line); }
+        .step:last-child { border-bottom: 1px solid var(--line); }
+        .step b { font-family: var(--font-geist-mono), monospace; font-size: 30px; font-weight: 500; color: var(--accent); line-height: 1; }
+        .step p { color: var(--text-2); font-size: 15px; margin-top: 6px; max-width: 44ch; }
+        .sticky { position: sticky; top: 96px; }
+
+        /* Ada */
+        .split { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(32px, 6vw, 88px); align-items: center; }
+        .split .shot { width: min(340px, 100%); justify-self: center; }
+        .checks { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+        .checks li { display: flex; gap: 12px; align-items: flex-start; font-size: 15.5px; color: var(--text-2); }
+        .checks svg { flex: 0 0 auto; width: 20px; height: 20px; color: var(--ok); margin-top: 1px; }
+
+        /* Preise */
+        .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 40px; }
+        .plan { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 30px; display: flex; flex-direction: column; gap: 22px; }
+        .plan.pro { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-soft), transparent 45%), var(--surface); }
+        .price { font-size: 40px; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
+        .price small { font-size: 15px; color: var(--text-2); font-weight: 500; letter-spacing: 0; margin-left: 6px; }
+        .plan ul { display: flex; flex-direction: column; gap: 10px; }
+        .plan li { display: flex; gap: 10px; font-size: 15px; color: var(--text-2); }
+        .plan li svg { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 2px; color: var(--ok); }
+        .plan li.off { color: var(--text-3); }
+        .plan li.off svg { color: var(--text-3); }
+        .plan .btn { margin-top: auto; }
+        .plan-note { margin-top: 14px; font-size: 13.5px; color: var(--text-3); }
+
+        /* FAQ */
+        .faq { max-width: 760px; margin-top: 32px; }
+        .faq details { border-top: 1px solid var(--line); }
+        .faq details:last-child { border-bottom: 1px solid var(--line); }
+        .faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 20px 0; font-weight: 600; font-size: 17px; }
+        .faq summary::-webkit-details-marker { display: none; }
+        .faq summary svg { flex: 0 0 auto; width: 18px; height: 18px; color: var(--text-3); transition: transform .2s ease; }
+        .faq details[open] summary svg { transform: rotate(45deg); }
+        .faq p { padding: 0 0 22px; color: var(--text-2); font-size: 15.5px; max-width: 62ch; }
+
+        /* Schluss */
+        .cta-box { border: 1px solid var(--line-2); border-radius: var(--r); background: var(--surface); padding: clamp(32px, 5vw, 56px); display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, auto); gap: 32px; align-items: center; }
+        .stores { display: flex; gap: 12px; flex-wrap: wrap; min-width: 0; }
+        .stores a { display: block; }
+        .stores img { height: 52px; width: auto; }
+
+        .lp footer { border-top: 1px solid var(--line); padding: 40px 0 32px; }
+        .foot { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; font-size: 14px; }
+        .foot h4 { margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--text); }
+        .foot li { margin: 0 0 8px; }
+        .foot a { color: var(--text-3); }
+        .foot a:hover { color: var(--text); }
+        .foot-tag { color: var(--text-3); margin-top: 10px; max-width: 32ch; }
+        .foot-bottom { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--text-3); }
+
+        /* Motion */
+        .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1); }
+        .reveal.in { opacity: 1; transform: none; }
+        @media (prefers-reduced-motion: reduce) {
+          .reveal { opacity: 1; transform: none; transition: none; }
+          .btn, .faq summary svg { transition: none; }
         }
 
-        .hero-title {
-          font-size: clamp(34px, 6vw, 68px);
-          font-weight: 600;
-          line-height: 0.98;
-          letter-spacing: -2px;
-          margin-bottom: 24px;
-          color: ${t.text};
-        }
-        .hero-title em {
-          font-family: 'Instrument Serif', serif;
-          font-style: italic;
-          font-weight: 400;
-          color: ${t.accent};
-          letter-spacing: -1px;
-        }
-        .hero-sub {
-          font-size: 17px;
-          line-height: 1.6;
-          color: ${t.textMid};
-          max-width: 520px;
-          margin-bottom: 36px;
-        }
-
-        .hero-actions {
-          display: flex; gap: 12px; flex-wrap: wrap;
-          margin-bottom: 32px;
-        }
-        /* Store-Badges: Das Play-Badge bringt ~6px eigenen Rand mit, das
-           Apple-Badge nicht. 62px mit -6px Rand und 50px ohne wirken deshalb
-           gleich hoch. Hoehen bewusst hier statt inline, damit die
-           Mobile-Regel unten greifen kann. */
-        .store-badges { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        .store-badges a { display: inline-flex; align-items: center; }
-        .store-badges img { height: 50px; width: auto; }
-        /* Lokales Play-Badge ist bereits auf den Rahmen zugeschnitten (kein
-           Innenabstand mehr) - gleiche Hoehe wie das Apple-Badge. */
-        .store-badges .badge-play img { height: 50px; margin: 0; }
-        @media (max-width: 600px) {
-          /* Auf Handybreite: Button volle Breite, darunter die zwei Badges
-             nebeneinander und zentriert. Vorher wrappte die Reihe auf
-             360px-Geraeten in drei ungleiche Zeilen. Der harte Zeilenumbruch
-             in der Headline erzeugte dort eine Ein-Wort-Zeile. */
-          .hero-actions { flex-direction: column; align-items: stretch; }
-          .hero-actions .btn-primary { justify-content: center; }
-          .store-badges { justify-content: center; }
-          .store-badges img { height: 44px; }
-          .store-badges .badge-play img { height: 44px; margin: 0; }
-          .hero-title br, .final-cta-title br { display: none; }
-          .hero-title { letter-spacing: -1px; }
-          .final-cta-title { letter-spacing: -1px; }
-        }
-        .btn-primary {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 13px 22px;
-          background: ${t.text};
-          color: ${t.bg};
-          border-radius: 10px;
-          font-size: 15px; font-weight: 600;
-          text-decoration: none;
-          transition: transform 0.15s, box-shadow 0.15s;
-          border: 1px solid ${t.text};
-        }
-        .btn-primary:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 10px 30px ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.15)"};
-        }
-        .btn-secondary {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 13px 22px;
-          background: transparent;
-          color: ${t.text};
-          border: 1px solid ${t.borderStrong};
-          border-radius: 10px;
-          font-size: 15px; font-weight: 500;
-          text-decoration: none;
-          transition: all 0.15s;
-        }
-        .btn-secondary:hover { background: ${t.surface}; }
-
-        .hero-meta {
-          display: flex; gap: 24px; flex-wrap: wrap;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px;
-          color: ${t.textDim};
-        }
-        .hero-meta span { display: flex; align-items: center; gap: 6px; }
-        .hero-meta .check { color: ${t.accent2}; }
-
-        /* HERO MOCKUP */
-        .mockup {
-          position: relative;
-          border-radius: 16px;
-          overflow: hidden;
-          background: ${t.surface};
-          border: 1px solid ${t.border};
-          box-shadow: 0 30px 80px ${isDark ? "rgba(0,0,0,0.5)" : "rgba(10,10,15,0.1)"},
-                      0 0 0 1px ${t.border};
-        }
-        .mockup::before {
-          content: '';
-          position: absolute;
-          top: -40%; left: -20%;
-          width: 140%; height: 80%;
-          background: radial-gradient(circle, ${t.accentSoft} 0%, transparent 60%);
-          pointer-events: none;
-        }
-        .mockup-bar {
-          height: 36px;
-          border-bottom: 1px solid ${t.border};
-          padding: 0 14px;
-          display: flex; align-items: center; gap: 8px;
-          background: ${t.bgMuted};
-        }
-        .mockup-dot {
-          width: 10px; height: 10px; border-radius: 50%;
-          background: ${t.border};
-        }
-        .mockup-url {
-          margin-left: 12px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: ${t.textDim};
-        }
-        .mockup-body { padding: 28px; }
-        .mockup-q {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: ${t.textDim};
-          margin-bottom: 10px;
-          letter-spacing: 1px;
-        }
-        .mockup-question {
-          font-size: 17px; font-weight: 500;
-          line-height: 1.5;
-          margin-bottom: 20px;
-          color: ${t.text};
-        }
-        .mockup-options { display: flex; flex-direction: column; gap: 8px; }
-        .mockup-option {
-          padding: 12px 16px;
-          border: 1px solid ${t.border};
-          border-radius: 10px;
-          font-size: 14px;
-          color: ${t.textMid};
-          display: flex; align-items: center; gap: 12px;
-          cursor: pointer;
-          transition: all 0.15s;
-          background: ${t.surface};
-        }
-        .mockup-option:hover { border-color: ${t.borderStrong}; color: ${t.text}; }
-        .mockup-option.correct {
-          border-color: #10B981;
-          background: rgba(16,185,129,0.08);
-          color: ${t.text};
-        }
-        .mockup-option .letter {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: ${t.textDim};
-          min-width: 16px;
-        }
-        .mockup-option.correct .letter { color: #10B981; }
-        .mockup-progress {
-          margin-top: 20px;
-          padding-top: 20px;
-          border-top: 1px solid ${t.border};
-          display: flex; align-items: center; justify-content: space-between;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: ${t.textDim};
-        }
-        .progress-bar {
-          flex: 1;
-          height: 4px;
-          background: ${t.border};
-          border-radius: 2px;
-          margin: 0 16px;
-          position: relative;
-          overflow: hidden;
-        }
-        .progress-fill {
-          position: absolute; inset: 0;
-          background: linear-gradient(90deg, ${t.accent}, ${t.accent2});
-          width: 67%;
-          border-radius: 2px;
-        }
-
-        /* DIVIDER */
-        .divider {
-          max-width: 1200px;
-          margin: 60px auto;
-          padding: 0 32px;
-        }
-        .divider-inner {
-          border-top: 1px solid ${t.border};
-        }
-
-        /* LOGOS STRIP */
-        .logos-strip {
-          max-width: 1200px; margin: 0 auto;
-          padding: 20px 32px 60px;
-          text-align: center;
-        }
-        .logos-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: ${t.textDim};
-          letter-spacing: 2px;
-          margin-bottom: 28px;
-          text-transform: uppercase;
-        }
-        .logos-row {
-          display: flex; justify-content: center; align-items: center;
-          gap: 48px; flex-wrap: wrap;
-          font-size: 15px; font-weight: 600;
-          color: ${t.textMid};
-          letter-spacing: -0.5px;
-          opacity: 0.8;
-        }
-        .logos-row span { transition: color 0.2s; cursor: default; }
-        .logos-row span:hover { color: ${t.text}; }
-
-        /* SECTION */
-        .section {
-          max-width: 1200px; margin: 0 auto;
-          padding: 100px 32px;
-        }
-        /* Mobile: 100px/32px liessen im Statistik-Panel nur ~40px Textbreite
-           pro Karte (3 Spalten in 245px). Abstaende verkleinert, Grid auf 2
-           Spalten, Kennzahl kleiner. */
-        @media (max-width: 700px) {
-          .section { padding: 64px 20px; }
-          .section-head { margin-bottom: 40px; }
-          .panel-body { padding: 20px; }
-          .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-          .stat-card { padding: 16px; }
-          .stat-value { font-size: 30px; }
-          .final-cta { padding: 60px 20px 80px; }
-        }
-        .section-head {
-          max-width: 700px;
-          margin-bottom: 60px;
-        }
-        .section-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: ${t.accent};
-          letter-spacing: 2px;
-          margin-bottom: 16px;
-          text-transform: uppercase;
-          display: flex; align-items: center; gap: 8px;
-        }
-        .section-label::before {
-          content: ''; width: 16px; height: 1px;
-          background: ${t.accent};
-        }
-        .section-title {
-          font-size: clamp(32px, 4.5vw, 48px);
-          font-weight: 600;
-          letter-spacing: -1.5px;
-          line-height: 1.05;
-          margin-bottom: 20px;
-          color: ${t.text};
-        }
-        .section-title em {
-          font-family: 'Instrument Serif', serif;
-          font-style: italic;
-          font-weight: 400;
-          color: ${t.accent};
-        }
-        .section-desc {
-          font-size: 17px;
-          line-height: 1.6;
-          color: ${t.textMid};
-          max-width: 600px;
-        }
-
-        /* FEATURE SHOWCASE */
-        .showcase {
-          display: grid;
-          grid-template-columns: 340px 1fr;
-          gap: 40px;
-          border-top: 1px solid ${t.border};
-          padding-top: 48px;
-        }
-        @media (max-width: 900px) {
-          .showcase { grid-template-columns: 1fr; }
-        }
-        .showcase-tabs {
-          display: flex; flex-direction: column;
-          gap: 4px;
-        }
-        .showcase-tab {
-          text-align: left;
-          padding: 20px;
-          border-radius: 12px;
-          background: transparent;
-          border: 1px solid transparent;
-          cursor: pointer;
-          transition: all 0.2s;
-          position: relative;
-        }
-        .showcase-tab.active {
-          background: ${t.surface};
-          border-color: ${t.border};
-        }
-        .showcase-tab-num {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: ${t.textDim};
-          letter-spacing: 1px;
-          margin-bottom: 6px;
-        }
-        .showcase-tab.active .showcase-tab-num { color: ${t.accent}; }
-        .showcase-tab-title {
-          font-size: 17px; font-weight: 600;
-          color: ${t.textMid};
-          margin-bottom: 6px;
-          letter-spacing: -0.3px;
-        }
-        .showcase-tab.active .showcase-tab-title { color: ${t.text}; }
-        .showcase-tab-desc {
-          font-size: 13px;
-          color: ${t.textDim};
-          line-height: 1.5;
-          display: none;
-        }
-        .showcase-tab.active .showcase-tab-desc { display: block; color: ${t.textMid}; }
-        .showcase-panel {
-          border-radius: 16px;
-          border: 1px solid ${t.border};
-          background: ${t.surface};
-          overflow: hidden;
-          min-height: 480px;
-          position: relative;
-        }
-        .showcase-panel::before {
-          content: '';
-          position: absolute;
-          top: -20%; right: -10%;
-          width: 50%; height: 60%;
-          background: radial-gradient(circle, ${t.accentSoft} 0%, transparent 70%);
-          pointer-events: none;
-        }
-
-        /* Panel contents */
-        .panel-header {
-          padding: 16px 24px;
-          border-bottom: 1px solid ${t.border};
-          display: flex; justify-content: space-between; align-items: center;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: ${t.textDim};
-          background: ${t.bgMuted};
-        }
-        .panel-body { padding: 32px; }
-
-        /* LERNPFAD-PANEL */
-        .pfad-list { display: flex; flex-direction: column; gap: 8px; }
-        .pfad-row {
-          display: flex; align-items: center; gap: 14px;
-          padding: 12px 14px;
-          border: 1px solid ${t.border};
-          border-radius: 10px;
-          background: ${t.bg};
-        }
-        .pfad-num {
-          width: 36px; height: 36px;
-          flex-shrink: 0;
-          border-radius: 8px;
-          background: ${t.accentSoft};
-          color: ${t.accent};
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px; font-weight: 700;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .pfad-num.done { background: #10B98120; color: #10B981; }
-        .pfad-num.locked { background: ${t.border}; color: ${t.textDim}; }
-        .pfad-info { flex: 1; min-width: 0; }
-        .pfad-title {
-          font-size: 14px; font-weight: 600;
-          color: ${t.text};
-          margin-bottom: 2px;
-          letter-spacing: -0.2px;
-        }
-        .pfad-meta {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: ${t.textDim};
-          letter-spacing: 1px;
-        }
-        .pfad-stars {
-          display: flex; gap: 2px;
-          font-size: 12px;
-          color: ${t.textDim};
-        }
-        .pfad-stars .filled { color: #F59E0B; }
-
-        /* Exam simulation panel */
-        .exam-timer {
-          display: flex; justify-content: space-between; align-items: center;
-          margin-bottom: 24px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid ${t.border};
-        }
-        .timer-main {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 28px; font-weight: 600;
-          color: ${t.text};
-          letter-spacing: -1px;
-        }
-        .timer-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: ${t.textDim};
-          letter-spacing: 1.5px;
-          margin-bottom: 4px;
-        }
-        .q-nav {
-          display: grid;
-          grid-template-columns: repeat(10, 1fr);
-          gap: 6px;
-          margin-top: 24px;
-        }
-        .q-dot {
-          aspect-ratio: 1;
-          border-radius: 6px;
-          border: 1px solid ${t.border};
-          display: flex; align-items: center; justify-content: center;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          font-weight: 500;
-          color: ${t.textDim};
-        }
-        .q-dot.done {
-          background: ${t.accent};
-          border-color: ${t.accent};
-          color: white;
-        }
-        .q-dot.current {
-          background: ${t.surface};
-          border-color: ${t.accent};
-          color: ${t.accent};
-        }
-        .q-dot.flagged {
-          border-color: #F59E0B;
-          color: #F59E0B;
-        }
-
-        /* Stats panel */
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-          margin-bottom: 32px;
-        }
-        .stat-card {
-          padding: 20px;
-          border: 1px solid ${t.border};
-          border-radius: 12px;
-          background: ${t.bg};
-        }
-        .stat-value {
-          font-family: 'Instrument Serif', serif;
-          font-size: 38px;
-          color: ${t.text};
-          letter-spacing: -1px;
-          line-height: 1;
-          margin-bottom: 6px;
-        }
-        .stat-value em { color: ${t.accent}; font-style: italic; }
-        .stat-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: ${t.textDim};
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-        }
-        .chart-row {
-          display: flex; align-items: flex-end;
-          gap: 6px; height: 120px;
-          padding: 20px;
-          border: 1px solid ${t.border};
-          border-radius: 12px;
-          background: ${t.bg};
-        }
-        .chart-bar {
-          flex: 1;
-          background: linear-gradient(180deg, ${t.accent} 0%, ${t.accent2} 100%);
-          border-radius: 4px 4px 0 0;
-          opacity: 0.85;
-          transition: opacity 0.2s;
-        }
-        .chart-bar:hover { opacity: 1; }
-
-        /* ADA SECTION */
-        .ada-section {
-          background: ${t.bgMuted};
-          border-top: 1px solid ${t.border};
-          border-bottom: 1px solid ${t.border};
-          padding: 100px 0;
-        }
-        .ada-inner {
-          max-width: 1200px; margin: 0 auto;
-          padding: 0 32px;
-          display: grid;
-          grid-template-columns: 1fr 1.1fr;
-          gap: 60px;
-          align-items: center;
-        }
-        @media (max-width: 900px) {
-          .ada-inner { grid-template-columns: 1fr; }
-        }
-        .ada-quote {
-          font-family: 'Instrument Serif', serif;
-          font-style: italic;
-          font-size: 22px;
-          line-height: 1.5;
-          color: ${t.textMid};
-          padding: 24px;
-          border-left: 2px solid ${t.accent};
-          margin-top: 32px;
-        }
-        .ada-quote-by {
-          font-family: 'JetBrains Mono', monospace;
-          font-style: normal;
-          font-size: 11px;
-          color: ${t.textDim};
-          letter-spacing: 1.5px;
-          margin-top: 12px;
-          text-transform: uppercase;
-        }
-
-        /* Chat widget */
-        .ada-chat {
-          background: ${t.surface};
-          border: 1px solid ${t.border};
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 20px 60px ${isDark ? "rgba(0,0,0,0.4)" : "rgba(10,10,15,0.08)"};
-        }
-        .ada-chat-head {
-          padding: 16px 20px;
-          border-bottom: 1px solid ${t.border};
-          display: flex; align-items: center; gap: 12px;
-          background: ${t.bgMuted};
-        }
-        .ada-avatar {
-          width: 36px; height: 36px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, ${t.accent} 0%, ${t.accent2} 100%);
-          display: flex; align-items: center; justify-content: center;
-          font-family: 'Instrument Serif', serif;
-          font-style: italic;
-          color: white;
-          font-size: 18px;
-          font-weight: 600;
-        }
-        .ada-head-info { flex: 1; }
-        .ada-head-name {
-          font-size: 14px; font-weight: 600;
-          color: ${t.text};
-        }
-        .ada-head-status {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: #10B981;
-          display: flex; align-items: center; gap: 5px;
-        }
-        .ada-head-status::before {
-          content: ''; width: 5px; height: 5px;
-          border-radius: 50%;
-          background: #10B981;
-        }
-        .ada-messages {
-          padding: 20px;
-          max-height: 420px;
-          overflow-y: auto;
-          display: flex; flex-direction: column;
-          gap: 14px;
-        }
-        .ada-msg {
-          display: flex; gap: 10px;
-          max-width: 88%;
-        }
-        .ada-msg.user {
-          align-self: flex-end;
-          flex-direction: row-reverse;
-        }
-        .ada-msg-avatar {
-          width: 28px; height: 28px;
-          border-radius: 8px;
-          flex-shrink: 0;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          font-weight: 600;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .ada-msg.ada .ada-msg-avatar {
-          background: linear-gradient(135deg, ${t.accent} 0%, ${t.accent2} 100%);
-          color: white;
-        }
-        .ada-msg.user .ada-msg-avatar {
-          background: ${t.border};
-          color: ${t.textMid};
-        }
-        .ada-msg-bubble {
-          padding: 10px 14px;
-          border-radius: 12px;
-          font-size: 14px;
-          line-height: 1.5;
-        }
-        .ada-msg.ada .ada-msg-bubble {
-          background: ${t.bgMuted};
-          color: ${t.text};
-          border: 1px solid ${t.border};
-        }
-        .ada-msg.user .ada-msg-bubble {
-          background: ${t.accent};
-          color: white;
-        }
-        .ada-msg-bubble strong { font-weight: 600; color: ${t.accent}; }
-        .ada-msg.user .ada-msg-bubble strong { color: white; }
-
-        .ada-input-row {
-          padding: 14px;
-          border-top: 1px solid ${t.border};
-          display: flex; gap: 8px;
-          background: ${t.bg};
-        }
-        .ada-input {
-          flex: 1;
-          padding: 10px 14px;
-          border: 1px solid ${t.border};
-          border-radius: 10px;
-          background: ${t.surface};
-          color: ${t.text};
-          font-size: 14px;
-          font-family: inherit;
-          outline: none;
-          transition: border-color 0.2s;
-        }
-        .ada-input:focus { border-color: ${t.accent}; }
-        .ada-send {
-          padding: 10px 16px;
-          background: ${t.accent};
-          color: white;
-          border: none;
-          border-radius: 10px;
-          font-size: 14px; font-weight: 600;
-          cursor: pointer;
-          transition: opacity 0.2s;
-        }
-        .ada-send:hover { opacity: 0.9; }
-
-        /* CERTS */
-        .certs-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 14px;
-          margin-top: 48px;
-        }
-        @media (max-width: 900px) { .certs-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 500px) { .certs-grid { grid-template-columns: 1fr; } }
-        .cert {
-          padding: 22px;
-          border: 1px solid ${t.border};
-          border-radius: 12px;
-          background: ${t.surface};
-          transition: all 0.2s;
-        }
-        .cert:hover {
-          border-color: ${t.borderStrong};
-          transform: translateY(-2px);
-        }
-        .cert-tag {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: ${t.textDim};
-          letter-spacing: 1.5px;
-          margin-bottom: 12px;
-          font-weight: 600;
-        }
-        .cert-name {
-          font-size: 16px; font-weight: 600;
-          color: ${t.text};
-          letter-spacing: -0.3px;
-          margin-bottom: 6px;
-        }
-        .cert-meta {
-          font-size: 13px;
-          color: ${t.textMid};
-          line-height: 1.5;
-        }
-
-        /* MODES */
-        .modes-wrap {
-          margin-top: 80px;
-          padding-top: 60px;
-          border-top: 1px solid ${t.border};
-        }
-        .modes-head { margin-bottom: 32px; }
-        .modes-title {
-          font-size: clamp(24px, 3.5vw, 36px);
-          font-weight: 600;
-          letter-spacing: -1px;
-          line-height: 1.1;
-          color: ${t.text};
-        }
-        .modes-title em {
-          font-family: 'Instrument Serif', serif;
-          font-style: italic;
-          font-weight: 400;
-          color: ${t.accent};
-        }
-        .modes-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-        @media (max-width: 700px) { .modes-grid { grid-template-columns: 1fr; } }
-        .mode-card {
-          padding: 28px;
-          border: 1px solid ${t.border};
-          border-radius: 14px;
-          background: ${t.surface};
-          transition: all 0.2s;
-        }
-        .mode-card.featured {
-          background: linear-gradient(180deg, ${t.accentSoft} 0%, ${t.surface} 40%);
-          border-color: ${t.accent}40;
-        }
-        .mode-head {
-          display: flex; align-items: center; gap: 14px;
-          margin-bottom: 20px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid ${t.border};
-        }
-        .mode-icon {
-          width: 44px; height: 44px;
-          border-radius: 10px;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 18px;
-          flex-shrink: 0;
-        }
-        .mode-name {
-          font-size: 17px; font-weight: 600;
-          color: ${t.text};
-          letter-spacing: -0.3px;
-          margin-bottom: 2px;
-        }
-        .mode-sub {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: ${t.textDim};
-          letter-spacing: 1px;
-        }
-        .mode-list {
-          list-style: none;
-          display: flex; flex-direction: column;
-          gap: 10px;
-        }
-        .mode-list li {
-          font-size: 14px;
-          color: ${t.textMid};
-          display: flex; align-items: flex-start; gap: 10px;
-          line-height: 1.5;
-        }
-        .mode-list li::before {
-          content: '→';
-          color: ${t.accent};
-          font-weight: 600;
-          flex-shrink: 0;
-        }
-        .mode-tip {
-          padding: 16px 20px;
-          border: 1px solid ${t.border};
-          border-radius: 10px;
-          background: ${t.bgMuted};
-          display: flex; align-items: center; gap: 16px;
-          flex-wrap: wrap;
-        }
-        .mode-tip-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: ${t.accent};
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-          padding: 4px 10px;
-          border: 1px solid ${t.accent}40;
-          border-radius: 4px;
-          background: ${t.accentSoft};
-          flex-shrink: 0;
-        }
-        .mode-tip-text {
-          font-size: 14px;
-          color: ${t.textMid};
-          line-height: 1.5;
-        }
-
-        /* PRICING */
-        .pricing-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 16px;
-          max-width: 1240px;
-          margin: 60px auto 0;
-        }
-        @media (max-width: 1100px) { .pricing-grid { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 600px) { .pricing-grid { grid-template-columns: 1fr; } }
-        .plan {
-          padding: 36px;
-          border: 1px solid ${t.border};
-          border-radius: 18px;
-          background: ${t.surface};
-          position: relative;
-        }
-        .plan.pro {
-          border-color: ${t.accent};
-          background: linear-gradient(180deg, ${t.accentSoft} 0%, ${t.surface} 30%);
-        }
-        .plan.lifetime {
-          border-color: ${t.accent2};
-        }
-        .plan-badge {
-          position: absolute;
-          top: -11px; left: 36px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          letter-spacing: 1.5px;
-          padding: 4px 10px;
-          background: ${t.accent};
-          color: white;
-          border-radius: 100px;
-          text-transform: uppercase;
-        }
-        .plan.lifetime .plan-badge {
-          background: ${t.accent2};
-          color: ${t.bg};
-        }
-        .plan-name {
-          font-family: 'Instrument Serif', serif;
-          font-style: italic;
-          font-size: 28px;
-          color: ${t.text};
-          margin-bottom: 4px;
-        }
-        .plan-tag {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: ${t.textDim};
-          letter-spacing: 1.5px;
-          margin-bottom: 24px;
-          text-transform: uppercase;
-        }
-        .plan-price {
-          display: flex; align-items: baseline; gap: 6px;
-          margin-bottom: 4px;
-        }
-        .plan-amount {
-          font-size: 46px; font-weight: 600;
-          color: ${t.text};
-          letter-spacing: -2px;
-          line-height: 1;
-        }
-        .plan-period {
-          font-size: 14px;
-          color: ${t.textMid};
-        }
-        .plan-note {
-          font-size: 12px;
-          color: ${t.textDim};
-          margin-bottom: 28px;
-        }
-        .plan-cta {
-          display: block; text-align: center;
-          padding: 12px;
-          border-radius: 10px;
-          font-size: 14px; font-weight: 600;
-          text-decoration: none;
-          margin-bottom: 28px;
-          transition: all 0.2s;
-        }
-        .plan-cta.primary {
-          background: ${t.text};
-          color: ${t.bg};
-        }
-        .plan-cta.primary:hover { opacity: 0.85; }
-        .plan-cta.outline {
-          border: 1px solid ${t.borderStrong};
-          color: ${t.text};
-        }
-        .plan-cta.outline:hover { background: ${t.bgMuted}; }
-        .plan-features {
-          list-style: none;
-          display: flex; flex-direction: column;
-          gap: 10px;
-          padding-top: 24px;
-          border-top: 1px solid ${t.border};
-        }
-        .plan-feature {
-          font-size: 14px;
-          color: ${t.textMid};
-          display: flex; align-items: flex-start; gap: 10px;
-          line-height: 1.5;
-        }
-        .plan-feature::before {
-          content: '✓';
-          color: ${t.accent};
-          font-weight: 700;
-          flex-shrink: 0;
-        }
-        .plan-feature.off { color: ${t.textDim}; }
-        .plan-feature.off::before { content: '×'; color: ${t.textDim}; }
-
-        /* FINAL CTA */
-        .final-cta {
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 80px 32px 100px;
-          text-align: center;
-          position: relative;
-        }
-        .final-cta-glow {
-          position: absolute;
-          top: 20%; left: 50%;
-          transform: translateX(-50%);
-          width: 600px; height: 300px;
-          background: radial-gradient(ellipse, ${t.accentSoft} 0%, transparent 60%);
-          pointer-events: none;
-          z-index: 0;
-        }
-        .final-cta-inner { position: relative; z-index: 1; }
-        .final-cta-title {
-          font-size: clamp(36px, 5vw, 56px);
-          font-weight: 600;
-          letter-spacing: -2px;
-          line-height: 1.05;
-          margin-bottom: 20px;
-        }
-        .final-cta-title em {
-          font-family: 'Instrument Serif', serif;
-          font-style: italic;
-          font-weight: 400;
-          color: ${t.accent};
-        }
-        .final-cta-sub {
-          font-size: 17px;
-          color: ${t.textMid};
-          max-width: 540px;
-          margin: 0 auto 32px;
-          line-height: 1.6;
-        }
-
-        /* FOOTER */
-        .footer {
-          border-top: 1px solid ${t.border};
-          background: ${t.bg};
-          padding: 60px 0 40px;
-        }
-        .footer-inner {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 32px;
-          display: grid;
-          grid-template-columns: 1.5fr 1fr 1fr 1fr;
-          gap: 40px;
-          margin-bottom: 48px;
-        }
-        @media (max-width: 700px) { .footer-inner { grid-template-columns: 1fr 1fr; } }
-        .footer-brand .logo { margin-bottom: 14px; }
-        .footer-tagline {
-          font-size: 13px;
-          color: ${t.textMid};
-          line-height: 1.6;
-          max-width: 240px;
-        }
-        .footer-col h4 {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          color: ${t.textDim};
-          letter-spacing: 1.5px;
-          margin-bottom: 16px;
-          text-transform: uppercase;
-          font-weight: 500;
-        }
-        .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-        .footer-col a {
-          font-size: 13px;
-          color: ${t.textMid};
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-        .footer-col a:hover { color: ${t.text}; }
-        .footer-bottom {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 24px 32px 0;
-          border-top: 1px solid ${t.border};
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 12px;
-        }
-        .footer-copy {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: ${t.textDim};
-        }
-        .footer-mini {
-          display: flex; gap: 20px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: ${t.textDim};
+        /* Mobil */
+        @media (max-width: 1023px) {
+          .nav-links, .nav-actions .btn-ghost, .nav-user span.name { display: none; }
+        }
+        @media (max-width: 767px) {
+          .nav-actions .btn, .nav-user, .nav-premium { display: none; }
+          .burger { display: grid; }
+          .hero-grid, .steps, .split, .plans, .cta-box { grid-template-columns: minmax(0, 1fr); }
+          .hero-shot { justify-self: center; width: min(260px, 78%); }
+          .stats { grid-template-columns: 1fr 1fr; row-gap: 28px; column-gap: 20px; }
+          .stat { border-right: 0; padding: 0; }
+          .stat + .stat { padding-left: 0; }
+          .bento { grid-template-columns: 1fr; grid-auto-rows: auto; }
+          .cell { grid-column: auto !important; grid-row: auto !important; min-height: 180px; }
+          .cell-a { display: flex; }
+          .cell-a .shot { display: none; }
+          .sticky { position: static; }
+          .split .shot { order: -1; }
+          .foot { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
 
-      <div className="grain" />
-
-      {/* NAV */}
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link href="/" className="logo">
-            <span className="logo-dot" />
+      <header>
+        <div className="wrap nav">
+          <Link className="logo" href="/">
+            <span className="logo-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4L19 6" /></svg>
+            </span>
             Lernarena
           </Link>
-          <div className="nav-links">
-            <a href="#product">Produkt</a>
-            <a href="#ada">Ada</a>
+          <nav className="nav-links" aria-label="Hauptnavigation">
+            <a href="#product">Funktionen</a>
+            <a href="#ablauf">So läuft es</a>
             <a href="#pricing">Preise</a>
-            <Link href="/lernen">Lernen</Link>
+            <Link href="/lernen">Lernseiten</Link>
             <Link href="/pruefungen">Prüfungen</Link>
-          </div>
+          </nav>
           <div className="nav-actions">
-            <button
-              className="theme-btn"
-              onClick={() => setIsDark(!isDark)}
-              aria-label="Theme wechseln"
-            >
-              {isDark ? "☀" : "☾"}
+            <button className="theme-btn" onClick={() => setIsDark(!isDark)} aria-label={isDark ? "Hellen Modus einschalten" : "Dunklen Modus einschalten"}>
+              {isDark ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+              )}
             </button>
             {authLoaded && (username ? (
               <>
                 <Link href="/profil" className="nav-user" title="Dein Profil">
-                  <span className="nav-user-avatar">{username.charAt(0).toUpperCase()}</span>
-                  <span className="nav-user-name">{username}</span>
+                  <span className="nav-avatar">{username.charAt(0).toUpperCase()}</span>
+                  <span className="name">{username}</span>
                 </Link>
-                {subscription.loaded && subscription.isPremium && (
-                  <span
-                    className="nav-premium"
-                    style={{
-                      background: "linear-gradient(135deg, #7C6DFF, #22D3EE)",
-                      color: "#FFFFFF",
-                      fontSize: 11,
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontWeight: 600,
-                      padding: "3px 8px",
-                      borderRadius: 6,
-                      letterSpacing: 0.5,
-                      textTransform: "uppercase",
-                    }}
-                    title={subscription.expiryLabel}
-                  >
-                    Premium
-                  </span>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="nav-cta nav-logout"
-                  style={{ cursor: "pointer", border: "none" }}
-                >
-                  Logout
-                </button>
+                {isPremium && <span className="nav-premium" title={subscription.expiryLabel}>Premium</span>}
+                <button className="btn btn-ghost" onClick={handleLogout}>Logout</button>
               </>
             ) : (
               <>
-                <Link href="/login" style={{ color: t.textMid, fontSize: 14, textDecoration: "none", fontWeight: 500 }}>
-                  Login
-                </Link>
-                <Link href="/signup" className="nav-cta">
-                  Starten
-                </Link>
+                <Link className="btn btn-ghost" href="/login">Anmelden</Link>
+                <Link className="btn btn-primary" href="#laden">App laden</Link>
               </>
             ))}
-            <button
-              className={`nav-burger${menuOpen ? " open" : ""}`}
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label={menuOpen ? "Menü schließen" : "Menü öffnen"}
-              aria-expanded={menuOpen}
-            >
-              <span /><span /><span />
+            <button className="burger" aria-label={menuOpen ? "Menü schließen" : "Menü öffnen"} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>
+              {menuOpen ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+              )}
             </button>
           </div>
         </div>
-        <div className={`nav-mobile${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(false)}>
-          <a href="#product">Produkt</a>
-          <a href="#ada">Ada</a>
-          <a href="#pricing">Preise</a>
-          <Link href="/lernen">Lernen</Link>
-          <Link href="/pruefungen">Prüfungen</Link>
-          {username && (
-            <>
-              <Link href="/profil">
-                Profil{subscription.loaded && subscription.isPremium ? " · Premium" : ""}
+        <div className="wrap">
+          <nav className={`nav-mobile${menuOpen ? " open" : ""}`} aria-label="Mobile Navigation" onClick={() => setMenuOpen(false)}>
+            <a href="#product">Funktionen</a>
+            <a href="#ablauf">So läuft es</a>
+            <a href="#pricing">Preise</a>
+            <Link href="/lernen">Lernseiten</Link>
+            <Link href="/pruefungen">Prüfungen</Link>
+            {username ? (
+              <>
+                <Link href="/profil">Profil{isPremium ? " · Premium" : ""}</Link>
+                <button onClick={handleLogout}>Logout</button>
+              </>
+            ) : (
+              <>
+                <Link href="/login">Anmelden</Link>
+                <a href="#laden">App laden</a>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
+
+      <main>
+        {/* HERO */}
+        <section className="hero" aria-labelledby="h-hero">
+          <div className="wrap hero-grid">
+            <div className="hero-copy reveal">
+              <h1 id="h-hero">Lernen, wie die IHK fragt.</h1>
+              <p className="lead">Über 2.000 Aufgaben im Stil der Abschlussprüfung, ein Tagesplan bis zu deinem Termin und Übungsprüfungen mit Korrektur. Für AP1 und AP2.</p>
+              <div className="hero-actions">
+                <a className="btn btn-primary" href="#laden">Kostenlos laden</a>
+                <a className="btn btn-ghost" href="#product">Funktionen ansehen</a>
+              </div>
+            </div>
+            <figure className="hero-shot reveal">
+              <Shot src="/screenshots/hub.png" alt="Lernarena Startbildschirm: Countdown zur AP1 mit Tagesplan" eager />
+            </figure>
+          </div>
+        </section>
+
+        {/* ZAHLEN */}
+        <section aria-label="Kennzahlen">
+          <div className="wrap stats reveal">
+            <div className="stat"><b className="num">2.000+</b><span>Fragen im IHK-Stil, laufend erweitert</span></div>
+            <div className="stat"><b className="num">70</b><span>Themen von Netzwerken bis WiSo</span></div>
+            <div className="stat"><b>AP1 + AP2</b><span>Anwendungsentwicklung und Systemintegration</span></div>
+            <div className="stat"><b>Android + iOS</b><span>ein Konto, alle Geräte</span></div>
+          </div>
+        </section>
+
+        {/* FUNKTIONEN */}
+        <section id="product" aria-labelledby="h-funk">
+          <div className="wrap">
+            <div className="reveal">
+              <p className="eyebrow">Funktionen</p>
+              <h2 id="h-funk">Alles, was bis zur Prüfung zählt. Nichts, was ablenkt.</h2>
+            </div>
+            <div className="bento">
+              <article className="cell cell-a reveal">
+                <div className="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg></div>
+                <div className="cell-text">
+                  <h3>Übungsprüfungen wie am Prüfungstag</h3>
+                  <p>Timer, Punkteverteilung und offene Aufgaben mit Korrektur. Danach siehst du pro Thema, wo es noch hakt.</p>
+                </div>
+                <Shot src="/screenshots/pruefung.png" alt="Übungsprüfung mit Timer und Ergebnis nach Themen" />
+              </article>
+              <article className="cell cell-b reveal">
+                <div className="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg></div>
+                <h3>Tagesplan bis zum Termin</h3>
+                <p>Du gibst dein Prüfungsdatum an, die App verteilt die offenen Themen auf die restlichen Tage.</p>
+              </article>
+              <article className="cell cell-c reveal">
+                <div className="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7" /><path d="M21 3v6h-6" /></svg></div>
+                <h3>Wiederholen im richtigen Moment</h3>
+                <p>Falsch beantwortete Fragen kommen wieder, kurz bevor du sie vergisst.</p>
+              </article>
+              <article className="cell cell-d reveal">
+                <div className="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19h16M6 19V9m6 10V5m6 14v-7" /></svg></div>
+                <h3>Module mit Lernpfad</h3>
+                <p>Netzwerke, Datenbanken, Programmierung, IT-Sicherheit, WiSo: jedes Thema von leicht nach schwer, mit Bestehensgrenze wie in der Prüfung.</p>
+              </article>
+              <article className="cell cell-e reveal">
+                <div className="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 11a5 5 0 1 0-10 0" /><path d="M3 21a7 7 0 0 1 18 0" /></svg></div>
+                <h3>Arena: gegen andere Azubis</h3>
+                <p>Zehn Fragen, ein Gegner, eine Rangliste. Für die Tage, an denen Karteikarten nicht reichen.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        {/* ABLAUF */}
+        <section id="ablauf" aria-labelledby="h-ablauf">
+          <div className="wrap steps">
+            <div className="sticky reveal">
+              <h2 id="h-ablauf">Vom ersten Öffnen bis zum Prüfungstag.</h2>
+              <p className="lead" style={{ marginTop: 16 }}>Kein Kurs, den man durcharbeitet. Ein Plan, der jeden Tag sagt, was dran ist.</p>
+            </div>
+            <ol className="steps-list">
+              <li className="step reveal"><b>1</b><div><h3>Prüfung und Termin wählen</h3><p>AP1 oder AP2, Anwendungsentwicklung oder Systemintegration. Der Countdown läuft ab sofort.</p></div></li>
+              <li className="step reveal"><b>2</b><div><h3>Jeden Tag den Plan abarbeiten</h3><p>Ein schwaches Thema, die fälligen Wiederholungen, alle sieben Tage eine Übungsprüfung. Meist 15 bis 25 Minuten.</p></div></li>
+              <li className="step reveal"><b>3</b><div><h3>Schwächen gezielt schließen</h3><p>Die Auswertung zeigt pro Thema die Trefferquote. In der letzten Woche nur noch Wiederholen und Simulation.</p></div></li>
+            </ol>
+          </div>
+        </section>
+
+        {/* ADA */}
+        <section id="ada" aria-labelledby="h-ada">
+          <div className="wrap split">
+            <figure className="reveal"><Shot src="/screenshots/ada.png" alt="Ada erklärt eine Subnetz-Berechnung Schritt für Schritt" /></figure>
+            <div className="reveal">
+              <h2 id="h-ada">Ada erklärt, warum die Antwort falsch war.</h2>
+              <p className="lead" style={{ marginTop: 16 }}>Die KI-Tutorin kennt die Aufgabe, die du gerade bearbeitest, und antwortet auf Deutsch auf Prüfungsniveau.</p>
+              <ul className="checks">
+                <li><Check />Korrigiert offene Aufgaben nach IHK-Punkteschema</li>
+                <li><Check />Rechnet Subnetze, RAID und Kalkulationen vor</li>
+                <li><Check />Gibt keine Lösung vor, sondern den nächsten Schritt</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* PREISE */}
+        <section id="pricing" aria-labelledby="h-preise">
+          <div className="wrap">
+            <div className="reveal">
+              <p className="eyebrow">Preise</p>
+              <h2 id="h-preise">Kostenlos anfangen. Premium, wenn es ernst wird.</h2>
+            </div>
+            <div className="plans">
+              <article className="plan reveal">
+                <div><h3>Kostenlos</h3><p className="body" style={{ marginTop: 6 }}>Zum Reinkommen und für die ersten Wochen.</p></div>
+                <div className="price">0 €</div>
+                <ul>
+                  <li><Check />Basis-Levels aller Lernpfade</li>
+                  <li><Check />Tagesplan, Karteikarten und Wiederholungen</li>
+                  <li><Check />3 Arena-Duelle pro Tag</li>
+                  <li><Check />Ada-Erklärungen bei Fehlern</li>
+                  <li className="off"><Check />Praxis- und Prüfungs-Levels</li>
+                  <li className="off"><Check />Übungsprüfungen mit Korrektur</li>
+                </ul>
+                <Link className="btn btn-ghost" href="/signup">Kostenlos starten</Link>
+              </article>
+              <article className="plan pro reveal">
+                <div><h3>Premium</h3><p className="body" style={{ marginTop: 6 }}>Alle Module, alle Übungsprüfungen, Ada ohne Limit.</p></div>
+                <div className="price">11,99 €<small>pro Monat</small></div>
+                <ul>
+                  <li><Check />Alle Levels und Themen ohne Kontingent</li>
+                  <li><Check />Übungsprüfungen mit Korrektur und Auswertung</li>
+                  <li><Check />KI-Tutorin Ada und Arena unbegrenzt</li>
+                  <li><Check />Cloud-Zertifikate (AWS, Azure, GCP, SAP)</li>
+                  <li><Check />6 Monate 47,99 € oder 12 Monate 84,99 €</li>
+                </ul>
+                <Link className="btn btn-primary" href="/upgrade">Premium starten</Link>
+              </article>
+            </div>
+            <p className="plan-note">In der App über Google Play oder den App Store, im Web per Karte. Jederzeit kündbar, Preise inkl. MwSt.</p>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section aria-labelledby="h-faq">
+          <div className="wrap">
+            <h2 id="h-faq" className="reveal">Häufige Fragen</h2>
+            <div className="faq reveal">
+              <Faq q="Sind das echte IHK-Prüfungsfragen?">Nein. Die IHK veröffentlicht ihre Prüfungen nicht. Unsere Aufgaben sind eigene Fragen nach dem Prüfungskatalog, in Aufbau, Schwierigkeit und Punkteschema an den Abschlussprüfungen orientiert.</Faq>
+              <Faq q="Für welche Fachrichtungen ist die App?">Fachinformatiker Anwendungsentwicklung und Systemintegration, jeweils AP1 und AP2. Der Tagesplan blendet Module aus, die für deine Prüfung nicht relevant sind.</Faq>
+              <Faq q="Funktioniert das auch bei einer Umschulung?">Ja. Die Prüfung ist dieselbe. Viele Nutzer sind Umschüler, die neben dem Unterricht in kurzen Einheiten lernen.</Faq>
+              <Faq q="Kann ich ohne Konto ausprobieren?">Ja, als Gast in der App. Der Fortschritt bleibt erhalten, wenn du später ein Konto anlegst.</Faq>
+            </div>
+          </div>
+        </section>
+
+        {/* SCHLUSS */}
+        <section id="laden" aria-labelledby="h-cta">
+          <div className="wrap">
+            <div className="cta-box reveal">
+              <div>
+                <h2 id="h-cta">Heute anfangen kostet nichts. Die Nachprüfung schon.</h2>
+                <p className="lead" style={{ marginTop: 14 }}>Kostenlos für Android und iOS. Kein Konto nötig, um loszulegen.</p>
+              </div>
+              <div className="stores">
+                <a href={PLAY_URL} target="_blank" rel="noopener noreferrer" aria-label="Lernarena bei Google Play laden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" width={811} height={241} />
+                </a>
+                <a href={APPSTORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Lernarena im App Store laden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/de-de?size=250x83" alt="Laden im App Store" width={250} height={83} />
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <div className="wrap">
+          <div className="foot">
+            <div>
+              <Link className="logo" href="/">
+                <span className="logo-mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4L19 6" /></svg>
+                </span>
+                Lernarena
               </Link>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
-                Logout
-              </a>
-            </>
-          )}
-        </div>
-      </nav>
-
-      {/* HERO */}
-      <section className="hero">
-        <div>
-          <div className="eyebrow">
-            <span className="eyebrow-dot" />
-            Live · AP1 & AP2 · 937 Fragen · 3 Lernpfade
-          </div>
-          <h1 className="hero-title">
-            {/* {" "} vor dem <br />: Auf Handybreite ist der Umbruch per CSS
-                ausgeblendet, JSX verschluckt den Zeilenumbruch, ohne das
-                Leerzeichen stand dort "wargestern" (Befund Android 10.09.). */}
-            Prüfungsangst war{" "}<br />
-            gestern. Heute <em>übst du smart.</em>
-          </h1>
-          <p className="hero-sub">
-            Lernarena ist die Prüfungsvorbereitung für Fachinformatiker. Strukturierte
-            Lernpfade Schritt für Schritt, echte IHK-Simulation, und ein KI-Tutor
-            der erklärt statt vorbetet.
-          </p>
-          <div className="hero-actions">
-            <Link href="/signup" className="btn-primary">
-              Kostenlos starten →
-            </Link>
-            <div className="store-badges">
-              <a
-                className="badge-play"
-                href="https://play.google.com/store/apps/details?id=app.lernarena"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Lernarena bei Google Play herunterladen"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/badges/google-play-de.png"
-                  alt="Jetzt bei Google Play"
-                  width={811}
-                  height={241}
-                />
-              </a>
-              <a
-                className="badge-apple"
-                href="https://apps.apple.com/de/app/id6802045311"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Lernarena im App Store laden"
-              >
-                {/* Offizielles Badge aus Apples App Store Marketing Tools.
-                    width/height sind das Seitenverhaeltnis der Grafik, damit
-                    der Browser den Platz vor dem Laden reserviert (kein
-                    Layout-Sprung). Die Anzeigehoehe regelt .store-badges. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/de-de?size=250x83"
-                  alt="Laden im App Store"
-                  width={250}
-                  height={83}
-                />
-              </a>
+              <p className="foot-tag">Prüfungsvorbereitung für Fachinformatiker. Kein Angebot der IHK.</p>
             </div>
-          </div>
-          <div className="hero-meta">
-            <span><span className="check">✓</span> Keine Kreditkarte</span>
-            <span><span className="check">✓</span> Free-Tier dauerhaft</span>
-            <span><span className="check">✓</span> iPhone, Android & Web</span>
-          </div>
-        </div>
-
-        {/* Mockup */}
-        <div className="mockup">
-          <div className="mockup-bar">
-            <div className="mockup-dot" />
-            <div className="mockup-dot" />
-            <div className="mockup-dot" />
-            <div className="mockup-url">lernarena.app/exam/ap2-ae</div>
-          </div>
-          <div className="mockup-body">
-            <div className="mockup-q">FRAGE 14 / 21 · IT-SICHERHEIT</div>
-            <div className="mockup-question">
-              Welches Verfahren verhindert eine Wiedereinspielung
-              abgefangener Datenpakete (Replay-Attacke)?
-            </div>
-            <div className="mockup-options">
-              <div className="mockup-option">
-                <span className="letter">A</span>
-                Symmetrische Verschlüsselung mit AES
-              </div>
-              <div className="mockup-option correct">
-                <span className="letter">B</span>
-                Verwendung von Nonces oder Zeitstempeln
-              </div>
-              <div className="mockup-option">
-                <span className="letter">C</span>
-                Längere Schlüssel (&gt; 2048 Bit)
-              </div>
-              <div className="mockup-option">
-                <span className="letter">D</span>
-                Doppelte Signaturprüfung
-              </div>
-            </div>
-            <div className="mockup-progress">
-              <span>14/21</span>
-              <div className="progress-bar">
-                <div className="progress-fill" />
-              </div>
-              <span>58:24</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* LOGOS */}
-      <div className="logos-strip">
-        <div className="logos-label">gebaut für reale Prüfungen</div>
-        <div className="logos-row">
-          <span>Fachinformatiker AE</span>
-          <span>·</span>
-          <span>Fachinformatiker SI</span>
-          <span>·</span>
-          <span>AWS</span>
-          <span>·</span>
-          <span>Azure</span>
-          <span>·</span>
-          <span>GCP</span>
-          <span>·</span>
-          <span>SAP</span>
-        </div>
-      </div>
-
-      {/* PRODUCT SHOWCASE */}
-      <section className="section" id="product">
-        <div className="section-head">
-          <div className="section-label">Produkt</div>
-          <h2 className="section-title">
-            Drei Werkzeuge. <em>Eine Prüfung.</em>
-          </h2>
-          <p className="section-desc">
-            Keine aufgeblähte Feature-Liste, nur die drei Dinge, die in der
-            Prüfung wirklich den Unterschied machen.
-          </p>
-        </div>
-
-        <div className="showcase">
-          <div className="showcase-tabs">
-            {[
-              {
-                num: "01",
-                title: "Strukturierte Lernpfade",
-                desc: "Mimo-Style. Konzept-für-Konzept aufbauend. Kein Frage-Brainstorming.",
-              },
-              {
-                num: "02",
-                title: "Echte Prüfungssimulation",
-                desc: "Timer, Fragenübersicht, Flagging. So wie am Prüfungstag.",
-              },
-              {
-                num: "03",
-                title: "Fortschritts-Tracking",
-                desc: "Modul-Quoten, Schwachstellen, ELO-Rang. Datengetrieben.",
-              },
-            ].map((tab, i) => (
-              <button
-                key={i}
-                className={`showcase-tab ${activeDemo === i ? "active" : ""}`}
-                onClick={() => setActiveDemo(i)}
-              >
-                <div className="showcase-tab-num">{tab.num}</div>
-                <div className="showcase-tab-title">{tab.title}</div>
-                <div className="showcase-tab-desc">{tab.desc}</div>
-              </button>
-            ))}
-          </div>
-
-          <div className="showcase-panel">
-            {activeDemo === 0 && (
-              <>
-                <div className="panel-header">
-                  <span>NETZWERKE & SUBNETTING · 11 LEVELS</span>
-                  <span>BASICS</span>
-                </div>
-                <div className="panel-body">
-                  <div className="pfad-list">
-                    <div className="pfad-row">
-                      <div className="pfad-num done">01</div>
-                      <div className="pfad-info">
-                        <div className="pfad-title">Was ist ein Netzwerk?</div>
-                        <div className="pfad-meta">5 FRAGEN · BASICS</div>
-                      </div>
-                      <div className="pfad-stars">
-                        <span className="filled">★</span>
-                        <span className="filled">★</span>
-                        <span className="filled">★</span>
-                      </div>
-                    </div>
-                    <div className="pfad-row">
-                      <div className="pfad-num done">02</div>
-                      <div className="pfad-info">
-                        <div className="pfad-title">IP-Adressen</div>
-                        <div className="pfad-meta">5 FRAGEN · BASICS</div>
-                      </div>
-                      <div className="pfad-stars">
-                        <span className="filled">★</span>
-                        <span className="filled">★</span>
-                        <span className="filled">★</span>
-                      </div>
-                    </div>
-                    <div className="pfad-row">
-                      <div className="pfad-num done">03</div>
-                      <div className="pfad-info">
-                        <div className="pfad-title">Subnetzmaske &amp; CIDR</div>
-                        <div className="pfad-meta">5 FRAGEN · BASICS</div>
-                      </div>
-                      <div className="pfad-stars">
-                        <span className="filled">★</span>
-                        <span className="filled">★</span>
-                        <span>★</span>
-                      </div>
-                    </div>
-                    <div className="pfad-row" style={{ background: t.accentSoft, borderColor: `${t.accent}50` }}>
-                      <div className="pfad-num">04</div>
-                      <div className="pfad-info">
-                        <div className="pfad-title">Private vs. öffentliche IPs</div>
-                        <div className="pfad-meta">4 FRAGEN · BASICS · AKTUELL</div>
-                      </div>
-                      <div className="pfad-stars">
-                        <span>★</span>
-                        <span>★</span>
-                        <span>★</span>
-                      </div>
-                    </div>
-                    <div className="pfad-row">
-                      <div className="pfad-num locked">🔒</div>
-                      <div className="pfad-info">
-                        <div className="pfad-title">Subnetting Teil 1</div>
-                        <div className="pfad-meta">8 FRAGEN · PRAXIS · PREMIUM</div>
-                      </div>
-                    </div>
-                    <div className="pfad-row">
-                      <div className="pfad-num locked">🔒</div>
-                      <div className="pfad-info">
-                        <div className="pfad-title">Subnetting Teil 2</div>
-                        <div className="pfad-meta">7 FRAGEN · PRAXIS · PREMIUM</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-            {activeDemo === 1 && (
-              <>
-                <div className="panel-header">
-                  <span>AP2 · ANWENDUNGSENTWICKLUNG · FRÜHJAHR 2024</span>
-                  <span>LIVE</span>
-                </div>
-                <div className="panel-body">
-                  <div className="exam-timer">
-                    <div>
-                      <div className="timer-label">VERBLEIBEND</div>
-                      <div className="timer-main">01:42:18</div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div className="timer-label">BEANTWORTET</div>
-                      <div className="timer-main">34/50</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 13, color: t.textDim, fontFamily: "'JetBrains Mono', monospace", marginBottom: 8 }}>
-                    FRAGENÜBERSICHT
-                  </div>
-                  <div className="q-nav">
-                    {Array.from({ length: 50 }).map((_, i) => {
-                      const state = i < 34 ? "done" : i === 34 ? "current" : i === 38 || i === 42 ? "flagged" : "";
-                      return (
-                        <div key={i} className={`q-dot ${state}`}>
-                          {i + 1}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            )}
-            {activeDemo === 2 && (
-              <>
-                <div className="panel-header">
-                  <span>STATISTIK · LETZTE 30 TAGE</span>
-                  <span>↑ 12%</span>
-                </div>
-                <div className="panel-body">
-                  <div className="stats-grid">
-                    <div className="stat-card">
-                      <div className="stat-value">
-                        <em>84</em>%
-                      </div>
-                      <div className="stat-label">Trefferquote</div>
-                    </div>
-                    <div className="stat-card">
-                      <div className="stat-value">412</div>
-                      <div className="stat-label">Fragen gelöst</div>
-                    </div>
-                    <div className="stat-card">
-                      <div className="stat-value">
-                        <em>18</em>
-                      </div>
-                      <div className="stat-label">Tage Streak</div>
-                    </div>
-                  </div>
-                  <div className="chart-row">
-                    {[40, 55, 48, 62, 70, 58, 75, 68, 80, 72, 85, 78, 88, 84].map((h, i) => (
-                      <div key={i} className="chart-bar" style={{ height: `${h}%` }} />
-                    ))}
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, fontSize: 11, color: t.textDim, fontFamily: "'JetBrains Mono', monospace" }}>
-                    <span>VOR 30 T.</span>
-                    <span>HEUTE</span>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ADA SECTION */}
-      <section className="ada-section" id="ada">
-        <div className="ada-inner">
-          <div>
-            <div className="section-label">Der KI-Tutor</div>
-            <h2 className="section-title">
-              Ada versteht, <em>was du nicht verstehst.</em>
-            </h2>
-            <p className="section-desc">
-              Benannt nach Ada Lovelace. Ein Sprachmodell mit Prüfungswissen,
-              das auf deinem Level antwortet und nachfragt, wenn du eine
-              falsche Annahme triffst. Direkt verfügbar in jedem Level, jeder
-              Frage und jedem Match.
-            </p>
-            <div className="ada-quote">
-              &ldquo;The more I study, the more insatiable do I feel my
-              genius for it to be.&rdquo;
-              <div className="ada-quote-by">Ada Lovelace, 1843</div>
-            </div>
-          </div>
-
-          <div className="ada-chat">
-            <div className="ada-chat-head">
-              <div className="ada-avatar">A</div>
-              <div className="ada-head-info">
-                <div className="ada-head-name">Ada</div>
-                <div className="ada-head-status">online · antwortet sofort</div>
-              </div>
-            </div>
-            <div className="ada-messages">
-              {adaMessages.map((m, i) => (
-                <div key={i} className={`ada-msg ${m.role}`}>
-                  <div className="ada-msg-avatar">
-                    {m.role === "ada" ? "A" : "Du"}
-                  </div>
-                  <div
-                    className="ada-msg-bubble"
-                    dangerouslySetInnerHTML={{
-                      __html: m.text.replace(
-                        /\*\*(.*?)\*\*/g,
-                        "<strong>$1</strong>"
-                      ),
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            <form className="ada-input-row" onSubmit={handleAdaSubmit}>
-              <input
-                type="text"
-                className="ada-input"
-                placeholder="Frag Ada etwas…"
-                value={adaInput}
-                onChange={(e) => setAdaInput(e.target.value)}
-              />
-              <button type="submit" className="ada-send">
-                Senden
-              </button>
-            </form>
-          </div>
-        </div>
-      </section>
-
-      {/* CERTIFICATES */}
-      <section className="section">
-        <div className="section-head">
-          <div className="section-label">Zertifikate</div>
-          <h2 className="section-title">
-            IHK geschafft. <em>Was kommt danach?</em>
-          </h2>
-          <p className="section-desc">
-            Vier Cloud-Zertifizierungen in zwei Modi: erst in Ruhe verstehen,
-            dann unter Prüfungsbedingungen testen.
-          </p>
-        </div>
-
-        <div className="certs-grid">
-          {[
-            {
-              tag: "AWS",
-              name: "Cloud Practitioner",
-              meta: "Grundlagen der Amazon Web Services Cloud",
-              color: "#FF9900",
-            },
-            {
-              tag: "AZURE",
-              name: "Fundamentals",
-              meta: "AZ-900 · Cloud-Konzepte und Azure-Services",
-              color: "#0078D4",
-            },
-            {
-              tag: "GCP",
-              name: "Digital Leader",
-              meta: "Grundlegendes Verständnis von Google Cloud",
-              color: "#4285F4",
-            },
-            {
-              tag: "SAP",
-              name: "Certified Associate",
-              meta: "SAP-Grundlagen und Geschäftsprozesse",
-              color: "#0070F2",
-            },
-          ].map((c, i) => (
-            <div key={i} className="cert" style={{ borderTop: `2px solid ${c.color}` }}>
-              <div
-                className="cert-tag"
-                style={{ color: c.color, letterSpacing: 1.5 }}
-              >
-                {c.tag}
-              </div>
-              <div className="cert-name">{c.name}</div>
-              <div className="cert-meta">{c.meta}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* LERNMODI */}
-        <div className="modes-wrap">
-          <div className="modes-head">
-            <div className="section-label" style={{ marginBottom: 10 }}>
-              Lernformate
-            </div>
-            <h3 className="modes-title">
-              Vier Wege, <em>ein Ziel.</em>
-            </h3>
-          </div>
-          <div className="modes-grid">
-            <div className="mode-card featured">
-              <div className="mode-head">
-                <div className="mode-icon" style={{ background: t.accent, color: "white" }}>
-                  ↗
-                </div>
-                <div>
-                  <div className="mode-name">Lernpfade</div>
-                  <div className="mode-sub">Schritt für Schritt</div>
-                </div>
-              </div>
-              <ul className="mode-list">
-                <li>3 Pfade: SQL · Netzwerke · IT-Sicherheit</li>
-                <li>33 Levels mit Lehr-Karten und Beispielen</li>
-                <li>Ideal um Themen aufbauend zu lernen</li>
+            <div>
+              <h4>Produkt</h4>
+              <ul>
+                <li><a href="#product">Funktionen</a></li>
+                <li><a href="#pricing">Preise</a></li>
+                <li><a href="#ada">Ada</a></li>
+                <li><Link href="/pruefungen">Prüfungen</Link></li>
+                <li><Link href="/fachinformatiker-pruefung">Prüfungs-Guide</Link></li>
               </ul>
             </div>
-
-            <div className="mode-card">
-              <div className="mode-head">
-                <div className="mode-icon" style={{ background: t.accentSoft, color: t.accent }}>
-                  ✎
-                </div>
-                <div>
-                  <div className="mode-name">Klassische Module</div>
-                  <div className="mode-sub">Frei nach Thema</div>
-                </div>
-              </div>
-              <ul className="mode-list">
-                <li>17 Module · alle Prüfungsbereiche</li>
-                <li>Erklärungen zu jeder Antwort</li>
-                <li>Kein Zeitdruck: Gold zum Lernen</li>
+            <div>
+              <h4>Konto</h4>
+              <ul>
+                <li><Link href="/lernen">Lernseiten</Link></li>
+                <li><a href={PLAY_URL} target="_blank" rel="noopener noreferrer">Android-App</a></li>
+                <li><a href={APPSTORE_URL} target="_blank" rel="noopener noreferrer">iPhone-App</a></li>
+                <li><Link href="/login">Anmelden</Link></li>
+                <li><Link href="/signup">Registrieren</Link></li>
+                <li><a href="mailto:info@lernarena.app">Kontakt</a></li>
               </ul>
             </div>
-
-            <div className="mode-card">
-              <div className="mode-head">
-                <div className="mode-icon" style={{ background: t.accentSoft, color: t.accent }}>
-                  ⏱
-                </div>
-                <div>
-                  <div className="mode-name">Prüfungssimulation</div>
-                  <div className="mode-sub">Echte Bedingungen</div>
-                </div>
-              </div>
-              <ul className="mode-list">
-                <li>Timer wie in der echten Prüfung</li>
-                <li>Original IHK-Aufgaben (AE & SI)</li>
-                <li>Scored & bewertet</li>
-              </ul>
-            </div>
-
-            <div className="mode-card">
-              <div className="mode-head">
-                <div className="mode-icon" style={{ background: t.accentSoft, color: t.accent }}>
-                  ⚔
-                </div>
-                <div>
-                  <div className="mode-name">Async-Match</div>
-                  <div className="mode-sub">1v1 Multiplayer</div>
-                </div>
-              </div>
-              <ul className="mode-list">
-                <li>Duelliere dich mit anderen Lernern</li>
-                <li>ELO-Rangliste &amp; Badges</li>
-                <li>Üben mit Spaß-Faktor</li>
+            <div>
+              <h4>Rechtliches</h4>
+              <ul>
+                <li><Link href="/impressum">Impressum</Link></li>
+                <li><Link href="/datenschutz">Datenschutz</Link></li>
+                <li><Link href="/agb">AGB</Link></li>
+                <li><Link href="/account-loeschung">Konto löschen</Link></li>
               </ul>
             </div>
           </div>
-
-          <div className="mode-tip">
-            <span className="mode-tip-label">Tipp</span>
-            <span className="mode-tip-text">
-              Starte mit den Lernpfaden um die Konzepte zu verstehen, festige im
-              Match-Modus und teste dich am Ende mit der Prüfungssimulation.
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section className="section" id="pricing">
-        <div className="section-head">
-          <div className="section-label">Preise</div>
-          <h2 className="section-title">
-            Fair. Transparent. <em>Kein Kleingedrucktes.</em>
-          </h2>
-          <p className="section-desc">
-            Kostenlos anfangen. Upgraden, wenn&apos;s ernst wird. Halbjahr
-            für den Prüfungssprint, Jahr für den besten Preis.
-          </p>
-        </div>
-
-        <div className="pricing-grid">
-          <div className="plan">
-            <div className="plan-name">Free</div>
-            <div className="plan-tag">Für Einsteiger</div>
-            <div className="plan-price">
-              <span className="plan-amount">0€</span>
-              <span className="plan-period">/ für immer</span>
-            </div>
-            <div className="plan-note">Keine Kreditkarte erforderlich</div>
-            <Link href="/signup" className="plan-cta outline">
-              Kostenlos starten
-            </Link>
-            <ul className="plan-features">
-              <li className="plan-feature">Basics-Levels aller Lernpfade</li>
-              <li className="plan-feature">3 Async-Matches pro Tag</li>
-              <li className="plan-feature">Ada-Erklärungen bei Fehlern</li>
-              <li className="plan-feature off">Praxis &amp; Prüfungs-Levels</li>
-              <li className="plan-feature off">Prüfungssimulation</li>
-              <li className="plan-feature off">Cloud-Zertifikate</li>
-            </ul>
-          </div>
-
-          <div className="plan pro">
-            <div className="plan-badge">Empfohlen</div>
-            <div className="plan-name">Premium</div>
-            <div className="plan-tag">Für Prüflinge</div>
-            <div className="plan-price">
-              <span className="plan-amount">11,99€</span>
-              <span className="plan-period">/ Monat</span>
-            </div>
-            <div className="plan-note">Oder 84,99€/Jahr · 41% sparen</div>
-            <Link href="/upgrade" className="plan-cta primary">
-              Premium starten
-            </Link>
-            <ul className="plan-features">
-              <li className="plan-feature">Alle 937 Prüfungsfragen</li>
-              <li className="plan-feature">Alle 33 Levels (Basics, Praxis, Prüfung)</li>
-              <li className="plan-feature">Echte IHK-Prüfungssimulation</li>
-              <li className="plan-feature">Alle 4 Cloud-Zertifikate</li>
-              <li className="plan-feature">Unbegrenzt Ada &amp; Matches</li>
-              <li className="plan-feature">Jederzeit kündbar</li>
-            </ul>
-          </div>
-
-          <div className="plan lifetime">
-            <div className="plan-badge">Beliebt</div>
-            <div className="plan-name">Halbjahr</div>
-            <div className="plan-tag">Prüfungsphase</div>
-            <div className="plan-price">
-              <span className="plan-amount">47,99€</span>
-              <span className="plan-period">/ 6 Monate</span>
-            </div>
-            <div className="plan-note">≈ 8,00€/Monat · deckt die heiße Phase ab</div>
-            <Link href="/upgrade" className="plan-cta outline">
-              Halbjahr starten
-            </Link>
-            <ul className="plan-features">
-              <li className="plan-feature">Alles aus Premium</li>
-              <li className="plan-feature">6 Monate Vollzugang</li>
-              <li className="plan-feature">Cloud-Zertifikate inklusive</li>
-              <li className="plan-feature">Auto-Verlängerung</li>
-              <li className="plan-feature">Jederzeit kündbar</li>
-              <li className="plan-feature">Ideal für AP1- oder AP2-Sprint</li>
-            </ul>
-          </div>
-
-          <div className="plan">
-            <div className="plan-name">Jährlich</div>
-            <div className="plan-tag">Bestpreis</div>
-            <div className="plan-price">
-              <span className="plan-amount">84,99€</span>
-              <span className="plan-period">/ Jahr</span>
-            </div>
-            <div className="plan-note">≈ 7,08€/Monat · 41% sparen</div>
-            <Link href="/upgrade" className="plan-cta outline">
-              Jährlich starten
-            </Link>
-            <ul className="plan-features">
-              <li className="plan-feature">Alles aus Premium</li>
-              <li className="plan-feature">12 Monate Vollzugang</li>
-              <li className="plan-feature">Bester Preis pro Monat</li>
-              <li className="plan-feature">Bevorzugter Support</li>
-              <li className="plan-feature">Früher Zugang zu neuen Features</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* FINAL CTA */}
-      <section className="final-cta">
-        <div className="final-cta-glow" />
-        <div className="final-cta-inner">
-          <div className="section-label" style={{ justifyContent: "center", display: "inline-flex" }}>
-            Los geht&apos;s
-          </div>
-          <h2 className="final-cta-title">
-            Bestehen ist{" "}<br />
-            kein <em>Zufall.</em>
-          </h2>
-          <p className="final-cta-sub">
-            Sondern das Ergebnis von gezielter Vorbereitung. 937 Fragen, drei
-            Lernpfade, ein Tutor der erklärt, ein System das dich nicht vergessen lässt.
-          </p>
-          <div className="hero-actions" style={{ justifyContent: "center", marginBottom: 0 }}>
-            <Link href="/signup" className="btn-primary">
-              Kostenlos registrieren →
-            </Link>
-            <div className="store-badges">
-              <a
-                className="badge-play"
-                href="https://play.google.com/store/apps/details?id=app.lernarena"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Lernarena bei Google Play herunterladen"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/badges/google-play-de.png"
-                  alt="Jetzt bei Google Play"
-                  width={811}
-                  height={241}
-                />
-              </a>
-              <a
-                className="badge-apple"
-                href="https://apps.apple.com/de/app/id6802045311"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Lernarena im App Store laden"
-              >
-                {/* Offizielles Badge aus Apples App Store Marketing Tools.
-                    width/height sind das Seitenverhaeltnis der Grafik, damit
-                    der Browser den Platz vor dem Laden reserviert (kein
-                    Layout-Sprung). Die Anzeigehoehe regelt .store-badges. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/de-de?size=250x83"
-                  alt="Laden im App Store"
-                  width={250}
-                  height={83}
-                />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="footer">
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <Link href="/" className="logo">
-              <span className="logo-dot" />
-              Lernarena
-            </Link>
-            <p className="footer-tagline">
-              Die intelligente Prüfungsvorbereitung für Fachinformatiker und
-              IT-Professionals.
-            </p>
-          </div>
-          <div className="footer-col">
-            <h4>Produkt</h4>
-            <ul>
-              <li><a href="#product">Features</a></li>
-              <li><a href="#pricing">Preise</a></li>
-              <li><Link href="/pruefungen">Prüfungen</Link></li>
-              <li><Link href="/fachinformatiker-pruefung">Prüfungs-Guide</Link></li>
-              <li><a href="#ada">Ada KI-Tutor</a></li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Ressourcen</h4>
-            <ul>
-              <li><Link href="/lernen">Alle Lernthemen</Link></li>
-              <li>
-                <a
-                  href="https://play.google.com/store/apps/details?id=app.lernarena"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Android-App im Play Store
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://apps.apple.com/de/app/id6802045311"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  iPhone-App im App Store
-                </a>
-              </li>
-              <li><Link href="/login">Login</Link></li>
-              <li><Link href="/signup">Registrieren</Link></li>
-              <li><Link href="/profil">Dein Profil</Link></li>
-              <li><a href="mailto:info@lernarena.app">Kontakt</a></li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Legal</h4>
-            <ul>
-              <li><Link href="/impressum">Impressum</Link></li>
-              <li><Link href="/datenschutz">Datenschutz</Link></li>
-              <li><Link href="/agb">AGB</Link></li>
-              <li><Link href="/account-loeschung">Account löschen</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <div className="footer-copy">
-            © {new Date().getFullYear()} LERNARENA · ALLE RECHTE VORBEHALTEN
-          </div>
-          <div className="footer-mini">
-            <span>v0.8.2</span>
-            <span>·</span>
-            <span>STATUS: OPERATIONAL</span>
-          </div>
+          <div className="foot-bottom">© {new Date().getFullYear()} Lernarena</div>
         </div>
       </footer>
     </div>
