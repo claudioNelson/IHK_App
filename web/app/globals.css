@@ -62,14 +62,15 @@ body {
 .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; letter-spacing: -.02em; color: var(--text); text-decoration: none; }
 .logo-mark { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; }
 .logo-mark svg { width: 14px; height: 14px; }
-.nav-links { display: flex; gap: 30px; }
-.nav-links a { font-size: 14.5px; font-weight: 500; color: var(--text-2); }
+.nav-links { display: flex; gap: clamp(18px, 2.4vw, 30px); flex-wrap: nowrap; min-width: 0; }
+.nav-links a { font-size: 14.5px; font-weight: 500; color: var(--text-2); white-space: nowrap; }
 .nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--text); }
-.nav-actions { display: flex; align-items: center; gap: 10px; }
+.nav-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .theme-btn { width: 40px; height: 40px; border-radius: var(--r-btn); border: 1px solid var(--line-2); background: transparent; color: var(--text-2); display: grid; place-items: center; cursor: pointer; }
 .theme-btn:hover { color: var(--text); border-color: var(--accent); }
 .theme-btn svg { width: 17px; height: 17px; }
-.nav-user { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--text-2); }
+.nav-user { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--text-2); min-width: 0; }
+.nav-user .name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nav-user:hover { color: var(--text); }
 .nav-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
 .nav-premium { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 4px 7px; border-radius: 6px; }
