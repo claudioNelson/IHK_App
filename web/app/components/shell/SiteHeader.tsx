@@ -25,11 +25,13 @@ export const DEFAULT_LINKS: NavLink[] = [
   { href: "/#pricing", label: "Preise" },
 ];
 
+// Doktorhut wie im App-Icon (weiss auf Akzentkachel).
 export function LogoMark() {
   return (
     <span className="logo-mark" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M5 12l4 4L19 6" />
+      <svg viewBox="0 0 24 24" fill="#fff">
+        <path d="M12 4.2 1.8 9.4 12 14.6l7.6-3.9v4.6c0 .3.5.4.9.4s.9-.1.9-.4V9.6l.9-.5L12 4.2Z" />
+        <path d="M6.4 12.7v3.6c0 1.6 2.6 2.9 5.6 2.9s5.6-1.3 5.6-2.9v-3.6L12 15.6l-5.6-2.9Z" />
       </svg>
     </span>
   );
@@ -96,7 +98,8 @@ export default function SiteHeader({
   useEffect(() => setMenuOpen(false), [pathname]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    // Nur diesen Browser abmelden, die App bleibt angemeldet.
+    await supabase.auth.signOut({ scope: "local" });
     router.refresh();
   };
 

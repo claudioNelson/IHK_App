@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/client";
 
 export type Tier = "monthly" | "halfyear" | "yearly";
 
-export async function startCheckout(tier: Tier): Promise<string | null> {
+// loginNext: wohin die Anmeldung zurueckfuehrt, wenn niemand angemeldet ist
+// (Standard /upgrade). Wird hier einmal kodiert.
+export async function startCheckout(tier: Tier, loginNext = "/upgrade"): Promise<string | null> {
     const supabase = createClient();
 
     const {
@@ -10,7 +12,7 @@ export async function startCheckout(tier: Tier): Promise<string | null> {
     } = await supabase.auth.getSession();
 
     if (!session) {
-        window.location.href = "/login?next=/upgrade";
+        window.location.href = `/login?next=${encodeURIComponent(loginNext)}`;
         return null;
     }
 

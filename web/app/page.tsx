@@ -116,7 +116,20 @@ export default function LandingPage() {
         .shot img { width: 100%; height: auto; }
 
         /* Hero */
-        .lp .hero { padding-top: clamp(40px, 6vw, 72px); padding-bottom: clamp(48px, 6vw, 80px); }
+        .lp .hero { position: relative; overflow: hidden; padding-top: clamp(40px, 6vw, 72px); padding-bottom: clamp(48px, 6vw, 80px); }
+        /* Hintergrund: zwei weiche Farbflecken und ein feines Punktraster, das nach unten ausblendet */
+        .lp .hero::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+          background: radial-gradient(640px 400px at 78% 42%, var(--accent-soft), transparent 70%),
+                      radial-gradient(460px 320px at 10% 18%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%); }
+        .lp .hero::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+          background-image: radial-gradient(color-mix(in srgb, var(--text) 10%, transparent) 1px, transparent 1px);
+          background-size: 22px 22px;
+          -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.85), transparent 90%); mask-image: linear-gradient(180deg, rgba(0,0,0,.85), transparent 90%); }
+        .hero-grid { position: relative; z-index: 1; }
+        .hero-note { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: -6px; font-size: 13.5px; color: var(--text-3); }
+        .hero-note li { display: flex; align-items: center; gap: 7px; }
+        .hero-note svg { width: 15px; height: 15px; color: var(--ok); flex: 0 0 auto; }
+        .hero-shot .shot { box-shadow: 0 40px 80px -30px color-mix(in srgb, var(--accent) 45%, transparent), var(--shadow); }
         .hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .9fr); gap: clamp(32px, 6vw, 88px); align-items: center; }
         .hero-copy { display: flex; flex-direction: column; gap: 26px; }
         .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -138,7 +151,7 @@ export default function LandingPage() {
         .cell-a .ico { grid-column: 1; grid-row: 1; align-self: start; margin-bottom: 0; }
         .cell-a .cell-text { grid-column: 1; grid-row: 2; max-width: none; }
         .cell-a .shot { grid-column: 2; grid-row: 1 / span 2; width: 100%; }
-        .cell-b { grid-column: span 2; background: linear-gradient(160deg, rgba(124,109,255,.22), rgba(124,109,255,.04) 60%), var(--surface); }
+        .cell-b { grid-column: span 2; background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, transparent), color-mix(in srgb, var(--accent) 4%, transparent) 60%), var(--surface); }
         .cell-c { grid-column: span 2; }
         .cell-d { grid-column: span 3; background: var(--bg-2); }
         .cell-e { grid-column: span 3; background: linear-gradient(200deg, rgba(16,185,129,.16), rgba(16,185,129,.02) 55%), var(--surface); }
@@ -228,6 +241,11 @@ export default function LandingPage() {
                 <a className="btn btn-primary" href="#laden">Kostenlos laden</a>
                 <a className="btn btn-ghost" href="#product">Funktionen ansehen</a>
               </div>
+              <ul className="hero-note" aria-label="Kurz und knapp">
+                <li><Check />Ohne Konto ausprobieren</li>
+                <li><Check />Android und iPhone</li>
+                <li><Check />Ada erklärt dir jede Antwort</li>
+              </ul>
             </div>
             <figure className="hero-shot reveal">
               <Shot src="/screenshots/hub.png" alt="Lernarena Startbildschirm: Countdown zur AP1 mit Tagesplan" eager />

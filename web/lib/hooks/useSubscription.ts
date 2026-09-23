@@ -8,22 +8,29 @@ const defaultStatus: SubscriptionStatus = {
     isPremium: false,
     tier: null,
     expiresAt: null,
-    expiryLabel: "Free",
+    expiryLabel: "Kostenlos",
     loaded: false,
 };
 
+function datumDe(d: Date): string {
+    return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+// Kurztext zur Laufzeit, z. B. "Läuft noch 1 Tag, bis 14.03.2027" oder
+// "Läuft noch 5 Monate, bis 14.03.2027".
 function computeExpiryLabel(isPremium: boolean, tier: PremiumTier | null, expiresAt: Date | null): string {
-    if (!isPremium) return "Free";
-    if (tier === "lifetime") return "Lifetime";
+    if (tier === "lifetime" && isPremium) return "Dauerhaft";
+    if (!isPremium) return expiresAt && expiresAt < new Date() ? "Abgelaufen" : "Kostenlos";
     if (!expiresAt) return "Aktiv";
 
-    const now = new Date();
-    const days = Math.round((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const days = Math.floor((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    const bis = `bis ${datumDe(expiresAt)}`;
 
     if (days < 0) return "Abgelaufen";
-    if (days < 30) return `Läuft in ${days} Tagen ab`;
+    if (days === 0) return `Läuft heute ab, ${bis}`;
+    if (days < 30) return `Läuft noch ${days} ${days === 1 ? "Tag" : "Tage"}, ${bis}`;
     const months = Math.round(days / 30);
-    return `Läuft in ${months} Monaten ab`;
+    return `Läuft noch ${months} ${months === 1 ? "Monat" : "Monate"}, ${bis}`;
 }
 
 export function useSubscription() {
@@ -80,7 +87,7 @@ export function useSubscription() {
     useEffect(() => {
         load();
 
-        // Bei Auth-Changes neu laden (Login/Logout)
+        // Bei Anmelden oder Abmelden neu laden
         const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
             load();
         });

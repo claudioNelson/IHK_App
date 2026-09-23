@@ -1,77 +1,94 @@
 "use server";
 
+// Server Actions fuer Anmelden und Registrieren. Fehler kommen als
+// Supabase-Code zurueck (nicht als englische Meldung), die Formulare
+// uebersetzen sie ueber app/components/konto/fehler.ts. Bei Erfolg leitet
+// die Action selbst weiter (redirect wirft und beendet die Action).
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { sichererPfad } from "@/app/components/konto/fehler";
 
-export async function login(formData: FormData) {
+export type AuthErgebnis =
+    | { ok: false; code: string; reasons?: string[] }
+    | { ok: true; email: string };
+
+const PASSWORT_MIN = 8;
+
+function siteUrl() {
+    return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+}
+
+export async function login(formData: FormData): Promise<AuthErgebnis> {
     const supabase = await createClient();
 
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+    const next = sichererPfad(formData.get("next") as string | null);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-        redirect(`/login?error=${encodeURIComponent(error.message)}`);
+        return {
+            ok: false,
+            code: error.code ?? (error.status === 400 ? "invalid_credentials" : "unbekannt"),
+        };
     }
 
     revalidatePath("/", "layout");
-    redirect("/pruefungen");
+    redirect(next);
 }
 
-export async function signup(formData: FormData) {
+export async function signup(formData: FormData): Promise<AuthErgebnis> {
     const supabase = await createClient();
 
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const passwordConfirm = formData.get("passwordConfirm") as string;
-    const username = (formData.get("username") as string)?.trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+    const username = String(formData.get("username") ?? "").trim();
+    const agb = formData.get("agb") === "on";
+    const next = sichererPfad(formData.get("next") as string | null);
 
-    // Validierung: Username
-    if (!username || username.length < 3) {
-        redirect(`/signup?error=${encodeURIComponent("Benutzername muss mindestens 3 Zeichen lang sein.")}`);
-    }
-
-    // Validierung: Passwörter müssen übereinstimmen
-    if (password !== passwordConfirm) {
-        redirect(`/signup?error=${encodeURIComponent("Passwörter stimmen nicht überein.")}`);
-    }
-
-    // Validierung: Mindestlänge
-    if (password.length < 6) {
-        redirect(`/signup?error=${encodeURIComponent("Das Passwort muss mindestens 6 Zeichen lang sein.")}`);
-    }
+    // Die Formulare pruefen das schon, hier nur als Absicherung.
+    if (username.length < 3) return { ok: false, code: "username_too_short" };
+    if (password.length < PASSWORT_MIN) return { ok: false, code: "weak_password" };
+    if (!agb) return { ok: false, code: "agb_missing" };
 
     const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
-            // → user_metadata; Trigger erstellt den profiles-Eintrag und liest
+            emailRedirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
+            // user_metadata; Trigger erstellt den profiles-Eintrag und liest
             // 'plattform' fuer die Store-Auswertung (Migration 20260920030000).
             data: { username, plattform: "web" },
         },
     });
 
     if (error) {
-        redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+        const reasons = (error as { reasons?: string[] }).reasons;
+        return { ok: false, code: error.code ?? "unbekannt", reasons };
     }
 
     // Bereits registrierte E-Mail: Supabase liefert einen User mit leerem
     // identities-Array (kein Error, um E-Mail-Enumeration zu verhindern).
     if (data.user && data.user.identities && data.user.identities.length === 0) {
-        redirect(
-            `/signup?error=${encodeURIComponent("Diese E-Mail-Adresse ist bereits registriert. Bitte melde dich an.")}`,
-        );
+        return { ok: false, code: "user_already_exists" };
     }
 
-    redirect("/signup?success=1");
+    // Ohne E-Mail-Bestaetigung (Projekteinstellung) gibt es sofort eine Sitzung.
+    if (data.session) {
+        revalidatePath("/", "layout");
+        redirect(next);
+    }
+
+    return { ok: true, email };
 }
 
 export async function logout() {
     const supabase = await createClient();
-    await supabase.auth.signOut();
+    // Nur diese Sitzung beenden, die App bleibt angemeldet.
+    await supabase.auth.signOut({ scope: "local" });
     revalidatePath("/", "layout");
     redirect("/");
 }

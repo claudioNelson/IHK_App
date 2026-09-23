@@ -1,4 +1,4 @@
-export type PremiumTier = "monthly" | "yearly" | "lifetime";
+export type PremiumTier = "monthly" | "halfyear" | "yearly" | "lifetime";
 
 export interface Profile {
     id: string;
