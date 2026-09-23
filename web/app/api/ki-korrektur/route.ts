@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { exams } from "@/data/exams";
+import { createClient } from "@/lib/supabase/server";
 
 // KI-Prüfungskorrektur: Claude Haiku (primär) mit Groq-Fallback.
+//
+// Zugriff: nur eingeloggte Premium-Nutzer. Die Prüfung wird über ihre ID
+// serverseitig geladen, der Client schickt nur { examId, answers }. Damit
+// kann niemand mit beliebigem Inhalt die KI auf unsere Kosten aufrufen.
 // Keys kommen aus den Vercel-Umgebungsvariablen:
 //   ANTHROPIC_API_KEY  (primär)
 //   GROQ_API_KEY       (Fallback)
@@ -103,13 +109,83 @@ function normalizeResult(raw: unknown, examTotalPoints: number): unknown {
   return result;
 }
 
+// Einfaches Rate-Limit pro Nutzer. Lebt nur im Speicher der jeweiligen
+// Serverless-Instanz, ist also keine harte Grenze, faengt aber Doppelklicks
+// und Skripte ab. Eine Korrektur kostet uns Geld, mehr als ein paar pro
+// Stunde braucht niemand.
+const LIMIT_ANFRAGEN = 6;
+const LIMIT_FENSTER_MS = 60 * 60 * 1000;
+const anfragen = new Map<string, number[]>();
+
+function rateLimitErreicht(userId: string): boolean {
+  const jetzt = Date.now();
+  const liste = (anfragen.get(userId) ?? []).filter((t) => jetzt - t < LIMIT_FENSTER_MS);
+  if (liste.length >= LIMIT_ANFRAGEN) {
+    anfragen.set(userId, liste);
+    return true;
+  }
+  liste.push(jetzt);
+  anfragen.set(userId, liste);
+  return false;
+}
+
+// Antworten auf ein Objekt aus Strings reduzieren und pro Antwort begrenzen,
+// damit der Prompt nicht beliebig gross wird.
+const MAX_ANTWORT_ZEICHEN = 8000;
+
+function antwortenBereinigen(raw: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!raw || typeof raw !== "object") return out;
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value !== "string") continue;
+    out[key] = value.slice(0, MAX_ANTWORT_ZEICHEN);
+  }
+  return out;
+}
+
 export async function POST(request: NextRequest) {
   if (!ANTHROPIC_API_KEY && !GROQ_API_KEY) {
     return NextResponse.json({ error: "API Key nicht konfiguriert" }, { status: 500 });
   }
 
   try {
-    const { exam, answers } = await request.json();
+    // ─── Zugriff: eingeloggt und Premium ─────────────────────
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Bitte melde dich an." }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_premium, premium_tier, premium_until")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    let isPremium = profile?.is_premium === true;
+    if (isPremium && profile?.premium_tier !== "lifetime" && profile?.premium_until) {
+      const until = new Date(profile.premium_until);
+      if (!isNaN(until.getTime()) && until < new Date()) isPremium = false;
+    }
+    if (!isPremium) {
+      return NextResponse.json({ error: "Die KI-Korrektur ist Teil von Premium." }, { status: 403 });
+    }
+
+    if (rateLimitErreicht(user.id)) {
+      return NextResponse.json(
+        { error: "Zu viele Korrekturen in kurzer Zeit. Bitte versuche es später noch einmal." },
+        { status: 429 },
+      );
+    }
+
+    // ─── Eingabe: nur ID und Antworten ───────────────────────
+    const body = await request.json();
+    const examId = typeof body?.examId === "string" ? body.examId : "";
+    const exam = exams[examId];
+    if (!exam) {
+      return NextResponse.json({ error: "Prüfung nicht gefunden." }, { status: 404 });
+    }
+    const answers = antwortenBereinigen(body?.answers);
 
     // Prompt bauen
     let prompt = `Du bist ein strenger aber fairer IHK-Prüfer für Fachinformatiker.

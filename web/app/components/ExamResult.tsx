@@ -173,10 +173,17 @@ export default function ExamResult({ exam, completed, answers, onReset }: ExamRe
       const response = await fetch("/api/ki-korrektur", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exam, answers, completed }),
+        // Nur die ID: Die Prüfung selbst lädt der Server, der Zugriff wird
+        // dort geprüft.
+        body: JSON.stringify({ examId: exam.id, answers, completed }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Unbekannter Fehler");
+      let data: { error?: string; result?: unknown; feedback?: string } = {};
+      try {
+        data = await response.json();
+      } catch {
+        // z. B. HTML-Fehlerseite vom Proxy statt JSON
+      }
+      if (!response.ok) throw new Error(data.error || `Fehler ${response.status}`);
       if (data.result) {
         const result = reconcileKiResult(data.result as KiResult);
         setKiResult(result);
