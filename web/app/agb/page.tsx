@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import RechtSeite from "../components/RechtSeite";
+import { LsAbschnitt, LsHinweis } from "../lernen/_components/LsBausteine";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "AGB",
   description: "Allgemeine Geschäftsbedingungen von Lernarena",
+  alternates: {
+    canonical: "https://lernarena.app/agb",
+  },
 };
 
 // Festes Datum der letzten inhaltlichen Änderung.
@@ -14,45 +20,40 @@ const sections = [
     id: "geltungsbereich",
     title: "1. Geltungsbereich",
     content: (
-      <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+      <>
         <p>
           Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle
           Verträge zwischen
         </p>
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-1">
-          <p className="font-medium">Claudio Medeiros Magalhaes</p>
-          <p>Westfalenweg 3, 49504 Lotte</p>
-          <p>
-            E-Mail:{" "}
-            <a
-              href="mailto:info@lernarena.app"
-              className="text-blue-700 hover:underline"
-            >
-              info@lernarena.app
-            </a>
-          </p>
-          <p className="text-gray-500 text-xs pt-1">(nachfolgend „Anbieter“)</p>
-        </div>
+        <p>
+          <strong>Claudio Medeiros Magalhaes</strong>
+          <br />
+          Westfalenweg 3, 49504 Lotte
+          <br />
+          E-Mail: <a href="mailto:info@lernarena.app">info@lernarena.app</a>
+          <br />
+          (nachfolgend „Anbieter“)
+        </p>
         <p>
           und den Nutzern der mobilen App sowie der Web-App „Lernarena“
           (nachfolgend „Nutzer“). Abweichende Bedingungen des Nutzers werden
           nicht anerkannt, es sei denn, der Anbieter stimmt diesen ausdrücklich
           schriftlich zu.
         </p>
-      </div>
+      </>
     ),
   },
   {
     id: "leistungen",
     title: "2. Leistungsbeschreibung",
     content: (
-      <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+      <>
         <p>
           Lernarena ist eine digitale Lernplattform, die IT-Auszubildende
           (insbesondere Fachinformatiker) bei der Vorbereitung auf die IHK-Prüfung
           unterstützt. Die Plattform bietet:
         </p>
-        <ul className="list-disc list-inside text-gray-600 space-y-1">
+        <ul>
           <li>Modulbasiertes Lernen mit Prüfungsfragen</li>
           <li>Karteikarten mit Wiederholungssystem</li>
           <li>Arena-Duelle gegen andere Lernende</li>
@@ -60,20 +61,22 @@ const sections = [
           <li>Prüfungssimulationen im IHK-Stil mit KI-Korrektur (Premium)</li>
           <li>Zertifizierungsvorbereitung (AWS, Azure, GCP, SAP)</li>
         </ul>
-        <p className="mt-2 text-gray-500 italic">
-          Lernarena steht in keiner offiziellen Verbindung zur IHK oder anderen
-          Prüfungsbehörden. Die Inhalte dienen ausschließlich der
-          Prüfungsvorbereitung und erheben keinen Anspruch auf Vollständigkeit
-          oder Aktualität im Sinne offizieller Prüfungsunterlagen.
+        <p>
+          <em>
+            Lernarena steht in keiner offiziellen Verbindung zur IHK oder anderen
+            Prüfungsbehörden. Die Inhalte dienen ausschließlich der
+            Prüfungsvorbereitung und erheben keinen Anspruch auf Vollständigkeit
+            oder Aktualität im Sinne offizieller Prüfungsunterlagen.
+          </em>
         </p>
-      </div>
+      </>
     ),
   },
   {
     id: "registrierung",
     title: "3. Registrierung und Nutzerkonto",
     content: (
-      <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+      <>
         <p>
           Lernarena kann zunächst als Gast ohne Registrierung ausprobiert
           werden. Für den vollen Funktionsumfang, die Synchronisation zwischen
@@ -91,77 +94,71 @@ const sections = [
           sich vor, Accounts bei Verstößen gegen diese AGB zu sperren oder zu
           löschen.
         </p>
-      </div>
+      </>
     ),
   },
   {
     id: "free-premium",
     title: "4. Kostenloser Tarif und Premium",
     content: (
-      <div className="text-gray-700 text-sm leading-relaxed space-y-4">
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">4.1 Kostenloser Tarif</h3>
-          <p>
-            Der kostenlose Tarif beinhaltet einen eingeschränkten
-            Zugang zu den Lernfunktionen. Der Anbieter behält sich vor, den
-            Umfang des kostenlosen Angebots jederzeit anzupassen.
-          </p>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">4.2 Premium</h3>
-          <p>
-            Premium bietet unbegrenzten Zugang zu allen Funktionen und ist in
-            folgenden Varianten erhältlich:
-          </p>
-          <ul className="list-disc list-inside text-gray-600 space-y-1 mt-2">
-            <li>Monatlich: 11,99 € / Monat</li>
-            <li>Halbjährlich: 47,99 € / 6 Monate (entspricht ca. 8,00 € / Monat)</li>
-            <li>Jährlich: 84,99 € / Jahr (entspricht ca. 7,08 € / Monat)</li>
-          </ul>
-          <p className="mt-2">
-            Alle Preise sind Endpreise. Die Umsatzsteuer-Behandlung hängt vom
-            Kaufweg ab:
-          </p>
-          <ul className="list-disc list-inside text-gray-600 space-y-1 mt-1">
-            <li>
-              <strong>Kauf über die Web-App (Zahlung via Stripe):</strong> Der
-              Anbieter ist Kleinunternehmer im Sinne von § 19 UStG; es wird
-              keine Umsatzsteuer ausgewiesen.
-            </li>
-            <li>
-              <strong>Kauf über Google Play:</strong> Die Zahlung wird über
-              Google Play abgewickelt. Eine etwaig anfallende Umsatzsteuer wird
-              von Google im Rahmen seines Bezahlsystems behandelt; es gelten die
-              im Google Play Store angezeigten Endpreise.
-            </li>
-            <li>
-              <strong>Kauf über den Apple App Store:</strong> Die Zahlung wird
-              über Apple abgewickelt. Eine etwaig anfallende Umsatzsteuer wird
-              von Apple im Rahmen seines Bezahlsystems behandelt; es gelten die
-              im App Store angezeigten Endpreise.
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">
-            4.3 Laufzeit und Verlängerung
-          </h3>
-          <p>
-            Alle Abonnements (monatlich, halbjährlich, jährlich) verlängern sich
-            automatisch um die jeweilige Laufzeit, wenn sie nicht rechtzeitig vor
-            Ablauf gekündigt werden (siehe Abschnitt 6).
-          </p>
-        </div>
-      </div>
+      <>
+        <h3>4.1 Kostenloser Tarif</h3>
+        <p>
+          Der kostenlose Tarif beinhaltet einen eingeschränkten
+          Zugang zu den Lernfunktionen. Der Anbieter behält sich vor, den
+          Umfang des kostenlosen Angebots jederzeit anzupassen.
+        </p>
+
+        <h3>4.2 Premium</h3>
+        <p>
+          Premium bietet unbegrenzten Zugang zu allen Funktionen und ist in
+          folgenden Varianten erhältlich:
+        </p>
+        <ul>
+          <li>Monatlich: 11,99 € / Monat</li>
+          <li>Halbjährlich: 47,99 € / 6 Monate (entspricht ca. 8,00 € / Monat)</li>
+          <li>Jährlich: 84,99 € / Jahr (entspricht ca. 7,08 € / Monat)</li>
+        </ul>
+        <p>
+          Alle Preise sind Endpreise. Die Umsatzsteuer-Behandlung hängt vom
+          Kaufweg ab:
+        </p>
+        <ul>
+          <li>
+            <strong>Kauf über die Web-App (Zahlung via Stripe):</strong> Der
+            Anbieter ist Kleinunternehmer im Sinne von § 19 UStG; es wird
+            keine Umsatzsteuer ausgewiesen.
+          </li>
+          <li>
+            <strong>Kauf über Google Play:</strong> Die Zahlung wird über
+            Google Play abgewickelt. Eine etwaig anfallende Umsatzsteuer wird
+            von Google im Rahmen seines Bezahlsystems behandelt; es gelten die
+            im Google Play Store angezeigten Endpreise.
+          </li>
+          <li>
+            <strong>Kauf über den Apple App Store:</strong> Die Zahlung wird
+            über Apple abgewickelt. Eine etwaig anfallende Umsatzsteuer wird
+            von Apple im Rahmen seines Bezahlsystems behandelt; es gelten die
+            im App Store angezeigten Endpreise.
+          </li>
+        </ul>
+
+        <h3>4.3 Laufzeit und Verlängerung</h3>
+        <p>
+          Alle Abonnements (monatlich, halbjährlich, jährlich) verlängern sich
+          automatisch um die jeweilige Laufzeit, wenn sie nicht rechtzeitig vor
+          Ablauf gekündigt werden (siehe Abschnitt 6).
+        </p>
+      </>
     ),
   },
   {
     id: "zahlung",
     title: "5. Zahlung",
     content: (
-      <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+      <>
         <p>Der Kaufweg richtet sich nach der genutzten Plattform:</p>
-        <ul className="list-disc list-inside text-gray-600 space-y-1">
+        <ul>
           <li>
             In der <strong>Android-App</strong> erfolgt die Abrechnung über
             Google Play.
@@ -182,167 +179,153 @@ const sections = [
           sich der Anbieter vor, den Zugang zu Premium-Funktionen zu
           unterbrechen.
         </p>
-      </div>
+      </>
     ),
   },
   {
     id: "kuendigung",
     title: "6. Kündigung und Widerrufsrecht",
     content: (
-      <div className="text-gray-700 text-sm leading-relaxed space-y-4">
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">6.1 Kündigung</h3>
+      <>
+        <h3>6.1 Kündigung</h3>
+        <p>
+          Alle Abonnements können jederzeit zum Ende des laufenden
+          Abrechnungszeitraums gekündigt werden. Der Kündigungsweg
+          richtet sich nach dem Kaufkanal:
+        </p>
+        <ul>
+          <li>
+            Über Google Play gekaufte Abonnements werden über die
+            Abo-Einstellungen des Google-Play-Kontos gekündigt.
+          </li>
+          <li>
+            Über den Apple App Store gekaufte Abonnements werden in den
+            Abo-Einstellungen der Apple-ID (Einstellungen, Apple-ID,
+            Abonnements) gekündigt.
+          </li>
+          <li>
+            Über die Web-App (Stripe) gekaufte Abonnements können jederzeit
+            selbst über die Abo-Verwaltung im eigenen Konto („Abo verwalten“)
+            gekündigt werden. Die Kündigung wird zum Ende des laufenden
+            Abrechnungszeitraums wirksam; der Zugang bleibt bis dahin bestehen.
+          </li>
+        </ul>
+
+        <h3>6.2 Widerrufsrecht für Verbraucher</h3>
+        <p>
+          Verbraucher haben das Recht, einen Vertrag innerhalb von{" "}
+          <strong>14 Tagen</strong> ohne Angabe von Gründen zu widerrufen.
+          Die Einzelheiten ergeben sich aus der nachstehenden
+          Widerrufsbelehrung (6.3).
+        </p>
+        <ul>
+          <li>
+            Bei Kauf über die <strong>Web-App (Stripe)</strong> richtest du
+            den Widerruf direkt an den Anbieter (siehe Widerrufsbelehrung).
+          </li>
+          <li>
+            Bei Kauf über <strong>Google Play</strong> oder den{" "}
+            <strong>Apple App Store</strong> erfolgt die Rückabwicklung über
+            den Erstattungsprozess des jeweiligen Stores; dein gesetzliches
+            Widerrufsrecht gegenüber dem Anbieter bleibt unberührt.
+          </li>
+        </ul>
+
+        <h3>6.3 Widerrufsbelehrung</h3>
+        <LsHinweis titel="Widerrufsbelehrung" icon="buch" label="Widerrufsbelehrung">
           <p>
-            Alle Abonnements können jederzeit zum Ende des laufenden
-            Abrechnungszeitraums gekündigt werden. Der Kündigungsweg
-            richtet sich nach dem Kaufkanal:
+            <strong>Widerrufsrecht</strong>
           </p>
-          <ul className="list-disc list-inside text-gray-600 space-y-1 mt-1">
-            <li>
-              Über Google Play gekaufte Abonnements werden über die
-              Abo-Einstellungen des Google-Play-Kontos gekündigt.
-            </li>
-            <li>
-              Über den Apple App Store gekaufte Abonnements werden in den
-              Abo-Einstellungen der Apple-ID (Einstellungen, Apple-ID,
-              Abonnements) gekündigt.
-            </li>
-            <li>
-              Über die Web-App (Stripe) gekaufte Abonnements können jederzeit
-              selbst über die Abo-Verwaltung im eigenen Konto („Abo verwalten“)
-              gekündigt werden. Die Kündigung wird zum Ende des laufenden
-              Abrechnungszeitraums wirksam; der Zugang bleibt bis dahin bestehen.
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">
-            6.2 Widerrufsrecht für Verbraucher
-          </h3>
           <p>
-            Verbraucher haben das Recht, einen Vertrag innerhalb von{" "}
-            <strong>14 Tagen</strong> ohne Angabe von Gründen zu widerrufen.
-            Die Einzelheiten ergeben sich aus der nachstehenden
-            Widerrufsbelehrung (6.3).
+            Sie haben das Recht, binnen vierzehn Tagen ohne Angabe von Gründen
+            diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn
+            Tage ab dem Tag des Vertragsabschlusses.
           </p>
-          <ul className="list-disc list-inside text-gray-600 space-y-1 mt-1">
-            <li>
-              Bei Kauf über die <strong>Web-App (Stripe)</strong> richtest du
-              den Widerruf direkt an den Anbieter (siehe Widerrufsbelehrung).
-            </li>
-            <li>
-              Bei Kauf über <strong>Google Play</strong> oder den{" "}
-              <strong>Apple App Store</strong> erfolgt die Rückabwicklung über
-              den Erstattungsprozess des jeweiligen Stores; dein gesetzliches
-              Widerrufsrecht gegenüber dem Anbieter bleibt unberührt.
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">
-            6.3 Widerrufsbelehrung
-          </h3>
-          <div className="border border-gray-200 rounded-lg p-4 space-y-3 text-gray-700">
-            <p className="font-semibold">Widerrufsrecht</p>
-            <p>
-              Sie haben das Recht, binnen vierzehn Tagen ohne Angabe von Gründen
-              diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn
-              Tage ab dem Tag des Vertragsabschlusses.
-            </p>
-            <p>
-              Um Ihr Widerrufsrecht auszuüben, müssen Sie uns (Claudio Medeiros
-              Magalhaes, Westfalenweg 3, 49504 Lotte, E-Mail:
-              info@lernarena.app) mittels einer eindeutigen Erklärung (z. B. ein
-              mit der Post versandter Brief oder eine E-Mail) über Ihren
-              Entschluss, diesen Vertrag zu widerrufen, informieren. Sie können
-              dafür das nachstehende Muster-Widerrufsformular verwenden, das
-              jedoch nicht vorgeschrieben ist.
-            </p>
-            <p>
-              Zur Wahrung der Widerrufsfrist reicht es aus, dass Sie die
-              Mitteilung über die Ausübung des Widerrufsrechts vor Ablauf der
-              Widerrufsfrist absenden.
-            </p>
-            <p className="font-semibold">Folgen des Widerrufs</p>
-            <p>
-              Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle
-              Zahlungen, die wir von Ihnen erhalten haben, unverzüglich und
-              spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem
-              die Mitteilung über Ihren Widerruf dieses Vertrags bei uns
-              eingegangen ist. Für diese Rückzahlung verwenden wir dasselbe
-              Zahlungsmittel, das Sie bei der ursprünglichen Transaktion
-              eingesetzt haben, es sei denn, mit Ihnen wurde ausdrücklich etwas
-              anderes vereinbart; in keinem Fall werden Ihnen wegen dieser
-              Rückzahlung Entgelte berechnet.
-            </p>
-            <p>
-              Haben Sie verlangt, dass die Dienstleistungen während der
-              Widerrufsfrist beginnen sollen, so haben Sie uns einen
-              angemessenen Betrag zu zahlen, der dem Anteil der bis zu dem
-              Zeitpunkt, zu dem Sie uns von der Ausübung des Widerrufsrechts
-              hinsichtlich dieses Vertrags unterrichten, bereits erbrachten
-              Dienstleistungen im Vergleich zum Gesamtumfang der im Vertrag
-              vorgesehenen Dienstleistungen entspricht.
-            </p>
-          </div>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">
-            6.4 Muster-Widerrufsformular
-          </h3>
-          <div className="border border-gray-200 rounded-lg p-4 space-y-2 text-gray-700">
-            <p className="italic text-gray-500">
-              (Wenn Sie den Vertrag widerrufen wollen, dann füllen Sie bitte
-              dieses Formular aus und senden Sie es zurück.)
-            </p>
-            <ul className="list-disc list-inside space-y-1">
-              <li>
-                An Claudio Medeiros Magalhaes, Westfalenweg 3, 49504 Lotte,
-                E-Mail: info@lernarena.app:
-              </li>
-              <li>
-                Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*)
-                abgeschlossenen Vertrag über die Erbringung der folgenden
-                Dienstleistung (*)
-              </li>
-              <li>Bestellt am (*)</li>
-              <li>Name des/der Verbraucher(s)</li>
-              <li>Anschrift des/der Verbraucher(s)</li>
-              <li>
-                Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf
-                Papier)
-              </li>
-              <li>Datum</li>
-            </ul>
-            <p className="text-gray-500 text-xs">
-              (*) Unzutreffendes streichen.
-            </p>
-          </div>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">
-            6.5 Kontolöschung
-          </h3>
           <p>
-            Der Nutzer kann sein Konto jederzeit löschen lassen. Wie das geht,
-            steht auf der Seite{" "}
-            <Link href="/account-loeschung" className="text-blue-700 hover:underline">
-              Konto löschen
-            </Link>
-            . Mit der Löschung endet der Zugang zu allen gespeicherten Daten
-            und Fortschritten.
+            Um Ihr Widerrufsrecht auszuüben, müssen Sie uns (Claudio Medeiros
+            Magalhaes, Westfalenweg 3, 49504 Lotte, E-Mail:
+            info@lernarena.app) mittels einer eindeutigen Erklärung (z. B. ein
+            mit der Post versandter Brief oder eine E-Mail) über Ihren
+            Entschluss, diesen Vertrag zu widerrufen, informieren. Sie können
+            dafür das nachstehende Muster-Widerrufsformular verwenden, das
+            jedoch nicht vorgeschrieben ist.
           </p>
-        </div>
-      </div>
+          <p>
+            Zur Wahrung der Widerrufsfrist reicht es aus, dass Sie die
+            Mitteilung über die Ausübung des Widerrufsrechts vor Ablauf der
+            Widerrufsfrist absenden.
+          </p>
+          <p>
+            <strong>Folgen des Widerrufs</strong>
+          </p>
+          <p>
+            Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle
+            Zahlungen, die wir von Ihnen erhalten haben, unverzüglich und
+            spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem
+            die Mitteilung über Ihren Widerruf dieses Vertrags bei uns
+            eingegangen ist. Für diese Rückzahlung verwenden wir dasselbe
+            Zahlungsmittel, das Sie bei der ursprünglichen Transaktion
+            eingesetzt haben, es sei denn, mit Ihnen wurde ausdrücklich etwas
+            anderes vereinbart; in keinem Fall werden Ihnen wegen dieser
+            Rückzahlung Entgelte berechnet.
+          </p>
+          <p>
+            Haben Sie verlangt, dass die Dienstleistungen während der
+            Widerrufsfrist beginnen sollen, so haben Sie uns einen
+            angemessenen Betrag zu zahlen, der dem Anteil der bis zu dem
+            Zeitpunkt, zu dem Sie uns von der Ausübung des Widerrufsrechts
+            hinsichtlich dieses Vertrags unterrichten, bereits erbrachten
+            Dienstleistungen im Vergleich zum Gesamtumfang der im Vertrag
+            vorgesehenen Dienstleistungen entspricht.
+          </p>
+        </LsHinweis>
+
+        <h3>6.4 Muster-Widerrufsformular</h3>
+        <p>
+          <em>
+            (Wenn Sie den Vertrag widerrufen wollen, dann füllen Sie bitte
+            dieses Formular aus und senden Sie es zurück.)
+          </em>
+        </p>
+        <ul>
+          <li>
+            An Claudio Medeiros Magalhaes, Westfalenweg 3, 49504 Lotte,
+            E-Mail: info@lernarena.app:
+          </li>
+          <li>
+            Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*)
+            abgeschlossenen Vertrag über die Erbringung der folgenden
+            Dienstleistung (*)
+          </li>
+          <li>Bestellt am (*)</li>
+          <li>Name des/der Verbraucher(s)</li>
+          <li>Anschrift des/der Verbraucher(s)</li>
+          <li>
+            Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf
+            Papier)
+          </li>
+          <li>Datum</li>
+        </ul>
+        <p>(*) Unzutreffendes streichen.</p>
+
+        <h3>6.5 Kontolöschung</h3>
+        <p>
+          Der Nutzer kann sein Konto jederzeit löschen lassen. Wie das geht,
+          steht auf der Seite{" "}
+          <Link href="/account-loeschung">Konto löschen</Link>
+          . Mit der Löschung endet der Zugang zu allen gespeicherten Daten
+          und Fortschritten.
+        </p>
+      </>
     ),
   },
   {
     id: "nutzungsregeln",
     title: "7. Nutzungsregeln und Pflichten",
     content: (
-      <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+      <>
         <p>Der Nutzer verpflichtet sich, die Plattform nicht zu missbrauchen. Insbesondere ist es untersagt:</p>
-        <ul className="list-disc list-inside text-gray-600 space-y-1">
+        <ul>
           <li>Automatisierte Anfragen oder Scraping durchzuführen</li>
           <li>Zugangsdaten weiterzugeben oder zu verkaufen</li>
           <li>Die Plattform für rechtswidrige Zwecke zu nutzen</li>
@@ -355,14 +338,14 @@ const sections = [
           Bei Verstößen behält sich der Anbieter vor, den Account ohne
           Vorwarnung zu sperren.
         </p>
-      </div>
+      </>
     ),
   },
   {
     id: "haftung",
     title: "8. Haftungsbeschränkung",
     content: (
-      <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+      <>
         <p>
           Der Anbieter haftet unbeschränkt für Schäden aus der Verletzung des
           Lebens, des Körpers oder der Gesundheit sowie bei Vorsatz und grober
@@ -380,65 +363,55 @@ const sections = [
           sichergestellt, jedoch nicht garantiert. Wartungsarbeiten können zu
           vorübergehenden Einschränkungen führen.
         </p>
-      </div>
+      </>
     ),
   },
   {
     id: "aenderungen",
     title: "9. Änderungen der AGB",
     content: (
-      <div className="text-gray-700 text-sm leading-relaxed space-y-4">
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">
-            9.1 Geringfügige Änderungen
-          </h3>
-          <p>
-            Änderungen, die für den Nutzer lediglich vorteilhaft oder rechtlich
-            bzw. technisch unwesentlich sind (z. B. Anpassungen an eine
-            geänderte Gesetzeslage, redaktionelle Korrekturen oder die Ergänzung
-            neuer Funktionen ohne Einfluss auf bestehende Hauptleistungen oder
-            Preise), bietet der Anbieter dem Nutzer mindestens 6 Wochen vor dem
-            geplanten Inkrafttreten in Textform (z. B. per E-Mail oder
-            In-App-Benachrichtigung) an. Die Änderung gilt nur dann als
-            angenommen, wenn der Nutzer ihr nicht bis zum Inkrafttreten
-            widerspricht. Auf diese Bedeutung seines Schweigens sowie auf sein
-            Widerspruchs- und Kündigungsrecht weist der Anbieter im
-            Änderungsangebot gesondert hin. Widerspricht der Nutzer, kann jede
-            Partei den Vertrag zum Zeitpunkt des geplanten Inkrafttretens
-            kündigen.
-          </p>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">
-            9.2 Wesentliche Änderungen
-          </h3>
-          <p>
-            Wesentliche Änderungen, insbesondere Änderungen der Preise, des
-            Leistungsumfangs oder sonstiger vertraglicher Hauptpflichten,
-            bedürfen der ausdrücklichen Zustimmung des Nutzers. Bloßes Schweigen
-            gilt insoweit nicht als Zustimmung. Ohne ausdrückliche Zustimmung
-            gilt der Vertrag zu den bisherigen Bedingungen fort; der Anbieter
-            kann den Vertrag in diesem Fall zum nächsten zulässigen Zeitpunkt
-            kündigen.
-          </p>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-800 mb-1">
-            9.3 Bereits bezahlte Leistungen
-          </h3>
-          <p>
-            Bereits abgeschlossene und vollständig bezahlte Leistungen bleiben
-            von Preisänderungen unberührt.
-          </p>
-        </div>
-      </div>
+      <>
+        <h3>9.1 Geringfügige Änderungen</h3>
+        <p>
+          Änderungen, die für den Nutzer lediglich vorteilhaft oder rechtlich
+          bzw. technisch unwesentlich sind (z. B. Anpassungen an eine
+          geänderte Gesetzeslage, redaktionelle Korrekturen oder die Ergänzung
+          neuer Funktionen ohne Einfluss auf bestehende Hauptleistungen oder
+          Preise), bietet der Anbieter dem Nutzer mindestens 6 Wochen vor dem
+          geplanten Inkrafttreten in Textform (z. B. per E-Mail oder
+          In-App-Benachrichtigung) an. Die Änderung gilt nur dann als
+          angenommen, wenn der Nutzer ihr nicht bis zum Inkrafttreten
+          widerspricht. Auf diese Bedeutung seines Schweigens sowie auf sein
+          Widerspruchs- und Kündigungsrecht weist der Anbieter im
+          Änderungsangebot gesondert hin. Widerspricht der Nutzer, kann jede
+          Partei den Vertrag zum Zeitpunkt des geplanten Inkrafttretens
+          kündigen.
+        </p>
+
+        <h3>9.2 Wesentliche Änderungen</h3>
+        <p>
+          Wesentliche Änderungen, insbesondere Änderungen der Preise, des
+          Leistungsumfangs oder sonstiger vertraglicher Hauptpflichten,
+          bedürfen der ausdrücklichen Zustimmung des Nutzers. Bloßes Schweigen
+          gilt insoweit nicht als Zustimmung. Ohne ausdrückliche Zustimmung
+          gilt der Vertrag zu den bisherigen Bedingungen fort; der Anbieter
+          kann den Vertrag in diesem Fall zum nächsten zulässigen Zeitpunkt
+          kündigen.
+        </p>
+
+        <h3>9.3 Bereits bezahlte Leistungen</h3>
+        <p>
+          Bereits abgeschlossene und vollständig bezahlte Leistungen bleiben
+          von Preisänderungen unberührt.
+        </p>
+      </>
     ),
   },
   {
     id: "schlussbestimmungen",
     title: "10. Schlussbestimmungen",
     content: (
-      <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+      <>
         <p>
           Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des
           UN-Kaufrechts. Für Verbraucher innerhalb der EU bleiben zwingende
@@ -455,89 +428,24 @@ const sections = [
           Wirksamkeit der übrigen Bestimmungen davon unberührt.
         </p>
         <p>Stand: {STAND}</p>
-      </div>
+      </>
     ),
   },
 ];
 
 export default function AGBPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-900">
-            Lernarena
-          </Link>
-          <Link
-            href="/"
-            className="text-sm text-gray-500 hover:text-blue-900 transition"
-          >
-            Zurück zur Startseite
-          </Link>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-6 py-16 max-w-3xl">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
-          Allgemeine Geschäftsbedingungen
-        </h1>
-        <p className="text-gray-500 mb-12">Zuletzt aktualisiert: {STAND}</p>
-
-        {/* Table of contents */}
-        <nav className="bg-white rounded-2xl p-6 border border-gray-200 mb-8">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            Inhalt
-          </p>
-          <ol className="space-y-1">
-            {sections.map((s) => (
-              <li key={s.id}>
-                <a
-                  href={`#${s.id}`}
-                  className="text-sm text-blue-700 hover:underline"
-                >
-                  {s.title}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-
-        {/* Sections */}
-        <div className="space-y-6">
-          {sections.map((s) => (
-            <section
-              key={s.id}
-              id={s.id}
-              className="bg-white rounded-2xl p-8 border border-gray-200 scroll-mt-8"
-            >
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                {s.title}
-              </h2>
-              {s.content}
-            </section>
-          ))}
-        </div>
-
-        {/* Footer nav */}
-        <div className="flex gap-6 text-sm text-gray-500 mt-12">
-          <Link href="/impressum" className="hover:text-blue-700 transition">
-            Impressum
-          </Link>
-          <Link href="/datenschutz" className="hover:text-blue-700 transition">
-            Datenschutzerklärung
-          </Link>
-          <Link href="/" className="hover:text-blue-700 transition">
-            Startseite
-          </Link>
-        </div>
-      </main>
-
-      <footer className="border-t border-gray-200 py-8 mt-8">
-        <div className="container mx-auto px-6 text-center text-sm text-gray-400">
-          © {new Date().getFullYear()} Lernarena. Alle Rechte vorbehalten.
-        </div>
-      </footer>
-    </div>
+    <RechtSeite
+      titel="Allgemeine Geschäftsbedingungen"
+      untertitel={<>Zuletzt aktualisiert: {STAND}</>}
+      pfad="AGB"
+      abschnitte={sections.map((s) => ({ id: s.id, titel: s.title }))}
+    >
+      {sections.map((s) => (
+        <LsAbschnitt key={s.id} id={s.id} titel={s.title}>
+          {s.content}
+        </LsAbschnitt>
+      ))}
+    </RechtSeite>
   );
 }
