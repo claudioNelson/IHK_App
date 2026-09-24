@@ -17,19 +17,19 @@ export default function ClassNode({ data }: { data: ClassNodeData }) {
         <div className="class-node">
             <style>{`
                 .class-node {
-                    background: #FFFFFF;
-                    border: 1.5px solid #7C6DFF;
-                    border-radius: 10px;
+                    background: var(--surface);
+                    border: 1.5px solid var(--accent);
+                    border-radius: var(--r-btn);
                     min-width: 180px;
-                    box-shadow: 0 4px 12px rgba(124,109,255,0.10);
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    box-shadow: var(--shadow);
+                    font-family: var(--font-sans);
                     overflow: hidden;
                 }
 
                 /* Klassenname Header */
                 .class-node-header {
-                    background: linear-gradient(135deg, #7C6DFF, #6856E6);
-                    color: #FFFFFF;
+                    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+                    color: #fff;
                     padding: 10px 14px;
                     text-align: center;
                     font-weight: 600;
@@ -42,22 +42,22 @@ export default function ClassNode({ data }: { data: ClassNodeData }) {
                 .class-node-section {
                     padding: 8px 12px;
                     min-height: 28px;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 11px;
-                    color: #0A0A0F;
+                    color: var(--text);
                     line-height: 1.55;
                     white-space: pre-wrap;
                     word-break: break-word;
                 }
                 .class-node-section.empty {
-                    color: #C0C0C8;
+                    color: var(--text-3);
                     font-style: italic;
                 }
 
                 /* Trenner zwischen Attribute und Methoden */
                 .class-node-divider {
                     height: 1px;
-                    background: rgba(124,109,255,0.20);
+                    background: color-mix(in srgb, var(--accent) 20%, transparent);
                     margin: 0;
                 }
 
@@ -65,11 +65,11 @@ export default function ClassNode({ data }: { data: ClassNodeData }) {
                 .class-node :global(.react-flow__handle) {
                     width: 8px;
                     height: 8px;
-                    background: #7C6DFF;
-                    border: 2px solid #FFFFFF;
+                    background: var(--accent);
+                    border: 2px solid var(--surface);
                 }
                 .class-node :global(.react-flow__handle:hover) {
-                    background: #6856E6;
+                    background: var(--accent-2);
                     transform: scale(1.3);
                 }
             `}</style>

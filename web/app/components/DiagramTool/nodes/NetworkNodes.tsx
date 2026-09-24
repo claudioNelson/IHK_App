@@ -2,18 +2,18 @@
 
 import { Handle, Position } from "reactflow";
 
-const EMERALD = "#10B981";
-const EMERALD_DARK = "#047857";
-const RED_FIREWALL = "#DC2626";
+const EMERALD = "var(--accent)";
+const EMERALD_DARK = "var(--accent-2)";
+const RED_FIREWALL = "var(--err)";
 
 // Wiederverwendbare Handles
 function AllHandles({ color = EMERALD }: { color?: string }) {
     return (
         <>
-            <Handle type="target" position={Position.Top}    id="top"    style={{ background: color, border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: color, border: '2px solid #fff' }} />
-            <Handle type="target" position={Position.Left}   id="left"   style={{ background: color, border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Right}  id="right"  style={{ background: color, border: '2px solid #fff' }} />
+            <Handle type="target" position={Position.Top}    id="top"    style={{ background: color, border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: color, border: '2px solid var(--surface)' }} />
+            <Handle type="target" position={Position.Left}   id="left"   style={{ background: color, border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Right}  id="right"  style={{ background: color, border: '2px solid var(--surface)' }} />
         </>
     );
 }
@@ -26,19 +26,19 @@ interface ServerData { label: string; description?: string; }
 export function ServerNode({ data }: { data: ServerData }) {
     return (
         <div style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             border: `1.5px solid ${EMERALD}`,
             borderRadius: 8,
             minWidth: 130,
-            boxShadow: `0 4px 12px ${EMERALD}25`,
-            fontFamily: "'Inter Tight', system-ui, sans-serif",
+            boxShadow: `0 4px 12px color-mix(in srgb, ${EMERALD} 18%, transparent)`,
+            fontFamily: "var(--font-sans)",
             overflow: 'hidden',
         }}>
             <AllHandles />
             <div style={{
                 padding: '8px 14px',
                 background: `linear-gradient(135deg, ${EMERALD}, ${EMERALD_DARK})`,
-                color: '#FFFFFF',
+                color: '#fff',
                 textAlign: 'center',
                 fontWeight: 600,
                 fontSize: 13,
@@ -47,15 +47,14 @@ export function ServerNode({ data }: { data: ServerData }) {
                 justifyContent: 'center',
                 gap: 6,
             }}>
-                <span style={{ fontSize: 14 }}>🖥️</span>
                 {data.label || "Server"}
             </div>
             {data.description && (
                 <div style={{
                     padding: '8px 12px',
-                    fontFamily: "'JetBrains Mono', monospace",
+                    fontFamily: "var(--font-mono)",
                     fontSize: 11,
-                    color: '#0A0A0F',
+                    color: 'var(--text)',
                     lineHeight: 1.5,
                     whiteSpace: 'pre-wrap',
                 }}>
@@ -74,19 +73,19 @@ interface FirewallData { label: string; description?: string; }
 export function FirewallNode({ data }: { data: FirewallData }) {
     return (
         <div style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             border: `2px solid ${RED_FIREWALL}`,
             borderRadius: 8,
             minWidth: 130,
-            boxShadow: `0 4px 12px ${RED_FIREWALL}30`,
-            fontFamily: "'Inter Tight', system-ui, sans-serif",
+            boxShadow: `0 4px 12px color-mix(in srgb, ${RED_FIREWALL} 20%, transparent)`,
+            fontFamily: "var(--font-sans)",
             overflow: 'hidden',
         }}>
             <AllHandles color={RED_FIREWALL} />
             <div style={{
                 padding: '8px 14px',
-                background: `linear-gradient(135deg, ${RED_FIREWALL}, #991B1B)`,
-                color: '#FFFFFF',
+                background: RED_FIREWALL,
+                color: '#fff',
                 textAlign: 'center',
                 fontWeight: 700,
                 fontSize: 12,
@@ -96,19 +95,19 @@ export function FirewallNode({ data }: { data: FirewallData }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono)",
             }}>
-                🔥 {data.label || "Firewall"}
+                {data.label || "Firewall"}
             </div>
             {data.description && (
                 <div style={{
                     padding: '8px 12px',
-                    fontFamily: "'JetBrains Mono', monospace",
+                    fontFamily: "var(--font-mono)",
                     fontSize: 11,
-                    color: '#0A0A0F',
+                    color: 'var(--text)',
                     lineHeight: 1.5,
                     whiteSpace: 'pre-wrap',
-                    background: '#FEF2F2',
+                    background: 'var(--err-soft)',
                 }}>
                     {data.description}
                 </div>
@@ -125,13 +124,13 @@ interface ZoneData { label: string; description?: string; }
 export function ZoneNode({ data }: { data: ZoneData }) {
     return (
         <div style={{
-            background: `${EMERALD}08`,
+            background: `color-mix(in srgb, ${EMERALD} 6%, transparent)`,
             border: `2px dashed ${EMERALD}`,
             borderRadius: 12,
             minWidth: 220,
             minHeight: 120,
             padding: '14px',
-            fontFamily: "'Inter Tight', system-ui, sans-serif",
+            fontFamily: "var(--font-sans)",
             position: 'relative',
         }}>
             <AllHandles />
@@ -140,10 +139,10 @@ export function ZoneNode({ data }: { data: ZoneData }) {
                 top: 8,
                 left: 14,
                 background: EMERALD,
-                color: '#FFFFFF',
+                color: '#fff',
                 padding: '3px 10px',
                 borderRadius: 5,
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono)",
                 fontSize: 10,
                 fontWeight: 700,
                 letterSpacing: '1px',
@@ -155,9 +154,9 @@ export function ZoneNode({ data }: { data: ZoneData }) {
                 <div style={{
                     marginTop: 24,
                     padding: '8px 0 0',
-                    fontFamily: "'JetBrains Mono', monospace",
+                    fontFamily: "var(--font-mono)",
                     fontSize: 11,
-                    color: EMERALD_DARK,
+                    color: EMERALD,
                     lineHeight: 1.5,
                     whiteSpace: 'pre-wrap',
                     fontStyle: 'italic',
@@ -177,28 +176,27 @@ interface InternetData { label: string; }
 export function InternetNode({ data }: { data: InternetData }) {
     return (
         <div style={{
-            background: '#FFFFFF',
-            border: `2px solid #6B7280`,
+            background: 'var(--surface)',
+            border: `2px solid var(--line-2)`,
             borderRadius: 30,
             padding: '12px 24px',
             minWidth: 140,
             textAlign: 'center',
-            boxShadow: '0 4px 12px rgba(107,114,128,0.20)',
-            fontFamily: "'Inter Tight', system-ui, sans-serif",
+            boxShadow: 'var(--shadow)',
+            fontFamily: "var(--font-sans)",
             fontWeight: 600,
             fontSize: 13,
-            color: '#0A0A0F',
+            color: 'var(--text)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: 8,
             position: 'relative',
         }}>
-            <Handle type="target" position={Position.Top}    id="top"    style={{ background: '#6B7280', border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: '#6B7280', border: '2px solid #fff' }} />
-            <Handle type="target" position={Position.Left}   id="left"   style={{ background: '#6B7280', border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Right}  id="right"  style={{ background: '#6B7280', border: '2px solid #fff' }} />
-            <span style={{ fontSize: 16 }}>🌐</span>
+            <Handle type="target" position={Position.Top}    id="top"    style={{ background: 'var(--text-3)', border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: 'var(--text-3)', border: '2px solid var(--surface)' }} />
+            <Handle type="target" position={Position.Left}   id="left"   style={{ background: 'var(--text-3)', border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Right}  id="right"  style={{ background: 'var(--text-3)', border: '2px solid var(--surface)' }} />
             {data.label || "Internet"}
         </div>
     );

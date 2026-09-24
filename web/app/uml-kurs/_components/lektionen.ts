@@ -11,7 +11,7 @@ export const lektionen: Lektion[] = [
   { nr: 4, slug: "lektion-4", titel: "Klassendiagramm II: Vererbung, Komposition, Code", untertitel: "Vererbung, Aggregation, Komposition, abstrakte Klassen und der Weg vom Diagramm zum Code.", dauer: 30, projekt: false },
   { nr: 5, slug: "lektion-5", titel: "Aktivitätsdiagramm", untertitel: "Aktionen, Verzweigungen, Parallelität und Schwimmbahnen.", dauer: 25, projekt: false },
   { nr: 6, slug: "lektion-6", titel: "Sequenz- und Zustandsdiagramm", untertitel: "Nachrichten in zeitlicher Abfolge und Zustände mit ihren Übergängen.", dauer: 30, projekt: false },
-  { nr: 7, slug: "lektion-7", titel: "Prüfungstraining", untertitel: "Komplette Aufgaben im IHK-Stil mit Musterlösung und Bewertung.", dauer: 40, projekt: true, marke: "Prüfung" },
+  { nr: 7, slug: "lektion-7", titel: "Prüfungstraining", untertitel: "Komplette Aufgaben im IHK-Stil mit Musterlösung und Bewertung.", dauer: 85, projekt: true, marke: "Prüfung" },
 ];
 
 export const umlKurs: Kurs = {

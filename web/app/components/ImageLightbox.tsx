@@ -63,8 +63,8 @@ export default function ImageLightbox({ src, alt, onClose }: ImageLightboxProps)
                     border-radius: 20px;
                     background: rgba(255, 255, 255, 0.1);
                     border: 1px solid rgba(255, 255, 255, 0.2);
-                    color: #FFFFFF;
-                    font-family: 'JetBrains Mono', monospace;
+                    color: #fff;
+                    font-family: var(--font-mono);
                     font-size: 18px;
                     cursor: pointer;
                     display: flex;
@@ -80,7 +80,7 @@ export default function ImageLightbox({ src, alt, onClose }: ImageLightboxProps)
                     bottom: 20px;
                     left: 50%;
                     transform: translateX(-50%);
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 11px;
                     color: rgba(255, 255, 255, 0.6);
                     letter-spacing: 1px;

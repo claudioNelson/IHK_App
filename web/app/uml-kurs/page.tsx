@@ -40,11 +40,11 @@ const faq: FaqEintrag[] = [
   },
   {
     q: "Nach welcher UML-Version richtet sich der Kurs?",
-    a: "Nach UML 2.5, der aktuellen Fassung. Die IHK-Aufgaben nutzen genau diese gängige Notation. Wo es in der Praxis mehrere übliche Schreibweisen gibt, zeigt der Kurs die, die in Prüfungen und Musterlösungen am häufigsten vorkommt.",
+    a: "Nach UML 2.5, der aktuellen Fassung. Die IHK-Aufgaben nutzen überwiegend diese Notation. Wo es in der Praxis mehrere übliche Schreibweisen gibt, zeigt der Kurs die, die in Prüfungen und Musterlösungen am häufigsten vorkommt.",
   },
   {
     q: "Ist der Kurs für Anwendungsentwickler oder für Systemintegratoren?",
-    a: "Für beide. In der AP1 kann UML alle Fachrichtungen treffen. In der AP2 ist UML bei Anwendungsentwicklern ein Dauerbrenner, bei Systemintegratoren kommt vor allem das Aktivitätsdiagramm vor.",
+    a: "Für beide. In der AP1 kann UML alle Fachrichtungen treffen. In der AP2 ist UML bei Anwendungsentwicklern ein Dauerbrenner, bei Systemintegratoren kommt UML in der AP2 selten vor, am ehesten als Ablaufdarstellung.",
   },
   {
     q: "Muss ich programmieren können?",

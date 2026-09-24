@@ -17,7 +17,7 @@ import { umlKurs } from "../_components/lektionen";
 export const metadata: Metadata = {
   title: "UML Lektion 7: Prüfungstraining mit IHK-Aufgaben",
   description:
-    "Drei komplette UML-Prüfungsaufgaben im IHK-Stil: Use-Case- und Klassendiagramm für die AP1, Vererbung mit Pseudocode für die AP2 Anwendungsentwicklung und ein Aktivitätsdiagramm für Systemintegration. Mit Musterlösung, Bewertungsschema und typischen Punktabzügen.",
+    "Drei komplette UML-Prüfungsaufgaben im IHK-Stil: Use-Case- und Klassendiagramm als Grundlagen für AP1 und AP2, Vererbung mit Pseudocode und ein Aktivitätsdiagramm für die AP2 Anwendungsentwicklung. Mit Musterlösung, Bewertungsschema und typischen Punktabzügen.",
   alternates: { canonical: "https://lernarena.app/uml-kurs/lektion-7" },
 };
 
@@ -151,7 +151,7 @@ export default function Lektion7() {
         </p>
         <ul>
           <li>
-            <strong>Aufgabe 1</strong> (AP1): Use-Case- und Klassendiagramm zu einem kleinen
+            <strong>Aufgabe 1</strong> (Grundlagen, AP1/AP2): Use-Case- und Klassendiagramm zu einem kleinen
             System. Grundlage sind <Link href="/uml-kurs/lektion-2">Lektion 2</Link> und{" "}
             <Link href="/uml-kurs/lektion-3">Lektion 3</Link>.
           </li>
@@ -161,8 +161,8 @@ export default function Lektion7() {
             <Link href="/uml-kurs/lektion-4">Lektion 4</Link>.
           </li>
           <li>
-            <strong>Aufgabe 3</strong> (AP2, auch für Systemintegration): Aktivitätsdiagramm mit
-            Verzweigung und Parallelität. Grundlage ist{" "}
+            <strong>Aufgabe 3</strong> (AP2): Aktivitätsdiagramm mit Verzweigung und
+            Parallelität. Grundlage ist{" "}
             <Link href="/uml-kurs/lektion-5">Lektion 5</Link>.
           </li>
         </ul>
@@ -190,7 +190,10 @@ export default function Lektion7() {
                 Das Ersatzrad ist ein Zusatz, den der Kunde nur manchmal wählt: <code>«extend»</code>,
                 der Pfeil zeigt auf den erweiterten Fall „Termin buchen“. Die Rechnung entsteht bei
                 jedem Abschluss: <code>«include»</code>, der Pfeil zeigt auf den eingebundenen Fall
-                „Rechnung erstellen“. Das System selbst und die Datenbank sind keine Akteure.
+                „Rechnung erstellen“. Die Bedingung für das extend steht in einer Notiz an der
+                Beziehung. Das System selbst und die Datenbank sind keine Akteure. Zusätzliche
+                Fälle wie „Termin verschieben“ (Kunde) oder „Mechaniker zuordnen“ (Werkstattleitung
+                als dritter Akteur) sind vertretbar und geben keinen Abzug.
               </p>
               <Bewertung
                 titel="So wird bewertet, a) (Richtwerte)"
@@ -198,7 +201,8 @@ export default function Lektion7() {
                   ["Systemgrenze als Rechteck mit Namen", 1],
                   ["Akteure Kunde und Mechaniker außerhalb der Systemgrenze, je 1 Punkt", 2],
                   ["Anwendungsfälle Termin buchen, Termin absagen, Auftrag abschließen mit Assoziationen zum richtigen Akteur, je 1 Punkt", 3],
-                  ["Ersatzrad reservieren mit «extend», Pfeil zu Termin buchen", 2],
+                  ["Ersatzrad reservieren mit «extend», Pfeil zu Termin buchen", 1],
+                  ["Bedingung am extend angegeben, etwa als Notiz „Kunde wünscht Ersatzrad“", 1],
                   ["Rechnung erstellen mit «include», Pfeil von Auftrag abschließen", 2],
                 ]}
               />
@@ -241,7 +245,7 @@ export default function Lektion7() {
 
               <Abzuege
                 punkte={[
-                  "Pfeilrichtung bei «include» oder «extend» vertauscht. Merksatz: Der Pfeil zeigt immer auf den Fall, der eingebunden oder erweitert wird, bei extend also auf den Basisfall.",
+                  "Pfeilrichtung bei «include» oder «extend» vertauscht. Eselsbrücke aus Lektion 2: include zeigt weg, extend zeigt hin. Der Pfeil startet beim Fall, der den anderen kennt, bei extend also bei der Erweiterung und zeigt auf den Basisfall.",
                   "Einzelne Bedienschritte als Anwendungsfall, etwa „Button Buchen klicken“. Ein Anwendungsfall ist ein Ziel des Akteurs.",
                   "Fahrrad als Attribut im Kunden statt als eigene Klasse, obwohl es eigene Daten hat.",
                   "Am Mechaniker eine 1 statt 0..1, obwohl der Text sagt, dass bei der Buchung noch keiner zugeordnet ist.",
@@ -266,9 +270,11 @@ export default function Lektion7() {
               Kundennummer, Name und Telefonnummer. Jeder Kunde meldet mindestens ein Fahrrad mit
               Rahmennummer, Marke und Typ an. Ein Termin gilt für genau ein Fahrrad und hat einen
               Beginn, eine Dauer in Minuten und einen Status; er kann abgesagt und auf einen neuen
-              Zeitpunkt verschoben werden. Mechaniker haben eine Personalnummer und einen Namen,
-              und es soll prüfbar sein, ob ein Mechaniker zu einem Zeitpunkt frei ist. Einem Termin
-              wird höchstens ein Mechaniker zugeordnet, bei der Buchung noch keiner.
+              Zeitpunkt verschoben werden; Kunden können einen gebuchten Termin auch selbst
+              verschieben. Mechaniker haben eine Personalnummer und einen Namen, und es soll
+              prüfbar sein, ob ein Mechaniker zu einem Zeitpunkt frei ist. Einem Termin wird
+              höchstens ein Mechaniker zugeordnet, bei der Buchung noch keiner; die Zuordnung
+              nimmt die Werkstattleitung vor.
             </p>
             <p>
               <strong>a)</strong> Erstellen Sie ein Use-Case-Diagramm für die Terminverwaltung.
@@ -302,8 +308,10 @@ export default function Lektion7() {
                 Attribute nicht. Transporter überschreibt <code>berechnePreis()</code>, weil die
                 Pauschale dazukommt, und braucht dafür Zugriff auf den Minutenpreis; deshalb ist{" "}
                 <code>preisProMinute</code> geschützt (<code>#</code>). Privat mit einem Getter
-                wäre ebenso richtig. Der Pfeil von Fahrt zu Fahrzeug folgt aus „die Fahrt muss ihr
-                Fahrzeug kennen, umgekehrt nicht“.
+                wäre ebenso richtig. Ebenfalls richtig: <code>berechnePreis()</code> in Fahrzeug
+                abstrakt lassen und in beiden Unterklassen umsetzen. Der Pfeil von Fahrt zu Fahrzeug
+                folgt aus „die Fahrt muss ihr Fahrzeug kennen, umgekehrt nicht“; der Rollenname{" "}
+                <code>fahrzeug</code> am Pfeilende ist zugleich der Attributname für den Pseudocode.
               </p>
               <Bewertung
                 titel="So wird bewertet, a) (Richtwerte)"
@@ -312,7 +320,7 @@ export default function Lektion7() {
                   ["Fahrzeug als abstrakt gekennzeichnet (kursiv oder {abstract})", 1],
                   ["Vererbung mit leerem Dreieck an Fahrzeug, geerbte Attribute nicht wiederholt", 2],
                   ["Attribute mit Sichtbarkeit und Datentyp, Zugriff der Unterklasse auf den Minutenpreis gelöst", 3],
-                  ["Methoden berechnePreis() in Fahrzeug und Transporter, mussLaden(), berechneKosten()", 2],
+                  ["Methoden berechnePreis() in Fahrzeug und Transporter (alternativ abstrakt in Fahrzeug und in beiden Unterklassen umgesetzt), mussLaden(), berechneKosten()", 2],
                   ["Assoziationen mit Multiplizitäten, Navigierbarkeit von Fahrt zu Fahrzeug", 2],
                 ]}
               />
@@ -387,8 +395,9 @@ export default function Lektion7() {
               Reinigungspauschale von 5,00 Euro hinzu. Kunden mit Kundennummer und Namen können
               beliebig viele Fahrten machen. Eine Fahrt speichert Start, Ende und die gefahrenen
               Kilometer und bezieht sich auf genau ein Fahrzeug; die Fahrt muss ihr Fahrzeug
-              kennen, umgekehrt nicht. Die Kosten einer Fahrt sind der Preis des Fahrzeugs,
-              höchstens aber 79,00 Euro; zusätzlich kostet jeder Kilometer über 100 km 0,30 Euro.
+              kennen, umgekehrt nicht. Die Kosten einer Fahrt ergeben sich aus dem Zeitpreis des
+              Fahrzeugs; der Zeitpreis wird auf höchstens 79,00 Euro begrenzt. Danach kommt für
+              jeden Kilometer über 100 km ein Zuschlag von 0,30 Euro hinzu.
             </p>
             <p>
               <strong>a)</strong> Erstellen Sie ein Klassendiagramm mit Attributen, Datentypen,
@@ -419,9 +428,12 @@ export default function Lektion7() {
               <p className="pk-bewertung-titel">Lösung a) Aktivitätsdiagramm</p>
               <OnboardingAktivitaet />
               <p>
-                „Gleichzeitig“ im Text ist das Signal für eine Gabelung (Balken). Innerhalb des
-                Hardware-Strangs steckt eine Entscheidung (Raute mit zwei Wächtern), die vor der
-                Vereinigung wieder zusammengeführt wird. „Erst wenn beides erledigt ist“ ist die
+                Die erste Aktion „Onboarding-Ticket anlegen“ gehört der Personalabteilung, erst
+                danach prüft die IT das Ticket. „Gleichzeitig“ im Text ist das Signal für eine
+                Gabelung (Balken). Im Hardware-Strang steht vor der Raute die Aktion „Lagerbestand
+                prüfen“, denn die Entscheidung braucht ein Ergebnis, das sie auswerten kann; dann
+                folgt die Entscheidung (Raute mit zwei Wächtern), die vor der Vereinigung wieder
+                zusammengeführt wird. „Erst wenn beides erledigt ist“ ist die
                 Vereinigung: Sie wartet, bis beide Stränge angekommen sind. Schwimmbahnen für
                 Personalabteilung und IT wären möglich, sind hier aber nicht gefordert.
               </p>
@@ -429,7 +441,7 @@ export default function Lektion7() {
                 titel="So wird bewertet, a) (Richtwerte)"
                 zeilen={[
                   ["Startknoten und Endknoten", 1],
-                  ["Aktionen vollständig, als Tätigkeit formuliert und in sinnvoller Reihenfolge", 5],
+                  ["Aktionen vollständig (mit Onboarding-Ticket anlegen und Lagerbestand prüfen), als Tätigkeit formuliert und in sinnvoller Reihenfolge", 5],
                   ["Gabelung und Vereinigung als Balken an der richtigen Stelle", 3],
                   ["Verzweigung mit Wächtern [auf Lager] und [nicht auf Lager]", 2],
                   ["Zusammenführung der beiden Hardware-Wege vor der Vereinigung", 2],
@@ -442,8 +454,9 @@ export default function Lektion7() {
                 Mögliche Antwort: „An einer Verzweigung (Raute) wird genau <strong>ein</strong>{" "}
                 Weg gewählt, abhängig vom Wächter: Das Notebook wird entweder reserviert oder
                 bestellt. An einer Gabelung (Balken) laufen <strong>alle</strong> ausgehenden Wege
-                gleichzeitig los: Hardware und Konten werden parallel vorbereitet. Die zugehörige
-                Vereinigung wartet, bis alle Wege fertig sind.“
+                unabhängig voneinander los (parallel, die Reihenfolge ist egal): Hardware und
+                Konten werden parallel vorbereitet. Die zugehörige Vereinigung wartet, bis alle
+                Wege fertig sind.“
               </p>
               <Bewertung
                 titel="So wird bewertet, b) (Richtwerte)"

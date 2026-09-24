@@ -2,17 +2,17 @@
 
 import { Handle, Position } from "reactflow";
 
-const CYAN = "#22D3EE";
-const CYAN_DARK = "#0891B2";
+const CYAN = "var(--accent)";
+const CYAN_DARK = "var(--accent-2)";
 
 // Wiederverwendbarer Handle-Block für alle Knoten
 function AllHandles({ color = CYAN }: { color?: string }) {
     return (
         <>
-            <Handle type="target" position={Position.Top}    id="top"    style={{ background: color, border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: color, border: '2px solid #fff' }} />
-            <Handle type="target" position={Position.Left}   id="left"   style={{ background: color, border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Right}  id="right"  style={{ background: color, border: '2px solid #fff' }} />
+            <Handle type="target" position={Position.Top}    id="top"    style={{ background: color, border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: color, border: '2px solid var(--surface)' }} />
+            <Handle type="target" position={Position.Left}   id="left"   style={{ background: color, border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Right}  id="right"  style={{ background: color, border: '2px solid var(--surface)' }} />
         </>
     );
 }
@@ -24,14 +24,14 @@ export function StartNode() {
     return (
         <div style={{
             width: 36, height: 36, borderRadius: '50%',
-            background: '#0A0A0F',
-            boxShadow: '0 4px 12px rgba(10,10,15,0.20)',
+            background: 'var(--text)',
+            boxShadow: 'var(--shadow)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: CYAN, border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Top} id="top" style={{ background: CYAN, border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Left} id="left" style={{ background: CYAN, border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Right} id="right" style={{ background: CYAN, border: '2px solid #fff' }} />
+            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: CYAN, border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Top} id="top" style={{ background: CYAN, border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Left} id="left" style={{ background: CYAN, border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Right} id="right" style={{ background: CYAN, border: '2px solid var(--surface)' }} />
         </div>
     );
 }
@@ -43,18 +43,18 @@ export function EndNode() {
     return (
         <div style={{
             width: 36, height: 36, borderRadius: '50%',
-            border: '2.5px solid #0A0A0F',
-            background: '#FFFFFF',
+            border: '2.5px solid var(--text)',
+            background: 'var(--surface)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(10,10,15,0.15)',
+            boxShadow: 'var(--shadow)',
         }}>
-            <Handle type="target" position={Position.Top} id="top" style={{ background: CYAN, border: '2px solid #fff' }} />
-            <Handle type="target" position={Position.Bottom} id="bottom" style={{ background: CYAN, border: '2px solid #fff' }} />
-            <Handle type="target" position={Position.Left} id="left" style={{ background: CYAN, border: '2px solid #fff' }} />
-            <Handle type="target" position={Position.Right} id="right" style={{ background: CYAN, border: '2px solid #fff' }} />
+            <Handle type="target" position={Position.Top} id="top" style={{ background: CYAN, border: '2px solid var(--surface)' }} />
+            <Handle type="target" position={Position.Bottom} id="bottom" style={{ background: CYAN, border: '2px solid var(--surface)' }} />
+            <Handle type="target" position={Position.Left} id="left" style={{ background: CYAN, border: '2px solid var(--surface)' }} />
+            <Handle type="target" position={Position.Right} id="right" style={{ background: CYAN, border: '2px solid var(--surface)' }} />
             <div style={{
                 width: 18, height: 18, borderRadius: '50%',
-                background: '#0A0A0F',
+                background: 'var(--text)',
             }} />
         </div>
     );
@@ -68,20 +68,20 @@ interface ActionData { label: string; description?: string; }
 export function ActionNode({ data }: { data: ActionData }) {
     return (
         <div style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             border: `1.5px solid ${CYAN}`,
             borderRadius: 18,
             minWidth: 140,
             maxWidth: 220,
-            boxShadow: `0 4px 12px ${CYAN}25`,
-            fontFamily: "'Inter Tight', system-ui, sans-serif",
+            boxShadow: `0 4px 12px color-mix(in srgb, ${CYAN} 18%, transparent)`,
+            fontFamily: "var(--font-sans)",
             overflow: 'hidden',
         }}>
             <AllHandles />
             <div style={{
                 padding: '8px 14px',
                 background: `linear-gradient(135deg, ${CYAN}, ${CYAN_DARK})`,
-                color: '#FFFFFF',
+                color: '#fff',
                 textAlign: 'center',
                 fontWeight: 600,
                 fontSize: 13,
@@ -93,7 +93,7 @@ export function ActionNode({ data }: { data: ActionData }) {
                 <div style={{
                     padding: '8px 12px',
                     fontSize: 11,
-                    color: '#55555F',
+                    color: 'var(--text-2)',
                     lineHeight: 1.5,
                     whiteSpace: 'pre-wrap',
                 }}>
@@ -119,27 +119,27 @@ export function DecisionNode({ data }: { data: DecisionData }) {
             alignItems: 'center',
             justifyContent: 'center',
         }}>
-            <Handle type="target" position={Position.Top}    id="top"    style={{ background: CYAN, border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: CYAN, border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Left}   id="left"   style={{ background: CYAN, border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Right}  id="right"  style={{ background: CYAN, border: '2px solid #fff' }} />
+            <Handle type="target" position={Position.Top}    id="top"    style={{ background: CYAN, border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: CYAN, border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Left}   id="left"   style={{ background: CYAN, border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Right}  id="right"  style={{ background: CYAN, border: '2px solid var(--surface)' }} />
             <div style={{
                 position: 'absolute',
                 inset: 10,
-                background: '#FFFFFF',
+                background: 'var(--surface)',
                 border: `1.5px solid ${CYAN}`,
                 transform: 'rotate(45deg)',
-                boxShadow: `0 4px 12px ${CYAN}25`,
+                boxShadow: `0 4px 12px color-mix(in srgb, ${CYAN} 18%, transparent)`,
             }} />
             <span style={{
                 position: 'relative',
                 zIndex: 10,
                 fontSize: 11,
                 fontWeight: 600,
-                color: CYAN_DARK,
+                color: CYAN,
                 textAlign: 'center',
                 padding: 4,
-                fontFamily: "'Inter Tight', system-ui, sans-serif",
+                fontFamily: "var(--font-sans)",
                 lineHeight: 1.3,
             }}>
                 {data.label || "?"}
@@ -156,15 +156,15 @@ export function ForkNode() {
         <div style={{
             width: 140,
             height: 6,
-            background: '#0A0A0F',
+            background: 'var(--text)',
             borderRadius: 3,
             position: 'relative',
-            boxShadow: '0 2px 6px rgba(10,10,15,0.25)',
+            boxShadow: 'var(--shadow)',
         }}>
-            <Handle type="target" position={Position.Top}    id="top"    style={{ background: CYAN, border: '2px solid #fff', top: -3 }} />
-            <Handle type="source" position={Position.Bottom} id="bottom-l" style={{ background: CYAN, border: '2px solid #fff', left: '25%', bottom: -3 }} />
-            <Handle type="source" position={Position.Bottom} id="bottom-c" style={{ background: CYAN, border: '2px solid #fff', left: '50%', bottom: -3 }} />
-            <Handle type="source" position={Position.Bottom} id="bottom-r" style={{ background: CYAN, border: '2px solid #fff', left: '75%', bottom: -3 }} />
+            <Handle type="target" position={Position.Top}    id="top"    style={{ background: CYAN, border: '2px solid var(--surface)', top: -3 }} />
+            <Handle type="source" position={Position.Bottom} id="bottom-l" style={{ background: CYAN, border: '2px solid var(--surface)', left: '25%', bottom: -3 }} />
+            <Handle type="source" position={Position.Bottom} id="bottom-c" style={{ background: CYAN, border: '2px solid var(--surface)', left: '50%', bottom: -3 }} />
+            <Handle type="source" position={Position.Bottom} id="bottom-r" style={{ background: CYAN, border: '2px solid var(--surface)', left: '75%', bottom: -3 }} />
         </div>
     );
 }
@@ -174,15 +174,15 @@ export function JoinNode() {
         <div style={{
             width: 140,
             height: 6,
-            background: '#0A0A0F',
+            background: 'var(--text)',
             borderRadius: 3,
             position: 'relative',
-            boxShadow: '0 2px 6px rgba(10,10,15,0.25)',
+            boxShadow: 'var(--shadow)',
         }}>
-            <Handle type="target" position={Position.Top} id="top-l" style={{ background: CYAN, border: '2px solid #fff', left: '25%', top: -3 }} />
-            <Handle type="target" position={Position.Top} id="top-c" style={{ background: CYAN, border: '2px solid #fff', left: '50%', top: -3 }} />
-            <Handle type="target" position={Position.Top} id="top-r" style={{ background: CYAN, border: '2px solid #fff', left: '75%', top: -3 }} />
-            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: CYAN, border: '2px solid #fff', bottom: -3 }} />
+            <Handle type="target" position={Position.Top} id="top-l" style={{ background: CYAN, border: '2px solid var(--surface)', left: '25%', top: -3 }} />
+            <Handle type="target" position={Position.Top} id="top-c" style={{ background: CYAN, border: '2px solid var(--surface)', left: '50%', top: -3 }} />
+            <Handle type="target" position={Position.Top} id="top-r" style={{ background: CYAN, border: '2px solid var(--surface)', left: '75%', top: -3 }} />
+            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: CYAN, border: '2px solid var(--surface)', bottom: -3 }} />
         </div>
     );
 }
@@ -195,23 +195,23 @@ interface NoteData { label: string; }
 export function NoteNode({ data }: { data: NoteData }) {
     return (
         <div style={{
-            background: '#FEF3C7',
-            border: '1px solid #F59E0B',
+            background: 'var(--warn-soft)',
+            border: '1px solid var(--warn)',
             padding: '10px 12px',
             minWidth: 100,
             maxWidth: 200,
-            boxShadow: '0 2px 6px rgba(245,158,11,0.20)',
+            boxShadow: 'var(--shadow)',
             clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%)',
-            fontFamily: "'Inter Tight', system-ui, sans-serif",
+            fontFamily: "var(--font-sans)",
             fontSize: 11,
-            color: '#92400E',
+            color: 'var(--warn)',
             lineHeight: 1.5,
             whiteSpace: 'pre-wrap',
         }}>
-            <Handle type="target" position={Position.Top} id="top" style={{ background: '#F59E0B', border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: '#F59E0B', border: '2px solid #fff' }} />
-            <Handle type="target" position={Position.Left} id="left" style={{ background: '#F59E0B', border: '2px solid #fff' }} />
-            <Handle type="source" position={Position.Right} id="right" style={{ background: '#F59E0B', border: '2px solid #fff' }} />
+            <Handle type="target" position={Position.Top} id="top" style={{ background: 'var(--warn)', border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: 'var(--warn)', border: '2px solid var(--surface)' }} />
+            <Handle type="target" position={Position.Left} id="left" style={{ background: 'var(--warn)', border: '2px solid var(--surface)' }} />
+            <Handle type="source" position={Position.Right} id="right" style={{ background: 'var(--warn)', border: '2px solid var(--surface)' }} />
             {data.label || "Notiz"}
         </div>
     );
@@ -225,44 +225,44 @@ interface InterfaceData { label: string; description?: string; }
 export function InterfaceNode({ data }: { data: InterfaceData }) {
     return (
         <div style={{
-            background: '#FFFFFF',
-            border: '1.5px dashed #7C6DFF',
+            background: 'var(--surface)',
+            border: '1.5px dashed var(--accent)',
             borderRadius: 10,
             minWidth: 150,
-            boxShadow: '0 4px 12px rgba(124,109,255,0.10)',
-            fontFamily: "'Inter Tight', system-ui, sans-serif",
+            boxShadow: 'var(--shadow)',
+            fontFamily: "var(--font-sans)",
             overflow: 'hidden',
         }}>
-            <AllHandles color="#7C6DFF" />
+            <AllHandles color="var(--accent)" />
             <div style={{
                 padding: '4px 12px',
-                background: 'rgba(124,109,255,0.04)',
-                borderBottom: '1px solid rgba(124,109,255,0.20)',
+                background: 'color-mix(in srgb, var(--accent) 5%, transparent)',
+                borderBottom: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
                 textAlign: 'center',
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono)",
                 fontSize: 10,
                 fontWeight: 600,
-                color: '#7C6DFF',
+                color: 'var(--accent)',
                 letterSpacing: '1px',
             }}>
                 «interface»
             </div>
             <div style={{
                 padding: '8px 14px',
-                background: 'rgba(124,109,255,0.06)',
-                borderBottom: '1px solid rgba(124,109,255,0.20)',
+                background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
+                borderBottom: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
                 textAlign: 'center',
                 fontWeight: 600,
                 fontSize: 13,
-                color: '#0A0A0F',
+                color: 'var(--text)',
             }}>
                 {data.label || "Interface"}
             </div>
             <div style={{
                 padding: '8px 12px',
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono)",
                 fontSize: 11,
-                color: '#0A0A0F',
+                color: 'var(--text)',
                 lineHeight: 1.5,
                 whiteSpace: 'pre-wrap',
                 minHeight: 28,
@@ -278,26 +278,26 @@ export function InterfaceNode({ data }: { data: InterfaceData }) {
 // ============================================
 interface StateData { label: string; description?: string; }
 
-const AMBER = "#F59E0B";
-const AMBER_DARK = "#B45309";
+const AMBER = "var(--accent)";
+const AMBER_DARK = "var(--accent)";
 
 export function StateNode({ data }: { data: StateData }) {
     return (
         <div style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             border: `1.5px solid ${AMBER}`,
             borderRadius: 14,
             minWidth: 140,
             maxWidth: 220,
-            boxShadow: `0 4px 12px ${AMBER}25`,
-            fontFamily: "'Inter Tight', system-ui, sans-serif",
+            boxShadow: `0 4px 12px color-mix(in srgb, ${AMBER} 18%, transparent)`,
+            fontFamily: "var(--font-sans)",
             overflow: 'hidden',
         }}>
             <AllHandles color={AMBER} />
             <div style={{
                 padding: '8px 14px',
-                background: `${AMBER}10`,
-                borderBottom: `1px solid ${AMBER}30`,
+                background: `color-mix(in srgb, ${AMBER} 8%, transparent)`,
+                borderBottom: `1px solid color-mix(in srgb, ${AMBER} 30%, transparent)`,
                 textAlign: 'center',
                 fontWeight: 600,
                 fontSize: 13,
@@ -308,9 +308,9 @@ export function StateNode({ data }: { data: StateData }) {
             {data.description && (
                 <div style={{
                     padding: '8px 12px',
-                    fontFamily: "'JetBrains Mono', monospace",
+                    fontFamily: "var(--font-mono)",
                     fontSize: 11,
-                    color: '#0A0A0F',
+                    color: 'var(--text)',
                     lineHeight: 1.5,
                     whiteSpace: 'pre-wrap',
                 }}>

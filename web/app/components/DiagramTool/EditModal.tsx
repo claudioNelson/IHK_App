@@ -268,16 +268,16 @@ export default function EditModal({ node, onSave, onClose, color }: EditModalPro
                     justify-content: center;
                     z-index: 1000;
                     padding: 20px;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                 }
 
                 .em-modal {
-                    background: #FFFFFF;
-                    border: 1px solid rgba(10,10,15,0.08);
-                    border-radius: 14px;
+                    background: var(--surface);
+                    border: 1px solid var(--line);
+                    border-radius: var(--r);
                     max-width: 520px;
                     width: 100%;
-                    box-shadow: 0 30px 80px rgba(10,10,15,0.4);
+                    box-shadow: 0 30px 80px rgba(0,0,0,0.35);
                     position: relative;
                     overflow: hidden;
                     max-height: 90vh;
@@ -294,11 +294,11 @@ export default function EditModal({ node, onSave, onClose, color }: EditModalPro
 
                 .em-head {
                     padding: 20px 24px 14px;
-                    border-bottom: 1px solid rgba(10,10,15,0.08);
+                    border-bottom: 1px solid var(--line);
                     flex-shrink: 0;
                 }
                 .em-eyebrow {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 10px;
                     font-weight: 700;
                     letter-spacing: 1.5px;
@@ -309,7 +309,7 @@ export default function EditModal({ node, onSave, onClose, color }: EditModalPro
                 .em-title {
                     font-size: 18px;
                     font-weight: 600;
-                    color: #0A0A0F;
+                    color: var(--text);
                     letter-spacing: -0.3px;
                 }
 
@@ -323,7 +323,7 @@ export default function EditModal({ node, onSave, onClose, color }: EditModalPro
                     margin-bottom: 16px;
                 }
                 .em-field-label {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 10px;
                     font-weight: 700;
                     color: ${color};
@@ -336,17 +336,17 @@ export default function EditModal({ node, onSave, onClose, color }: EditModalPro
                 .em-textarea {
                     width: 100%;
                     padding: 10px 12px;
-                    background: #FAFAF9;
-                    border: 1px solid rgba(10,10,15,0.08);
-                    border-radius: 8px;
+                    background: var(--bg-2);
+                    border: 1px solid var(--line);
+                    border-radius: var(--r-btn);
                     font-size: 13px;
-                    color: #0A0A0F;
+                    color: var(--text);
                     outline: none;
                     transition: border-color 0.15s, box-shadow 0.15s;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                 }
                 .em-textarea.mono {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 12px;
                     line-height: 1.6;
                     min-height: 80px;
@@ -355,13 +355,13 @@ export default function EditModal({ node, onSave, onClose, color }: EditModalPro
                 .em-input:focus,
                 .em-textarea:focus {
                     border-color: ${color};
-                    box-shadow: 0 0 0 3px ${color}15;
-                    background: #FFFFFF;
+                    box-shadow: 0 0 0 3px var(--accent-soft);
+                    background: var(--surface);
                 }
                 .em-hint {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 10px;
-                    color: #8A8A92;
+                    color: var(--text-3);
                     margin-top: 4px;
                     line-height: 1.4;
                 }
@@ -373,39 +373,39 @@ export default function EditModal({ node, onSave, onClose, color }: EditModalPro
                 .em-toggle {
                     flex: 1;
                     padding: 10px 12px;
-                    border-radius: 8px;
-                    border: 1px solid rgba(10,10,15,0.08);
-                    background: #FFFFFF;
-                    color: #55555F;
+                    border-radius: var(--r-btn);
+                    border: 1px solid var(--line);
+                    background: var(--surface);
+                    color: var(--text-2);
                     cursor: pointer;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                     font-size: 12px;
                     font-weight: 600;
                     transition: all 0.15s;
                 }
                 .em-toggle:hover {
-                    background: #FAFAF9;
-                    color: #0A0A0F;
+                    background: var(--bg-2);
+                    color: var(--text);
                 }
                 .em-toggle.active {
                     background: ${color};
-                    color: #FFFFFF;
+                    color: #fff;
                     border-color: ${color};
-                    box-shadow: 0 2px 8px ${color}40;
+                    box-shadow: 0 2px 8px color-mix(in srgb, ${color} 30%, transparent);
                 }
 
                 .em-footer {
                     padding: 16px 24px 20px;
                     display: flex;
                     gap: 10px;
-                    border-top: 1px solid rgba(10,10,15,0.08);
+                    border-top: 1px solid var(--line);
                     flex-shrink: 0;
                 }
                 .em-btn {
                     flex: 1;
                     padding: 11px;
-                    border-radius: 8px;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    border-radius: var(--r-btn);
+                    font-family: var(--font-sans);
                     font-size: 13px;
                     font-weight: 600;
                     cursor: pointer;
@@ -413,22 +413,22 @@ export default function EditModal({ node, onSave, onClose, color }: EditModalPro
                     border: 1px solid;
                 }
                 .em-btn.cancel {
-                    background: #FFFFFF;
-                    color: #55555F;
-                    border-color: rgba(10,10,15,0.16);
+                    background: var(--surface);
+                    color: var(--text-2);
+                    border-color: var(--line-2);
                 }
                 .em-btn.cancel:hover {
-                    background: #FAFAF9;
-                    color: #0A0A0F;
+                    background: var(--bg-2);
+                    color: var(--text);
                 }
                 .em-btn.save {
                     background: ${color};
-                    color: #FFFFFF;
+                    color: #fff;
                     border-color: ${color};
                 }
                 .em-btn.save:hover {
                     transform: translateY(-1px);
-                    box-shadow: 0 4px 12px ${color}40;
+                    box-shadow: 0 4px 12px color-mix(in srgb, ${color} 30%, transparent);
                 }
             `}</style>
 

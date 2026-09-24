@@ -2,10 +2,10 @@
 
 import { Handle, Position } from "reactflow";
 
-const SLATE = "#475569";
-const SLATE_DARK = "#1F2937";
-const PK_YELLOW = "#F59E0B";
-const FK_INDIGO = "#6366F1";
+const SLATE = "var(--accent)";
+const SLATE_DARK = "var(--accent-2)";
+const PK_YELLOW = "var(--warn)";
+const FK_INDIGO = "var(--accent)";
 
 interface TableNodeData {
     label: string;          // Tabellenname
@@ -36,38 +36,38 @@ export default function TableNode({ data }: { data: TableNodeData }) {
         <div className="tn-wrap">
             <style>{`
                 .tn-wrap {
-                    background: #FFFFFF;
+                    background: var(--surface);
                     border: 1.5px solid ${SLATE_DARK};
                     border-radius: 6px;
                     min-width: 180px;
-                    box-shadow: 0 4px 12px rgba(31,41,55,0.15);
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    box-shadow: var(--shadow);
+                    font-family: var(--font-sans);
                     overflow: hidden;
                 }
 
                 .tn-header {
                     background: ${SLATE_DARK};
-                    color: #FFFFFF;
+                    color: #fff;
                     padding: 8px 14px;
                     text-align: center;
                     font-weight: 700;
                     font-size: 12px;
                     letter-spacing: 1px;
                     text-transform: uppercase;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                 }
 
                 .tn-body {
                     padding: 0;
-                    background: #FAFAF9;
+                    background: var(--bg-2);
                 }
 
                 .tn-col {
                     padding: 7px 14px;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 12px;
-                    color: #0A0A0F;
-                    border-bottom: 1px solid rgba(10,10,15,0.05);
+                    color: var(--text);
+                    border-bottom: 1px solid var(--line);
                     display: flex;
                     align-items: center;
                     gap: 6px;
@@ -79,7 +79,7 @@ export default function TableNode({ data }: { data: TableNodeData }) {
                 }
                 .tn-col.pk .tn-col-name {
                     font-weight: 700;
-                    color: ${SLATE_DARK};
+                    color: var(--text);
                     text-decoration: underline;
                 }
                 .tn-col.fk .tn-col-name {
@@ -95,21 +95,21 @@ export default function TableNode({ data }: { data: TableNodeData }) {
                     letter-spacing: 0.5px;
                 }
                 .tn-badge.pk {
-                    background: ${PK_YELLOW}20;
+                    background: var(--warn-soft);
                     color: ${PK_YELLOW};
-                    border: 1px solid ${PK_YELLOW}50;
+                    border: 1px solid color-mix(in srgb, ${PK_YELLOW} 40%, transparent);
                 }
                 .tn-badge.fk {
-                    background: ${FK_INDIGO}15;
+                    background: var(--accent-soft);
                     color: ${FK_INDIGO};
-                    border: 1px solid ${FK_INDIGO}40;
+                    border: 1px solid color-mix(in srgb, ${FK_INDIGO} 30%, transparent);
                 }
 
                 .tn-wrap :global(.react-flow__handle) {
                     width: 8px;
                     height: 8px;
                     background: ${SLATE};
-                    border: 2px solid #FFFFFF;
+                    border: 2px solid var(--surface);
                 }
             `}</style>
 

@@ -54,11 +54,11 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
         <div className="ti-wrap">
             <style>{`
                 .ti-wrap {
-                    border: 1px solid rgba(10,10,15,0.08);
-                    border-radius: 12px;
+                    border: 1px solid var(--line);
+                    border-radius: var(--r);
                     overflow: hidden;
                     margin-bottom: 14px;
-                    background: #FFFFFF;
+                    background: var(--surface);
                 }
 
                 .ti-scroll {
@@ -68,22 +68,22 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                 .ti-table {
                     width: 100%;
                     border-collapse: collapse;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                 }
 
                 .ti-table thead {
-                    background: #F4F4F1;
+                    background: var(--bg-2);
                 }
                 .ti-table th {
                     padding: 12px 14px;
                     text-align: center;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 11px;
                     font-weight: 600;
-                    color: #55555F;
+                    color: var(--text-2);
                     letter-spacing: 0.5px;
                     text-transform: uppercase;
-                    border-bottom: 1px solid rgba(10,10,15,0.08);
+                    border-bottom: 1px solid var(--line);
                     white-space: nowrap;
                 }
                 .ti-table th.ti-row-header {
@@ -92,10 +92,10 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                 }
 
                 .ti-row {
-                    border-bottom: 1px solid rgba(10,10,15,0.05);
+                    border-bottom: 1px solid var(--line);
                 }
                 .ti-row:last-child { border-bottom: none; }
-                .ti-row.example { background: rgba(124,109,255,0.04); }
+                .ti-row.example { background: color-mix(in srgb, var(--accent) 4%, transparent); }
 
                 .ti-row td {
                     padding: 8px 10px;
@@ -106,17 +106,17 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                     text-align: left;
                     padding: 10px 14px;
                     font-weight: 600;
-                    color: #0A0A0F;
-                    font-family: 'JetBrains Mono', monospace;
+                    color: var(--text);
+                    font-family: var(--font-mono);
                     font-size: 13px;
                 }
 
                 /* Readonly-Spalten: statisches Display */
                 .ti-readonly {
                     padding: 10px 14px !important;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                     font-size: 13px;
-                    color: #0A0A0F;
+                    color: var(--text);
                     line-height: 1.5;
                     font-weight: 500;
                 }
@@ -131,10 +131,10 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
 
                 .ti-row td.ti-row-label .sublabel {
                     display: block;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                     font-size: 11px;
                     font-weight: 400;
-                    color: #8A8A92;
+                    color: var(--text-3);
                     margin-top: 2px;
                     text-transform: none;
                     letter-spacing: 0;
@@ -142,11 +142,11 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
 
                 .ti-example-tag {
                     display: inline-block;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 9px;
-                    color: #7C6DFF;
-                    background: rgba(124,109,255,0.10);
-                    border: 1px solid rgba(124,109,255,0.30);
+                    color: var(--accent);
+                    background: var(--accent-soft);
+                    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
                     padding: 2px 6px;
                     border-radius: 4px;
                     letter-spacing: 0.5px;
@@ -159,12 +159,12 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                 .ti-input {
                     width: 60px;
                     padding: 8px 10px;
-                    background: #FAFAF9;
-                    border: 1px solid rgba(10,10,15,0.08);
+                    background: var(--surface-2);
+                    border: 1px solid var(--line);
                     border-radius: 6px;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 13px;
-                    color: #0A0A0F;
+                    color: var(--text);
                     text-align: center;
                     outline: none;
                     transition: border-color 0.15s, box-shadow 0.15s;
@@ -183,18 +183,18 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                 }
 
                 .ti-input::placeholder {
-                    color: #C0C0C8;
+                    color: var(--text-3);
                     font-weight: 400;
                 }
                 .ti-input:focus {
-                    border-color: #7C6DFF;
-                    box-shadow: 0 0 0 3px rgba(124,109,255,0.08);
-                    background: #FFFFFF;
+                    border-color: var(--accent);
+                    box-shadow: 0 0 0 3px var(--accent-soft);
+                    background: var(--surface);
                 }
                 .ti-input.example-value {
-                    background: rgba(124,109,255,0.06);
-                    border-color: rgba(124,109,255,0.25);
-                    color: #7C6DFF;
+                    background: color-mix(in srgb, var(--accent) 6%, transparent);
+                    border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+                    color: var(--accent);
                     font-weight: 700;
                     cursor: default;
                 }
@@ -209,13 +209,13 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                     background: transparent;
                 }
                 .ti-below-row.example td {
-                    background: rgba(124,109,255,0.04);
+                    background: color-mix(in srgb, var(--accent) 4%, transparent);
                 }
                 .ti-below-label {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 10px;
                     font-weight: 700;
-                    color: #7C6DFF;
+                    color: var(--accent);
                     letter-spacing: 1px;
                     text-transform: uppercase;
                     margin-bottom: 6px;
@@ -225,30 +225,30 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                     width: 100%;
                     min-height: 70px;
                     padding: 10px 12px;
-                    background: #FAFAF9;
-                    border: 1px solid rgba(10,10,15,0.08);
+                    background: var(--surface-2);
+                    border: 1px solid var(--line);
                     border-radius: 8px;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                     font-size: 13px;
-                    color: #0A0A0F;
+                    color: var(--text);
                     line-height: 1.5;
                     resize: vertical;
                     outline: none;
                     transition: border-color 0.15s, box-shadow 0.15s;
                 }
-                .ti-below-textarea::placeholder { color: #8A8A92; }
+                .ti-below-textarea::placeholder { color: var(--text-3); }
                 .ti-below-textarea:focus {
-                    border-color: #7C6DFF;
-                    box-shadow: 0 0 0 3px rgba(124,109,255,0.08);
-                    background: #FFFFFF;
+                    border-color: var(--accent);
+                    box-shadow: 0 0 0 3px var(--accent-soft);
+                    background: var(--surface);
                 }
                 .ti-below-example {
                     font-size: 13px;
-                    color: #55555F;
+                    color: var(--text-2);
                     line-height: 1.5;
                     padding: 10px 12px;
-                    background: rgba(124,109,255,0.04);
-                    border: 1px dashed rgba(124,109,255,0.30);
+                    background: color-mix(in srgb, var(--accent) 4%, transparent);
+                    border: 1px dashed color-mix(in srgb, var(--accent) 30%, transparent);
                     border-radius: 8px;
                     font-style: italic;
                 }
@@ -258,12 +258,12 @@ export default function TableInput({ table, value, onChange }: TableInputProps) 
                     display: inline-block;
                     width: 60px;
                     padding: 8px 10px;
-                    background: rgba(124,109,255,0.06);
-                    border: 1px solid rgba(124,109,255,0.20);
+                    background: color-mix(in srgb, var(--accent) 6%, transparent);
+                    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
                     border-radius: 6px;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 13px;
-                    color: #7C6DFF;
+                    color: var(--accent);
                     text-align: center;
                     font-weight: 600;
                 }

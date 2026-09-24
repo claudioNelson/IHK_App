@@ -24,16 +24,16 @@ export interface ModeConfig {
 // ============================================
 
 export const DIAGRAM_COLORS = {
-    primary:    "#7C6DFF",   // lila (Hauptfarbe der App)
-    cyan:       "#22D3EE",   // cyan (Sekundär)
-    blue:       "#3B82F6",   // sapphire (frisch)
-    slate:      "#475569",   // monochrom (DB)
-    emerald:    "#10B981",   // smaragd (network)
-    amber:      "#F59E0B",   // amber (state)
-    rose:       "#E11D48",   // rose (sequence)
-    bg:         "#FAFAF9",
-    text:       "#0A0A0F",
-    border:     "rgba(10,10,15,0.08)",
+    primary:    "var(--accent)",   // Akzent (Design-Token der Seite)
+    cyan:       "var(--accent)",   // ehemals cyan, jetzt Akzent-Token
+    blue:       "var(--accent)",   // ehemals blau, jetzt Akzent-Token
+    slate:      "var(--accent)",   // ehemals slate, jetzt Akzent-Token
+    emerald:    "var(--accent)",   // ehemals smaragd, jetzt Akzent-Token
+    amber:      "var(--accent)",   // ehemals amber, jetzt Akzent-Token
+    rose:       "var(--accent)",   // ehemals rose, jetzt Akzent-Token
+    bg:         "var(--bg-2)",
+    text:       "var(--text)",
+    border:     "var(--line)",
 };
 
 // ============================================
@@ -114,9 +114,9 @@ export const DIAGRAM_MODES: Record<DiagramMode, ModeConfig> = {
         description: "Netzwerk-Zonen, Server, Firewalls",
         nodes: [
             { id: "server",   label: "▣",  name: "Server",    description: "Server / Workstation" },
-            { id: "firewall", label: "🔥", name: "Firewall",  description: "Firewall" },
+            { id: "firewall", label: "▩",  name: "Firewall",  description: "Firewall" },
             { id: "zone",     label: "◰",  name: "Zone",      description: "Netzwerk-Zone (z.B. DMZ, LAN)" },
-            { id: "internet", label: "🌐", name: "Internet",  description: "Internet / WAN" },
+            { id: "internet", label: "◎",  name: "Internet",  description: "Internet / WAN" },
             { id: "note",     label: "✎",  name: "Notiz",     description: "Erläuternde Notiz" },
         ],
     },

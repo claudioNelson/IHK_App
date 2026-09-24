@@ -2,8 +2,8 @@
 
 import { EdgeProps, EdgeLabelRenderer, BaseEdge, getStraightPath } from "reactflow";
 
-const ROSE = "#E11D48";
-const ROSE_DARK = "#9F1239";
+const ROSE = "var(--accent)";
+const ROSE_DARK = "var(--accent)";
 
 export type SequenceMessageType = "sync" | "async" | "return";
 
@@ -84,12 +84,12 @@ export default function SequenceMessageEdge({
                         style={{
                             position: 'absolute',
                             transform: `translate(-50%, -100%) translate(${labelX}px, ${labelY}px)`,
-                            background: '#FFFFFF',
+                            background: 'var(--surface)',
                             padding: '2px 8px',
                             borderRadius: 4,
-                            border: `1px solid ${ROSE}30`,
+                            border: `1px solid color-mix(in srgb, ${ROSE} 30%, transparent)`,
                             fontSize: 11,
-                            fontFamily: "'JetBrains Mono', monospace",
+                            fontFamily: "var(--font-mono)",
                             color: ROSE_DARK,
                             pointerEvents: 'all',
                             whiteSpace: 'nowrap',

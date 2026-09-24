@@ -13,9 +13,12 @@ import {
   Kante,
   Klasse,
   klassenHoehe,
+  L4Klasse,
+  l4Hoehe,
   Notiz,
   UseCase,
   type KlasseSpec,
+  type L4KlasseSpec,
   type Punkt,
 } from "./UmlDiagramme";
 
@@ -438,7 +441,7 @@ export function SequenzAufbau() {
       <Lebenslinie x={b} y={20} name=":Buchungsservice" b={160} bis={280} />
       <Aktivierung x={a} von={80} bis={230} />
       <Aktivierung x={b} von={115} bis={185} />
-      <Nachricht x1={a + AKT} x2={b - AKT} y={115} text="istFrei(radNr, zeit)" />
+      <Nachricht x1={a + AKT} x2={b - AKT} y={115} text="istFrei(radNr, zeitraum)" />
       <Nachricht x1={b - AKT} x2={a + AKT} y={185} text="frei" art="antwort" />
       <Marke x={b + 80 + 16} y={38} nr={1} />
       <Marke x={b + AKT + 16} y={150} nr={2} />
@@ -691,33 +694,41 @@ export function TicketLoesung() {
 
 /** Aufgabe 1a: Use-Case-Diagramm Terminverwaltung der Fahrradwerkstatt. */
 export function WerkstattUseCase() {
-  const links = 260;
-  const rechts = 480;
-  const kunde: Punkt = [88, 150];
-  const mech: Punkt = [652, 150];
+  const links = 250;
+  const rechts = 620;
+  const kunde: Punkt = [78, 150];
+  const mech: Punkt = [822, 150];
+  const notizY = 118;
   return (
     <Abbildung
-      breite={740}
+      breite={910}
       hoehe={310}
-      min={600}
-      label="Musterlösung Use-Case-Diagramm Werkstatt-Terminverwaltung. Der Akteur Kunde ist mit Termin buchen und Termin absagen verbunden. Ersatzrad reservieren erweitert Termin buchen per extend. Der Akteur Mechaniker ist mit Auftrag abschließen verbunden, das per include Rechnung erstellen einbindet."
+      min={640}
+      label="Musterlösung Use-Case-Diagramm Werkstatt-Terminverwaltung. Der Akteur Kunde ist mit Termin buchen und Termin absagen verbunden. Ersatzrad reservieren erweitert Termin buchen per extend, eine Notiz an der Beziehung nennt die Bedingung: Kunde wünscht Ersatzrad. Der Akteur Mechaniker ist mit Auftrag abschließen verbunden, das per include Rechnung erstellen einbindet."
     >
-      <rect className="uml-system" x={150} y={16} width={440} height={282} rx={4} />
-      <text className="uml-system-name" x={162} y={36}>
+      <rect className="uml-system" x={140} y={16} width={620} height={282} rx={4} />
+      <text className="uml-system-name" x={152} y={36}>
         Werkstatt-Terminverwaltung
       </text>
       <line className="uml-linie" x1={kunde[0]} y1={kunde[1]} x2={links - 92} y2={85} />
       <line className="uml-linie" x1={kunde[0]} y1={kunde[1]} x2={links - 90} y2={242} />
       <line className="uml-linie" x1={mech[0]} y1={mech[1]} x2={rechts + 92} y2={130} />
-      <Abhaengigkeit von={[links, 150]} nach={[links, 110]} stereotyp="extend" tx={links + 8} ty={134} />
+      <Abhaengigkeit von={[links, 150]} nach={[links, 110]} stereotyp="extend" tx={links - 72} ty={134} />
       <Abhaengigkeit von={[rechts, 155]} nach={[rechts, 195]} stereotyp="include" tx={rechts + 8} ty={179} />
+      <Notiz
+        x={356}
+        y={notizY}
+        b={160}
+        zeilen={["Bedingung: Kunde", "wünscht Ersatzrad"]}
+        anker={{ von: [356, notizY + 25], nach: [links + 3, 130] }}
+      />
       <UseCase cx={links} cy={85} text="Termin buchen" />
       <UseCase cx={links} cy={175} text="Ersatzrad reservieren" />
       <UseCase cx={links} cy={250} text="Termin absagen" />
       <UseCase cx={rechts} cy={130} text="Auftrag abschließen" />
       <UseCase cx={rechts} cy={220} text="Rechnung erstellen" />
-      <Akteur x={70} y={122} name="Kunde" />
-      <Akteur x={670} y={122} name="Mechaniker" />
+      <Akteur x={60} y={122} name="Kunde" />
+      <Akteur x={840} y={122} name="Mechaniker" />
     </Abbildung>
   );
 }
@@ -786,8 +797,9 @@ export function CarsharingKlassen() {
     attribute: ["- start: DateTime", "- ende: DateTime", "- km: int"],
     methoden: ["+ berechneKosten(): double"],
   };
-  const fahrzeug: Omit<KlasseSpec, "x" | "y" | "b"> = {
-    name: "Fahrzeug {abstract}",
+  const fahrzeug: Omit<L4KlasseSpec, "x" | "y" | "b"> = {
+    name: "Fahrzeug",
+    abstrakt: true,
     attribute: ["- kennzeichen: String", "- modell: String", "# preisProMinute: double"],
     methoden: ["+ berechnePreis(minuten: int): double"],
   };
@@ -804,7 +816,7 @@ export function CarsharingKlassen() {
   const y1 = 20;
   const hFahrt = klassenHoehe(fahrt);
   const y2 = y1 + hFahrt + 80;
-  const hFz = klassenHoehe(fahrzeug);
+  const hFz = l4Hoehe(fahrzeug);
   const y3 = y2 + hFz + 90;
   const hoehe = y3 + Math.max(klassenHoehe(eauto), klassenHoehe(transporter)) + 20;
   const yKF = y1 + Math.min(klassenHoehe(kunde), hFahrt) / 2;
@@ -816,10 +828,10 @@ export function CarsharingKlassen() {
     <Abbildung
       breite={720}
       hoehe={hoehe}
-      label="Musterlösung Klassendiagramm Carsharing. Ein Kunde hat 0 bis beliebig viele Fahrten, jede Fahrt gehört zu genau einem Kunden. Jede Fahrt kennt genau ein Fahrzeug, gerichtete Assoziation von Fahrt zu Fahrzeug. Fahrzeug ist abstrakt mit kennzeichen, modell, dem geschützten Attribut preisProMinute und der Methode berechnePreis. EAuto und Transporter erben von Fahrzeug, Transporter überschreibt berechnePreis."
+      label="Musterlösung Klassendiagramm Carsharing. Ein Kunde hat 0 bis beliebig viele Fahrten, jede Fahrt gehört zu genau einem Kunden. Jede Fahrt kennt genau ein Fahrzeug, gerichtete Assoziation von Fahrt zu Fahrzeug mit dem Rollennamen fahrzeug. Fahrzeug ist abstrakt, Name kursiv mit dem Zusatz {abstract}, mit kennzeichen, modell, dem geschützten Attribut preisProMinute und der Methode berechnePreis. EAuto und Transporter erben von Fahrzeug, Transporter überschreibt berechnePreis."
     >
       <Kante punkte={[[xL + bk, yKF], [xR, yKF]]} von="1" nach="0..*" />
-      <Kante punkte={[[xMR, y1 + hFahrt], [xMR, y2]]} art="gerichtet" von="0..*" nach="1" />
+      <Kante punkte={[[xMR, y1 + hFahrt], [xMR, y2]]} art="gerichtet" von="0..*" nach="1" rolleNach="fahrzeug" />
       <Kante punkte={[[xMR, y3], [xMR, y2 + hFz]]} art="vererbung" />
       <Kante punkte={[[xML, y3], [xML, ySammel], [xMR, ySammel], [xMR, y2 + hFz]]} art="vererbung" />
       <Notiz
@@ -831,7 +843,7 @@ export function CarsharingKlassen() {
       />
       <Klasse {...kunde} x={xL} y={y1} b={bk} />
       <Klasse {...fahrt} x={xR} y={y1} b={bk} />
-      <Klasse {...fahrzeug} x={xR} y={y2} b={bk} />
+      <L4Klasse {...fahrzeug} x={xR} y={y2} b={bk} />
       <Klasse {...eauto} x={xL} y={y3} b={bk} />
       <Klasse {...transporter} x={xR} y={y3} b={bk} />
     </Abbildung>
@@ -843,45 +855,49 @@ export function OnboardingAktivitaet() {
   return (
     <Abbildung
       breite={720}
-      hoehe={640}
+      hoehe={780}
       min={600}
-      label="Musterlösung Aktivitätsdiagramm Onboarding. Nach dem Start wird das Onboarding-Ticket geprüft. Danach teilt eine Gabelung in zwei parallele Stränge. Links: Verzweigung, bei Notebook auf Lager wird das Notebook reserviert, sonst wird es bestellt und die Lieferung abgewartet, danach führt eine Raute beide Wege zusammen. Rechts nacheinander: Benutzerkonto anlegen, Postfach einrichten, Berechtigungen vergeben. Eine Vereinigung wartet auf beide Stränge. Danach Notebook einrichten, Übergabe mit Protokoll und Ende."
+      label="Musterlösung Aktivitätsdiagramm Onboarding. Nach dem Start legt die Personalabteilung das Onboarding-Ticket an, danach prüft die IT das Ticket. Eine Gabelung teilt in zwei parallele Stränge. Links: Lagerbestand prüfen, dann Verzweigung, bei Notebook auf Lager wird das Notebook reserviert, sonst wird es bestellt und die Lieferung abgewartet, danach führt eine Raute beide Wege zusammen. Rechts nacheinander: Benutzerkonto anlegen, Postfach einrichten, Berechtigungen vergeben. Eine Vereinigung wartet auf beide Stränge. Danach Notebook einrichten, Notebook mit Protokoll übergeben und Ende."
     >
       <Startknoten x={360} y={28} />
       <Uebergang punkte={[[360, 37], [360, 60]]} />
-      <Uebergang punkte={[[360, 100], [360, 128]]} />
+      <Uebergang punkte={[[360, 100], [360, 130]]} />
+      <Uebergang punkte={[[360, 170], [360, 198]]} />
       {/* linker Strang: Hardware */}
-      <Uebergang punkte={[[210, 134], [210, 160]]} />
-      <Uebergang punkte={[[192, 178], [110, 178], [110, 230]]} text={["[auf Lager]"]} tx={150} ty={170} />
-      <Uebergang punkte={[[228, 178], [310, 178], [310, 230]]} text={["[nicht auf Lager]"]} tx={234} ty={170} anker="start" />
-      <Uebergang punkte={[[310, 270], [310, 300]]} />
-      <Uebergang punkte={[[110, 270], [110, 380], [192, 380]]} />
-      <Uebergang punkte={[[310, 340], [310, 380], [228, 380]]} />
-      <Uebergang punkte={[[210, 398], [210, 430]]} />
+      <Uebergang punkte={[[210, 204], [210, 228]]} />
+      <Uebergang punkte={[[210, 268], [210, 300]]} />
+      <Uebergang punkte={[[192, 318], [110, 318], [110, 370]]} text={["[auf Lager]"]} tx={150} ty={310} />
+      <Uebergang punkte={[[228, 318], [310, 318], [310, 370]]} text={["[nicht auf Lager]"]} tx={234} ty={310} anker="start" />
+      <Uebergang punkte={[[310, 410], [310, 440]]} />
+      <Uebergang punkte={[[110, 410], [110, 520], [192, 520]]} />
+      <Uebergang punkte={[[310, 480], [310, 520], [228, 520]]} />
+      <Uebergang punkte={[[210, 538], [210, 570]]} />
       {/* rechter Strang: Konten */}
-      <Uebergang punkte={[[560, 134], [560, 160]]} />
-      <Uebergang punkte={[[560, 200], [560, 230]]} />
+      <Uebergang punkte={[[560, 204], [560, 230]]} />
       <Uebergang punkte={[[560, 270], [560, 300]]} />
-      <Uebergang punkte={[[560, 340], [560, 430]]} />
+      <Uebergang punkte={[[560, 340], [560, 370]]} />
+      <Uebergang punkte={[[560, 410], [560, 570]]} />
       {/* nach der Vereinigung */}
-      <Uebergang punkte={[[360, 436], [360, 465]]} />
-      <Uebergang punkte={[[360, 505], [360, 535]]} />
-      <Uebergang punkte={[[360, 575], [360, 601]]} />
+      <Uebergang punkte={[[360, 576], [360, 605]]} />
+      <Uebergang punkte={[[360, 645], [360, 675]]} />
+      <Uebergang punkte={[[360, 715], [360, 741]]} />
 
-      <Aktion cx={360} cy={80} b={230} text="Onboarding-Ticket prüfen" />
-      <Balken x1={130} x2={590} y={128} />
-      <Raute cx={210} cy={178} />
-      <Aktion cx={110} cy={250} b={170} text="Notebook reservieren" />
-      <Aktion cx={310} cy={250} b={170} text="Notebook bestellen" />
-      <Aktion cx={310} cy={320} b={170} text="Lieferung abwarten" />
-      <Raute cx={210} cy={380} />
-      <Aktion cx={560} cy={180} b={200} text="Benutzerkonto anlegen" />
-      <Aktion cx={560} cy={250} b={200} text="Postfach einrichten" />
-      <Aktion cx={560} cy={320} b={200} text="Berechtigungen vergeben" />
-      <Balken x1={130} x2={590} y={430} />
-      <Aktion cx={360} cy={485} b={210} text="Notebook einrichten" />
-      <Aktion cx={360} cy={555} b={230} text="Übergabe mit Protokoll" />
-      <Endknoten x={360} y={612} />
+      <Aktion cx={360} cy={80} b={230} text="Onboarding-Ticket anlegen" />
+      <Aktion cx={360} cy={150} b={230} text="Onboarding-Ticket prüfen" />
+      <Balken x1={130} x2={590} y={198} />
+      <Aktion cx={210} cy={248} b={180} text="Lagerbestand prüfen" />
+      <Raute cx={210} cy={318} />
+      <Aktion cx={110} cy={390} b={170} text="Notebook reservieren" />
+      <Aktion cx={310} cy={390} b={170} text="Notebook bestellen" />
+      <Aktion cx={310} cy={460} b={170} text="Lieferung abwarten" />
+      <Raute cx={210} cy={520} />
+      <Aktion cx={560} cy={250} b={200} text="Benutzerkonto anlegen" />
+      <Aktion cx={560} cy={320} b={200} text="Postfach einrichten" />
+      <Aktion cx={560} cy={390} b={200} text="Berechtigungen vergeben" />
+      <Balken x1={130} x2={590} y={570} />
+      <Aktion cx={360} cy={625} b={210} text="Notebook einrichten" />
+      <Aktion cx={360} cy={695} b={250} text="Notebook mit Protokoll übergeben" />
+      <Endknoten x={360} y={752} />
     </Abbildung>
   );
 }

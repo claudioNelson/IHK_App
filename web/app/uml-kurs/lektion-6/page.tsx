@@ -36,7 +36,7 @@ const nachrichten: { art: NachrichtArt; name: string; bedeutung: string }[] = [
   {
     art: "antwort",
     name: "Antwort (reply)",
-    bedeutung: "Gestrichelt mit offener Spitze. Rückgabe an den Aufrufer, beschriftet mit dem Ergebnis.",
+    bedeutung: "Gestrichelt mit offener Spitze (eine gefüllte Spitze ist ebenfalls erlaubt). Rückgabe an den Aufrufer, beschriftet mit dem Ergebnis.",
   },
 ];
 
@@ -75,7 +75,7 @@ export default function Lektion6() {
     <LektionLayout
       kurs={umlKurs}
       nr={6}
-      lead="Das Sequenzdiagramm zeigt, welches Objekt wann welche Nachricht an ein anderes schickt. Das Zustandsdiagramm zeigt, welche Zustände ein Objekt durchläuft und wodurch es sie wechselt. Beide gehören zu den Verhaltensdiagrammen und tauchen in der AP2 regelmäßig auf."
+      lead="Das Sequenzdiagramm zeigt, welches Objekt wann welche Nachricht an ein anderes schickt. Das Zustandsdiagramm zeigt, welche Zustände ein Objekt durchläuft und wodurch es sie wechselt. Beide gehören zu den Verhaltensdiagrammen und kommen in der AP2 Anwendungsentwicklung gelegentlich vor."
       uebungen={2}
       aufgabenText="2 Zeichenaufgaben, 5 Quizfragen"
     >
@@ -162,6 +162,13 @@ export default function Lektion6() {
           rechts, ein Stück nach unten und zurück auf dieselbe Lebenslinie. Dort beginnt ein
           zweiter, leicht versetzter Aktivierungsbalken. Im Beispiel unten lädt der
           Buchungsservice so mit <code>ladeBelegung(radNr)</code> die bestehenden Buchungen.
+        </p>
+        <h3>Objekt erzeugen und zerstören</h3>
+        <p>
+          Entsteht ein Objekt erst während des Ablaufs, zeigt ein gestrichelter Pfeil mit{" "}
+          <code>«create»</code> auf den Kopf seiner Lebenslinie, der dann auf dieser Höhe beginnt.
+          Wird ein Objekt zerstört, endet seine Lebenslinie mit einem großen X, meist ausgelöst
+          durch eine Nachricht mit <code>«destroy»</code>.
         </p>
       </LsAbschnitt>
 
@@ -256,7 +263,7 @@ export default function Lektion6() {
           </li>
           <li>
             <strong>Startzustand</strong>: gefüllter Kreis. Genau ein Pfeil führt heraus, ohne
-            Beschriftung.
+            Ereignis und Bedingung; eine Aktion ist erlaubt.
           </li>
           <li>
             <strong>Endzustand</strong>: Kreis mit gefülltem Kern. Es darf mehrere geben, aber
@@ -353,7 +360,7 @@ export default function Lektion6() {
           Faustregel: Stehen im Text Klassen oder Systemteile, die sich gegenseitig aufrufen (App,
           Server, Datenbank, Schnittstelle), ist es ein Sequenzdiagramm. Stehen dort Tätigkeiten
           von Menschen oder Abteilungen mit „wenn, dann“ und „gleichzeitig“, ist es ein
-          Aktivitätsdiagramm. Geht es um die Status eines Dings (Ticket, Auftrag, Gerät), ist es
+          Aktivitätsdiagramm. Geht es um die Zustände eines Objekts (Ticket, Auftrag, Gerät), ist es
           ein Zustandsdiagramm.
         </p>
         <LsHinweis titel="So fragt die IHK" icon="buch" label="Prüfungsbezug">
@@ -420,6 +427,9 @@ export default function Lektion6() {
               sein eigenes Ereignis. Die beiden Wege von „Gelöst“ nach „Geschlossen“ darfst du als
               einen Übergang mit zwei Auslösern schreiben (durch Komma getrennt) oder als zwei
               getrennte Pfeile. Die 14 und 7 Tage sind Zeitereignisse, darum <code>after(…)</code>.
+              Die Mail an den Techniker steht als Aktion am Übergang <code>zuweisen</code> und nicht
+              als <code>entry</code> in „In Bearbeitung“: Ein entry würde bei jeder Rückkehr aus
+              „Wartet auf Kunde“ die Mail erneut auslösen, gewollt ist sie nur bei der Zuweisung.
             </p>
           }
           bewertung={[
@@ -473,7 +483,7 @@ export default function Lektion6() {
             <li>
               Unbeschriftete Übergänge. UML erlaubt sie zwar (sie feuern, sobald der Zustand
               seine Arbeit erledigt hat), aber nennt der Text ein Ereignis, fehlt ohne Beschriftung
-              der Punkt. Nur der Pfeil aus dem Startzustand bleibt immer leer.
+              der Punkt. Nur der Pfeil aus dem Startzustand hat nie ein Ereignis.
             </li>
           </ul>
         </LsHinweis>

@@ -27,7 +27,7 @@ const elemente: { element: string; symbol: string; bedeutung: string }[] = [
   },
   {
     element: "Anwendungsfall (use case)",
-    symbol: "Ellipse mit Verb und Objekt",
+    symbol: "Ellipse mit Objekt und Verb im Infinitiv (Lastenrad buchen)",
     bedeutung: "Ein Ziel, das ein Akteur mit dem System erreicht und das ihm einen Nutzen bringt.",
   },
   {
@@ -226,9 +226,11 @@ export default function Lektion2() {
         <h3>Schritt 2: Anwendungsfälle und Assoziationen</h3>
         <p>
           Jetzt sammelst du die Ziele. Aus den markierten Verben werden „Lastenrad buchen“, „Buchung
-          stornieren“ und „Rad warten“. Das Anmelden des Mitarbeiters ist kein eigener Anwendungsfall:
-          Es ist eine Voraussetzung, kein Ziel. Niemand meldet sich an, um danach zufrieden
-          aufzuhören. Jeder Fall bekommt eine Linie zu seinem Akteur.
+          stornieren“ und „Rad warten“. Das Anmelden des Mitarbeiters ist kein eigenständiger
+          Anwendungsfall: Es ist eine Voraussetzung, kein Ziel. Niemand meldet sich an, um danach
+          zufrieden aufzuhören. Als per «include» eingebundener Fall „Anmelden“ ist es dagegen
+          üblich und wird in IHK-Lösungen akzeptiert. Jeder Fall bekommt eine Linie zu seinem
+          Akteur.
         </p>
         <L2LastenradUseCase stufe="faelle" caption="Schritt 2: die Ziele der Akteure" />
 
@@ -320,13 +322,13 @@ export default function Lektion2() {
               Der SMS-Dienst ist ein fremdes System und damit ein Akteur außerhalb der Grenze. Er
               hängt nur an „SMS-Erinnerung senden“, nicht an den Terminfällen. Die Erinnerung wird
               bei jeder Buchung und jeder Verschiebung eingeplant, deshalb include aus beiden Fällen.
-              Die Tierärztin erbt vom Praxisteam: Sie darf den Tagesplan einsehen, ohne dass du eine
+              Die Tierärztin erbt vom Praxismitarbeiter: Sie darf den Tagesplan einsehen, ohne dass du eine
               zweite Linie ziehst, und dokumentiert zusätzlich Behandlungen.
             </p>
           }
           bewertung={[
-            "3 Punkte: Akteure Tierhalter, Praxisteam und SMS-Dienst, der SMS-Dienst als Akteur außerhalb der Systemgrenze.",
-            "1 Punkt: Tierärztin mit Generalisierung, Dreieck am Praxisteam.",
+            "3 Punkte: Akteure Tierhalter, Praxismitarbeiter und SMS-Dienst, der SMS-Dienst als Akteur außerhalb der Systemgrenze.",
+            "1 Punkt: Tierärztin mit Generalisierung, Dreieck am Praxismitarbeiter.",
             "3 Punkte: Anwendungsfälle Termin buchen, Termin verschieben, Tagesplan einsehen, Behandlung dokumentieren mit richtigen Assoziationen.",
             "2 Punkte: SMS-Erinnerung senden per «include» aus beiden Terminfällen, Pfeile zur SMS-Erinnerung.",
             "1 Punkt: Systemgrenze mit Namen.",
@@ -339,12 +341,12 @@ export default function Lektion2() {
               Eine Tierarztpraxis bekommt ein Terminsystem. Tierhalter buchen Termine online und
               können gebuchte Termine verschieben. Bei jeder Buchung und jeder Verschiebung plant das
               System automatisch eine Erinnerung per SMS ein, die über einen externen SMS-Dienst
-              verschickt wird. Das Praxisteam sieht den Tagesplan ein. Tierärztinnen gehören zum
-              Praxisteam und dokumentieren zusätzlich die Behandlungen.
+              verschickt wird. Praxismitarbeiter sehen den Tagesplan ein. Tierärztinnen sind
+              Praxismitarbeiter und dokumentieren zusätzlich die Behandlungen.
             </p>
             <p>
               <strong>Aufgabe:</strong> Erstellen Sie ein Use-Case-Diagramm. Berücksichtigen Sie
-              dabei auch die Beziehung zwischen Praxisteam und Tierärztin.
+              dabei auch die Beziehung zwischen Praxismitarbeiter und Tierärztin.
             </p>
           </div>
         </Zeichenaufgabe>
@@ -355,7 +357,9 @@ export default function Lektion2() {
           <ul>
             <li>
               Abläufe statt Ziele: „Button Buchen klicken“, „Daten eingeben“ oder „Anmelden“ sind
-              Schritte, keine Anwendungsfälle. Frag dich, ob der Akteur danach zufrieden aufhört.
+              Schritte, keine eigenständigen Anwendungsfälle. Frag dich, ob der Akteur danach
+              zufrieden aufhört. Ein per «include» eingebundenes „Anmelden“ ist dagegen üblich und
+              wird akzeptiert.
             </li>
             <li>
               Pfeilrichtung vertauscht: include zeigt vom Basisfall weg, extend zeigt zum Basisfall
@@ -431,7 +435,7 @@ export default function Lektion2() {
             { text: "Datenbank aktualisieren", richtig: false },
             { text: "Bestellformular", richtig: false },
           ]}
-          erklaerung="Ein Anwendungsfall ist ein Ziel mit Nutzen für den Akteur, benannt mit Objekt und Verb. Ein Klick ist ein Ablaufschritt, das Aktualisieren der Datenbank ein interner Vorgang und „Bestellformular“ nur ein Substantiv."
+          erklaerung="Ein Anwendungsfall ist ein Ziel mit Nutzen für den Akteur, benannt mit Objekt und Verb im Infinitiv (Lastenrad buchen). Ein Klick ist ein Ablaufschritt, das Aktualisieren der Datenbank ein interner Vorgang und „Bestellformular“ nur ein Substantiv."
         />
 
         <QuizFrage

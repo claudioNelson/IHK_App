@@ -67,37 +67,37 @@ export default function FillBlanks({ data, value, onChange }: FillBlanksProps) {
         <div className="fb-wrap">
             <style>{`
                 .fb-wrap {
-                    background: #FAFAF9;
-                    border: 1px solid rgba(10,10,15,0.08);
-                    border-radius: 10px;
+                    background: var(--surface-2);
+                    border: 1px solid var(--line);
+                    border-radius: var(--r-btn);
                     padding: 18px 20px;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 13px;
-                    color: #0A0A0F;
+                    color: var(--text);
                     line-height: 1.7;
                     white-space: pre-wrap;
                     overflow-x: auto;
                 }
                 .fb-input {
                     display: inline-block;
-                    background: #FFFFFF;
-                    border: 1.5px solid #7C6DFF;
+                    background: var(--surface);
+                    border: 1.5px solid var(--accent);
                     border-radius: 5px;
                     padding: 2px 8px;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 13px;
-                    color: #0A0A0F;
+                    color: var(--text);
                     outline: none;
                     transition: border-color 0.15s, box-shadow 0.15s;
                     vertical-align: baseline;
                     line-height: 1.4;
                 }
                 .fb-input:focus {
-                    border-color: #6856E6;
-                    box-shadow: 0 0 0 3px rgba(124,109,255,0.18);
+                    border-color: var(--accent-2);
+                    box-shadow: 0 0 0 3px var(--accent-soft);
                 }
                 .fb-input::placeholder {
-                    color: #B5B5BC;
+                    color: var(--text-3);
                     font-style: italic;
                 }
             `}</style>

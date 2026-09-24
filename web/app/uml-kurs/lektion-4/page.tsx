@@ -207,7 +207,7 @@ export default function Lektion4() {
         <h3>Interface</h3>
         <p>
           Ein Interface (Schnittstelle) ist ein reiner Vertrag: eine Liste von Methoden, die eine
-          Klasse anbieten muss, ohne eigene Attribute und ohne Umsetzung. Es trägt das Stereotyp{" "}
+          Klasse anbieten muss, in der Regel ohne Attribute und ohne Umsetzung. Es trägt das Stereotyp{" "}
           <strong>«interface»</strong> über dem Namen. Die Beziehung zur umsetzenden Klasse heißt
           Realisierung (realization): eine <strong>gestrichelte Linie mit hohlem Dreieck am
           Interface</strong>. Im Beispiel lassen sich nur Bücher verlängern, DVDs nicht; deshalb
@@ -407,16 +407,19 @@ export default function Lektion4() {
               die Positionen werden mit der Rechnung gelöscht. Der Artikel bleibt im Sortiment,
               deshalb ist die Beziehung zur Position eine normale Assoziation. Der Einzelpreis steht
               bewusst in der Position: Ändert sich der Artikelpreis später, muss die alte Rechnung
-              trotzdem den damaligen Preis zeigen.
+              trotzdem den damaligen Preis zeigen. Begründungssatz zur Komposition (Musterlösung):
+              „Rechnungspositionen existieren nur als Teil ihrer Rechnung und werden mit ihr
+              gelöscht, sie sind existenzabhängig.“
             </p>
           }
           bewertung={[
-            "2 Punkte: Klassen Kunde, Rechnung, Rechnungsposition und Artikel mit Attributen und Datentypen.",
+            "1 Punkt: Klassen Kunde, Rechnung, Rechnungsposition und Artikel mit Attributen und Datentypen.",
             "2 Punkte: neuePosition(…) und berechneSumme() in Rechnung, berechneBetrag() in Rechnungsposition.",
             "2 Punkte: Komposition mit gefüllter Raute an Rechnung, nicht an der Position.",
             "2 Punkte: Multiplizitäten 1 zu 1..* an der Komposition und 1 zu 0..* zwischen Kunde und Rechnung.",
             "1 Punkt: normale Assoziation zwischen Rechnungsposition und Artikel mit 0..* zu 1.",
             "1 Punkt: Einzelpreis in der Rechnungsposition.",
+            "1 Punkt: Begründung der Komposition über die Existenzabhängigkeit.",
             "Richtwert gesamt: 10 Punkte.",
           ]}
         >

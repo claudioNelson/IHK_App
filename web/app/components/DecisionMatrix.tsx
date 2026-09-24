@@ -45,33 +45,33 @@ export default function DecisionMatrix({ matrix, value, onChange }: DecisionMatr
         <div className="dm-wrap">
             <style>{`
                 .dm-wrap {
-                    border: 1px solid rgba(10,10,15,0.08);
-                    border-radius: 12px;
+                    border: 1px solid var(--line);
+                    border-radius: var(--r);
                     overflow: hidden;
                     margin-bottom: 14px;
-                    background: #FFFFFF;
+                    background: var(--surface);
                 }
 
                 .dm-table {
                     width: 100%;
                     border-collapse: collapse;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                     font-size: 13px;
                 }
 
                 .dm-table thead {
-                    background: #F4F4F1;
+                    background: var(--bg-2);
                 }
                 .dm-table th {
                     padding: 12px 14px;
                     text-align: left;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 11px;
                     font-weight: 600;
-                    color: #55555F;
+                    color: var(--text-2);
                     letter-spacing: 0.5px;
                     text-transform: uppercase;
-                    border-bottom: 1px solid rgba(10,10,15,0.08);
+                    border-bottom: 1px solid var(--line);
                 }
                 .dm-table th.col-check {
                     text-align: center;
@@ -79,17 +79,17 @@ export default function DecisionMatrix({ matrix, value, onChange }: DecisionMatr
                 }
 
                 .dm-row {
-                    border-bottom: 1px solid rgba(10,10,15,0.05);
+                    border-bottom: 1px solid var(--line);
                 }
                 .dm-row:last-child { border-bottom: none; }
-                .dm-row.example { background: rgba(124,109,255,0.04); }
+                .dm-row.example { background: color-mix(in srgb, var(--accent) 4%, transparent); }
 
                 .dm-row td {
                     padding: 14px;
                     vertical-align: top;
                 }
                 .dm-row td.col-label {
-                    color: #0A0A0F;
+                    color: var(--text);
                     font-weight: 500;
                     line-height: 1.5;
                     min-width: 240px;
@@ -101,11 +101,11 @@ export default function DecisionMatrix({ matrix, value, onChange }: DecisionMatr
 
                 .dm-example-tag {
                     display: inline-block;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 9px;
-                    color: #7C6DFF;
-                    background: rgba(124,109,255,0.10);
-                    border: 1px solid rgba(124,109,255,0.30);
+                    color: var(--accent);
+                    background: var(--accent-soft);
+                    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
                     padding: 2px 6px;
                     border-radius: 4px;
                     letter-spacing: 0.5px;
@@ -121,27 +121,27 @@ export default function DecisionMatrix({ matrix, value, onChange }: DecisionMatr
                     justify-content: center;
                     width: 32px; height: 32px;
                     border-radius: 8px;
-                    border: 1.5px solid rgba(10,10,15,0.15);
+                    border: 1.5px solid var(--line-2);
                     cursor: pointer;
                     transition: all 0.15s;
-                    background: #FFFFFF;
+                    background: var(--surface);
                     color: transparent;
                     font-weight: 700;
                     font-size: 15px;
                 }
                 .dm-cell:hover {
-                    border-color: #7C6DFF;
-                    background: rgba(124,109,255,0.05);
+                    border-color: var(--accent);
+                    background: color-mix(in srgb, var(--accent) 5%, transparent);
                 }
                 .dm-cell.selected {
-                    background: #7C6DFF;
-                    border-color: #7C6DFF;
-                    color: #FFFFFF;
+                    background: var(--accent);
+                    border-color: var(--accent);
+                    color: #fff;
                 }
                 .dm-cell.example-set {
-                    background: rgba(124,109,255,0.15);
-                    border-color: rgba(124,109,255,0.30);
-                    color: #7C6DFF;
+                    background: var(--accent-soft);
+                    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+                    color: var(--accent);
                     cursor: default;
                 }
 
@@ -154,28 +154,28 @@ export default function DecisionMatrix({ matrix, value, onChange }: DecisionMatr
                     width: 100%;
                     min-height: 50px;
                     padding: 8px 12px;
-                    background: #FAFAF9;
-                    border: 1px solid rgba(10,10,15,0.08);
+                    background: var(--surface-2);
+                    border: 1px solid var(--line);
                     border-radius: 8px;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                     font-size: 13px;
-                    color: #0A0A0F;
+                    color: var(--text);
                     resize: vertical;
                     outline: none;
                     transition: border-color 0.15s, box-shadow 0.15s;
                 }
                 .dm-reason-row textarea::placeholder {
-                    color: #8A8A92;
+                    color: var(--text-3);
                 }
                 .dm-reason-row textarea:focus {
-                    border-color: #7C6DFF;
-                    box-shadow: 0 0 0 3px rgba(124,109,255,0.08);
+                    border-color: var(--accent);
+                    box-shadow: 0 0 0 3px var(--accent-soft);
                 }
                 .dm-reason-row .reason-label {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 10px;
                     font-weight: 700;
-                    color: #7C6DFF;
+                    color: var(--accent);
                     letter-spacing: 1px;
                     text-transform: uppercase;
                     margin-bottom: 6px;
@@ -183,11 +183,11 @@ export default function DecisionMatrix({ matrix, value, onChange }: DecisionMatr
                 }
                 .dm-reason-row.example .reason-text {
                     font-size: 13px;
-                    color: #55555F;
+                    color: var(--text-2);
                     line-height: 1.5;
                     padding: 8px 12px;
-                    background: rgba(124,109,255,0.04);
-                    border: 1px dashed rgba(124,109,255,0.30);
+                    background: color-mix(in srgb, var(--accent) 4%, transparent);
+                    border: 1px dashed color-mix(in srgb, var(--accent) 30%, transparent);
                     border-radius: 8px;
                     font-style: italic;
                 }

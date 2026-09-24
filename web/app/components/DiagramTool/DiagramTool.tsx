@@ -94,6 +94,18 @@ const edgeTypes = {
     "seq-message": SequenceMessageEdge,
 };
 
+// Kanten ohne feste Farbe: Strich ueber CSS (.react-flow__edge-path), Pfeilspitze
+// ueber defaultMarkerColor. So landet kein Farbwert in der gespeicherten Antwort
+// und die Marker-ID von reactflow bleibt ein einfacher String.
+function ohneKantenfarbe(edge: Edge): Edge {
+    const { stroke: _stroke, ...style } = (edge.style ?? {}) as { stroke?: string } & Record<string, unknown>;
+    const markerEnd =
+        edge.markerEnd && typeof edge.markerEnd === "object"
+            ? (({ color: _color, ...rest }) => rest)(edge.markerEnd as { color?: string } & Record<string, unknown>)
+            : edge.markerEnd;
+    return { ...edge, style, markerEnd } as Edge;
+}
+
 // ============================================
 // HAUPTKOMPONENTE
 // ============================================
@@ -108,7 +120,9 @@ export default function DiagramTool({ data, value, onChange }: DiagramToolProps)
             const parsed = value ? JSON.parse(value) : null;
             return {
                 nodes: parsed?.nodes || [],
-                edges: parsed?.edges || [],
+                // Kantenfarbe kommt aus dem Theme (CSS), nicht aus der gespeicherten
+                // Antwort: alte Antworten mit festem Indigo werden hier bereinigt.
+                edges: (parsed?.edges || []).map(ohneKantenfarbe),
             };
         } catch {
             return { nodes: [], edges: [] };
@@ -139,15 +153,15 @@ export default function DiagramTool({ data, value, onChange }: DiagramToolProps)
                     ...params,
                     type: "smoothstep",
                     animated: false,
-                    style: { stroke: modeConfig.color, strokeWidth: 2 },
-                    markerEnd: { type: MarkerType.ArrowClosed, color: modeConfig.color },
+                    style: { strokeWidth: 2 },
+                    markerEnd: { type: MarkerType.ArrowClosed },
                 },
                 edges
             );
             setEdges(nextEdges);
             setTimeout(() => persist(nodes, nextEdges), 0);
         },
-        [setEdges, nodes, edges, persist, modeConfig.color]
+        [setEdges, nodes, edges, persist]
     );
 
     const onNodeDoubleClick = useCallback(
@@ -203,26 +217,26 @@ export default function DiagramTool({ data, value, onChange }: DiagramToolProps)
         <div className="dt-wrap">
             <style>{`
                 .dt-wrap {
-                    border: 1px solid rgba(10,10,15,0.08);
-                    border-radius: 12px;
+                    border: 1px solid var(--line);
+                    border-radius: var(--r);
                     overflow: hidden;
-                    background: #FFFFFF;
+                    background: var(--surface);
                     margin-bottom: 14px;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                 }
 
                 /* HEADER */
                 .dt-header {
                     padding: 12px 16px;
-                    background: #FAFAF9;
-                    border-bottom: 1px solid rgba(10,10,15,0.08);
+                    background: var(--bg-2);
+                    border-bottom: 1px solid var(--line);
                     display: flex;
                     align-items: center;
                     gap: 12px;
                     flex-wrap: wrap;
                 }
                 .dt-header-pill {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 11px;
                     font-weight: 700;
                     letter-spacing: 0.5px;
@@ -230,39 +244,39 @@ export default function DiagramTool({ data, value, onChange }: DiagramToolProps)
                     padding: 4px 10px;
                     border-radius: 6px;
                     color: ${modeConfig.color};
-                    background: ${modeConfig.color}10;
-                    border: 1px solid ${modeConfig.color}30;
+                    background: color-mix(in srgb, ${modeConfig.color} 8%, transparent);
+                    border: 1px solid color-mix(in srgb, ${modeConfig.color} 30%, transparent);
                 }
                 .dt-header-title {
                     font-size: 14px;
                     font-weight: 600;
-                    color: #0A0A0F;
+                    color: var(--text);
                     flex: 1;
                 }
                 .dt-header-desc {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 10px;
-                    color: #8A8A92;
+                    color: var(--text-3);
                     letter-spacing: 0.3px;
                 }
 
                 /* TOOLBAR */
                 .dt-toolbar {
                     padding: 10px 14px;
-                    background: #FFFFFF;
-                    border-bottom: 1px solid rgba(10,10,15,0.05);
+                    background: var(--surface);
+                    border-bottom: 1px solid var(--line);
                     display: flex;
                     align-items: center;
                     gap: 6px;
                     flex-wrap: wrap;
                 }
                 .dt-toolbar-label {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 10px;
                     font-weight: 700;
                     letter-spacing: 1px;
                     text-transform: uppercase;
-                    color: #8A8A92;
+                    color: var(--text-3);
                     margin-right: 4px;
                 }
 
@@ -272,10 +286,10 @@ export default function DiagramTool({ data, value, onChange }: DiagramToolProps)
                     display: inline-flex;
                     align-items: center;
                     justify-content: center;
-                    border-radius: 7px;
-                    border: 1px solid rgba(10,10,15,0.08);
-                    background: #FFFFFF;
-                    color: #55555F;
+                    border-radius: var(--r-btn);
+                    border: 1px solid var(--line);
+                    background: var(--surface);
+                    color: var(--text-2);
                     cursor: pointer;
                     transition: all 0.15s;
                     font-size: 14px;
@@ -284,28 +298,28 @@ export default function DiagramTool({ data, value, onChange }: DiagramToolProps)
                 .dt-node-btn:hover {
                     border-color: ${modeConfig.color};
                     color: ${modeConfig.color};
-                    background: ${modeConfig.color}08;
+                    background: color-mix(in srgb, ${modeConfig.color} 6%, transparent);
                 }
                 .dt-node-btn.active {
                     background: ${modeConfig.color};
-                    color: #FFFFFF;
+                    color: #fff;
                     border-color: ${modeConfig.color};
-                    box-shadow: 0 2px 8px ${modeConfig.color}40;
+                    box-shadow: 0 2px 8px color-mix(in srgb, ${modeConfig.color} 30%, transparent);
                 }
 
                 .dt-divider {
                     width: 1px;
                     height: 24px;
-                    background: rgba(10,10,15,0.08);
+                    background: var(--line);
                     margin: 0 6px;
                 }
 
                 .dt-action-btn {
                     padding: 7px 14px;
-                    border-radius: 7px;
-                    border: 1px solid rgba(10,10,15,0.08);
-                    background: #FFFFFF;
-                    color: #55555F;
+                    border-radius: var(--r-btn);
+                    border: 1px solid var(--line);
+                    background: var(--surface);
+                    color: var(--text-2);
                     cursor: pointer;
                     transition: all 0.15s;
                     font-size: 12px;
@@ -315,52 +329,85 @@ export default function DiagramTool({ data, value, onChange }: DiagramToolProps)
                     gap: 6px;
                 }
                 .dt-action-btn:hover {
-                    color: #0A0A0F;
-                    border-color: rgba(10,10,15,0.16);
-                    background: #FAFAF9;
+                    color: var(--text);
+                    border-color: var(--line-2);
+                    background: var(--bg-2);
                 }
                 .dt-action-btn.primary {
                     background: ${modeConfig.color};
-                    color: #FFFFFF;
+                    color: #fff;
                     border-color: ${modeConfig.color};
                 }
                 .dt-action-btn.primary:hover {
                     transform: translateY(-1px);
-                    box-shadow: 0 4px 12px ${modeConfig.color}40;
+                    box-shadow: 0 4px 12px color-mix(in srgb, ${modeConfig.color} 30%, transparent);
                     background: ${modeConfig.color};
                 }
                 .dt-action-btn.danger:hover {
-                    color: #B91C1C;
-                    border-color: #DC2626;
-                    background: rgba(220,38,38,0.04);
+                    color: var(--err);
+                    border-color: var(--err);
+                    background: var(--err-soft);
                 }
 
                 /* HINT */
                 .dt-hint {
                     padding: 8px 14px;
-                    background: ${modeConfig.color}06;
-                    border-bottom: 1px solid ${modeConfig.color}20;
-                    font-family: 'JetBrains Mono', monospace;
+                    background: color-mix(in srgb, ${modeConfig.color} 5%, transparent);
+                    border-bottom: 1px solid color-mix(in srgb, ${modeConfig.color} 20%, transparent);
+                    font-family: var(--font-mono);
                     font-size: 11px;
-                    color: #55555F;
+                    color: var(--text-2);
                     line-height: 1.5;
                 }
 
                 /* CANVAS */
                 .dt-canvas {
                     height: 500px;
-                    background: #FAFAF9;
+                    background: var(--bg-2);
                 }
 
                 /* FOOTER-HILFE */
                 .dt-footer {
                     padding: 10px 14px;
-                    background: #FAFAF9;
-                    border-top: 1px solid rgba(10,10,15,0.05);
-                    font-family: 'JetBrains Mono', monospace;
+                    background: var(--bg-2);
+                    border-top: 1px solid var(--line);
+                    font-family: var(--font-mono);
                     font-size: 11px;
-                    color: #8A8A92;
+                    color: var(--text-3);
                     line-height: 1.5;
+                }
+
+                /* REACTFLOW-OVERRIDES (Kanten, Controls, Attribution) */
+                .dt-wrap .react-flow__edge-path { stroke: var(--accent); }
+                .dt-wrap .react-flow__edge.selected .react-flow__edge-path { stroke: var(--accent-2); }
+                .dt-canvas .react-flow__controls {
+                    box-shadow: var(--shadow);
+                    border: 1px solid var(--line);
+                    border-radius: var(--r-btn);
+                    overflow: hidden;
+                }
+                .dt-canvas .react-flow__controls button {
+                    background: var(--surface);
+                    color: var(--text);
+                    border-bottom: 1px solid var(--line);
+                    fill: var(--text);
+                }
+                .dt-canvas .react-flow__controls button:hover {
+                    background: var(--surface-2);
+                }
+                .dt-canvas .react-flow__controls button svg {
+                    fill: var(--text);
+                }
+                .dt-canvas .react-flow__minimap {
+                    background: var(--surface);
+                    border: 1px solid var(--line);
+                }
+                .dt-canvas .react-flow__attribution {
+                    background: var(--surface);
+                    color: var(--text-3);
+                }
+                .dt-canvas .react-flow__attribution a {
+                    color: var(--text-3);
                 }
             `}</style>
 
@@ -420,12 +467,13 @@ export default function DiagramTool({ data, value, onChange }: DiagramToolProps)
                     snapGrid={[15, 15]}
                     defaultEdgeOptions={{
                         type: "smoothstep",
-                        style: { stroke: modeConfig.color, strokeWidth: 2 },
-                        markerEnd: { type: MarkerType.ArrowClosed, color: modeConfig.color },
+                        style: { strokeWidth: 2 },
+                        markerEnd: { type: MarkerType.ArrowClosed },
                     }}
+                    defaultMarkerColor="var(--accent)"
                 >
                     <Controls />
-                    <Background gap={15} size={1} color="rgba(10,10,15,0.08)" />
+                    <Background gap={15} size={1} color="var(--line-2)" />
                 </ReactFlow>
 
             </div>

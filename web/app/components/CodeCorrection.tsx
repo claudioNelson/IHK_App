@@ -61,37 +61,37 @@ export default function CodeCorrection({ data, value, onChange }: CodeCorrection
             <style>{`
                 .cc-wrap {
                     margin-bottom: 14px;
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                 }
 
                 /* CODE-BOX */
                 .cc-code {
-                    background: #0F0F18;
-                    border: 1px solid rgba(10,10,15,0.20);
-                    border-radius: 12px;
+                    background: var(--bg-2);
+                    border: 1px solid var(--line-2);
+                    border-radius: var(--r);
                     overflow: hidden;
                     margin-bottom: 14px;
                 }
                 .cc-code-head {
                     padding: 10px 16px;
-                    border-bottom: 1px solid rgba(255,255,255,0.08);
+                    border-bottom: 1px solid var(--line);
                     display: flex; align-items: center; justify-content: space-between;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 10px;
                     letter-spacing: 1px;
                     text-transform: uppercase;
-                    background: #15151E;
+                    background: var(--surface-2);
                 }
                 .cc-code-lang {
-                    color: #7C6DFF;
+                    color: var(--accent);
                     font-weight: 700;
                 }
                 .cc-code-info {
-                    color: #8A8A92;
+                    color: var(--text-3);
                     font-weight: 500;
                 }
                 .cc-code-info .marked {
-                    color: ${expectedCount && errorCount > expectedCount ? "#DC2626" : "#7C6DFF"};
+                    color: ${expectedCount && errorCount > expectedCount ? "var(--err)" : "var(--accent)"};
                     font-weight: 700;
                 }
 
@@ -102,32 +102,32 @@ export default function CodeCorrection({ data, value, onChange }: CodeCorrection
                 .cc-line {
                     display: flex;
                     align-items: stretch;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 13px;
                     line-height: 1.6;
                     transition: background 0.15s;
                 }
                 .cc-line:hover {
-                    background: rgba(255,255,255,0.03);
+                    background: var(--surface-2);
                 }
                 .cc-line.marked {
-                    background: rgba(220,38,38,0.10);
+                    background: var(--err-soft);
                 }
                 .cc-line.marked:hover {
-                    background: rgba(220,38,38,0.14);
+                    background: color-mix(in srgb, var(--err) 14%, transparent);
                 }
 
                 .cc-line-num {
                     width: 40px;
                     text-align: right;
-                    color: #4A4A55;
+                    color: var(--text-3);
                     user-select: none;
                     padding: 0 12px 0 14px;
                     flex-shrink: 0;
                     font-weight: 500;
                 }
                 .cc-line.marked .cc-line-num {
-                    color: #FCA5A5;
+                    color: var(--err);
                     font-weight: 700;
                 }
 
@@ -139,77 +139,77 @@ export default function CodeCorrection({ data, value, onChange }: CodeCorrection
                 .cc-line-mark-btn {
                     width: 18px; height: 18px;
                     border-radius: 4px;
-                    border: 1.5px solid rgba(255,255,255,0.20);
+                    border: 1.5px solid var(--line-2);
                     background: transparent;
                     cursor: pointer;
                     transition: all 0.15s;
-                    color: #FFFFFF;
+                    color: #fff;
                     font-size: 11px;
                     display: flex; align-items: center; justify-content: center;
                     padding: 0;
                 }
                 .cc-line-mark-btn:hover {
-                    border-color: #DC2626;
-                    background: rgba(220,38,38,0.20);
+                    border-color: var(--err);
+                    background: var(--err-soft);
                 }
                 .cc-line.marked .cc-line-mark-btn {
-                    background: #DC2626;
-                    border-color: #DC2626;
+                    background: var(--err);
+                    border-color: var(--err);
                 }
 
                 .cc-line-code {
                     flex: 1;
-                    color: #E4E4E8;
+                    color: var(--text);
                     padding: 0 14px 0 8px;
                     white-space: pre;
                     min-width: 0;
                 }
                 .cc-line.marked .cc-line-code {
-                    color: #FFFFFF;
+                    color: var(--text);
                 }
 
                 /* HELP TEXT */
                 .cc-help {
-                    background: rgba(34,211,238,0.04);
-                    border: 1px solid rgba(34,211,238,0.20);
-                    border-radius: 10px;
+                    background: var(--ok-soft);
+                    border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent);
+                    border-radius: var(--r-btn);
                     padding: 14px 16px;
                     margin-bottom: 14px;
                     font-size: 12px;
                     line-height: 1.6;
-                    color: #0A0A0F;
-                    font-family: 'JetBrains Mono', monospace;
+                    color: var(--text);
+                    font-family: var(--font-mono);
                     white-space: pre-wrap;
                 }
                 .cc-help-label {
                     display: block;
                     font-size: 10px;
                     font-weight: 700;
-                    color: #0891B2;
+                    color: var(--ok);
                     letter-spacing: 1.5px;
                     text-transform: uppercase;
                     margin-bottom: 6px;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                 }
 
                 /* INSTRUCTION */
                 .cc-instr {
-                    background: #FAFAF9;
-                    border: 1px solid rgba(10,10,15,0.08);
-                    border-radius: 10px;
+                    background: var(--surface-2);
+                    border: 1px solid var(--line);
+                    border-radius: var(--r-btn);
                     padding: 12px 14px;
                     margin-bottom: 14px;
                     font-size: 13px;
-                    color: #55555F;
+                    color: var(--text-2);
                     line-height: 1.5;
                     display: flex; gap: 10px; align-items: flex-start;
                 }
                 .cc-instr-icon {
                     flex-shrink: 0;
-                    color: #7C6DFF;
+                    color: var(--accent);
                     font-weight: 700;
                 }
-                .cc-instr strong { color: #0A0A0F; font-weight: 600; }
+                .cc-instr strong { color: var(--text); font-weight: 600; }
 
                 /* CORRECTION FORM */
                 .cc-corrections {
@@ -217,9 +217,9 @@ export default function CodeCorrection({ data, value, onChange }: CodeCorrection
                     gap: 12px;
                 }
                 .cc-correction {
-                    background: #FFFFFF;
-                    border: 1px solid rgba(124,109,255,0.30);
-                    border-radius: 12px;
+                    background: var(--surface);
+                    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+                    border-radius: var(--r);
                     padding: 18px;
                 }
                 .cc-correction-head {
@@ -227,21 +227,21 @@ export default function CodeCorrection({ data, value, onChange }: CodeCorrection
                     margin-bottom: 14px;
                 }
                 .cc-correction-badge {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 11px;
                     font-weight: 700;
-                    color: #7C6DFF;
-                    background: rgba(124,109,255,0.08);
-                    border: 1px solid rgba(124,109,255,0.30);
+                    color: var(--accent);
+                    background: color-mix(in srgb, var(--accent) 8%, transparent);
+                    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
                     padding: 3px 10px;
                     border-radius: 5px;
                     letter-spacing: 0.5px;
                 }
                 .cc-correction-orig {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 12px;
-                    color: #55555F;
-                    background: #F4F4F1;
+                    color: var(--text-2);
+                    background: var(--bg-2);
                     padding: 6px 10px;
                     border-radius: 5px;
                     overflow-x: auto;
@@ -255,10 +255,10 @@ export default function CodeCorrection({ data, value, onChange }: CodeCorrection
                 }
                 .cc-field:last-child { margin-bottom: 0; }
                 .cc-field-label {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                     font-size: 10px;
                     font-weight: 700;
-                    color: #7C6DFF;
+                    color: var(--accent);
                     letter-spacing: 1.5px;
                     text-transform: uppercase;
                     margin-bottom: 6px;
@@ -268,41 +268,41 @@ export default function CodeCorrection({ data, value, onChange }: CodeCorrection
                 .cc-field textarea {
                     width: 100%;
                     padding: 10px 12px;
-                    background: #FAFAF9;
-                    border: 1px solid rgba(10,10,15,0.08);
+                    background: var(--surface-2);
+                    border: 1px solid var(--line);
                     border-radius: 8px;
                     font-size: 13px;
-                    color: #0A0A0F;
+                    color: var(--text);
                     outline: none;
                     transition: border-color 0.15s, box-shadow 0.15s;
                 }
                 .cc-field input {
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: var(--font-mono);
                 }
                 .cc-field textarea {
-                    font-family: 'Inter Tight', system-ui, sans-serif;
+                    font-family: var(--font-sans);
                     min-height: 60px;
                     resize: vertical;
                     line-height: 1.5;
                 }
                 .cc-field input:focus,
                 .cc-field textarea:focus {
-                    border-color: #7C6DFF;
-                    box-shadow: 0 0 0 3px rgba(124,109,255,0.08);
-                    background: #FFFFFF;
+                    border-color: var(--accent);
+                    box-shadow: 0 0 0 3px var(--accent-soft);
+                    background: var(--surface);
                 }
                 .cc-field input::placeholder,
                 .cc-field textarea::placeholder {
-                    color: #8A8A92;
+                    color: var(--text-3);
                 }
 
                 .cc-empty {
                     text-align: center;
                     padding: 24px;
-                    background: #FAFAF9;
-                    border: 1px dashed rgba(10,10,15,0.16);
-                    border-radius: 10px;
-                    color: #8A8A92;
+                    background: var(--surface-2);
+                    border: 1px dashed var(--line-2);
+                    border-radius: var(--r-btn);
+                    color: var(--text-3);
                     font-size: 13px;
                     font-style: italic;
                 }

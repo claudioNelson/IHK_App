@@ -38,6 +38,7 @@ const multiplizitaeten: { notation: string; bedeutung: string; beispiel: string 
 const linien: { art: KantenArt; name: string; bedeutung: string }[] = [
   { art: "assoziation", name: "Assoziation", bedeutung: "Klassen kennen sich. Navigierbarkeit nicht festgelegt." },
   { art: "gerichtet", name: "Gerichtete Assoziation", bedeutung: "Nur in Pfeilrichtung navigierbar." },
+  { art: "abhaengigkeit", name: "Abhängigkeit", bedeutung: "Gestrichelt, offene Spitze, z. B. «use»: Eine Klasse nutzt die andere vorübergehend." },
   { art: "aggregation", name: "Aggregation", bedeutung: "Teil und Ganzes, leere Raute am Ganzen. Teile existieren auch allein." },
   { art: "komposition", name: "Komposition", bedeutung: "Teil und Ganzes, gefüllte Raute am Ganzen. Teile leben und sterben mit dem Ganzen." },
   { art: "vererbung", name: "Vererbung (Generalisierung)", bedeutung: "Dreieck zeigt auf die Oberklasse. Lektion 4." },
@@ -190,7 +191,8 @@ export default function Lektion3() {
         </ul>
         <p>
           Im Lastenrad-Beispiel ist die Beziehung zwischen Station und Lastenrad bewusst eine
-          einfache Assoziation: Schließt eine Station, gibt es die Räder weiterhin. Alle Linienarten
+          einfache Assoziation: Schließt eine Station, gibt es die Räder weiterhin. Eine
+          Aggregation wäre ebenfalls vertretbar. Alle Linienarten
           auf einen Blick, vertieft werden Komposition und Vererbung in Lektion 4:
         </p>
         <div className="ls-table-wrap">
@@ -234,7 +236,8 @@ export default function Lektion3() {
             <mark>Radnummer</mark>, ein <mark>Modell</mark> und einen <mark>Preis pro Stunde</mark>,
             und es soll abfragbar sein, ob es gerade verfügbar ist. Jedes Lastenrad gehört fest zu
             einer <mark>Station</mark>; eine Station hat eine <mark>Bezeichnung</mark>, eine{" "}
-            <mark>Adresse</mark> und mindestens ein Lastenrad. Ein Kunde kann beliebig viele{" "}
+            <mark>Adresse</mark> und mindestens ein Lastenrad. Schließt eine Station, werden ihre
+            Räder an andere Stationen verteilt. Ein Kunde kann beliebig viele{" "}
             <mark>Buchungen</mark> anlegen. Eine Buchung gilt für genau ein Lastenrad und speichert{" "}
             <mark>Beginn</mark>, <mark>Ende</mark> und <mark>Status</mark>. Die Plattform soll den
             Preis einer Buchung berechnen und Buchungen stornieren können.
@@ -288,7 +291,8 @@ export default function Lektion3() {
           </li>
           <li>
             Eine Station hat mindestens ein Lastenrad, jedes Lastenrad gehört fest zu einer Station:{" "}
-            <code>1..*</code> an Lastenrad, <code>1</code> an Station.
+            <code>1..*</code> an Lastenrad, <code>1</code> an Station. Eine Aggregation wäre
+            ebenfalls vertretbar, weil die Räder die Station überleben.
           </li>
         </ul>
         <LastenradDiagramm caption="Schritt 3: das fertige Klassendiagramm" />
@@ -302,7 +306,11 @@ export default function Lektion3() {
       </LsAbschnitt>
 
       <LsAbschnitt id="uebungen" titel="Zeichenaufgaben">
-        <p>Zeichne erst selbst, dann klapp die Musterlösung auf und vergleiche Punkt für Punkt.</p>
+        <p>
+          Zeichne erst selbst, dann klapp die Musterlösung auf und vergleiche Punkt für Punkt. Die
+          Punkte sind Richtwerte im Stil der IHK; die tatsächliche Verteilung legt jede Prüfung selbst
+          fest.
+        </p>
 
         <Zeichenaufgabe
           nr="3.1"
@@ -311,8 +319,9 @@ export default function Lektion3() {
             <p>
               Die Ausleihe ist eine eigene Klasse, weil sie eigene Daten hat (Ausleih- und
               Rückgabedatum). Leser und Medium hängen deshalb nicht direkt zusammen, sondern über die
-              Ausleihe. Die Unterscheidung in Buch, DVD und Zeitschrift ist hier nicht gefordert; sie
-              wäre ein Fall für Vererbung (Lektion 4).
+              Ausleihe. Eine Assoziationsklasse Ausleihe wird meist ebenfalls anerkannt (siehe
+              Lektion 4). Die Unterscheidung in Buch, DVD und Zeitschrift ist hier nicht gefordert;
+              sie wäre ein Fall für Vererbung (Lektion 4).
             </p>
           }
           bewertung={[
@@ -321,10 +330,11 @@ export default function Lektion3() {
             "1 Punkt: verlaengern(tage: int): void in der Klasse Ausleihe.",
             "1 Punkt: beide Assoziationen zwischen den richtigen Klassen.",
             "2 Punkte: Multiplizitäten, je Beziehung 1 Punkt, nur wenn beide Enden stimmen.",
+            "Richtwert gesamt: 10 Punkte.",
           ]}
         >
           <div className="uml-szenario">
-            <span className="uml-szenario-titel">Stadtbibliothek, 10 Punkte</span>
+            <span className="uml-szenario-titel">Stadtbibliothek, Richtwert 10 Punkte</span>
             <p>
               Die Stadtbibliothek möchte ihre Ausleihe digital verwalten. Leser haben eine
               Lesernummer, einen Namen und ein Geburtsdatum. Jedes Medium hat eine Mediennummer, einen
@@ -360,10 +370,11 @@ export default function Lektion3() {
             "2 Punkte: berechneAlter(): int in Tier und absagen(): void in Termin.",
             "2 Punkte: Multiplizitäten 1 zu 1..* und 1 zu 0..*, jeweils am richtigen Ende.",
             "1 Punkt: Rollenname besitzer am Ende der Klasse Tierhalter.",
+            "Richtwert gesamt: 11 Punkte.",
           ]}
         >
           <div className="uml-szenario">
-            <span className="uml-szenario-titel">Tierarztpraxis, 11 Punkte</span>
+            <span className="uml-szenario-titel">Tierarztpraxis, Richtwert 11 Punkte</span>
             <p>
               Eine Tierarztpraxis verwaltet ihre Patienten. Tierhalter werden mit Kundennummer, Name
               und Telefonnummer erfasst, und zwar erst, wenn sie mindestens ein Tier anmelden. Jedes

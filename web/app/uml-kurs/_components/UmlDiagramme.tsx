@@ -71,7 +71,7 @@ export function Klasse({ name, x, y, b, attribute, methoden }: KlasseSpec) {
   );
 }
 
-export type KantenArt = "assoziation" | "gerichtet" | "aggregation" | "komposition" | "vererbung";
+export type KantenArt = "assoziation" | "gerichtet" | "abhaengigkeit" | "aggregation" | "komposition" | "vererbung";
 
 type KanteSpec = {
   /** Achsenparallele Punkte, Start zuerst. Rauten sitzen am Start (Ganzes),
@@ -167,7 +167,7 @@ export function Kante({ punkte, art = "assoziation", von, nach, rolleVon, rolleN
   let endSymbol: ReactNode = null;
   const q = (f: number, s: number): string =>
     `${ende[0] - u[0] * f + nu[0] * s},${ende[1] - u[1] * f + nu[1] * s}`;
-  if (art === "gerichtet") {
+  if (art === "gerichtet" || art === "abhaengigkeit") {
     endSymbol = <polyline className="uml-linie" points={`${q(12, 6)} ${q(0, 0)} ${q(12, -6)}`} />;
   } else if (art === "vererbung") {
     endSymbol = <polygon className="uml-dreieck" points={`${q(0, 0)} ${q(15, 8)} ${q(15, -8)}`} />;
@@ -196,7 +196,11 @@ export function Kante({ punkte, art = "assoziation", von, nach, rolleVon, rolleN
 
   return (
     <g>
-      <polyline className="uml-linie" points={punkte.map((p) => p.join(",")).join(" ")} />
+      <polyline
+        className="uml-linie"
+        points={punkte.map((p) => p.join(",")).join(" ")}
+        style={art === "abhaengigkeit" ? { strokeDasharray: "6 4" } : undefined}
+      />
       {startSymbol}
       {endSymbol}
       <EndLabels
@@ -425,7 +429,7 @@ export function LastenradDiagramm({
 /** Kompakte Variante fuer den Kopf der Uebersicht: drei Klassen plus Lese-Notiz. */
 export function HeroKlassendiagramm() {
   const l = lAnordnung(
-    { name: "Kunde", attribute: ["- kundenNr: int", "- name: String"], methoden: ["+ aendereEmail(): void"] },
+    { name: "Kunde", attribute: ["- kundenNr: int", "- name: String"], methoden: ["+ aendereEmail(neu: String): void"] },
     { name: "Buchung", attribute: ["- beginn: DateTime", "- ende: DateTime"], methoden: ["+ stornieren(): void"] },
     { name: "Lastenrad", attribute: ["- radNr: int", "- modell: String"], methoden: ["+ istVerfuegbar(): boolean"] },
     undefined,
@@ -469,7 +473,7 @@ export function KlassenAufbau() {
     x: 20,
     y: 20,
     b: 300,
-    attribute: ["- radNr: int", "- modell: String", "# preisProStunde: double"],
+    attribute: ["- radNr: int", "- modell: String", "- preisProStunde: double"],
     methoden: ["+ istVerfuegbar(): boolean", "+ berechnePreis(stunden: int): double"],
   };
   const h = klassenHoehe(k);
@@ -629,7 +633,7 @@ export function UseCaseMini({ caption }: { caption?: ReactNode }) {
       breite={600}
       hoehe={270}
       min={500}
-      label="Use-Case-Diagramm Lastenrad-Verleih: Der Akteur Kunde ist mit den Anwendungsfällen Lastenrad buchen und Buchung stornieren verbunden, der Akteur Servicekraft mit Rad warten. Die Anwendungsfälle liegen in der Systemgrenze Lastenrad-Verleih."
+      label="Use-Case-Diagramm Lastenrad-Verleih: Der Akteur Kunde ist mit den Anwendungsfällen Lastenrad buchen und Buchung stornieren verbunden, der Akteur Mitarbeiter mit Rad warten. Die Anwendungsfälle liegen in der Systemgrenze Lastenrad-Verleih."
       caption={caption}
     >
       <rect className="uml-system" x={160} y={16} width={280} height={236} rx={4} />
@@ -643,7 +647,7 @@ export function UseCaseMini({ caption }: { caption?: ReactNode }) {
         <UseCase key={f.text} cx={ux} cy={f.cy} text={f.text} />
       ))}
       <Akteur x={60} y={84} name="Kunde" />
-      <Akteur x={540} y={144} name="Servicekraft" />
+      <Akteur x={540} y={144} name="Mitarbeiter" />
     </Abbildung>
   );
 }
@@ -909,7 +913,7 @@ export function L2TierarztLoesung() {
       breite={800}
       hoehe={450}
       min={620}
-      label="Musterlösung Tierarztpraxis: Der Tierhalter ist mit Termin buchen und Termin verschieben verbunden. Beide binden SMS-Erinnerung senden per include ein, das mit dem Akteur SMS-Dienst verbunden ist. Das Praxisteam ist mit Tagesplan einsehen verbunden. Die Tierärztin erbt vom Praxisteam und ist zusätzlich mit Behandlung dokumentieren verbunden."
+      label="Musterlösung Tierarztpraxis: Der Tierhalter ist mit Termin buchen und Termin verschieben verbunden. Beide binden SMS-Erinnerung senden per include ein, das mit dem Akteur SMS-Dienst verbunden ist. Der Praxismitarbeiter ist mit Tagesplan einsehen verbunden. Die Tierärztin erbt vom Praxismitarbeiter und ist zusätzlich mit Behandlung dokumentieren verbunden."
     >
       <L2System x={150} y={16} b={450} h={418} name="Terminsystem Tierarztpraxis" />
       <L2Linie von={l2Anker(70, 96, 1)} f={buchen} />
@@ -927,7 +931,7 @@ export function L2TierarztLoesung() {
       <L2Ellipse f={behandlung} />
       <Akteur x={70} y={96} name="Tierhalter" />
       <Akteur x={700} y={50} name="SMS-Dienst" />
-      <Akteur x={700} y={196} name="Praxisteam" />
+      <Akteur x={700} y={196} name="Praxismitarbeiter" />
       <Akteur x={700} y={334} name="Tierärztin" />
     </Abbildung>
   );
@@ -939,7 +943,7 @@ export function L2TierarztLoesung() {
 
 const L4_KOPF_ZUSATZ = 14; // zweite Zeile im Kopf fuer Stereotyp oder {abstract}
 
-type L4KlasseSpec = KlasseSpec & {
+export type L4KlasseSpec = KlasseSpec & {
   /** «interface» ueber dem Namen */
   schnittstelle?: boolean;
   /** kursiver Name plus {abstract} unter dem Namen */
@@ -952,12 +956,12 @@ function l4Kopf(k: Pick<L4KlasseSpec, "schnittstelle" | "abstrakt">): number {
   return k.schnittstelle || k.abstrakt ? KOPF + L4_KOPF_ZUSATZ : KOPF;
 }
 
-function l4Hoehe(k: Omit<L4KlasseSpec, "x" | "y" | "b">): number {
+export function l4Hoehe(k: Omit<L4KlasseSpec, "x" | "y" | "b">): number {
   return klassenHoehe(k) - KOPF + l4Kopf(k);
 }
 
 /** Klasse mit optionalem Stereotyp «interface» bzw. {abstract} und kursiven Methoden */
-function L4Klasse(k: L4KlasseSpec) {
+export function L4Klasse(k: L4KlasseSpec) {
   const { name, x, y, b, attribute, methoden, schnittstelle, abstrakt, kursiv = [] } = k;
   const kopf = l4Kopf(k);
   const h = l4Hoehe(k);

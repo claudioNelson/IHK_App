@@ -113,8 +113,9 @@ export default function Lektion5() {
           hinein, mehrere gehen heraus, und an jedem ausgehenden Pfeil steht eine Bedingung
           (guard) in eckigen Klammern, etwa <code>[hoch]</code> und <code>[niedrig]</code>. Die
           Bedingungen müssen sich gegenseitig ausschließen und zusammen alle Fälle abdecken; für
-          „alles andere“ gibt es <code>[else]</code>. In die Raute selbst schreibst du nichts, die
-          Frage steht höchstens als Notiz daneben.
+          „alles andere“ gibt es <code>[else]</code>. Ein Fragetext neben der Raute, etwa „Rad
+          frei?“, ist verbreitet und schadet nicht; entscheidend sind die Wächter in eckigen
+          Klammern an jedem Ausgang.
         </p>
         <p>
           Dieselbe Raute mit mehreren Eingängen und einem Ausgang ist eine Zusammenführung (merge
@@ -129,6 +130,11 @@ export default function Lektion5() {
           (join node) wartet, bis <strong>alle</strong> parallelen Zweige angekommen sind, und lässt
           erst dann ein Token weiter. „Parallel“ heißt dabei nicht zwingend gleichzeitig, sondern:
           Die Reihenfolge ist egal.
+        </p>
+        <p>
+          Zwei Symbole solltest du erkennen, aber nicht zeichnen müssen: das Zeitereignis
+          (Sanduhr, etwa „nach 14 Tagen“) und der Signalempfang (Rechteck mit eingekerbter Seite,
+          etwa „Zahlung eingegangen“). Beide lösen einen Kontrollfluss von außen aus.
         </p>
         <LsHinweis titel="Raute oder Balken?">
           <p>
@@ -196,9 +202,10 @@ export default function Lektion5() {
           <p>
             Die Aufgabe nennt die Notation fast immer ausdrücklich: „Stellen Sie den Ablauf als
             UML-Aktivitätsdiagramm dar“, „als Struktogramm“ oder „als Programmablaufplan“. Lies
-            genau, denn eine gemischte Notation kostet Punkte. Typische Mischfehler sind „ja“ und
-            „nein“ an einer UML-Raute statt Bedingungen in eckigen Klammern, ein Oval mit „Start“ im
-            Aktivitätsdiagramm oder Pfeile im Struktogramm. Geht es um mehrere Beteiligte oder
+            genau, denn eine gemischte Notation kann Punkte kosten. Typische Mischfehler sind
+            Ausgänge ohne Wächter in eckigen Klammern an einer UML-Raute (ein Fragetext neben der
+            Raute ist dagegen unschädlich), ein Oval mit „Start“ im Aktivitätsdiagramm oder Pfeile
+            im Struktogramm. Geht es um mehrere Beteiligte oder
             parallele Schritte, ist fast immer das Aktivitätsdiagramm gemeint; geht es um einen
             Algorithmus mit Schleifen und Variablen, eher Struktogramm, PAP oder Pseudocode.
           </p>
@@ -325,7 +332,7 @@ export default function Lektion5() {
             "2 Punkte: Entscheidung zum Link mit [abgelaufen] und [gültig], Rückweg an den Anfang.",
             "2 Punkte: Entscheidung zur Passwortstärke mit Bedingungen, Rückweg zur Eingabe.",
             "2 Punkte: beide Rückwege münden in Zusammenführungen, nicht direkt in Aktionen.",
-            "1 Punkt: UML-Notation durchgehalten, keine „ja“ und „nein“ an den Rauten.",
+            "1 Punkt: UML-Notation durchgehalten, Wächter in eckigen Klammern an jedem Ausgang der Rauten.",
             "Richtwert gesamt: 10 Punkte.",
           ]}
         >

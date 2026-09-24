@@ -62,15 +62,16 @@ export default function Lektion1() {
           Genau deshalb mag die IHK UML: Mit einem Diagramm lässt sich in wenigen Minuten prüfen, ob
           du einen Sachverhalt verstanden und sauber strukturiert hast. In der <strong>AP1</strong>{" "}
           kann UML alle Fachrichtungen treffen. In der <strong>AP2</strong> ist es bei
-          Anwendungsentwicklern ein Dauerbrenner, bei Systemintegratoren taucht vor allem das
-          Aktivitätsdiagramm auf, etwa für Abläufe bei der Einrichtung oder im Störungsfall.
+          Anwendungsentwicklern ein Dauerbrenner. Bei Systemintegratoren kommt UML in der AP2
+          selten vor, am ehesten als Ablaufdarstellung, etwa für Abläufe bei der Einrichtung oder
+          im Störungsfall.
         </p>
         <p>So sieht ein kleines UML-Diagramm aus, hier ein Use-Case-Diagramm (Anwendungsfalldiagramm):</p>
 
         <UseCaseMini caption="Use-Case-Diagramm: Wer nutzt den Lastenrad-Verleih wofür?" />
 
         <p>
-          Auch ohne Vorwissen liest du heraus: Kunden buchen und stornieren, eine Servicekraft wartet
+          Auch ohne Vorwissen liest du heraus: Kunden buchen und stornieren, ein Mitarbeiter wartet
           die Räder. Diese Lesbarkeit ist der Sinn der Sache, und sie ist auch das, was die Prüfer
           sehen wollen.
         </p>
@@ -79,7 +80,8 @@ export default function Lektion1() {
       <LsAbschnitt id="diagrammtypen" titel="Die Diagramme der Prüfung">
         <p>
           UML 2.5 kennt vierzehn Diagrammtypen. Für die Prüfung brauchst du davon nur einen Bruchteil.
-          Vier tauchen immer wieder auf, ein fünfter gelegentlich:
+          Drei tauchen immer wieder auf, zwei weitere kommen in der AP2 Anwendungsentwicklung
+          gelegentlich vor:
         </p>
         <ul>
           <li>
@@ -95,11 +97,11 @@ export default function Lektion1() {
             Prozesses ab? Lektion 5.
           </li>
           <li>
-            <strong>Sequenzdiagramm</strong>: Welches Objekt schickt wann welche Nachricht an welches
-            andere? Lektion 6.
+            Gelegentlich das <strong>Sequenzdiagramm</strong>: Welches Objekt schickt wann welche
+            Nachricht an welches andere? Lektion 6.
           </li>
           <li>
-            Gelegentlich das <strong>Zustandsdiagramm</strong> (Zustandsautomat): Welche Zustände
+            Ebenfalls gelegentlich das <strong>Zustandsdiagramm</strong> (Zustandsautomat): Welche Zustände
             durchläuft ein Objekt? Ebenfalls Lektion 6.
           </li>
         </ul>
