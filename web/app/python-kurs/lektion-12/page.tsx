@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { LsAbschnitt, LsHinweis } from "../../lernen/_components/LsBausteine";
 import PythonRunner from "../_components/PythonRunner";
-import LektionLayout from "../_components/LektionLayout";
-import { Aufgabe, CodeBlock, Loesung } from "../_components/KursBausteine";
+import LektionLayout from "../../components/kurs/LektionLayout";
+import { pythonKurs } from "../_components/lektionen";
+import { Aufgabe, CodeBlock, Loesung } from "../../components/kurs/KursBausteine";
 
 export const metadata: Metadata = {
   title: "Python Lektion 12: Abschluss und Brücke zum IHK-Pseudocode",
@@ -67,6 +68,7 @@ const zeilen: { python: ReactNode; ihk: ReactNode }[] = [
 export default function Lektion12() {
   return (
     <LektionLayout
+      kurs={pythonKurs}
       nr={12}
       lead="Vom Python-Code zum IHK-Pseudocode: die Übersetzungstabelle, eine echte Prüfungsaufgabe in beiden Schreibweisen und dein Fahrplan nach dem Kurs."
       uebungen={1}

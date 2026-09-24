@@ -61,6 +61,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     })),
     {
+      url: `${baseUrl}/uml-kurs`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    ...[1, 2, 3, 4, 5, 6, 7].map((nr) => ({
+      url: `${baseUrl}/uml-kurs/lektion-${nr}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+    {
       url: `${baseUrl}/impressum`,
       lastModified: now,
       changeFrequency: "yearly",

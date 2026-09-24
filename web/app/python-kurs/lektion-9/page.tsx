@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { LsAbschnitt, LsHinweis } from "../../lernen/_components/LsBausteine";
 import PythonRunner from "../_components/PythonRunner";
-import LektionLayout from "../_components/LektionLayout";
-import { Aufgabe, Loesung } from "../_components/KursBausteine";
+import LektionLayout from "../../components/kurs/LektionLayout";
+import { pythonKurs } from "../_components/lektionen";
+import { Aufgabe, Loesung } from "../../components/kurs/KursBausteine";
 
 export const metadata: Metadata = {
   title: "Python Lektion 9: Fehler verstehen und Debugging",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function Lektion9() {
   return (
     <LektionLayout
+      kurs={pythonKurs}
       nr={9}
       lead="Tracebacks lesen, die häufigsten Python-Fehler (TypeError, NameError, IndexError) verstehen und mit try/except abfangen."
       uebungen={2}

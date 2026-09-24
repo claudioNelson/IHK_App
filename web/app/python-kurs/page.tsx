@@ -4,7 +4,7 @@ import LsToc, { type Abschnitt } from "../lernen/_components/LsToc";
 import { LsAbschnitt, LsCta, LsFaq, LsHinweis, type FaqEintrag } from "../lernen/_components/LsBausteine";
 import { MetaIcon, PfeilIcon } from "../lernen/_components/LsIcons";
 import PythonRunner from "./_components/PythonRunner";
-import { BrowserIcon, GamepadIcon, ListeIcon } from "./_components/KursIcons";
+import { BrowserIcon, GamepadIcon, ListeIcon } from "../components/kurs/KursIcons";
 import { lektionen, nrText } from "./_components/lektionen";
 
 export const metadata: Metadata = {

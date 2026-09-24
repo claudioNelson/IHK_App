@@ -34,6 +34,7 @@ export default function SiteFooter() {
             <ul>
               <li><Link href="/lernen">Lernseiten</Link></li>
               <li><Link href="/python-kurs">Python-Kurs</Link></li>
+              <li><Link href="/uml-kurs">UML-Kurs</Link></li>
               <li><a href={PLAY_URL} target="_blank" rel="noopener noreferrer">Android-App</a></li>
               <li><a href={APPSTORE_URL} target="_blank" rel="noopener noreferrer">iPhone-App</a></li>
               <li><Link href="/login">Anmelden</Link></li>

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { LsAbschnitt, LsHinweis } from "../../lernen/_components/LsBausteine";
-import LektionLayout from "../_components/LektionLayout";
-import { Aufgabe, CodeBlock } from "../_components/KursBausteine";
+import LektionLayout from "../../components/kurs/LektionLayout";
+import { pythonKurs } from "../_components/lektionen";
+import { Aufgabe, CodeBlock } from "../../components/kurs/KursBausteine";
 
 export const metadata: Metadata = {
   title: "Python Lektion 11: Projekt Snake auf deinem Rechner",
@@ -132,6 +133,7 @@ fenster.mainloop()`;
 export default function Lektion11() {
   return (
     <LektionLayout
+      kurs={pythonKurs}
       nr={11}
       lead="Das Abschlussprojekt: Python lokal installieren und ein komplettes Snake-Spiel mit dem turtle-Modul bauen, Schritt für Schritt erklärt."
       uebungen={3}

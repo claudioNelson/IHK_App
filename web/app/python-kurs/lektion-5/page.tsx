@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { LsAbschnitt, LsHinweis } from "../../lernen/_components/LsBausteine";
 import PythonRunner from "../_components/PythonRunner";
-import LektionLayout from "../_components/LektionLayout";
-import { Aufgabe, Loesung } from "../_components/KursBausteine";
+import LektionLayout from "../../components/kurs/LektionLayout";
+import { pythonKurs } from "../_components/lektionen";
+import { Aufgabe, Loesung } from "../../components/kurs/KursBausteine";
 
 export const metadata: Metadata = {
   title: "Python Lektion 5: Schleifen (for und while)",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function Lektion5() {
   return (
     <LektionLayout
+      kurs={pythonKurs}
       nr={5}
       lead="for-Schleifen mit range(), while-Schleifen und break, mit Übungen direkt im Browser."
       uebungen={2}

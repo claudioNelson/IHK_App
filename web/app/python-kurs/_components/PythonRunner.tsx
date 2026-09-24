@@ -12,7 +12,7 @@
 // naechste Tab verlaesst den Editor), Strg/Cmd+Enter fuehrt aus.
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { DateiIcon, FehlerIcon, PlayIcon, ResetIcon, TerminalIcon, UhrIcon } from "./KursIcons";
+import { DateiIcon, FehlerIcon, PlayIcon, ResetIcon, TerminalIcon, UhrIcon } from "../../components/kurs/KursIcons";
 
 // Pyodide wird nur EINMAL pro Seite geladen (geteiltes Promise auf window).
 declare global {

@@ -1,0 +1,82 @@
+/* ------------------------------------------------------------------ */
+/* UML-Kurs lernarena.app: Diagramme (Praefix uml-)                     */
+/* Setzt globals.css + lernen.css + python-kurs/kurs.css voraus.        */
+/* Alle Farben ueber Tokens, dadurch hell und dunkel ohne Extra-Regeln. */
+/* ------------------------------------------------------------------ */
+
+/* Schriften: direkt aus den next/font-Variablen am <body>. --font-mono und
+   --font-sans aus globals.css werden auf :root berechnet, wo die
+   Geist-Variablen noch fehlen, und sind dadurch leer. */
+.uml-fig, .uml-muster {
+  --uml-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --uml-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ---- Abbildung: Flaeche, skalierbares SVG, Bildunterschrift ------- */
+.uml-fig { margin: 22px 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow); }
+.uml-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 14px; }
+.uml-fig svg { display: block; width: 100%; height: auto; margin: 0 auto; }
+.uml-fig figcaption { padding: 10px 16px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--text-2); }
+@media (max-width: 639px) {
+  .uml-fig svg { min-width: var(--uml-min, 0px); }
+}
+
+/* Kopf der Uebersicht: neben dem Text, ohne Aussenabstand */
+.pk-head .uml-hero { margin: 0; }
+
+/* ---- Klassen ------------------------------------------------------- */
+.uml-box { fill: var(--surface); }
+.uml-kopf { fill: var(--accent-soft); }
+.uml-rand { fill: none; stroke: var(--text); stroke-width: 1.4; }
+.uml-trenner { stroke: var(--text); stroke-width: 1.2; }
+.uml-name { fill: var(--text); font-weight: 600; font-size: 14px; font-family: var(--uml-sans); }
+.uml-member { fill: var(--text); font-size: 12px; font-family: var(--uml-mono); }
+
+/* ---- Beziehungen --------------------------------------------------- */
+.uml-linie { fill: none; stroke: var(--text); stroke-width: 1.4; stroke-linejoin: round; }
+.uml-raute-leer, .uml-dreieck { fill: var(--surface); stroke: var(--text); stroke-width: 1.4; stroke-linejoin: round; }
+.uml-raute-voll { fill: var(--text); stroke: var(--text); stroke-width: 1.4; stroke-linejoin: round; }
+.uml-mult { fill: var(--accent); font-weight: 600; font-size: 12.5px; font-family: var(--uml-mono); }
+.uml-rolle { fill: var(--text-2); font-style: italic; font-size: 12.5px; font-family: var(--uml-sans); }
+.uml-assoz-name { fill: var(--text-2); font-size: 12.5px; font-family: var(--uml-sans); }
+.uml-strich { stroke: var(--text-3); stroke-width: 1.2; stroke-dasharray: 4 3; }
+
+/* ---- Notiz und Beschriftungen ------------------------------------- */
+.uml-notiz { fill: var(--surface-2); stroke: var(--text-3); stroke-width: 1.2; stroke-linejoin: round; }
+.uml-notiz-text { fill: var(--text-2); font-size: 12.5px; font-family: var(--uml-sans); }
+.uml-fuehrung { stroke: var(--accent); stroke-width: 1.2; }
+.uml-punkt { fill: var(--accent); }
+.uml-hinweis-titel { fill: var(--text); font-weight: 600; font-size: 13.5px; font-family: var(--uml-sans); }
+.uml-hinweis { fill: var(--text-2); font-size: 12.5px; font-family: var(--uml-mono); }
+
+/* ---- Use-Case ------------------------------------------------------ */
+.uml-system { fill: none; stroke: var(--line-2); stroke-width: 1.4; }
+.uml-system-name { fill: var(--text); font-weight: 600; font-size: 13px; font-family: var(--uml-sans); }
+.uml-usecase { fill: var(--accent-soft); stroke: var(--text); stroke-width: 1.4; }
+.uml-usecase-text { fill: var(--text); font-weight: 500; font-size: 13px; font-family: var(--uml-sans); }
+.uml-figur { fill: none; stroke: var(--text); stroke-width: 1.6; stroke-linecap: round; }
+.uml-akteur { fill: var(--text); font-weight: 600; font-size: 13px; font-family: var(--uml-sans); }
+
+/* ---- Linienarten in der Notationstabelle -------------------------- */
+.uml-muster { display: block; width: 120px; height: 24px; }
+.uml-muster-box { fill: var(--surface-2); stroke: var(--text-3); stroke-width: 1; }
+.ls-table td.uml-muster-zelle { padding-top: 8px; padding-bottom: 8px; }
+
+/* ---- Szenariotext (Aufgabenstellung im IHK-Stil) ------------------ */
+.uml-szenario { margin: 18px 0; padding: 18px 20px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent); font-size: 15.5px; color: var(--text); }
+.uml-szenario-titel { display: block; font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; color: var(--accent); margin-bottom: 6px; }
+.uml-szenario mark { background: var(--accent-soft); color: var(--text); padding: 0 3px; border-radius: 4px; }
+
+/* ---- Nummerierte Fliesstext-Liste (Schritte, Fehler) -------------- */
+.uml-ol { list-style: decimal; padding-left: 22px; }
+.uml-ol > li + li { margin-top: 8px; }
+.uml-ol > li::marker { color: var(--accent); font-family: var(--font-mono); font-weight: 500; }
+
+/* ---- Platzhalter der noch kommenden Lektionen --------------------- */
+.uml-bald { padding: 22px; border: 1px dashed var(--line-2); border-radius: var(--r); background: var(--surface); }
+.uml-bald p + p { margin-top: 10px; }
+.uml-bald a { color: var(--accent); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Lange Notationen im Fliesstext duerfen umbrechen (lernen.css setzt nowrap) */
+.ls-article code.uml-lang { white-space: normal; overflow-wrap: anywhere; }
+.pk-loesung .uml-fig { box-shadow: none; margin-top: 4px; }

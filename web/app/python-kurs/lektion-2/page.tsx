@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { LsAbschnitt, LsHinweis } from "../../lernen/_components/LsBausteine";
 import PythonRunner from "../_components/PythonRunner";
-import LektionLayout from "../_components/LektionLayout";
-import { Aufgabe, Loesung } from "../_components/KursBausteine";
+import LektionLayout from "../../components/kurs/LektionLayout";
+import { pythonKurs } from "../_components/lektionen";
+import { Aufgabe, Loesung } from "../../components/kurs/KursBausteine";
 
 export const metadata: Metadata = {
   title: "Python Lektion 2: Variablen und Datentypen",
@@ -17,6 +18,7 @@ export default function Lektion2() {
 
   return (
     <LektionLayout
+      kurs={pythonKurs}
       nr={2}
       lead="Variablen, Datentypen (str, int, float, bool) und input() verständlich erklärt, mit Übungen direkt im Browser."
       uebungen={2}

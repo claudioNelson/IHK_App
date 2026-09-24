@@ -175,3 +175,14 @@
   .pk-runner-load::before { animation: none; width: 100%; opacity: .6; }
   @media (hover: hover) { .pk-lesson:hover { padding-left: 0; } .pk-lesson[data-projekt]:hover { padding-left: 12px; } .pk-lesson:hover > svg, .pk-pager a:hover svg { transform: none; } }
 }
+
+/* ---- Zeichenaufgabe (UML-Kurs): Tool-Hinweis, Loesung mit Bewertung - */
+.pk-tool-hinweis { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; font-size: 14.5px; color: var(--text-2); }
+.pk-tool-hinweis svg { width: 18px; height: 18px; flex: 0 0 auto; margin-top: 2px; color: var(--accent); }
+.pk-tool-hinweis a { color: var(--accent); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.pk-aufgabe .pk-tool-hinweis + .pk-loesung { margin-top: 14px; }
+.pk-loesung-inhalt { padding: 0 14px 16px; }
+.pk-loesung-inhalt > p { font-size: 15px; margin-top: 10px; }
+.pk-loesung-inhalt .pk-bewertung-titel { margin-top: 16px; font-size: 14px; font-weight: 600; color: var(--text); }
+.pk-bewertung { list-style: disc; padding-left: 20px; margin-top: 6px; font-size: 15px; color: var(--text-2); }
+.pk-bewertung li + li { margin-top: 6px; }

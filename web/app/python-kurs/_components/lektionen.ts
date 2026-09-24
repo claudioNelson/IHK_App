@@ -2,18 +2,12 @@
 // Uebersichtsseite, die Kursplan-Seitenleiste, der Fortschritt und die
 // Vor/Zurueck-Navigation der Lektionsseiten.
 
-export type Lektion = {
-  nr: number;
-  slug: string;
-  /** Kurztitel ohne "Lektion n", bei Projekten ohne "Projekt:" */
-  titel: string;
-  /** Eine Zeile fuer den Kursplan */
-  untertitel: string;
-  /** Geschaetzte Dauer in Minuten */
-  dauer: number;
-  /** Spiele-Projekt (Marke "Projekt" im Kursplan) */
-  projekt: boolean;
-};
+import { anzeigeTitel, nrText, type Kurs, type Lektion } from "../../components/kurs/kurs-typen";
+
+// Typ und Helfer liegen seit dem UML-Kurs in app/components/kurs/kurs-typen.ts;
+// hier weiter exportiert, damit bestehende Importe gleich bleiben.
+export { anzeigeTitel, nrText };
+export type { Lektion };
 
 export const lektionen: Lektion[] = [
   { nr: 1, slug: "lektion-1", titel: "Start und erster Code", untertitel: "print(), Strings und deine ersten Rechnungen.", dauer: 10, projekt: false },
@@ -30,12 +24,11 @@ export const lektionen: Lektion[] = [
   { nr: 12, slug: "lektion-12", titel: "Abschluss und IHK-Pseudocode", untertitel: "Vom Python-Code zum Pseudocode der Prüfung, plus dein Fahrplan danach.", dauer: 20, projekt: false },
 ];
 
-/** Titel fuer Seitenleiste, h1 und Vor/Zurueck: Projekte mit "Projekt:" davor. */
-export function anzeigeTitel(l: Lektion): string {
-  return l.projekt ? `Projekt: ${l.titel}` : l.titel;
-}
-
-/** Zweistellige Nummer fuer Kursplan und Seitenleiste, z. B. "01". */
-export function nrText(nr: number): string {
-  return String(nr).padStart(2, "0");
-}
+export const pythonKurs: Kurs = {
+  slug: "python-kurs",
+  titel: "Python-Kurs",
+  lektionen,
+  lernort: { text: "Läuft im Browser", icon: "browser" },
+  seitenNotiz:
+    "Der Kurs läuft komplett im Browser. Nur für das Snake-Projekt installierst du Python auf deinem Rechner.",
+};

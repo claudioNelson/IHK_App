@@ -111,7 +111,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de" suppressHydrationWarning>
+    <html lang="de" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
         {/* Gespeichertes Farbschema VOR dem ersten Paint anwenden, zentral für
             alle Seiten. Hell ist Standard, "dunkel" setzt data-theme="dark". */}
@@ -121,9 +121,8 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      {/* Schrift-Variablen am <html>, damit globals.css sie am :root lesen kann. */}
+      <body className="antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

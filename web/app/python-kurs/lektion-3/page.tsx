@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { LsAbschnitt } from "../../lernen/_components/LsBausteine";
 import PythonRunner from "../_components/PythonRunner";
-import LektionLayout from "../_components/LektionLayout";
-import { Aufgabe, Loesung } from "../_components/KursBausteine";
+import LektionLayout from "../../components/kurs/LektionLayout";
+import { pythonKurs } from "../_components/lektionen";
+import { Aufgabe, Loesung } from "../../components/kurs/KursBausteine";
 
 export const metadata: Metadata = {
   title: "Python Lektion 3: Rechnen, Modulo und f-Strings",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function Lektion3() {
   return (
     <LektionLayout
+      kurs={pythonKurs}
       nr={3}
       lead="Division, Ganzzahl-Division, Modulo und f-Strings in Python, mit interaktiven Übungen im Browser."
       uebungen={2}
