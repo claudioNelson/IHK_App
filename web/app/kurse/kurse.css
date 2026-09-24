@@ -1,0 +1,31 @@
+/* Kursuebersicht /kurse: eine Karte je Kurs (ks-Klassen). Tokens aus globals.css,
+   Rahmen und Typografie aus lernen.css. */
+
+.ks-list { list-style: none; padding: 0; display: grid; gap: 18px; }
+.ks-card { display: grid; grid-template-columns: 52px minmax(0, 1fr) 20px; gap: 20px; align-items: start; padding: clamp(20px, 3vw, 28px); border: 1px solid var(--line-2); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow); text-decoration: none; color: inherit; transition: border-color .2s ease, transform .2s var(--ls-ease); }
+.ks-icon { width: 52px; height: 52px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+.ks-icon svg { width: 24px; height: 24px; }
+.ks-body { min-width: 0; }
+.ks-kicker { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+.ks-card h2 { margin-top: 6px; font-size: clamp(19px, 2vw, 22px); font-weight: 600; letter-spacing: -.015em; color: var(--text); }
+.ks-card p { margin-top: 8px; font-size: 15px; line-height: 1.55; color: var(--text-2); max-width: 60ch; }
+.ks-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 14px; padding: 0; list-style: none; font-size: 13.5px; color: var(--text-3); }
+.ks-meta li { display: inline-flex; align-items: center; gap: 6px; }
+.ks-meta svg { width: 14px; height: 14px; }
+.ks-arrow { align-self: center; width: 20px; height: 20px; color: var(--text-3); transition: transform .2s var(--ls-ease), color .15s ease; }
+.ks-arrow svg { width: 18px; height: 18px; }
+@media (hover: hover) and (pointer: fine) {
+  .ks-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .ks-card:hover h2 { color: var(--accent); }
+  .ks-card:hover .ks-arrow { color: var(--accent); transform: translateX(3px); }
+}
+
+.ks-hint { margin-top: 28px; padding: 18px 20px; border: 1px dashed var(--line-2); border-radius: var(--r); font-size: 14.5px; color: var(--text-3); }
+.ks-hint strong { color: var(--text-2); font-weight: 600; }
+
+@media (max-width: 767px) {
+  .ks-card { grid-template-columns: 44px minmax(0, 1fr); gap: 16px; }
+  .ks-icon { width: 44px; height: 44px; border-radius: 10px; }
+  .ks-icon svg { width: 21px; height: 21px; }
+  .ks-arrow { display: none; }
+}

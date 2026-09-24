@@ -33,6 +33,7 @@ export default function SiteFooter() {
             <h4>Lernen</h4>
             <ul>
               <li><Link href="/lernen">Lernseiten</Link></li>
+              <li><Link href="/kurse">Kurse</Link></li>
               <li><Link href="/python-kurs">Python-Kurs</Link></li>
               <li><Link href="/uml-kurs">UML-Kurs</Link></li>
               <li><a href={PLAY_URL} target="_blank" rel="noopener noreferrer">Android-App</a></li>

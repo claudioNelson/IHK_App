@@ -20,7 +20,7 @@ export type NavLink = { href: string; label: string };
 export const DEFAULT_LINKS: NavLink[] = [
   { href: "/lernen", label: "Lernseiten" },
   { href: "/pruefungen", label: "Prüfungen" },
-  { href: "/python-kurs", label: "Python-Kurs" },
+  { href: "/kurse", label: "Kurse" },
   { href: "/fachinformatiker-pruefung", label: "Prüfungs-Guide" },
   { href: "/#pricing", label: "Preise" },
 ];
@@ -104,7 +104,10 @@ export default function SiteHeader({
   };
 
   const isPremium = subscription.loaded && subscription.isPremium;
-  const isCurrent = (href: string) => !href.includes("#") && (pathname === href || pathname.startsWith(href + "/"));
+  // "Kurse" gilt auch auf den Kursseiten selbst als aktiv
+  const unterKurse = pathname.startsWith("/python-kurs") || pathname.startsWith("/uml-kurs");
+  const isCurrent = (href: string) =>
+    !href.includes("#") && (pathname === href || pathname.startsWith(href + "/") || (href === "/kurse" && unterKurse));
 
   return (
     <header className="site-header">
