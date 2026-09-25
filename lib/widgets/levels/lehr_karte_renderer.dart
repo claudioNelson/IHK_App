@@ -160,6 +160,13 @@ class LehrKarteRenderer extends StatelessWidget {
     );
   }
 
+  /// Code- und Textblock in Monospace.
+  ///
+  /// Nutzt JetBrains Mono aus den App-Schriften statt des generischen
+  /// 'monospace', das Windows und Web nicht aufloesen (dann proportional,
+  /// ASCII-Tabellen und Balken rutschen auseinander). Der Block laeuft
+  /// horizontal statt umzubrechen, damit Spalten stehen bleiben.
+  /// Bei language 'text' (Merktabellen, Skizzen) gibt es keinen Sprach-Kopf.
   Widget _buildCodeBlock(
     String code, {
     required String language,
@@ -167,6 +174,24 @@ class LehrKarteRenderer extends StatelessWidget {
   }) {
     final bg = isDark ? const Color(0xFF1F1F2E) : const Color(0xFFF7F7F4);
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final istText = language.toLowerCase() == 'text';
+
+    // Highlight-Theme ohne eigenen Hintergrund, sonst liegt ein zweiter
+    // Kasten im Kasten. Grundfarbe aus den App-Farben.
+    final basis = isDark ? atomOneDarkTheme : atomOneLightTheme;
+    final theme = Map<String, TextStyle>.from(basis);
+    theme['root'] = (basis['root'] ?? const TextStyle()).copyWith(
+      backgroundColor: Colors.transparent,
+      color: text,
+    );
+
+    final codeStyle = AppTextStyles.mono(
+      size: 13.5,
+      weight: FontWeight.w400,
+      color: text,
+      letterSpacing: 0,
+    ).copyWith(height: 1.5);
 
     return Container(
       width: double.infinity,
@@ -178,42 +203,40 @@ class LehrKarteRenderer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Mini-Header mit Sprache
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 10, 4),
-            child: Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: AppColors.accent,
-                    borderRadius: BorderRadius.circular(2),
+          // Mini-Header mit Sprache (nicht bei reinem Text)
+          if (!istText)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 10, 0),
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: AppColors.accent,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  language.toUpperCase(),
-                  style: AppTextStyles.monoSmall(
-                    isDark ? AppColors.darkTextDim : AppColors.lightTextDim,
+                  const SizedBox(width: 8),
+                  Text(
+                    language.toUpperCase(),
+                    style: AppTextStyles.monoSmall(
+                      isDark ? AppColors.darkTextDim : AppColors.lightTextDim,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          // Code mit Highlighting
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+          // Inhalt, horizontal scrollbar statt umgebrochen
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.fromLTRB(14, istText ? 12 : 6, 14, 12),
             child: HighlightView(
               code,
               language: language,
-              theme: isDark ? atomOneDarkTheme : atomOneLightTheme,
-              padding: const EdgeInsets.all(8),
-              textStyle: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 13.5,
-                height: 1.5,
-              ),
+              theme: theme,
+              padding: EdgeInsets.zero,
+              textStyle: codeStyle,
             ),
           ),
         ],
