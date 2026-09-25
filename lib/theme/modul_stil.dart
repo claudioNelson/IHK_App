@@ -121,7 +121,7 @@ class FortschrittsRing extends StatelessWidget {
             child: fertig
                 ? Icon(Icons.check_rounded, color: farbe, size: klein ? 15 : 18)
                 : Text(
-                    '${(wert * 100).round()}',
+                    '${(wert * 100).round()}%',
                     style: AppTextStyles.mono(
                       size: klein ? 9 : 11,
                       color: wert > 0 ? farbe : textFarbe,

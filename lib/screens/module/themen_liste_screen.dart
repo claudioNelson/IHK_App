@@ -179,10 +179,12 @@ class _ThemenListeState extends State<ThemenListe> {
     return (fragenAnzahl * 1.5).ceil();
   }
 
+  /// Anteil bestandener Themen (fuer den Balken). Der fruehere
+  /// Score-Durchschnitt zaehlte gesperrte Themen mit 0 und ergab
+  /// eine dritte, widerspruechliche Prozentzahl neben Profil und Modulliste.
   double get _overallProgress {
     if (themen.isEmpty) return 0;
-    final scores = themen.map((t) => cachedScores[t['id'] as int] ?? 0.0);
-    return scores.reduce((a, b) => a + b) / themen.length / 100;
+    return _passedCount / themen.length;
   }
 
   int get _passedCount {
@@ -611,24 +613,9 @@ class _ThemenListeState extends State<ThemenListe> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  '/ ${themen.length} bestanden',
+                  '/ ${themen.length} Themen bestanden',
                   style: AppTextStyles.bodyMedium(textMid),
                 ),
-              ),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${(_overallProgress * 100).toInt()}%',
-                    style: AppTextStyles.instrumentSerif(
-                      size: 28,
-                      color: AppColors.accent,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  Text('Ø SCORE', style: AppTextStyles.monoSmall(textDim)),
-                ],
               ),
             ],
           ),

@@ -164,6 +164,10 @@ class _ModulListeState extends State<ModulListe> {
     return beantworteteFragen.values.fold(0, (a, b) => a + b);
   }
 
+  /// Module, in denen mindestens eine Frage beantwortet wurde.
+  int get _begonneneModule =>
+      beantworteteFragen.values.where((n) => n > 0).length;
+
   int get _completedModules {
     return module.where((m) {
       final id = m['id'] as int;
@@ -320,10 +324,6 @@ class _ModulListeState extends State<ModulListe> {
     Color textMid,
     Color textDim,
   ) {
-    final overallProgress = _totalFragen > 0
-        ? (_totalAnswered / _totalFragen * 100).round()
-        : 0;
-
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -366,24 +366,9 @@ class _ModulListeState extends State<ModulListe> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  '/ $_totalFragen',
+                  '/ $_totalFragen Fragen beantwortet',
                   style: AppTextStyles.bodyMedium(textMid),
                 ),
-              ),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '$overallProgress%',
-                    style: AppTextStyles.instrumentSerif(
-                      size: 28,
-                      color: AppColors.accent,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  Text('GESAMT', style: AppTextStyles.monoSmall(textDim)),
-                ],
               ),
             ],
           ),
@@ -409,8 +394,8 @@ class _ModulListeState extends State<ModulListe> {
               ),
               const SizedBox(width: 24),
               _statMini(
-                '${anzahlFragen.length}',
-                'MODULE GESAMT',
+                '$_begonneneModule / ${module.length}',
+                'MODULE BEGONNEN',
                 text,
                 textDim,
               ),
