@@ -193,52 +193,6 @@ class ProgressService {
     }
   }
 
-  /// Lädt Progress für ein Kernthemen-Modul
-  Future<Map<String, dynamic>> getKernthemaProgress(int modulId) async {
-    if (_userId == null) {
-      return {'total': 0, 'correct': 0, 'answered': 0, 'percent': 0.0};
-    }
-
-    try {
-      print('🔍 Lade Progress für Modul $modulId');
-      // Alle Fragen des Moduls
-      final allQuestions = await _client
-          .from('fragen')
-          .select('id')
-          .eq('modul_id', modulId);
-
-      print('🔍 Total Fragen: ${allQuestions.length}');
-
-      final totalQuestions = allQuestions.length;
-
-      // User Antworten
-      final answers = await _client
-          .from('user_progress') // ← user_progress statt user_answers
-          .select('frage_id, is_correct')
-          .eq('user_id', _userId!)
-          .eq('modul_id', modulId);
-
-      print('🔍 Antworten gefunden: ${answers.length}'); // ← NEU
-      print('🔍 Antworten: $answers');
-
-      final answeredCount = answers.length;
-      final correctCount = answers.where((a) => a['is_correct'] == true).length;
-      final percent = totalQuestions > 0
-          ? (correctCount / totalQuestions * 100)
-          : 0.0;
-
-      return {
-        'total': totalQuestions,
-        'correct': correctCount,
-        'answered': answeredCount,
-        'percent': percent,
-      };
-    } catch (e) {
-      print('❌ Fehler beim Laden Kernthema-Progress: $e');
-      return {'total': 0, 'correct': 0, 'answered': 0, 'percent': 0.0};
-    }
-  }
-
   /// Lädt Gesamt-Progress für alle Kernthemen
   Future<Map<String, dynamic>> getAllKernthemenProgress() async {
     if (_userId == null) {

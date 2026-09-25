@@ -143,7 +143,6 @@ class SpacedRepetitionService {
         .eq('user_id', userId)
         .lte('next_review_at', now.toIso8601String());
 
-    print('✅ getDueCount result: ${result.length}');
     return result.length;
   } catch (e) {
     print('❌ getDueCount Fehler: $e');

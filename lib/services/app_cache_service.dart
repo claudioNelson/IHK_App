@@ -2,7 +2,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'async_duel_service.dart';
 import 'badge_service.dart';
-import 'progress_service.dart';
 
 class AppCacheService {
   static final AppCacheService _instance = AppCacheService._internal();
@@ -45,9 +44,6 @@ class AppCacheService {
   bool profileLoaded = false;
 
   // KERNTHEMEN CACHE
-  List<dynamic> cachedKernthemen = [];
-  Map<int, Map<String, dynamic>> cachedKernthemenProgress = {};
-  bool kernthemenLoaded = false;
 
   // LEVELS CACHE
   /// Modul-Liste: [{id, name, total_levels, basics_levels, completed}, ...]
@@ -72,7 +68,6 @@ class AppCacheService {
         _preloadZertifikate(userId),
         _preloadMatches(userId),
         _preloadProfile(userId),
-        preloadKernthemen(),
         preloadLevelModule(),
       ]);
     } catch (e) {
@@ -287,85 +282,6 @@ class AppCacheService {
     print('🗑️ Alle Ada Chats gelöscht');
   }
 
-  // Nur Progress neu laden (Module aus Cache), alle Module parallel
-  Future<void> refreshKernthemenProgress() async {
-    if (!kernthemenLoaded || cachedKernthemen.isEmpty) {
-      await preloadKernthemen();
-      return;
-    }
-
-    try {
-      final progressSvc = ProgressService();
-      final results = await Future.wait(
-        cachedKernthemen.map((module) async {
-          final moduleId = module['id'] as int;
-          final progress = await progressSvc.getKernthemaProgress(moduleId);
-          return MapEntry(moduleId, progress);
-        }),
-      );
-
-      final progressMap = <int, Map<String, dynamic>>{};
-      for (final entry in results) {
-        progressMap[entry.key] = entry.value;
-      }
-      cachedKernthemenProgress = progressMap;
-    } catch (e) {
-      print('❌ Fehler Progress Refresh: $e');
-    }
-  }
-
-  // Lädt Kernthemen mit Progress
-  // Module mit Levels (= Lernpfade) werden ausgeschlossen,
-  // damit sie nicht doppelt im Kernthemen-Bereich auftauchen.
-  Future<void> preloadKernthemen() async {
-    try {
-      final userId = _client.auth.currentUser?.id;
-      if (userId == null) return;
-
-      print('📖 Lade Kernthemen...');
-
-      // 1. Module-IDs ermitteln, die Lernpfade sind (= Levels haben)
-      final levelRes = await _client.from('levels').select('modul_id');
-      final lernpfadIds = <int>{};
-      for (final row in levelRes as List) {
-        lernpfadIds.add(row['modul_id'] as int);
-      }
-
-      // 2. Kernthema-Module laden
-      final allModules = await _client
-          .from('module')
-          .select('id, name, beschreibung')
-          .eq('kategorie', 'kernthema')
-          .order('id');
-
-      // 3. Lernpfade rausfiltern
-      final modules = (allModules as List)
-          .where((m) => !lernpfadIds.contains(m['id'] as int))
-          .toList();
-
-      // 4. Progress für die verbleibenden Module laden
-      final progressMap = <int, Map<String, dynamic>>{};
-      final progressSvc = ProgressService();
-
-      for (var module in modules) {
-        final moduleId = module['id'] as int;
-        final progress = await progressSvc.getKernthemaProgress(moduleId);
-        progressMap[moduleId] = progress;
-      }
-
-      cachedKernthemen = modules;
-      cachedKernthemenProgress = progressMap;
-      kernthemenLoaded = true;
-
-      print(
-        '✅ Kernthemen geladen: ${modules.length} (Lernpfade ausgefiltert: ${lernpfadIds.length})',
-      );
-      print('📊 Progress geladen für IDs: ${progressMap.keys.toList()}');
-    } catch (e) {
-      print('❌ Fehler Kernthemen: $e');
-    }
-  }
-
   // ========== LEVELS CACHE ==========
 
   /// Modul-Liste für den Level-Bereich (Übersicht).
@@ -374,8 +290,6 @@ class AppCacheService {
     try {
       final userId = _client.auth.currentUser?.id;
       if (userId == null) return;
-
-      print('📖 Lade Level-Module...');
 
       // 1. Distinct modul_ids aus levels-Tabelle + Tier-Counts
       final levelRes = await _client
@@ -450,8 +364,6 @@ class AppCacheService {
 
       cachedLevelModule = list;
       levelModuleLoaded = true;
-
-      print('✅ Level-Module geladen: ${list.length}');
     } catch (e) {
       print('❌ Fehler Level-Module: $e');
     }

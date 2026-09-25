@@ -83,15 +83,11 @@ class _AppInitializerState extends State<AppInitializer> {
 
   Future<void> _initializeApp() async {
     try {
-      print('🔄 Initialisiere Supabase...');
-
       await Supabase.initialize(
         url: 'https://ybvwjmaicoffitngtmzl.supabase.co',
         anonKey:
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlidndqbWFpY29mZml0bmd0bXpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMjI3MjAsImV4cCI6MjA2OTc5ODcyMH0.JzSoVS9P5RxtNx4C2Zou_-NJbQq3TdcJd39L8WC4wGo',
       );
-
-      print('✅ Supabase initialisiert');
 
       // Auf Auth-Änderungen reagieren (Login/Logout/Passwort-Reset).
       // WICHTIG: Muss VOR DeepLinkService().initialize() registriert sein —
@@ -121,16 +117,11 @@ class _AppInitializerState extends State<AppInitializer> {
 
       // Deep Links aktivieren (für Email-Bestätigungs-Links)
       await DeepLinkService().initialize();
-      print('✅ Deep Link Service aktiv');
 
       // Google Play Billing initialisieren (Kauf-Events, Produkte)
       await BillingService().init();
-      print('✅ Billing Service aktiv');
 
       final session = Supabase.instance.client.auth.currentSession;
-      print(
-        '🔐 Aktuelle Session: ${session != null ? "Eingeloggt" : "Nicht eingeloggt"}',
-      );
 
       if (session != null) {
         // Vorladen mit Zeitlimit. Haengt eine Verbindung (z. B. TLS-Abbruch

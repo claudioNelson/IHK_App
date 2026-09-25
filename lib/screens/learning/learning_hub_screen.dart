@@ -313,7 +313,8 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     tagColor: AppColors.accent,
                     title: 'Levels',
                     sub: 'Aufbauende Lernpfade',
-                    count: '$levelCount',
+                    empfohlen: true,
+                    count: '$levelCount Level',
                     surface: surface,
                     border: border,
                     text: text,
@@ -336,7 +337,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     tagColor: AppColors.accent,
                     title: 'Module',
                     sub: 'Freies Üben',
-                    count: '$modulCount',
+                    count: '$modulCount Module',
                     surface: surface,
                     border: border,
                     text: text,
@@ -357,7 +358,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     tagColor: AppColors.accentCyan,
                     title: 'Anschlüsse',
                     sub: 'Hardware erkennen · Systemintegration',
-                    count: '16',
+                    count: '16 Fragen',
                     surface: surface,
                     border: border,
                     text: text,
@@ -381,8 +382,8 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     tagColor: AppColors.accentCyan,
                     title: sqlKurs.titel,
                     sub: 'Interaktiver Kurs mit echter Datenbank',
-                    count: '${sqlKurs.lektionen.length}',
-                    neu: true,
+                    count: '${sqlKurs.lektionen.length} Lektionen',
+                    neu: false,
                     surface: surface,
                     border: border,
                     text: text,
@@ -405,8 +406,8 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     tagColor: AppColors.warning,
                     title: pythonKurs.titel,
                     sub: 'Interaktiver Kurs, ganz ohne Vorwissen',
-                    count: '${pythonKurs.lektionen.length}',
-                    neu: true,
+                    count: '${pythonKurs.lektionen.length} Lektionen',
+                    neu: false,
                     surface: surface,
                     border: border,
                     text: text,
@@ -427,14 +428,25 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   const SizedBox(height: 36),
 
                   // SECTION: ZERTIFIKATE-HIGHLIGHT
-                  _buildSectionLabel('Cloud-Zertifikate', textMid),
+                  _buildSectionLabel('Zertifikate üben', textMid),
                   const SizedBox(height: 14),
-                  _buildCertStrip(
+                  _buildCategoryRow(
+                    tag: 'ZT',
+                    tagColor: AppColors.awsOrange,
+                    title: 'Zertifikate üben',
+                    sub: 'AWS, Azure, Google Cloud, SAP',
+                    count: '4 Zertifikate',
                     surface: surface,
                     border: border,
                     text: text,
                     textMid: textMid,
                     textDim: textDim,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CertificateOverviewScreen(),
+                      ),
+                    ),
                   ),
                 ]),
               ),
@@ -1156,6 +1168,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     required Color textMid,
     required Color textDim,
     required VoidCallback onTap,
+    bool empfohlen = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -1164,7 +1177,9 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
         decoration: BoxDecoration(
           color: surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: border),
+          border: Border.all(
+            color: empfohlen ? AppColors.accent.withOpacity(0.45) : border,
+          ),
         ),
         child: Row(
           children: [
@@ -1194,7 +1209,37 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppTextStyles.h3(text)),
+                  Row(
+                    children: [
+                      Text(title, style: AppTextStyles.h3(text)),
+                      if (empfohlen) ...[
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.accent.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'EMPFOHLENER EINSTIEG',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.mono(
+                                size: 9,
+                                color: AppColors.accent,
+                                weight: FontWeight.w700,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 2),
                   Text(sub, style: AppTextStyles.bodySmall(textMid)),
                 ],
@@ -1203,8 +1248,8 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             Text(
               count,
               style: AppTextStyles.mono(
-                size: 14,
-                color: textMid,
+                size: 11,
+                color: textDim,
                 weight: FontWeight.w600,
                 letterSpacing: 0,
               ),
@@ -1305,8 +1350,8 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             Text(
               count,
               style: AppTextStyles.mono(
-                size: 14,
-                color: textMid,
+                size: 11,
+                color: textDim,
                 weight: FontWeight.w600,
                 letterSpacing: 0,
               ),
@@ -1320,100 +1365,4 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   }
 
   // ─── CERT STRIP ─────────────────────────────────────
-  Widget _buildCertStrip({
-    required Color surface,
-    required Color border,
-    required Color text,
-    required Color textMid,
-    required Color textDim,
-  }) {
-    final certs = [
-      (name: 'AWS', full: 'Cloud Practitioner', color: AppColors.awsOrange),
-      (name: 'AZURE', full: 'Fundamentals', color: AppColors.azureBlue),
-      (name: 'GCP', full: 'Digital Leader', color: AppColors.gcpBlue),
-      (name: 'SAP', full: 'Associate', color: AppColors.sapBlue),
-    ];
-
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const CertificateOverviewScreen()),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Mini-Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    "Übe für deine nächsten Zertifikate.",
-                    style: AppTextStyles.instrumentSerif(
-                      size: 22,
-                      color: text,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ),
-                Icon(Icons.arrow_outward_rounded, color: textMid, size: 18),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Cert-Grid
-            Row(
-              children: certs.map((c) {
-                return Expanded(
-                  child: Container(
-                    margin: EdgeInsets.only(right: c == certs.last ? 0 : 8),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 14,
-                      horizontal: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border(top: BorderSide(color: c.color, width: 2)),
-                      color: c.color.withOpacity(0.05),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(8),
-                        bottomRight: Radius.circular(8),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          c.name,
-                          style: AppTextStyles.mono(
-                            size: 10,
-                            color: c.color,
-                            weight: FontWeight.w700,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          c.full,
-                          style: AppTextStyles.labelSmall(text),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
