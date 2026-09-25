@@ -205,7 +205,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Mindestens 8 Zeichen — am besten mit Sonderzeichen.',
+            'Mindestens 8 Zeichen, am besten mit Sonderzeichen.',
             style: AppTextStyles.bodyMedium(textMid),
           ),
 

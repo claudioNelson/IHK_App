@@ -126,7 +126,7 @@ class _UpgradeAccountScreenState extends State<UpgradeAccountScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Dein kompletter Lernfortschritt bleibt erhalten — er wird '
+              'Dein kompletter Lernfortschritt bleibt erhalten, er wird '
               'einfach mit deinem neuen Account verknüpft. Danach kannst du '
               'dich auf jedem Gerät einloggen.',
               style: AppTextStyles.bodyMedium(textMid),

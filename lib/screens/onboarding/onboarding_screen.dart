@@ -26,7 +26,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Echte Prüfungsfragen.',
       titleAccent: '600+',
       description:
-          'Über 600 Fragen aus allen IHK-Themenbereichen — so wie sie in der echten Abschlussprüfung vorkommen.',
+          'Über 600 Fragen aus allen IHK-Themenbereichen, so wie sie in der echten Abschlussprüfung vorkommen.',
     ),
     _OnboardingData(
       code: '02',
@@ -35,7 +35,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Prüfungsbedingungen.',
       titleAccent: 'Echt.',
       description:
-          'Simuliere die echte Abschlussprüfung mit Timer, Fragenübersicht und realistischen Bedingungen — für Fachinformatiker AE und SI.',
+          'Simuliere die echte Abschlussprüfung mit Timer, Fragenübersicht und realistischen Bedingungen, für Fachinformatiker AE und SI.',
     ),
     _OnboardingData(
       code: '03',
@@ -534,7 +534,7 @@ class _OnboardingSlide extends StatelessWidget {
         return [
           'ELO-Rating-System',
           'Wöchentliche Ranglisten',
-          'Async — spiele in deinem Tempo',
+          'Async: spiele in deinem Tempo',
         ];
       default:
         return [];

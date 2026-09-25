@@ -456,7 +456,7 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
               Text(
                 'Dein Premium-Abo wird mit deinem Account verknüpft. '
                 'Als Gast würde es bei einer Deinstallation verloren gehen. '
-                'Erstelle deshalb zuerst einen kostenlosen Account — dein '
+                'Erstelle deshalb zuerst einen kostenlosen Account, dein '
                 'bisheriger Fortschritt bleibt dabei erhalten.',
                 style: AppTextStyles.bodySmall(textMid),
               ),

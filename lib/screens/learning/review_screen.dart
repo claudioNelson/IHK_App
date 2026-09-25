@@ -559,7 +559,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            'Diese Fragen sind heute fällig — basierend auf dem Spaced-Repetition-Algorithmus.',
+            'Diese Fragen sind heute fällig, basierend auf dem Spaced-Repetition-Algorithmus.',
             style: AppTextStyles.bodySmall(textMid),
           ),
         ],

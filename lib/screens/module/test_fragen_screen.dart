@@ -1075,7 +1075,7 @@ class _TestFragenState extends State<TestFragen>
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Flashcard gespeichert — übe sie später.',
+                      'Flashcard gespeichert, übe sie später.',
                       style: AppTextStyles.bodySmall(text),
                     ),
                   ),

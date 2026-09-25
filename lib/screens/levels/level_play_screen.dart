@@ -492,7 +492,7 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
                     initialPrompt:
                         'Ich habe diese Frage falsch beantwortet. '
                         'Erkläre mir bitte, warum die richtige Antwort '
-                        'richtig ist und meine falsch — mit einem '
+                        'richtig ist und meine falsch, mit einem '
                         'einfachen Beispiel.',
                   ),
                   icon: const Icon(Icons.psychology_rounded, size: 16),
@@ -1038,7 +1038,7 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
                     topic: '${widget.modulName} · ${widget.level.titel}',
                     initialPrompt:
                         'Erkläre mir das nochmal mit anderen Worten und einem '
-                        'einfachen Beispiel — als ob ich es gerade zum ersten '
+                        'einfachen Beispiel, als ob ich es gerade zum ersten '
                         'Mal höre.',
                   ),
                   icon: const Icon(Icons.refresh_rounded, size: 16),

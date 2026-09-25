@@ -45,7 +45,7 @@ Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unt
 const String kDatenschutzMarkdown = r'''
 # Datenschutzerklärung
 
-Gemäß Art. 13, 14 DSGVO – Stand: 30. August 2026
+Gemäß Art. 13, 14 DSGVO, Stand: 30. August 2026
 
 ## 1. Verantwortlicher
 
@@ -301,7 +301,7 @@ Die Verfügbarkeit der Plattform wird mit angemessener Sorgfalt sichergestellt, 
 
 ### 9.2 Wesentliche Änderungen
 
-Wesentliche Änderungen – insbesondere Änderungen der Preise, des Leistungsumfangs oder sonstiger vertraglicher Hauptpflichten – bedürfen der ausdrücklichen Zustimmung des Nutzers. Bloßes Schweigen gilt insoweit nicht als Zustimmung. Ohne ausdrückliche Zustimmung gilt der Vertrag zu den bisherigen Bedingungen fort; der Anbieter kann den Vertrag in diesem Fall zum nächsten zulässigen Zeitpunkt kündigen.
+Wesentliche Änderungen, insbesondere Änderungen der Preise, des Leistungsumfangs oder sonstiger vertraglicher Hauptpflichten, bedürfen der ausdrücklichen Zustimmung des Nutzers. Bloßes Schweigen gilt insoweit nicht als Zustimmung. Ohne ausdrückliche Zustimmung gilt der Vertrag zu den bisherigen Bedingungen fort; der Anbieter kann den Vertrag in diesem Fall zum nächsten zulässigen Zeitpunkt kündigen.
 
 ### 9.3 Bereits bezahlte Leistungen
 

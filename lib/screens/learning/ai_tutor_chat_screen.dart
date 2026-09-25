@@ -33,8 +33,8 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
     _messages.add(
       ChatMessage(
         text: widget.currentQuestion != null
-            ? 'Ich bin Ada — benannt nach Ada Lovelace. Ich helfe dir bei dieser Aufgabe. Was möchtest du wissen?'
-            : 'Ich bin Ada — benannt nach Ada Lovelace. Frag mich alles zum Thema ${widget.topic ?? "IT"}!',
+            ? 'Ich bin Ada, benannt nach Ada Lovelace. Ich helfe dir bei dieser Aufgabe. Was möchtest du wissen?'
+            : 'Ich bin Ada, benannt nach Ada Lovelace. Frag mich alles zum Thema ${widget.topic ?? "IT"}!',
         isUser: false,
         timestamp: DateTime.now(),
       ),

@@ -110,7 +110,7 @@ Future<void> showMatchStatusDialog(
                             ? 'Gegner'
                             : oppName)
                         : 'Noch niemand',
-                    value: hasOpponent ? '$oppCorrect / $total' : '—',
+                    value: hasOpponent ? '$oppCorrect / $total' : '·',
                     caption: hasOpponent ? 'richtig' : 'wartet auf Gegner',
                     progress: hasOpponent && !oppDone
                         ? '$oppAnswered von $total gespielt'
@@ -130,7 +130,7 @@ Future<void> showMatchStatusDialog(
               !hasOpponent
                   ? 'Sobald jemand dein Duell annimmt und spielt, siehst du hier das Ergebnis.'
                   : oppDone
-                      ? 'Beide sind fertig – das Match wird in Kürze ausgewertet.'
+                      ? 'Beide sind fertig, das Match wird in Kürze ausgewertet.'
                       : 'Das Ergebnis wird gewertet, sobald dein Gegner alle Fragen beantwortet hat.',
               style: AppTextStyles.bodySmall(textMid),
             ),

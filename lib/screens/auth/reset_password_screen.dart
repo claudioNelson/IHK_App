@@ -207,7 +207,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           const SizedBox(height: 4),
           Text(
             'Du hast den Link aus der E-Mail geöffnet. Lege jetzt ein '
-            'neues Passwort fest — mindestens 8 Zeichen.',
+            'neues Passwort fest, mindestens 8 Zeichen.',
             style: AppTextStyles.bodyMedium(textMid),
           ),
 

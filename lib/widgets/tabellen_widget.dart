@@ -243,7 +243,7 @@ class _TabellenWidgetState extends State<TabellenWidget> {
                         child: Center(
                           child: DropdownButton<int>(
                             value: _bewertungen[kriterium]?[option],
-                            hint: const Text('—'),
+                            hint: const Text('·'),
                             isExpanded: true,
                             underline: Container(),
                             items: widget.bewertungsSkala.map((wert) {

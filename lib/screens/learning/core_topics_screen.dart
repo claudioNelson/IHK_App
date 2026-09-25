@@ -45,17 +45,17 @@ const Map<int, Map<String, dynamic>> _summaries = {
             'RAID (Redundant Array of Independent Disks) kombiniert mehrere Festplatten zu einem logischen Laufwerk für mehr Leistung und/oder Ausfallsicherheit.',
       },
       {
-        'heading': 'RAID 0 — Striping',
+        'heading': 'RAID 0: Striping',
         'text':
             'Daten werden auf alle Platten verteilt. Keine Redundanz! Fällt eine Platte aus → alles weg. Kapazität = n × Plattengröße. Vorteil: maximale Geschwindigkeit.',
       },
       {
-        'heading': 'RAID 1 — Mirroring',
+        'heading': 'RAID 1: Mirroring',
         'text':
             'Daten werden gespiegelt. 1 Platte kann ausfallen. Kapazität = Plattengröße (nicht n × Plattengröße!). Vorteil: einfache Redundanz.',
       },
       {
-        'heading': 'RAID 5 — Striping mit Parität',
+        'heading': 'RAID 5: Striping mit Parität',
         'text':
             'Daten + Paritätsinformationen verteilt. Mindestens 3 Platten. 1 Platte kann ausfallen. Kapazität = (n-1) × Plattengröße.',
       },
@@ -127,7 +127,7 @@ const Map<int, Map<String, dynamic>> _summaries = {
       {
         'heading': 'Die 7 Schichten',
         'text':
-            '7. Anwendung (Application) — HTTP, FTP, DNS\n6. Darstellung (Presentation) — SSL, Codierung\n5. Sitzung (Session) — Verbindungsaufbau\n4. Transport — TCP, UDP, Ports\n3. Vermittlung (Network) — IP, Router\n2. Sicherung (Data Link) — MAC, Switch\n1. Bitübertragung (Physical) — Kabel, Hub',
+            '7. Anwendung (Application): HTTP, FTP, DNS\n6. Darstellung (Presentation): SSL, Codierung\n5. Sitzung (Session): Verbindungsaufbau\n4. Transport: TCP, UDP, Ports\n3. Vermittlung (Network): IP, Router\n2. Sicherung (Data Link): MAC, Switch\n1. Bitübertragung (Physical): Kabel, Hub',
       },
       {
         'heading': 'Merkhilfe',
@@ -167,7 +167,7 @@ const Map<int, Map<String, dynamic>> _summaries = {
       {
         'heading': 'RPO & RTO',
         'text':
-            'RPO (Recovery Point Objective): Maximaler Datenverlust in Zeit — wie alt darf das letzte Backup sein?\nRTO (Recovery Time Objective): Maximale Ausfallzeit — wie lange darf die Wiederherstellung dauern?',
+            'RPO (Recovery Point Objective): Maximaler Datenverlust in Zeit, wie alt darf das letzte Backup sein?\nRTO (Recovery Time Objective): Maximale Ausfallzeit, wie lange darf die Wiederherstellung dauern?',
       },
     ],
   },
@@ -232,7 +232,7 @@ const Map<int, Map<String, dynamic>> _summaries = {
       {
         'heading': 'Magisches Dreieck',
         'text':
-            'Zeit — Kosten — Qualität\nDiese drei Faktoren stehen im Konflikt. Verbessert man einen, leidet meist ein anderer.',
+            'Zeit, Kosten, Qualität\nDiese drei Faktoren stehen im Konflikt. Verbessert man einen, leidet meist ein anderer.',
       },
       {
         'heading': 'Vorgehensmodelle',
@@ -270,7 +270,7 @@ String _getTopicTag(int id) {
     case 27:
       return 'PM'; // Project Management
     default:
-      return '—';
+      return '·';
   }
 }
 

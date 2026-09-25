@@ -82,12 +82,12 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
   }
 
   String _formatDate(String? timestamp) {
-    if (timestamp == null) return '—';
+    if (timestamp == null) return '·';
     try {
       final date = DateTime.parse(timestamp);
       return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
     } catch (_) {
-      return '—';
+      return '·';
     }
   }
 

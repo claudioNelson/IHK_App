@@ -101,7 +101,7 @@ class LimitReachedDialog extends StatelessWidget {
             Text(
               premiumKaufMoeglich
                   ? 'Du hast dein tägliches Limit von $limit $featureName erreicht. Upgrade auf Premium für unbegrenzten Zugang.'
-                  : 'Du hast dein tägliches Limit von $limit $featureName erreicht. Morgen geht es weiter – dein Fortschritt bleibt gespeichert.',
+                  : 'Du hast dein tägliches Limit von $limit $featureName erreicht. Morgen geht es weiter, dein Fortschritt bleibt gespeichert.',
               style: AppTextStyles.bodyMedium(textMid),
             ),
 

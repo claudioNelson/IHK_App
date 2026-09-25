@@ -12,7 +12,6 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import 'review_screen.dart';
-//import 'core_topics_screen.dart';
 import 'anschluesse_quiz_screen.dart';
 import 'flashcard_screen.dart';
 import '../zertifikate/certificate_overview_screen.dart';
@@ -297,27 +296,6 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   _buildSectionLabel('Lernbereiche', textMid),
                   const SizedBox(height: 14),
 
-                  // Kernthemen ausgeblendet — Inhalte sind als Lernpfade (Levels) migriert.
-                  // Fragen bleiben in der DB (werden in Matches genutzt). Bei Bedarf reaktivieren.
-                  // _buildCategoryRow(
-                  //   tag: 'KT',
-                  //   tagColor: AppColors.accentCyan,
-                  //   title: 'Kernthemen',
-                  //   sub: 'Prüfungsrelevante Basics',
-                  //   count: '8',
-                  //   surface: surface,
-                  //   border: border,
-                  //   text: text,
-                  //   textMid: textMid,
-                  //   textDim: textDim,
-                  //   onTap: () => Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //       builder: (_) => const CoreTopicsScreen(),
-                  //     ),
-                  //   ),
-                  // ),
-                  // const SizedBox(height: 10),
                   _buildCategoryRow(
                     tag: 'LV',
                     tagColor: AppColors.accent,

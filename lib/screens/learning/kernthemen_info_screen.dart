@@ -73,7 +73,7 @@ class _KernthemenInfoScreenState extends State<KernthemenInfoScreen> {
                   number: '01',
                   title: 'Warum sind Kernthemen so wichtig?',
                   content:
-                      'Die IHK-Abschlussprüfung besteht aus mehreren Teilen – und in fast jedem davon tauchen diese Kernthemen auf. Themen wie IP-Subnetting, RAID-Systeme, das OSI-Modell oder IT-Sicherheit sind keine Zufallsfragen: Sie gehören zum absoluten Pflichtprogramm jedes IT-Fachinformatikers.\n\nWer diese Themen sicher beherrscht, legt ein starkes Fundament für die gesamte Prüfung.',
+                      'Die IHK-Abschlussprüfung besteht aus mehreren Teilen, und in fast jedem davon tauchen diese Kernthemen auf. Themen wie IP-Subnetting, RAID-Systeme, das OSI-Modell oder IT-Sicherheit sind keine Zufallsfragen: Sie gehören zum absoluten Pflichtprogramm jedes IT-Fachinformatikers.\n\nWer diese Themen sicher beherrscht, legt ein starkes Fundament für die gesamte Prüfung.',
                   surface: surface,
                   border: border,
                   text: text,
@@ -86,7 +86,7 @@ class _KernthemenInfoScreenState extends State<KernthemenInfoScreen> {
                   number: '02',
                   title: 'Was dich hier erwartet',
                   content:
-                      'Jedes Kernthema enthält eine Mischung aus verschiedenen Aufgabentypen – genau wie in der echten Prüfung:\n\n• Berechnungsaufgaben (z. B. Subnetzmasken, RAID-Kapazitäten)\n• Multiple-Choice-Fragen zum schnellen Wiederholen\n• Freitext-Aufgaben, bei denen du Konzepte erklärst\n\nDie Fragen werden jedes Mal in zufälliger Reihenfolge angezeigt, damit du wirklich lernst – und nicht nur die Reihenfolge auswendig kennst.',
+                      'Jedes Kernthema enthält eine Mischung aus verschiedenen Aufgabentypen, genau wie in der echten Prüfung:\n\n• Berechnungsaufgaben (z. B. Subnetzmasken, RAID-Kapazitäten)\n• Multiple-Choice-Fragen zum schnellen Wiederholen\n• Freitext-Aufgaben, bei denen du Konzepte erklärst\n\nDie Fragen werden jedes Mal in zufälliger Reihenfolge angezeigt, damit du wirklich lernst, und nicht nur die Reihenfolge auswendig kennst.',
                   surface: surface,
                   border: border,
                   text: text,
@@ -103,7 +103,7 @@ class _KernthemenInfoScreenState extends State<KernthemenInfoScreen> {
                   number: '03',
                   title: 'Tipps für deine Vorbereitung',
                   content:
-                      '📝 Nutze das Scratch Pad bei Rechenaufgaben – genau wie in der echten Prüfung hast du dort Platz für deine Zwischenrechnungen.\n\n🔁 Wiederhole jedes Thema mehrmals – beim ersten Durchgang geht es ums Verstehen, danach ums Festigen.\n\n💬 Scheue dich nicht, Ada zu fragen – sie erklärt Konzepte geduldig und geht auf deine Fragen ein.\n\n🎯 Fokussiere dich besonders auf Themen, bei denen dein Fortschritt noch niedrig ist.',
+                      '📝 Nutze das Scratch Pad bei Rechenaufgaben, genau wie in der echten Prüfung hast du dort Platz für deine Zwischenrechnungen.\n\n🔁 Wiederhole jedes Thema mehrmals: beim ersten Durchgang geht es ums Verstehen, danach ums Festigen.\n\n💬 Scheue dich nicht, Ada zu fragen, sie erklärt Konzepte geduldig und geht auf deine Fragen ein.\n\n🎯 Fokussiere dich besonders auf Themen, bei denen dein Fortschritt noch niedrig ist.',
                   surface: surface,
                   border: border,
                   text: text,
@@ -243,7 +243,7 @@ class _KernthemenInfoScreenState extends State<KernthemenInfoScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Bevor du loslegst — das solltest du wissen.',
+          'Bevor du loslegst: das solltest du wissen.',
           style: AppTextStyles.bodyMedium(textMid),
         ),
       ],
@@ -366,7 +366,7 @@ class _KernthemenInfoScreenState extends State<KernthemenInfoScreen> {
           ),
           const SizedBox(height: 14),
           Text(
-            'Ada ist benannt nach Ada Lovelace – der ersten Programmiererin der Geschichte.',
+            'Ada ist benannt nach Ada Lovelace, der ersten Programmiererin der Geschichte.',
             style: AppTextStyles.bodyMedium(textMid),
           ),
           const SizedBox(height: 14),

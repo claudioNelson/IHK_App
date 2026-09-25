@@ -147,7 +147,7 @@ class _LevelResultScreenState extends State<LevelResultScreen>
                     Text(
                       _passed
                           ? 'Du hast die Schwelle erreicht.'
-                          : 'Du brauchst mindestens ${widget.level.schwelle}% — Versuch es nochmal.',
+                          : 'Du brauchst mindestens ${widget.level.schwelle}%. Versuch es nochmal.',
                       style: AppTextStyles.bodyMedium(textMid),
                     ),
 
@@ -268,13 +268,13 @@ class _LevelResultScreenState extends State<LevelResultScreen>
   String _sterneText(int sterne) {
     switch (sterne) {
       case 3:
-        return 'Perfekt — alle Antworten richtig!';
+        return 'Perfekt, alle Antworten richtig!';
       case 2:
-        return 'Stark — fast alles korrekt.';
+        return 'Stark, fast alles korrekt.';
       case 1:
-        return 'Solide — nochmal üben für mehr Sterne.';
+        return 'Solide. Nochmal üben für mehr Sterne.';
       default:
-        return 'Versuch es nochmal — du schaffst das!';
+        return 'Versuch es nochmal, du schaffst das!';
     }
   }
 
@@ -418,7 +418,7 @@ class _LevelResultScreenState extends State<LevelResultScreen>
             child: OutlinedButton.icon(
               onPressed: _retry,
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('Nochmal — für mehr Sterne'),
+              label: const Text('Nochmal, für mehr Sterne'),
             ),
           ),
         ],

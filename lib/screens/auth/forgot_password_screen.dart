@@ -449,7 +449,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Keine Mail gekommen? Schau im Spam-Ordner nach oder warte 1–2 Minuten.',
+                  'Keine Mail gekommen? Schau im Spam-Ordner nach oder warte 1 bis 2 Minuten.',
                   style: AppTextStyles.bodySmall(textMid),
                 ),
               ),

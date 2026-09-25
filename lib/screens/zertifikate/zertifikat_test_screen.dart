@@ -1027,7 +1027,7 @@ class _ZertifikatTestPageState extends State<ZertifikatTestPage>
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Automatisch abgegeben — Zeit abgelaufen',
+                                'Automatisch abgegeben: Zeit abgelaufen',
                                 style: AppTextStyles.mono(
                                   size: 11,
                                   color: AppColors.error,

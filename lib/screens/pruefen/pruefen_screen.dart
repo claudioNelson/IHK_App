@@ -431,7 +431,7 @@ class _PruefenScreenState extends State<PruefenScreen>
                     // Eine Marke zu nennen, um zu sagen, worauf man
                     // vorbereitet, ist zulässig — der Eindruck einer
                     // offiziellen Zusammenarbeit wäre es nicht.
-                    'Zertifikats-Simulationen laufen mit Timer und ohne Erklärungen — wie die echte Prüfung. '
+                    'Zertifikats-Simulationen laufen mit Timer und ohne Erklärungen, wie die echte Prüfung. '
                     'Unabhängige Übungsaufgaben, nicht von AWS, Microsoft, Google oder SAP autorisiert oder unterstützt.',
                     style: AppTextStyles.bodySmall(text),
                   ),
@@ -820,14 +820,14 @@ class _PruefenScreenState extends State<PruefenScreen>
                   const SizedBox(width: 16),
                   _infoItem(
                     Icons.schedule_rounded,
-                    '${cert['pruefungsdauer'] ?? '–'} Min',
+                    '${cert['pruefungsdauer'] ?? '·'} Min',
                     textMid,
                     textDim,
                   ),
                   const SizedBox(width: 16),
                   _infoItem(
                     Icons.flag_outlined,
-                    'Min. ${cert['mindest_punktzahl'] ?? '–'}%',
+                    'Min. ${cert['mindest_punktzahl'] ?? '·'}%',
                     textMid,
                     textDim,
                   ),

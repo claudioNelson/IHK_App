@@ -190,7 +190,7 @@ class _LevelModuleScreenState extends State<LevelModuleScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          "Strukturiert lernen, Level für Level — bis du prüfungsfit bist.",
+          "Strukturiert lernen, Level für Level, bis du prüfungsfit bist.",
           style: AppTextStyles.bodyMedium(textMid),
         ),
         const SizedBox(height: 28),

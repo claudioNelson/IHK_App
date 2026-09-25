@@ -407,7 +407,7 @@ class IHKPruefungDetailScreen extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Smartphone: Lade Fotos deiner Antworten hoch — unser KI-Tutor prüft sie!',
+                    'Smartphone: Lade Fotos deiner Antworten hoch, unser KI-Tutor prüft sie!',
                     style: AppTextStyles.bodySmall(AppColors.success),
                   ),
                 ),
@@ -458,15 +458,15 @@ class IHKPruefungDetailScreen extends StatelessWidget {
           // Nachbildungen. Ohne diesen Satz liest sich das wie ein
           // Originalprüfungssatz der IHK.
           _bulletItem(
-            'Eigene Übungsaufgaben im Stil der IHK-Abschlussprüfung — '
+            'Eigene Übungsaufgaben im Stil der IHK-Abschlussprüfung, '
             'keine Originalaufgaben der IHK',
             textMid,
           ),
           _bulletItem(
-            'Keine Hilfsmittel — bearbeite ohne Google oder andere Hilfen',
+            'Keine Hilfsmittel: bearbeite ohne Google oder andere Hilfen',
             textMid,
           ),
-          _bulletItem('Echte Prüfungsbedingungen — der Timer läuft', textMid),
+          _bulletItem('Echte Prüfungsbedingungen: der Timer läuft', textMid),
           _bulletItem('Antworten werden automatisch gespeichert', textMid),
           // Bewusst nicht "hochladen": das Foto bleibt auf dem Geraet,
           // gespeichert wird nur der Dateipfad (photo_upload_widget.dart).

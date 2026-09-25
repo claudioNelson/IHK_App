@@ -167,7 +167,7 @@ class _AnschluesseQuizScreenState extends State<AnschluesseQuizScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           child: Text(
-            'Präg dir die Anschlüsse ein — danach fragt dich das Quiz ohne Beschriftung ab.',
+            'Präg dir die Anschlüsse ein, danach fragt dich das Quiz ohne Beschriftung ab.',
             style: AppTextStyles.bodyMedium(textMid),
             textAlign: TextAlign.center,
           ),
@@ -380,7 +380,7 @@ class _AnschluesseQuizScreenState extends State<AnschluesseQuizScreen> {
     final spruch = stark
         ? 'Stark! Die Anschlüsse sitzen.'
         : ok
-            ? 'Solide Basis — noch eine Runde und es sitzt.'
+            ? 'Solide Basis, noch eine Runde und es sitzt.'
             : 'Noch Luft nach oben. Geh nochmal durch den Lern-Modus.';
 
     return Center(
