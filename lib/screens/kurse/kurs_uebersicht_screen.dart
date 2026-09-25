@@ -166,6 +166,15 @@ class _KursUebersichtScreenState extends State<KursUebersichtScreen> {
     }
   }
 
+  /// Gesamtdauer lesbar: unter einer Stunde in Minuten, sonst auf halbe
+  /// Stunden gerundet ("etwa 4 Std", "etwa 4,5 Std"), wie auf /kurse im Web.
+  String _dauerText(int minuten) {
+    if (minuten < 60) return 'etwa $minuten Minuten';
+    final halbe = (minuten / 30).round();
+    final std = halbe ~/ 2;
+    return halbe.isOdd ? 'etwa $std,5 Std' : 'etwa $std Std';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeProvider>().isDark;
@@ -209,18 +218,11 @@ class _KursUebersichtScreenState extends State<KursUebersichtScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: Container(
+                    // Nackter Pfeil wie auf Modul-, Themen- und Zertifikatsliste
+                    child: SizedBox(
                       width: 40,
                       height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: text,
-                      ),
-                      child: Icon(Icons.arrow_back,
-                          size: 20,
-                          color: isDark
-                              ? AppColors.darkBg
-                              : AppColors.lightBg),
+                      child: Icon(Icons.arrow_back_rounded, size: 22, color: text),
                     ),
                   ),
                 ],
@@ -292,7 +294,7 @@ class _KursUebersichtScreenState extends State<KursUebersichtScreen> {
                 const SizedBox(height: 10),
                 Text(
                   '${widget.kurs.lektionen.length} Lektionen · '
-                  'etwa ${widget.kurs.gesamtDauer} Minuten',
+                  '${_dauerText(widget.kurs.gesamtDauer)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: farben.onSurfaceVariant,
                       ),
@@ -358,7 +360,9 @@ class _LektionsKachel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Opacity(
-        opacity: verriegelt ? 0.45 : 1.0,
+        // 0,45 liess Titel und Beschreibung zu einer grauen Masse verschwimmen;
+        // das Schloss sagt schon, dass die Lektion zu ist.
+        opacity: verriegelt ? 0.65 : 1.0,
         child: Material(
         color: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurface
