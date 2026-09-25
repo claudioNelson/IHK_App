@@ -479,7 +479,7 @@ class _PruefenScreenState extends State<PruefenScreen>
               tag,
               style: AppTextStyles.mono(
                 size: 11,
-                color: tagColor,
+                color: AppColors.ink(tagColor),
                 weight: FontWeight.w700,
                 letterSpacing: 1,
               ),
@@ -531,6 +531,7 @@ class _PruefenScreenState extends State<PruefenScreen>
             color: surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: border),
+            boxShadow: AppColors.kartenSchatten,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -552,7 +553,7 @@ class _PruefenScreenState extends State<PruefenScreen>
                       '${exam.season.toUpperCase()} ${exam.year}',
                       style: AppTextStyles.mono(
                         size: 10,
-                        color: categoryColor,
+                        color: AppColors.ink(categoryColor),
                         weight: FontWeight.w700,
                         letterSpacing: 1,
                       ),

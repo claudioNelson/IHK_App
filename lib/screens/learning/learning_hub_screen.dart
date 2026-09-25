@@ -477,12 +477,14 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.accent,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withOpacity(0.6),
-                        blurRadius: 8,
-                      ),
-                    ],
+                    boxShadow: AppColors.istHell
+                        ? const []
+                        : [
+                            BoxShadow(
+                              color: AppColors.accent.withOpacity(0.6),
+                              blurRadius: 8,
+                            ),
+                          ],
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -530,7 +532,10 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [AppColors.accent.withOpacity(isDark ? 0.16 : 0.10), surface],
+        colors: [
+          Color.alphaBlend(AppColors.accent.withOpacity(isDark ? 0.16 : 0.06), surface),
+          surface,
+        ],
       ),
       boxShadow: isDark
           ? [
@@ -599,6 +604,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                 color: surface,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: border),
+                boxShadow: AppColors.kartenSchatten,
               ),
               child: _buildAktionsZeile(_aktion!, text, textMid, textDim),
             ),
@@ -704,7 +710,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     '·  $ticker',
                     style: AppTextStyles.mono(
                       size: 11,
-                      color: AppColors.accent.withOpacity(0.85),
+                      color: AppColors.accentText,
                       weight: FontWeight.w600,
                       letterSpacing: 0.6,
                     ),
@@ -1077,7 +1083,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               aktion.fristLabel,
               style: AppTextStyles.mono(
                 size: 9,
-                color: farbe,
+                color: AppColors.ink(farbe),
                 weight: FontWeight.w700,
                 letterSpacing: 0.5,
               ),
@@ -1121,6 +1127,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           border: Border.all(
             color: accent ? AppColors.accent.withOpacity(0.3) : border,
           ),
+          boxShadow: AppColors.kartenSchatten,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1180,6 +1187,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           border: Border.all(
             color: empfohlen ? AppColors.accent.withOpacity(0.45) : border,
           ),
+          boxShadow: AppColors.kartenSchatten,
         ),
         child: Row(
           children: [
@@ -1197,7 +1205,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   tag,
                   style: AppTextStyles.mono(
                     size: 12,
-                    color: tagColor,
+                    color: AppColors.ink(tagColor),
                     weight: FontWeight.w700,
                     letterSpacing: 1,
                   ),
@@ -1287,6 +1295,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           border: Border.all(
             color: neu ? tagColor.withOpacity(0.35) : border,
           ),
+          boxShadow: AppColors.kartenSchatten,
         ),
         child: Row(
           children: [
@@ -1303,7 +1312,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   tag,
                   style: AppTextStyles.mono(
                     size: 12,
-                    color: tagColor,
+                    color: AppColors.ink(tagColor),
                     weight: FontWeight.w700,
                     letterSpacing: 1,
                   ),
@@ -1333,7 +1342,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                             'NEU',
                             style: AppTextStyles.mono(
                               size: 9,
-                              color: tagColor,
+                              color: AppColors.ink(tagColor),
                               weight: FontWeight.w700,
                               letterSpacing: 1,
                             ),

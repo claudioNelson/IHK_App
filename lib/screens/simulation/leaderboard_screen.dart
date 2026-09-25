@@ -413,7 +413,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               '#0$rank',
               style: AppTextStyles.mono(
                 size: isFirst ? 14 : 12,
-                color: tierColor,
+                color: AppColors.ink(tierColor),
                 weight: FontWeight.w700,
                 letterSpacing: 1,
               ),
@@ -424,7 +424,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 username.isNotEmpty ? username[0].toUpperCase() : '?',
                 style: AppTextStyles.instrumentSerif(
                   size: 44,
-                  color: tierColor,
+                  color: AppColors.ink(tierColor),
                   letterSpacing: -2,
                   height: 1,
                 ),
@@ -452,7 +452,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   _getTier(elo),
                   style: AppTextStyles.mono(
                     size: 9,
-                    color: tierColor,
+                    color: AppColors.ink(tierColor),
                     weight: FontWeight.w700,
                     letterSpacing: 1,
                   ),
@@ -534,7 +534,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       _getTier(elo),
                       style: AppTextStyles.mono(
                         size: 9,
-                        color: tierColor,
+                        color: AppColors.ink(tierColor),
                         weight: FontWeight.w700,
                         letterSpacing: 1,
                       ),
@@ -637,7 +637,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     'RANG #${rank.toString().padLeft(2, '0')}',
                     style: AppTextStyles.mono(
                       size: 11,
-                      color: tierColor,
+                      color: AppColors.ink(tierColor),
                       weight: FontWeight.w700,
                       letterSpacing: 1,
                     ),
@@ -692,20 +692,22 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 shape: BoxShape.circle,
                 color: surface,
                 border: Border.all(color: tierColor, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: tierColor.withOpacity(0.3),
-                    blurRadius: 30,
-                    spreadRadius: 2,
-                  ),
-                ],
+                boxShadow: isDark
+                    ? [
+                        BoxShadow(
+                          color: tierColor.withOpacity(0.3),
+                          blurRadius: 30,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : const [],
               ),
               child: Center(
                 child: Text(
                   username.isNotEmpty ? username[0].toUpperCase() : '?',
                   style: AppTextStyles.instrumentSerif(
                     size: 32,
-                    color: tierColor,
+                    color: AppColors.ink(tierColor),
                     letterSpacing: -1,
                   ),
                 ),
@@ -727,7 +729,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               _getTier(elo),
               style: AppTextStyles.mono(
                 size: 11,
-                color: tierColor,
+                color: AppColors.ink(tierColor),
                 weight: FontWeight.w700,
                 letterSpacing: 1.5,
               ),
@@ -785,6 +787,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 color: surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: border),
+                boxShadow: AppColors.kartenSchatten,
               ),
               child: Row(
                 children: [

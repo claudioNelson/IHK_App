@@ -577,6 +577,7 @@ class _ThemenListeState extends State<ThemenListe> {
         color: surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: border),
+        boxShadow: AppColors.kartenSchatten,
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -682,6 +683,7 @@ class _ThemenListeState extends State<ThemenListe> {
                   ? AppColors.success.withOpacity(0.4)
                   : border,
             ),
+            boxShadow: AppColors.kartenSchatten,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

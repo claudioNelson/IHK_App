@@ -963,7 +963,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
               if (hasElo) ...[
                 _metaPill(
                   text: _getEloTier(elo),
-                  color: _getTierColor(elo),
+                  color: AppColors.ink(_getTierColor(elo)),
                   border: border,
                 ),
                 _metaPill(text: 'ELO $elo', color: textMid, border: border),
@@ -1068,6 +1068,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
           color: surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: border),
+          boxShadow: AppColors.kartenSchatten,
         ),
         // Eigenes Material dazwischen (transparent, damit die Karte ihre
         // Farbe behaelt): ExpansionTile malt Hintergrund und Tipp-Effekt
@@ -1136,6 +1137,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
             color: surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: border),
+            boxShadow: AppColors.kartenSchatten,
           ),
           child: Row(
             children: [
@@ -1427,6 +1429,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
         color: surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: border),
+        boxShadow: AppColors.kartenSchatten,
       ),
       child: Column(
         children: [
@@ -1546,6 +1549,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
         color: surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: border),
+        boxShadow: AppColors.kartenSchatten,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1616,6 +1620,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
         color: surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: border),
+        boxShadow: AppColors.kartenSchatten,
       ),
       child: Wrap(
         spacing: 10,
@@ -1667,6 +1672,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
         color: surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: border),
+        boxShadow: AppColors.kartenSchatten,
       ),
       child: Column(
         children: [
@@ -1803,6 +1809,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
         color: surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: border),
+        boxShadow: AppColors.kartenSchatten,
       ),
       child: Column(
         children: [
@@ -1883,6 +1890,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
         color: surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: border),
+        boxShadow: AppColors.kartenSchatten,
       ),
       child: Column(
         children: [

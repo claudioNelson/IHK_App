@@ -239,6 +239,7 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
             color: surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: border),
+            boxShadow: AppColors.kartenSchatten,
           ),
           child: Row(
             children: [
@@ -259,7 +260,7 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
                   children: [
                     Text(
                       fullName.toUpperCase(),
-                      style: AppTextStyles.monoSmall(accentColor),
+                      style: AppTextStyles.monoSmall(AppColors.ink(accentColor)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

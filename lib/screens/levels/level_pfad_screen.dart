@@ -309,6 +309,7 @@ class _LevelPfadScreenState extends State<LevelPfadScreen> {
         color: surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: border),
+        boxShadow: AppColors.kartenSchatten,
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,

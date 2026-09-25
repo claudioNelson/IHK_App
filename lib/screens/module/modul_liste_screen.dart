@@ -330,6 +330,7 @@ class _ModulListeState extends State<ModulListe> {
         color: surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: border),
+        boxShadow: AppColors.kartenSchatten,
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -536,6 +537,7 @@ class _ModulListeState extends State<ModulListe> {
             border: Border.all(
               color: isComplete ? AppColors.success.withOpacity(0.4) : border,
             ),
+            boxShadow: AppColors.kartenSchatten,
           ),
           child: Row(
             children: [
@@ -645,6 +647,7 @@ class _ModulListeState extends State<ModulListe> {
           border: Border.all(
             color: isComplete ? AppColors.success.withOpacity(0.4) : border,
           ),
+          boxShadow: AppColors.kartenSchatten,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -352,6 +352,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
           color: surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: border),
+          boxShadow: AppColors.kartenSchatten,
         ),
         child: Row(
           children: [
@@ -743,6 +744,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
         color: surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: border),
+        boxShadow: AppColors.kartenSchatten,
         // Top-Accent in Tier-Farbe
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -766,7 +768,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                   _getTier(elo),
                   style: AppTextStyles.mono(
                     size: 10,
-                    color: tierColor,
+                    color: AppColors.ink(tierColor),
                     weight: FontWeight.w700,
                     letterSpacing: 1,
                   ),
@@ -944,6 +946,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
           color: surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: border),
+          boxShadow: AppColors.kartenSchatten,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1051,6 +1054,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
             color: surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: border),
+            boxShadow: AppColors.kartenSchatten,
           ),
           child: Row(
             children: [

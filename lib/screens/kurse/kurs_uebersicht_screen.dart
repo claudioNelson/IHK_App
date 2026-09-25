@@ -260,6 +260,7 @@ class _KursUebersichtScreenState extends State<KursUebersichtScreen> {
               border: Border.all(
                 color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
               ),
+              boxShadow: AppColors.kartenSchatten,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

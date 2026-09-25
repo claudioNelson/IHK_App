@@ -124,7 +124,7 @@ class FortschrittsRing extends StatelessWidget {
                     '${(wert * 100).round()}%',
                     style: AppTextStyles.mono(
                       size: klein ? 9 : 11,
-                      color: wert > 0 ? farbe : textFarbe,
+                      color: wert > 0 ? AppColors.ink(farbe) : textFarbe,
                       weight: FontWeight.w700,
                       letterSpacing: 0,
                     ),
