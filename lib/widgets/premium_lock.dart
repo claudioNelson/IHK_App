@@ -78,7 +78,7 @@ class PremiumLock extends StatelessWidget {
                       const SizedBox(width: 10),
                       Text(
                         'PREMIUM',
-                        style: AppTextStyles.monoLabel(AppColors.accent),
+                        style: AppTextStyles.monoLabel(AppColors.accentText),
                       ),
                     ],
                   ),

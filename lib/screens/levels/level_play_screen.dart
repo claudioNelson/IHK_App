@@ -435,7 +435,7 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
               const SizedBox(width: 10),
               Text(
                 _typeLabel(frageTyp),
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),

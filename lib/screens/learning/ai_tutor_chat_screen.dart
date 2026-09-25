@@ -167,7 +167,7 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
                         'A',
                         style: AppTextStyles.instrumentSerif(
                           size: 22,
-                          color: AppColors.accent,
+                          color: AppColors.accentText,
                           letterSpacing: 0,
                         ),
                       ),
@@ -246,7 +246,7 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
                             : widget.topic!,
                         style: AppTextStyles.mono(
                           size: 10,
-                          color: AppColors.accent,
+                          color: AppColors.accentText,
                           weight: FontWeight.w600,
                           letterSpacing: 0.5,
                         ),
@@ -282,7 +282,7 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
                         'Aktuelle Aufgabe: ${widget.topic ?? ""}',
                         style: AppTextStyles.mono(
                           size: 11,
-                          color: AppColors.accent,
+                          color: AppColors.accentText,
                           weight: FontWeight.w600,
                           letterSpacing: 0.3,
                         ),
@@ -451,7 +451,7 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
           'A',
           style: AppTextStyles.instrumentSerif(
             size: 16,
-            color: AppColors.accent,
+            color: AppColors.accentText,
             letterSpacing: 0,
           ),
         ),

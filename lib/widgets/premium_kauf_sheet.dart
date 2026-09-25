@@ -223,7 +223,7 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
                   const SizedBox(width: 10),
                   Text(
                     'PREMIUM WERDEN',
-                    style: AppTextStyles.monoLabel(AppColors.accent),
+                    style: AppTextStyles.monoLabel(AppColors.accentText),
                   ),
                 ],
               ),
@@ -438,7 +438,7 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
                   const SizedBox(width: 10),
                   Text(
                     'PREMIUM WERDEN',
-                    style: AppTextStyles.monoLabel(AppColors.accent),
+                    style: AppTextStyles.monoLabel(AppColors.accentText),
                   ),
                 ],
               ),
@@ -466,7 +466,7 @@ class _PremiumKaufSheetState extends State<PremiumKaufSheet> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
+                    backgroundColor: AppColors.accentFill,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(

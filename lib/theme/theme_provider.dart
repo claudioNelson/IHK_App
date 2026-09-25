@@ -1,6 +1,7 @@
 // lib/theme/theme_provider.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'app_colors.dart';
 
 /// Theme-Provider für Dark/Light Toggle mit Persistence
 ///
@@ -15,6 +16,12 @@ class ThemeProvider extends ChangeNotifier {
   bool _initialized = false;
 
   ThemeMode get themeMode => _themeMode;
+
+  @override
+  void notifyListeners() {
+    AppColors.istHell = _themeMode == ThemeMode.light;
+    super.notifyListeners();
+  }
   bool get isDark => _themeMode == ThemeMode.dark;
   bool get isLight => _themeMode == ThemeMode.light;
   bool get isInitialized => _initialized;

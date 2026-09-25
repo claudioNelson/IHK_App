@@ -815,7 +815,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
           children: [
             Container(width: 16, height: 1, color: AppColors.accent),
             const SizedBox(width: 10),
-            Text('FRAGE', style: AppTextStyles.monoLabel(AppColors.accent)),
+            Text('FRAGE', style: AppTextStyles.monoLabel(AppColors.accentText)),
           ],
         ),
         const SizedBox(height: 14),
@@ -995,7 +995,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
             const SizedBox(width: 10),
             Text(
               'DNS · PORTS',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),
@@ -1042,7 +1042,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
           children: [
             Container(width: 16, height: 1, color: AppColors.accent),
             const SizedBox(width: 10),
-            Text('FREITEXT', style: AppTextStyles.monoLabel(AppColors.accent)),
+            Text('FREITEXT', style: AppTextStyles.monoLabel(AppColors.accentText)),
           ],
         ),
         const SizedBox(height: 14),
@@ -1221,7 +1221,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
             const SizedBox(width: 10),
             Text(
               'LÜCKENTEXT',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),
@@ -1265,7 +1265,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                         'LÜCKE ${index + 1}',
                         style: AppTextStyles.mono(
                           size: 9,
-                          color: AppColors.accent,
+                          color: AppColors.accentText,
                           weight: FontWeight.w700,
                           letterSpacing: 0.8,
                         ),
@@ -1467,7 +1467,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
             const SizedBox(width: 10),
             Text(
               'REIHENFOLGE',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),
@@ -1509,7 +1509,7 @@ class _AsyncMatchPlayPageState extends State<AsyncMatchPlayPage> {
                       '${index + 1}',
                       style: AppTextStyles.mono(
                         size: 14,
-                        color: AppColors.accent,
+                        color: AppColors.accentText,
                         weight: FontWeight.w700,
                         letterSpacing: 0,
                       ),

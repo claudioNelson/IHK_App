@@ -530,7 +530,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
             children: [
               Container(width: 16, height: 1, color: AppColors.accent),
               const SizedBox(width: 10),
-              Text('FRAGE', style: AppTextStyles.monoLabel(AppColors.accent)),
+              Text('FRAGE', style: AppTextStyles.monoLabel(AppColors.accentText)),
             ],
           ),
           const SizedBox(height: 24),

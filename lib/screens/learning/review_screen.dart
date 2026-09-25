@@ -103,7 +103,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     const SizedBox(width: 10),
                     Text(
                       'SPACED REPETITION',
-                      style: AppTextStyles.monoLabel(AppColors.accent),
+                      style: AppTextStyles.monoLabel(AppColors.accentText),
                     ),
                   ],
                 ),
@@ -220,7 +220,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             number,
             style: AppTextStyles.mono(
               size: 11,
-              color: AppColors.accent,
+              color: AppColors.accentText,
               weight: FontWeight.w700,
               letterSpacing: 1,
             ),
@@ -404,7 +404,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             const SizedBox(width: 10),
             Text(
               'FÄLLIG HEUTE',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),
@@ -444,7 +444,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             const SizedBox(width: 10),
             Text(
               'VERTEILUNG · ${byModule.length} MODULE',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),

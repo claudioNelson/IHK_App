@@ -274,7 +274,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                   const SizedBox(width: 10),
                   Text(
                     'OFFENE MATCHES',
-                    style: AppTextStyles.monoLabel(AppColors.accent),
+                    style: AppTextStyles.monoLabel(AppColors.accentText),
                   ),
                   const Spacer(),
                   TextButton.icon(
@@ -289,7 +289,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                     ),
                     label: Text(
                       'Zufällig',
-                      style: AppTextStyles.labelMedium(AppColors.accent),
+                      style: AppTextStyles.labelMedium(AppColors.accentText),
                     ),
                   ),
                 ],
@@ -367,7 +367,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                   creatorName.isNotEmpty ? creatorName[0].toUpperCase() : '?',
                   style: AppTextStyles.instrumentSerif(
                     size: 18,
-                    color: AppColors.accent,
+                    color: AppColors.accentText,
                     letterSpacing: 0,
                   ),
                 ),
@@ -591,7 +591,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                           const SizedBox(width: 10),
                           Text(
                             'HISTORY · ${_historyMatches.length}',
-                            style: AppTextStyles.monoLabel(AppColors.accent),
+                            style: AppTextStyles.monoLabel(AppColors.accentText),
                           ),
                           const Spacer(),
                           Icon(
@@ -627,7 +627,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                               setState(() => _historyExpanded = true),
                           child: Text(
                             'Alle ${_historyMatches.length} anzeigen',
-                            style: AppTextStyles.labelMedium(AppColors.accent),
+                            style: AppTextStyles.labelMedium(AppColors.accentText),
                           ),
                         ),
                       ),
@@ -664,7 +664,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                     const SizedBox(width: 10),
                     Text(
                       'ARENA',
-                      style: AppTextStyles.monoLabel(AppColors.accent),
+                      style: AppTextStyles.monoLabel(AppColors.accentText),
                     ),
                   ],
                 ),
@@ -825,7 +825,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
       children: [
         Container(width: 16, height: 1, color: AppColors.accent),
         const SizedBox(width: 10),
-        Text(label, style: AppTextStyles.monoLabel(AppColors.accent)),
+        Text(label, style: AppTextStyles.monoLabel(AppColors.accentText)),
       ],
     );
   }
@@ -1115,7 +1115,7 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
                                   status == 'active' ? 'AKTIV' : 'OFFEN',
                                   style: AppTextStyles.mono(
                                     size: 9,
-                                    color: AppColors.accent,
+                                    color: AppColors.accentText,
                                     weight: FontWeight.w700,
                                     letterSpacing: 1,
                                   ),

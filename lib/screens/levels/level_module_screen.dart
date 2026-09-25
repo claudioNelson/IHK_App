@@ -175,7 +175,7 @@ class _LevelModuleScreenState extends State<LevelModuleScreen> {
             const SizedBox(width: 10),
             Text(
               'LEVEL-PFADE',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),
@@ -202,7 +202,7 @@ class _LevelModuleScreenState extends State<LevelModuleScreen> {
             const SizedBox(width: 10),
             Text(
               'MODULE · ${_module.length}',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),

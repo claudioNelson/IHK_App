@@ -156,7 +156,7 @@ class _PruefenScreenState extends State<PruefenScreen>
                       const SizedBox(width: 10),
                       Text(
                         'PRÜFEN',
-                        style: AppTextStyles.monoLabel(AppColors.accent),
+                        style: AppTextStyles.monoLabel(AppColors.accentText),
                       ),
                     ],
                   ),
@@ -277,7 +277,7 @@ class _PruefenScreenState extends State<PruefenScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
-                color: isActive ? AppColors.accent : textDim.withOpacity(0.15),
+                color: isActive ? AppColors.accentFill : textDim.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -606,7 +606,7 @@ class _PruefenScreenState extends State<PruefenScreen>
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.accent,
+                      color: AppColors.accentFill,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(

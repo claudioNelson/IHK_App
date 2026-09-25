@@ -346,7 +346,7 @@ class _ModulListeState extends State<ModulListe> {
               const SizedBox(width: 10),
               Text(
                 'DEIN FORTSCHRITT',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),
@@ -502,7 +502,7 @@ class _ModulListeState extends State<ModulListe> {
         const SizedBox(width: 10),
         Text(
           '$category · $count',
-          style: AppTextStyles.monoLabel(AppColors.accent),
+          style: AppTextStyles.monoLabel(AppColors.accentText),
         ),
       ],
     );

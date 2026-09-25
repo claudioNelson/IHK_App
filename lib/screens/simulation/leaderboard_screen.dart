@@ -234,7 +234,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     children: [
                       Text(
                         'DU BIST HIER',
-                        style: AppTextStyles.monoSmall(AppColors.accent),
+                        style: AppTextStyles.monoSmall(AppColors.accentText),
                       ),
                       const SizedBox(height: 6),
                       _buildPlayerRow(
@@ -263,7 +263,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       children: [
         Container(width: 16, height: 1, color: AppColors.accent),
         const SizedBox(width: 10),
-        Text(label, style: AppTextStyles.monoLabel(AppColors.accent)),
+        Text(label, style: AppTextStyles.monoLabel(AppColors.accentText)),
       ],
     );
   }
@@ -670,7 +670,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                           'PREMIUM',
                           style: AppTextStyles.mono(
                             size: 11,
-                            color: AppColors.accent,
+                            color: AppColors.accentText,
                             weight: FontWeight.w700,
                             letterSpacing: 1,
                           ),

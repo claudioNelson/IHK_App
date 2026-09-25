@@ -274,7 +274,7 @@ class _LevelPfadScreenState extends State<LevelPfadScreen> {
             const SizedBox(width: 10),
             Text(
               'LEVEL-PFAD',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),
@@ -325,7 +325,7 @@ class _LevelPfadScreenState extends State<LevelPfadScreen> {
               const SizedBox(width: 10),
               Text(
                 'FORTSCHRITT',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),

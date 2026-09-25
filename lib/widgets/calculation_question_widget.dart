@@ -100,7 +100,7 @@ class _CalculationQuestionWidgetState extends State<CalculationQuestionWidget> {
             const SizedBox(width: 10),
             Text(
               'BERECHNUNG',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),

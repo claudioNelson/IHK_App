@@ -120,7 +120,7 @@ class LegalDocumentScreen extends StatelessWidget {
       em: AppTextStyles.bodyMedium(
         textMid,
       ).copyWith(fontStyle: FontStyle.italic),
-      a: AppTextStyles.bodyMedium(AppColors.accent).copyWith(
+      a: AppTextStyles.bodyMedium(AppColors.accentText).copyWith(
         decoration: TextDecoration.underline,
         decorationColor: AppColors.accent,
       ),

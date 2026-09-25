@@ -165,7 +165,7 @@ class _BinaryCalculationWidgetState extends State<BinaryCalculationWidget> {
               const SizedBox(width: 10),
               Text(
                 'BINÄR · HEX',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),
@@ -401,7 +401,7 @@ class _BinaryCalculationWidgetState extends State<BinaryCalculationWidget> {
               const SizedBox(width: 8),
               Text(
                 'TIPP VON ADA',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),
@@ -513,7 +513,7 @@ class _BinaryCalculationWidgetState extends State<BinaryCalculationWidget> {
                 _loadingHint ? 'Lädt...' : 'Tipp',
                 style: AppTextStyles.mono(
                   size: 11,
-                  color: AppColors.accent,
+                  color: AppColors.accentText,
                   weight: FontWeight.w700,
                   letterSpacing: 0.5,
                 ),

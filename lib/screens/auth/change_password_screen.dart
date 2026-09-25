@@ -190,7 +190,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               const SizedBox(width: 10),
               Text(
                 'SICHERHEIT',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),

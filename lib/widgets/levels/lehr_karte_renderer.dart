@@ -142,7 +142,7 @@ class LehrKarteRenderer extends StatelessWidget {
             text: m.substring(1, m.length - 1),
             style: AppTextStyles.mono(
               size: 14,
-              color: AppColors.accent,
+              color: AppColors.accentText,
               weight: FontWeight.w600,
               letterSpacing: 0,
             ),

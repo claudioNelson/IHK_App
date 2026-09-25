@@ -210,7 +210,7 @@ ${criteria.map((c) => '- $c').join('\n')}
               const SizedBox(width: 10),
               Text(
                 'FREITEXT · ADA BEWERTET',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),
@@ -409,7 +409,7 @@ ${criteria.map((c) => '- $c').join('\n')}
           const SizedBox(height: 14),
           Text(
             'ADAS FEEDBACK',
-            style: AppTextStyles.monoSmall(AppColors.accent),
+            style: AppTextStyles.monoSmall(AppColors.accentText),
           ),
           const SizedBox(height: 6),
           Text(feedback, style: AppTextStyles.bodyMedium(text)),

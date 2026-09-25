@@ -148,7 +148,7 @@ class _ZielScreenState extends State<ZielScreen> {
                             const SizedBox(width: 10),
                             Text(
                               'DEIN ZIEL',
-                              style: AppTextStyles.monoLabel(AppColors.accent),
+                              style: AppTextStyles.monoLabel(AppColors.accentText),
                             ),
                           ],
                         ),

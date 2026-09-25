@@ -114,7 +114,7 @@ class _SequenceQuestionWidgetState extends State<SequenceQuestionWidget> {
             const SizedBox(width: 10),
             Text(
               'REIHENFOLGE',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),
@@ -185,7 +185,7 @@ class _SequenceQuestionWidgetState extends State<SequenceQuestionWidget> {
                       '${index + 1}',
                       style: AppTextStyles.mono(
                         size: 14,
-                        color: AppColors.accent,
+                        color: AppColors.accentText,
                         weight: FontWeight.w700,
                         letterSpacing: 0,
                       ),

@@ -363,7 +363,7 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                         const SizedBox(width: 10),
                         Text(
                           'BEREIT?',
-                          style: AppTextStyles.monoLabel(AppColors.accent),
+                          style: AppTextStyles.monoLabel(AppColors.accentText),
                         ),
                       ],
                     ),
@@ -625,7 +625,7 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                 Expanded(
                   child: Text(
                     section.title.toUpperCase(),
-                    style: AppTextStyles.monoLabel(AppColors.accent),
+                    style: AppTextStyles.monoLabel(AppColors.accentText),
                   ),
                 ),
               ],
@@ -697,7 +697,7 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                   '${question.points} Pkt',
                   style: AppTextStyles.mono(
                     size: 10,
-                    color: AppColors.accent,
+                    color: AppColors.accentText,
                     weight: FontWeight.w700,
                     letterSpacing: 0.5,
                   ),
@@ -951,7 +951,7 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                             : 'KI-Tutor Korrektur',
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
+                        backgroundColor: AppColors.accentFill,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         textStyle: AppTextStyles.labelLarge(Colors.white),

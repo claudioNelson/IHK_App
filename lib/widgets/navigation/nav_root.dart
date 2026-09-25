@@ -165,7 +165,7 @@ class _NavRootState extends State<NavRoot> {
                 width: 46,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.accent : Colors.transparent,
+                  color: isSelected ? AppColors.accentFill : Colors.transparent,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(

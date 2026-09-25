@@ -232,7 +232,7 @@ class _KursUebersichtScreenState extends State<KursUebersichtScreen> {
             children: [
               Container(width: 16, height: 1, color: AppColors.accent),
               const SizedBox(width: 10),
-              Text('KURS', style: AppTextStyles.monoLabel(AppColors.accent)),
+              Text('KURS', style: AppTextStyles.monoLabel(AppColors.accentText)),
             ],
           ),
           const SizedBox(height: 12),
@@ -307,7 +307,7 @@ class _KursUebersichtScreenState extends State<KursUebersichtScreen> {
               const SizedBox(width: 10),
               Text(
                 'LEKTIONEN · ${widget.kurs.lektionen.length}',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),

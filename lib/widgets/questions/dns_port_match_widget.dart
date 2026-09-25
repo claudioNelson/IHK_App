@@ -161,7 +161,7 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
             children: [
               Container(width: 16, height: 1, color: AppColors.accent),
               const SizedBox(width: 10),
-              Text('FRAGE', style: AppTextStyles.monoLabel(AppColors.accent)),
+              Text('FRAGE', style: AppTextStyles.monoLabel(AppColors.accentText)),
             ],
           ),
           const SizedBox(height: 14),
@@ -340,7 +340,7 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
               const SizedBox(width: 8),
               Text(
                 'TIPP VON ADA',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),
@@ -450,7 +450,7 @@ class _DnsPortMatchWidgetState extends State<DnsPortMatchWidget> {
                 _loadingHint ? 'Lädt...' : 'Tipp',
                 style: AppTextStyles.mono(
                   size: 11,
-                  color: AppColors.accent,
+                  color: AppColors.accentText,
                   weight: FontWeight.w700,
                   letterSpacing: 0.5,
                 ),

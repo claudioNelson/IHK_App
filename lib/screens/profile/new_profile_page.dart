@@ -889,7 +889,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
                             _getInitials(_profile?['username']),
                             style: AppTextStyles.instrumentSerif(
                               size: 38,
-                              color: AppColors.accent,
+                              color: AppColors.accentText,
                               letterSpacing: -1.0,
                             ),
                           ),
@@ -1089,7 +1089,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
                 const SizedBox(width: 10),
                 Text(
                   'AKTIVITÄT · 12 WOCHEN',
-                  style: AppTextStyles.monoLabel(AppColors.accent),
+                  style: AppTextStyles.monoLabel(AppColors.accentText),
                 ),
               ],
             ),
@@ -1114,7 +1114,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
       children: [
         Container(width: 16, height: 1, color: AppColors.accent),
         const SizedBox(width: 10),
-        Text(label, style: AppTextStyles.monoLabel(AppColors.accent)),
+        Text(label, style: AppTextStyles.monoLabel(AppColors.accentText)),
       ],
     );
   }
@@ -1263,7 +1263,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
                       children: [
                         Text(
                           'PRÜFUNGSBEREIT',
-                          style: AppTextStyles.monoLabel(AppColors.accent),
+                          style: AppTextStyles.monoLabel(AppColors.accentText),
                         ),
                         const SizedBox(height: 6),
                         Text(
@@ -1564,7 +1564,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
                   'PEAK ELO $highestElo',
                   style: AppTextStyles.mono(
                     size: 9,
-                    color: AppColors.accent,
+                    color: AppColors.accentText,
                     weight: FontWeight.w700,
                     letterSpacing: 1,
                   ),

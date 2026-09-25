@@ -135,7 +135,7 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
                       const SizedBox(width: 10),
                       Text(
                         'CLOUD & ENTERPRISE',
-                        style: AppTextStyles.monoLabel(AppColors.accent),
+                        style: AppTextStyles.monoLabel(AppColors.accentText),
                       ),
                     ],
                   ),
@@ -175,7 +175,7 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
                             const SizedBox(width: 10),
                             Text(
                               'ZERTIFIKATE · ${certificates.length}',
-                              style: AppTextStyles.monoLabel(AppColors.accent),
+                              style: AppTextStyles.monoLabel(AppColors.accentText),
                             ),
                           ],
                         ),

@@ -663,7 +663,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                     '${ziel.pruefung} · ${ziel.fachrichtung}',
                     style: AppTextStyles.mono(
                       size: 10,
-                      color: AppColors.accent,
+                      color: AppColors.accentText,
                       weight: FontWeight.w700,
                       letterSpacing: 0.5,
                     ),
@@ -684,7 +684,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   zahl,
                   style: AppTextStyles.instrumentSerif(
                     size: 34,
-                    color: AppColors.accent,
+                    color: AppColors.accentText,
                     letterSpacing: -1.2,
                   ).copyWith(height: 1.0),
                 ),
@@ -894,7 +894,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                         '+$weitere',
                         style: AppTextStyles.mono(
                           size: 10,
-                          color: AppColors.accent,
+                          color: AppColors.accentText,
                           weight: FontWeight.w600,
                           letterSpacing: 0,
                         ),
@@ -1230,7 +1230,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyles.mono(
                                 size: 9,
-                                color: AppColors.accent,
+                                color: AppColors.accentText,
                                 weight: FontWeight.w700,
                                 letterSpacing: 1,
                               ),

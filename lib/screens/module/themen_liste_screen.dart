@@ -331,7 +331,7 @@ class _ThemenListeState extends State<ThemenListe> {
                     const SizedBox(width: 10),
                     Text(
                       'ZUSAMMENFASSUNG',
-                      style: AppTextStyles.monoLabel(AppColors.accent),
+                      style: AppTextStyles.monoLabel(AppColors.accentText),
                     ),
                     const Spacer(),
                     IconButton(
@@ -380,7 +380,7 @@ class _ThemenListeState extends State<ThemenListe> {
                                 '${(i + 1).toString().padLeft(2, '0')}',
                                 style: AppTextStyles.mono(
                                   size: 11,
-                                  color: AppColors.accent,
+                                  color: AppColors.accentText,
                                   weight: FontWeight.w700,
                                   letterSpacing: 1,
                                 ),
@@ -539,7 +539,7 @@ class _ThemenListeState extends State<ThemenListe> {
             const SizedBox(width: 10),
             Text(
               'THEMEN · ${themen.length}',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),
@@ -593,7 +593,7 @@ class _ThemenListeState extends State<ThemenListe> {
               const SizedBox(width: 10),
               Text(
                 'DEIN FORTSCHRITT',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),

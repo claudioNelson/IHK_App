@@ -182,7 +182,7 @@ class IHKPruefungDetailScreen extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 'IHK-PRÜFUNG',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),
@@ -229,7 +229,7 @@ class IHKPruefungDetailScreen extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 'PRÜFUNGSINFOS',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),
@@ -502,7 +502,7 @@ class IHKPruefungDetailScreen extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 'SZENARIO',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),

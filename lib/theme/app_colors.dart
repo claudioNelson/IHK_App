@@ -56,6 +56,15 @@ class AppColors {
   static const Color lightShadowStrong = Color(0x240B1033); // Sheets, Nav-Pille
   // Akzent als Text auf Weiss (6,2:1 statt 3,8:1)
   static const Color lightAccentInk = Color(0xFF5B4BE0);
+
+  // Aktueller Modus, vom ThemeProvider bei jedem Wechsel gesetzt. Erlaubt
+  // themefaehige Getter ohne BuildContext (Kicker, Chips, Buttons).
+  static bool istHell = false;
+  /// Akzent als TEXT: im Light die dunklere Tinte (5,95:1 auf Weiss),
+  /// im Dark der normale Akzent.
+  static Color get accentText => istHell ? lightAccentInk : accent;
+  /// Akzent als FLAECHE unter weissem Text (Buttons, Badges, aktiver Tab).
+  static Color get accentFill => istHell ? lightAccentInk : accent;
   // Indigo-Verlauf hinter Kopfbereichen (nur Light)
   static const Color lightHeaderWash = Color(0x297C6DFF);   // 16% accent
 }

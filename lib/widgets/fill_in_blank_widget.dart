@@ -120,7 +120,7 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
             const SizedBox(width: 10),
             Text(
               'LÜCKENTEXT',
-              style: AppTextStyles.monoLabel(AppColors.accent),
+              style: AppTextStyles.monoLabel(AppColors.accentText),
             ),
           ],
         ),
@@ -181,7 +181,7 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
                         'LÜCKE ${index + 1}',
                         style: AppTextStyles.mono(
                           size: 9,
-                          color: AppColors.accent,
+                          color: AppColors.accentText,
                           weight: FontWeight.w700,
                           letterSpacing: 0.8,
                         ),
@@ -398,7 +398,7 @@ class _FillInTheBlankWidgetState extends State<FillInTheBlankWidget> {
                 '${i + 1}',
                 style: AppTextStyles.mono(
                   size: 12,
-                  color: AppColors.accent,
+                  color: AppColors.accentText,
                   weight: FontWeight.w700,
                   letterSpacing: 0,
                 ),

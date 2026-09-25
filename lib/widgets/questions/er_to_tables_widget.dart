@@ -123,7 +123,7 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
               const SizedBox(width: 10),
               Text(
                 'ER → TABELLEN',
-                style: AppTextStyles.monoLabel(AppColors.accent),
+                style: AppTextStyles.monoLabel(AppColors.accentText),
               ),
             ],
           ),
@@ -159,7 +159,7 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
                 Expanded(
                   child: Text(
                     'Achte auf Primär- (PK) und Fremdschlüssel (FK)',
-                    style: AppTextStyles.bodySmall(AppColors.accent),
+                    style: AppTextStyles.bodySmall(AppColors.accentText),
                   ),
                 ),
               ],
@@ -304,14 +304,14 @@ class _ErToTablesWidgetState extends State<ErToTablesWidget> {
                 const SizedBox(width: 8),
                 Text(
                   'TABELLE',
-                  style: AppTextStyles.monoLabel(AppColors.accent),
+                  style: AppTextStyles.monoLabel(AppColors.accentText),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   tableName,
                   style: AppTextStyles.mono(
                     size: 14,
-                    color: AppColors.accent,
+                    color: AppColors.accentText,
                     weight: FontWeight.w700,
                     letterSpacing: 0.5,
                   ),

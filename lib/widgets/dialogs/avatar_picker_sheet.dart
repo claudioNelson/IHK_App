@@ -58,7 +58,7 @@ Future<String?> showAvatarPickerSheet(
                     const SizedBox(width: 10),
                     Text(
                       'AVATAR WÄHLEN',
-                      style: AppTextStyles.monoLabel(AppColors.accent),
+                      style: AppTextStyles.monoLabel(AppColors.accentText),
                     ),
                   ],
                 ),

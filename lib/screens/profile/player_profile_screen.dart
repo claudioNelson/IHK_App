@@ -365,7 +365,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                       'PREMIUM',
                       style: AppTextStyles.mono(
                         size: 10,
-                        color: AppColors.accent,
+                        color: AppColors.accentText,
                         weight: FontWeight.w700,
                         letterSpacing: 1.5,
                       ),
