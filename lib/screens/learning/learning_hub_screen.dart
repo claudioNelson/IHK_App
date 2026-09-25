@@ -194,9 +194,14 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     final levelCount = cache.cachedLevelModule.isNotEmpty
         ? cache.cachedLevelModule.length
         : 11;
+    // Fallback = Stand der DB (16 Module ohne Kernthema, 25.09.2026).
     final modulCount = cache.cachedModule.isNotEmpty
         ? cache.cachedModule.length
-        : 17;
+        : 16;
+    // Laeuft der Tagesplan, steht "Wiederholen" schon als Posten in der
+    // Countdown-Karte; die Schnellzugriff-Karte waere doppelt. Ohne Ziel
+    // (Einladung statt Plan) bleibt sie der einzige Weg zu den Wiederholungen.
+    final planLaeuft = _ziel != null && _plan != null;
 
     final bg = isDark ? AppColors.darkBg : AppColors.lightBg;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
@@ -236,6 +241,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                   const SizedBox(height: 14),
                   Row(
                     children: [
+                      if (!planLaeuft) ...[
                       Expanded(
                         child: _buildActionCard(
                           icon: Icons.replay_rounded,
@@ -266,6 +272,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
+                      ],
                       Expanded(
                         child: _buildActionCard(
                           icon: Icons.style_outlined,
