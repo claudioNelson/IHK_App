@@ -3,10 +3,11 @@ import Link from "next/link";
 import LsToc from "../lernen/_components/LsToc";
 import { LsCta } from "../lernen/_components/LsBausteine";
 import { MetaIcon, PfeilIcon } from "../lernen/_components/LsIcons";
-import { BrowserIcon, DiagrammIcon, ListeIcon, StiftIcon, TerminalIcon, UhrIcon } from "../components/kurs/KursIcons";
+import { BrowserIcon, DiagrammIcon, ListeIcon, StiftIcon, TerminalIcon, UhrIcon, ZielIcon } from "../components/kurs/KursIcons";
 import type { Kurs } from "../components/kurs/kurs-typen";
 import { pythonKurs } from "../python-kurs/_components/lektionen";
 import { umlKurs } from "../uml-kurs/_components/lektionen";
+import { struktogrammKurs } from "../struktogramm-kurs/_components/lektionen";
 
 export const metadata: Metadata = {
   title: "Kurse für Fachinformatiker: Python und UML kostenlos lernen",
@@ -30,7 +31,7 @@ type Eintrag = {
   kicker: string;
   titel: string;
   beschreibung: string;
-  icon: "terminal" | "diagramm";
+  icon: "terminal" | "diagramm" | "ziel";
 };
 
 const kurse: Eintrag[] = [
@@ -49,6 +50,14 @@ const kurse: Eintrag[] = [
     beschreibung:
       "Use-Case-, Klassen-, Aktivitäts-, Sequenz- und Zustandsdiagramm mit den Regeln, die die IHK bewertet. Zum Schluss komplette Aufgaben im Prüfungsstil mit Musterlösung.",
     icon: "diagramm",
+  },
+  {
+    kurs: struktogrammKurs,
+    kicker: "Algorithmen",
+    titel: "Struktogramm-Kurs: Abläufe lesen, nachvollziehen und entwerfen",
+    beschreibung:
+      "Struktogramme und Pseudocode, wie sie die AP1 verlangt: Verzweigungen, Schleifen, Felder, Schreibtischtest und Unterprogramme. Zum Schluss drei Aufgaben im Prüfungsstil mit Bewertung.",
+    icon: "ziel",
   },
 ];
 
@@ -109,7 +118,7 @@ export default function KurseUebersicht() {
               <li key={e.kurs.slug} id={e.kurs.slug}>
                 <Link className="ks-card" href={`/${e.kurs.slug}`}>
                   <span className="ks-icon" aria-hidden="true">
-                    {e.icon === "terminal" ? <TerminalIcon /> : <DiagrammIcon />}
+                    {e.icon === "terminal" ? <TerminalIcon /> : e.icon === "diagramm" ? <DiagrammIcon /> : <ZielIcon />}
                   </span>
                   <div className="ks-body">
                     <span className="ks-kicker">{e.kicker}</span>
@@ -139,9 +148,8 @@ export default function KurseUebersicht() {
           </ul>
 
           <p className="ks-hint">
-            <strong>Weitere Kurse sind in Arbeit.</strong> Als Nächstes geplant: Struktogramme
-            und Pseudocode für die AP1. In der App findest du außerdem den SQL-Kurs mit
-            echter Datenbank und den Python-Kurs mit Fortschritt.
+            <strong>Weitere Kurse sind in Arbeit.</strong> In der App findest du außerdem den
+            SQL-Kurs mit echter Datenbank und den Python-Kurs mit Fortschritt.
           </p>
 
           <LsCta />

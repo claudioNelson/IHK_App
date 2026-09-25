@@ -20,6 +20,7 @@ const NAV_LINKS = [
   { href: "#ablauf", label: "So läuft es" },
   { href: "#pricing", label: "Preise" },
   { href: "/lernen", label: "Lernseiten" },
+  { href: "/kurse", label: "Kurse" },
   { href: "/pruefungen", label: "Prüfungen" },
 ];
 

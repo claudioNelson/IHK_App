@@ -24,7 +24,7 @@ export type Lektion = {
 
 export type Kurs = {
   /** Pfad-Basis, die Lektionen liegen unter /{slug}/{lektion.slug} */
-  slug: "python-kurs" | "uml-kurs";
+  slug: "python-kurs" | "uml-kurs" | "struktogramm-kurs";
   /** Kurzname fuer den Pfad (Breadcrumb), z. B. "Python-Kurs" */
   titel: string;
   lektionen: Lektion[];

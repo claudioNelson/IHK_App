@@ -1,0 +1,124 @@
+/* ------------------------------------------------------------------ */
+/* Struktogramm-Kurs lernarena.app (Praefix sg-)                         */
+/* Setzt globals.css + lernen.css + python-kurs/kurs.css voraus.        */
+/* Struktogramme werden als HTML gezeichnet (Struktogramm.tsx), dadurch */
+/* bleiben sie auf dem Handy lesbar und folgen dem Farbschema.          */
+/* ------------------------------------------------------------------ */
+
+.sg-fig, .sg-trace {
+  --sg-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --sg-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sg-linie: var(--text);
+  --sg-zeile: 38px;
+  margin: 22px 0;
+}
+.sg-fig figcaption, .sg-trace figcaption { margin-top: 10px; font-size: 13.5px; color: var(--text-2); }
+.sg-fig { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Grundrahmen: eine Spalte, alle Bloecke gleich breit */
+.sg {
+  width: fit-content;
+  min-width: min(100%, var(--sg-breite, 460px));
+  border: 1.5px solid var(--sg-linie);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--sg-mono);
+  font-size: 13.5px;
+  line-height: 1.4;
+  box-shadow: var(--shadow);
+}
+.sg-titel {
+  padding: 6px 12px;
+  font-family: var(--sg-sans);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: .01em;
+  color: var(--text-2);
+  background: var(--bg-2);
+}
+
+/* Jeder Block trennt sich vom vorherigen mit einer Linie */
+.sg > * + *, .sg-rumpf > * + *, .sg-zweig > * + *, .sg-fall > * + * { border-top: 1.5px solid var(--sg-linie); }
+
+/* Anweisung */
+.sg-anw { min-height: var(--sg-zeile); padding: 8px 12px; display: flex; align-items: center; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sg-leer { min-height: var(--sg-zeile); display: grid; place-items: center; color: var(--text-3); font-size: 15px; }
+
+/* Verzweigung: Kopf mit Diagonalen, darunter zwei Spalten */
+.sg-verz-kopf { position: relative; min-height: 58px; padding: 6px 12px 22px; text-align: center; }
+.sg-verz-kopf svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sg-verz-kopf path { fill: none; stroke: var(--sg-linie); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.sg-verz-bed { position: relative; display: inline-block; padding: 0 6px; background: var(--surface); max-width: 70%; overflow-wrap: anywhere; }
+.sg-verz-ja, .sg-verz-nein { position: absolute; bottom: 4px; font-family: var(--sg-sans); font-size: 12px; font-weight: 600; color: var(--text-2); }
+.sg-verz-ja { left: 10px; }
+.sg-verz-nein { right: 10px; }
+.sg-verz-zweige { display: grid; grid-template-columns: 1fr 1fr; border-top: 1.5px solid var(--sg-linie); }
+.sg-zweig { min-width: 120px; }
+.sg-zweig + .sg-zweig { border-left: 1.5px solid var(--sg-linie); }
+
+/* Mehrfachauswahl (DIN 66261): Ausdruck oben links, Diagonale, Fallwerte im Kopf
+   unter der Diagonale, darunter die Spalten. Mit "sonst" knickt die Diagonale
+   ueber der Sonst-Spalte nach oben (eigenes kleines Dreieck). */
+.sg-auswahl-kopf { position: relative; min-height: 66px; padding: 6px 12px 26px; }
+.sg-auswahl-kopf svg { position: absolute; left: 0; right: 0; top: 0; bottom: 24px; width: 100%; height: calc(100% - 24px); }
+.sg-auswahl-kopf path { fill: none; stroke: var(--sg-linie); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.sg-auswahl-ausdruck { position: relative; display: inline-block; padding: 0 6px 0 0; background: var(--surface); }
+.sg-auswahl-werte { position: absolute; left: 0; right: 0; bottom: 4px; display: grid; grid-template-columns: repeat(var(--sg-spalten, 2), 1fr); font-family: var(--sg-sans); font-size: 12px; font-weight: 600; color: var(--text-2); text-align: center; }
+.sg-auswahl-faelle { display: grid; grid-template-columns: repeat(var(--sg-spalten, 2), 1fr); border-top: 1.5px solid var(--sg-linie); }
+.sg-fall { min-width: 100px; }
+.sg-fall + .sg-fall { border-left: 1.5px solid var(--sg-linie); }
+
+/* Aufruf eines Unterprogramms: doppelte Seitenlinien */
+.sg-aufruf { min-height: var(--sg-zeile); padding: 8px 18px; display: flex; align-items: center; position: relative; }
+.sg-aufruf::before, .sg-aufruf::after { content: ""; position: absolute; top: 0; bottom: 0; width: 0; border-left: 1.5px solid var(--sg-linie); }
+.sg-aufruf::before { left: 6px; }
+.sg-aufruf::after { right: 6px; }
+
+/* Luecke fuer "Ergaenzen Sie": gestrichelt, Marke in Akzentfarbe */
+.sg-luecke { min-height: var(--sg-zeile); display: grid; place-items: center; background: repeating-linear-gradient(135deg, transparent 0 6px, var(--accent-soft) 6px 8px); font-family: var(--sg-sans); font-weight: 700; color: var(--accent); }
+
+/* Schluesselwort in Schleifenzeilen */
+.sg-wort { font-family: var(--sg-sans); font-weight: 600; font-size: 12.5px; color: var(--text-2); margin-right: 2px; }
+
+/* Schleifen: Kopf- oder Fusszeile, Rumpf eingerueckt mit Balken links */
+.sg-schleife-zeile { min-height: var(--sg-zeile); padding: 8px 12px; display: flex; align-items: center; background: var(--accent-soft); }
+.sg-rumpf { margin-left: 26px; border-left: 1.5px solid var(--sg-linie); }
+.sg-kopf .sg-rumpf { border-top: 1.5px solid var(--sg-linie); }
+.sg-fuss .sg-schleife-zeile { border-top: 1.5px solid var(--sg-linie); }
+.sg-schleife { position: relative; }
+.sg-schleife::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 26px; background: var(--accent-soft); }
+.sg-kopf::before { top: var(--sg-zeile); }
+.sg-fuss::before { bottom: var(--sg-zeile); }
+.sg-schleife > * { position: relative; }
+
+/* Kompakt */
+.sg-klein .sg { font-size: 12.5px; --sg-zeile: 32px; }
+.sg-klein .sg-anw, .sg-klein .sg-schleife-zeile { padding: 5px 10px; }
+
+/* Nebeneinander: Struktogramm und Pseudocode oder zwei Struktogramme */
+.sg-paar { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin: 22px 0; }
+.sg-paar .sg-fig, .sg-paar .ls-pre { margin: 0; }
+.sg-paar > div > h4 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--text-2); font-family: var(--sg-sans); }
+@media (max-width: 767px) {
+  .sg-paar { grid-template-columns: 1fr; }
+}
+
+/* Trace-Tabelle: Mono-Werte, Schrittspalte gedimmt */
+.sg-trace-tabelle td { font-family: var(--sg-mono); font-size: 13.5px; }
+.sg-trace-tabelle td:first-child { color: var(--text-3); }
+.sg-trace-leer { color: var(--text-3); }
+
+/* Text-Tabellen: Fliesstext in Sans, umbrechend (ls-table ist mono und nowrap) */
+.sg-text-tabelle td { font-family: var(--sg-sans, var(--font-geist-sans), system-ui, sans-serif); white-space: normal; font-weight: 400; color: var(--text-2); vertical-align: top; font-size: 14.5px; }
+.sg-text-tabelle td:first-child { color: var(--text); }
+.sg-text-tabelle td code, .sg-elemente td code { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: .92em; background: var(--accent-soft); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+
+/* Elemente-Tabelle der Lektion 1: kleine Struktogramme in Zellen */
+.sg-elemente td .sg-fig { margin: 0; }
+.sg-elemente td { vertical-align: top; white-space: normal; font-family: var(--font-geist-sans), system-ui, sans-serif; font-weight: 400; color: var(--text-2); font-size: 14.5px; }
+.sg-elemente td:first-child { min-width: 200px; }
+.sg-elemente td strong { color: var(--text); }
+
+/* Kopf der Uebersicht: neben dem Text */
+.pk-head .sg-hero { margin: 0; }
+.pk-head .sg-hero .sg { margin: 0 auto; }

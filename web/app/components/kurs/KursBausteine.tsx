@@ -100,7 +100,7 @@ export function Zeichenaufgabe({
   loesung: ReactNode;
   /** Optionaler Text zwischen Diagramm und Bewertung */
   erklaerung?: ReactNode;
-  /** Stichpunkte "So wird bewertet": wofuer es Punkte gibt */
+  /** Stichpunkte "So wird typischerweise bewertet": wofuer es Punkte gibt */
   bewertung: ReactNode[];
   /** Hinweis mit Link auf das Diagramm-Tool in den Uebungspruefungen */
   toolHinweis?: boolean;
@@ -129,7 +129,7 @@ export function Zeichenaufgabe({
         <div className="pk-loesung-inhalt">
           {loesung}
           {erklaerung}
-          <p className="pk-bewertung-titel">So wird bewertet</p>
+          <p className="pk-bewertung-titel">So wird typischerweise bewertet</p>
           <ul className="pk-bewertung">
             {bewertung.map((punkt, i) => (
               <li key={i}>{punkt}</li>

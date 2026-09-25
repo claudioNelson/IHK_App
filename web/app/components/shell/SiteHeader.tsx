@@ -105,7 +105,7 @@ export default function SiteHeader({
 
   const isPremium = subscription.loaded && subscription.isPremium;
   // "Kurse" gilt auch auf den Kursseiten selbst als aktiv
-  const unterKurse = pathname.startsWith("/python-kurs") || pathname.startsWith("/uml-kurs");
+  const unterKurse = pathname.startsWith("/python-kurs") || pathname.startsWith("/uml-kurs") || pathname.startsWith("/struktogramm-kurs");
   const isCurrent = (href: string) =>
     !href.includes("#") && (pathname === href || pathname.startsWith(href + "/") || (href === "/kurse" && unterKurse));
 
