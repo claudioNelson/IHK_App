@@ -1,6 +1,6 @@
 // lib/data/kurse/sql_kurs.dart
 //
-// Inhalt des SQL-Kurses. Reine Daten — kein Layout, keine Widgets.
+// Inhalt des SQL-Kurses. Reine Daten: kein Layout, keine Widgets.
 // Eine neue Lektion ist ein Eintrag in der Liste unten, keine neue Datei.
 //
 // Tonfall: direkt, ohne Fachjargon ohne Erklärung, ohne "einfach mal".
@@ -10,7 +10,7 @@
 import '../../models/kurs_aufgabe.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Lektion 1 — Was ist eine Datenbank, und wie frage ich sie?
+// Lektion 1: Was ist eine Datenbank, und wie frage ich sie?
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _lektion1 = Lektion(
@@ -84,7 +84,7 @@ const _lektion1 = Lektion(
       datensatz: 'nordwind',
       musterloesung: 'SELECT name FROM kunden;',
       // Allererste Aufgabe: genau die Bausteine, die gebraucht werden.
-      // Keine Falle — hier geht es nur darum, das Muster einmal zu bauen.
+      // Keine Falle: hier geht es nur darum, das Muster einmal zu bauen.
       bausteine: ['SELECT', 'name', 'FROM', 'kunden', ';'],
       erklaerung:
           'Zwölf Namen. Das war deine erste echte Datenbankabfrage, '
@@ -282,7 +282,7 @@ const _lektion1 = Lektion(
 );
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Lektion 2 — Spalten formen: Aliase, Rechnen, DISTINCT
+// Lektion 2: Spalten formen: Aliase, Rechnen, DISTINCT
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _lektion2 = Lektion(
@@ -459,7 +459,7 @@ const _lektion2 = Lektion(
 );
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Lektion 3 — WHERE: nur die Zeilen, die du wirklich willst
+// Lektion 3: WHERE: nur die Zeilen, die du wirklich willst
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _lektion3 = Lektion(

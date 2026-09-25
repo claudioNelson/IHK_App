@@ -24,9 +24,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       tag: 'FRAGEN',
       accentColor: AppColors.accent,
       title: 'Echte Prüfungsfragen.',
-      titleAccent: '600+',
+      titleAccent: '1.800+',
       description:
-          'Über 600 Fragen aus allen IHK-Themenbereichen, so wie sie in der echten Abschlussprüfung vorkommen.',
+          'Über 1.800 Fragen aus allen IHK-Themenbereichen, so wie sie in der echten Abschlussprüfung vorkommen.',
     ),
     _OnboardingData(
       code: '02',

@@ -1,5 +1,5 @@
 // lib/data/themen_summaries.dart
-// Zusammenfassungen für alle Themen — nach thema_id
+// Zusammenfassungen für alle Themen, nach thema_id
 
 const Map<int, Map<String, dynamic>> themenSummaries = {
 
@@ -27,7 +27,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Hub vs. Switch',
         'text':
-            'Hub (Schicht 1): Sendet Daten an ALLE Ports — ineffizient, Kollisionen möglich.\nSwitch (Schicht 2): Lernt MAC-Adressen und sendet nur an den richtigen Port — effizient, keine Kollisionen.',
+            'Hub (Schicht 1): Sendet Daten an ALLE Ports (ineffizient, Kollisionen möglich).\nSwitch (Schicht 2): Lernt MAC-Adressen und sendet nur an den richtigen Port (effizient, keine Kollisionen).',
       },
     ],
   },
@@ -49,12 +49,12 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Netz- & Broadcastadresse',
         'text':
-            'Netzadresse: Erste Adresse im Subnetz (Host-Bits alle 0) — nicht nutzbar\nBroadcast: Letzte Adresse (Host-Bits alle 1) — nicht nutzbar\n\nBeispiel: 192.168.1.0/24\nNetz: 192.168.1.0\nBroadcast: 192.168.1.255\nNutzbar: 192.168.1.1 – 192.168.1.254',
+            'Netzadresse: Erste Adresse im Subnetz (Host-Bits alle 0), nicht nutzbar\nBroadcast: Letzte Adresse (Host-Bits alle 1), nicht nutzbar\n\nBeispiel: 192.168.1.0/24\nNetz: 192.168.1.0\nBroadcast: 192.168.1.255\nNutzbar: 192.168.1.1 bis 192.168.1.254',
       },
       {
         'heading': 'Private IP-Bereiche',
         'text':
-            'Klasse A: 10.0.0.0/8\nKlasse B: 172.16.0.0/12\nKlasse C: 192.168.0.0/16\n\nDiese Adressen sind nicht im Internet routbar — nur für interne Netze.',
+            'Klasse A: 10.0.0.0/8\nKlasse B: 172.16.0.0/12\nKlasse C: 192.168.0.0/16\n\nDiese Adressen sind nicht im Internet routbar, sondern nur für interne Netze.',
       },
     ],
   },
@@ -135,7 +135,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Troubleshooting-Befehle',
         'text':
-            'ping: Erreichbarkeit testen\ntraceroute/tracert: Pfad zum Ziel anzeigen\nnslookup/dig: DNS-Abfragen\nnetstat/ss: Aktive Verbindungen anzeigen\nipconfig/ip addr: IP-Konfiguration anzeigen\nwireshark/tcpdump: Netzverkehr analysieren',
+            'ping → Erreichbarkeit testen\ntraceroute/tracert → Pfad zum Ziel anzeigen\nnslookup/dig → DNS-Abfragen\nnetstat/ss → Aktive Verbindungen anzeigen\nipconfig/ip addr → IP-Konfiguration anzeigen\nwireshark/tcpdump → Netzverkehr analysieren',
       },
     ],
   },
@@ -149,12 +149,12 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Grundbegriffe',
         'text':
-            'Tabelle (Relation): Speichert Daten in Zeilen (Tupel) und Spalten (Attribute)\nPrimärschlüssel (PK): Eindeutiger Bezeichner einer Zeile — darf nicht NULL sein\nFremdschlüssel (FK): Verweist auf PK einer anderen Tabelle\nIndex: Beschleunigt Abfragen auf häufig gesuchte Spalten',
+            'Tabelle (Relation): Speichert Daten in Zeilen (Tupel) und Spalten (Attribute)\nPrimärschlüssel (PK): Eindeutiger Bezeichner einer Zeile, darf nicht NULL sein\nFremdschlüssel (FK): Verweist auf PK einer anderen Tabelle\nIndex: Beschleunigt Abfragen auf häufig gesuchte Spalten',
       },
       {
         'heading': 'Beziehungstypen',
         'text':
-            '1:1 — Ein Datensatz gehört zu genau einem anderen (z.B. Person → Ausweis)\n1:n — Ein Datensatz zu vielen (z.B. Kunde → Bestellungen)\nn:m — Viele zu viele → braucht Zwischentabelle (z.B. Schüler ↔ Kurse)',
+            '1:1 (eins zu eins): Ein Datensatz gehört zu genau einem anderen (z.B. Person → Ausweis)\n1:n (eins zu viele): Ein Datensatz zu vielen (z.B. Kunde → Bestellungen)\nn:m (viele zu viele): Braucht Zwischentabelle (z.B. Schüler ↔ Kurse)',
       },
       {
         'heading': 'ER-Modell',
@@ -176,22 +176,22 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Grundlegende Befehle',
         'text':
-            'SELECT spalte FROM tabelle — Daten lesen\nINSERT INTO tabelle (sp1, sp2) VALUES (v1, v2) — Einfügen\nUPDATE tabelle SET spalte=wert WHERE bedingung — Ändern\nDELETE FROM tabelle WHERE bedingung — Löschen',
+            'SELECT spalte FROM tabelle → Daten lesen\nINSERT INTO tabelle (sp1, sp2) VALUES (v1, v2) → Einfügen\nUPDATE tabelle SET spalte=wert WHERE bedingung → Ändern\nDELETE FROM tabelle WHERE bedingung → Löschen',
       },
       {
         'heading': 'WHERE & Operatoren',
         'text':
-            'WHERE name = \'Max\' — Gleichheit\nWHERE alter > 18 — Vergleich\nWHERE name LIKE \'M%\' — Muster (% = beliebig viele Zeichen)\nWHERE id IN (1,2,3) — Liste\nWHERE alter BETWEEN 18 AND 30 — Bereich\nWHERE name IS NULL — NULL-Prüfung',
+            'WHERE name = \'Max\' → Gleichheit\nWHERE alter > 18 → Vergleich\nWHERE name LIKE \'M%\' → Muster (% = beliebig viele Zeichen)\nWHERE id IN (1,2,3) → Liste\nWHERE alter BETWEEN 18 AND 30 → Bereich\nWHERE name IS NULL → NULL-Prüfung',
       },
       {
         'heading': 'ORDER BY & LIMIT',
         'text':
-            'ORDER BY name ASC — aufsteigend\nORDER BY name DESC — absteigend\nLIMIT 10 — nur 10 Ergebnisse\nOFFSET 20 — ab dem 21. Ergebnis (Pagination)',
+            'ORDER BY name ASC → aufsteigend\nORDER BY name DESC → absteigend\nLIMIT 10 → nur 10 Ergebnisse\nOFFSET 20 → ab dem 21. Ergebnis (Pagination)',
       },
       {
         'heading': 'Aggregatfunktionen',
         'text':
-            'COUNT(*) — Anzahl der Zeilen\nSUM(preis) — Summe\nAVG(preis) — Durchschnitt\nMIN/MAX(preis) — Minimum/Maximum\n\nMit GROUP BY:\nSELECT land, COUNT(*) FROM kunden GROUP BY land\nHAVING COUNT(*) > 10 — Filtert nach Aggregation',
+            'COUNT(*) → Anzahl der Zeilen\nSUM(preis) → Summe\nAVG(preis) → Durchschnitt\nMIN/MAX(preis) → Minimum/Maximum\n\nMit GROUP BY:\nSELECT land, COUNT(*) FROM kunden GROUP BY land\nHAVING COUNT(*) > 10 → Filtert nach Aggregation',
       },
     ],
   },
@@ -208,7 +208,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Subqueries',
         'text':
-            'Eine Abfrage innerhalb einer Abfrage:\nSELECT * FROM kunden WHERE id IN (SELECT kunden_id FROM bestellungen WHERE betrag > 100)\n\nKorrelierte Subquery: Bezieht sich auf äußere Abfrage — langsamer, aber mächtig',
+            'Eine Abfrage innerhalb einer Abfrage:\nSELECT * FROM kunden WHERE id IN (SELECT kunden_id FROM bestellungen WHERE betrag > 100)\n\nKorrelierte Subquery: Bezieht sich auf äußere Abfrage. Langsamer, aber mächtig',
       },
       {
         'heading': 'Views',
@@ -230,7 +230,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': '1. Normalform (1NF)',
         'text':
-            'Jede Spalte enthält atomare (unteilbare) Werte — keine Listen oder Gruppen.\n\n❌ Falsch: Telefonnummern = "01234, 05678"\n✅ Richtig: Separate Zeilen oder Tabelle für Telefonnummern',
+            'Jede Spalte enthält atomare (unteilbare) Werte, keine Listen oder Gruppen.\n\n❌ Falsch: Telefonnummern = "01234, 05678"\n✅ Richtig: Separate Zeilen oder Tabelle für Telefonnummern',
       },
       {
         'heading': '2. Normalform (2NF)',
@@ -257,7 +257,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Transaktionen',
         'text':
-            'BEGIN/START TRANSACTION — Transaktion starten\nCOMMIT — Änderungen speichern\nROLLBACK — Änderungen rückgängig machen\nSAVEPOINT — Zwischenpunkt für partielles Rollback\n\nACID garantiert Zuverlässigkeit (Atomicity, Consistency, Isolation, Durability)',
+            'BEGIN/START TRANSACTION → Transaktion starten\nCOMMIT → Änderungen speichern\nROLLBACK → Änderungen rückgängig machen\nSAVEPOINT → Zwischenpunkt für partielles Rollback\n\nACID garantiert Zuverlässigkeit (Atomicity, Consistency, Isolation, Durability)',
       },
       {
         'heading': 'Isolation Levels',
@@ -328,7 +328,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Funktionen & Methoden',
         'text':
-            'Rückgabetyp methodenName(Parameter) { return wert; }\n\nvoid: Kein Rückgabewert\nParameter: by value (Kopie) vs. by reference (Original)\nÜberladung: Gleicher Name, verschiedene Parameter\nRekursion: Methode ruft sich selbst auf — braucht Abbruchbedingung!',
+            'Rückgabetyp methodenName(Parameter) { return wert; }\n\nvoid: Kein Rückgabewert\nParameter: by value (Kopie) vs. by reference (Original)\nÜberladung: Gleicher Name, verschiedene Parameter\nRekursion: Methode ruft sich selbst auf und braucht eine Abbruchbedingung!',
       },
     ],
   },
@@ -367,12 +367,12 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Git Grundlagen',
         'text':
-            'git init — Repository erstellen\ngit add . — Änderungen stagen\ngit commit -m "Nachricht" — Snapshot speichern\ngit push — Auf Remote hochladen\ngit pull — Vom Remote laden\ngit clone URL — Repository kopieren',
+            'git init → Repository erstellen\ngit add . → Änderungen stagen\ngit commit -m "Nachricht" → Snapshot speichern\ngit push → Auf Remote hochladen\ngit pull → Vom Remote laden\ngit clone URL → Repository kopieren',
       },
       {
         'heading': 'Git Branching',
         'text':
-            'git branch feature — Branch erstellen\ngit checkout feature — Branch wechseln\ngit merge feature — Branch zusammenführen\ngit rebase — Commits auf anderen Branch übertragen\n\nGitFlow: main → develop → feature/bugfix branches',
+            'git branch feature → Branch erstellen\ngit checkout feature → Branch wechseln\ngit merge feature → Branch zusammenführen\ngit rebase → Commits auf anderen Branch übertragen\n\nGitFlow: main → develop → feature/bugfix branches',
       },
       {
         'heading': 'Unit Tests',
@@ -394,22 +394,22 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Sortieralgorithmen',
         'text':
-            'Bubble Sort: O(n²) — einfach, langsam\nSelection Sort: O(n²) — findet immer Minimum\nInsertion Sort: O(n²) — gut für fast-sortierte Daten\nMerge Sort: O(n log n) — stabil, rekursiv\nQuick Sort: O(n log n) durchschnittlich — in-place\n\nFür die IHK: Bubble Sort + Merge Sort kennen!',
+            'Bubble Sort: O(n²), einfach, langsam\nSelection Sort: O(n²), findet immer Minimum\nInsertion Sort: O(n²), gut für fast-sortierte Daten\nMerge Sort: O(n log n), stabil, rekursiv\nQuick Sort: O(n log n) durchschnittlich, in-place\n\nFür die IHK: Bubble Sort + Merge Sort kennen!',
       },
       {
         'heading': 'Suchalgorithmen',
         'text':
-            'Lineare Suche: O(n) — durchsucht jedes Element\nBinäre Suche: O(log n) — nur auf sortierten Arrays\n\nBeispiel Binäre Suche:\nMitte prüfen → wenn kleiner: links suchen → wenn größer: rechts suchen',
+            'Lineare Suche: O(n), durchsucht jedes Element\nBinäre Suche: O(log n), nur auf sortierten Arrays\n\nBeispiel Binäre Suche:\nMitte prüfen → wenn kleiner: links suchen → wenn größer: rechts suchen',
       },
       {
         'heading': 'Big-O Notation',
         'text':
-            'Beschreibt Zeitkomplexität im worst-case:\nO(1) — Konstant (Array-Zugriff)\nO(log n) — Logarithmisch (Binäre Suche)\nO(n) — Linear (Lineare Suche)\nO(n log n) — Quasilinear (Merge Sort)\nO(n²) — Quadratisch (Bubble Sort)\nO(2^n) — Exponentiell (Brute Force)',
+            'Beschreibt Zeitkomplexität im worst-case:\nO(1): Konstant (Array-Zugriff)\nO(log n): Logarithmisch (Binäre Suche)\nO(n): Linear (Lineare Suche)\nO(n log n): Quasilinear (Merge Sort)\nO(n²): Quadratisch (Bubble Sort)\nO(2^n): Exponentiell (Brute Force)',
       },
       {
         'heading': 'Secure Coding',
         'text':
-            'SQL-Injection verhindern: Prepared Statements verwenden\nXSS verhindern: User-Input escapen/sanitizen\nCSRF: Tokens verwenden\nPasswörter: Niemals im Klartext — bcrypt/argon2 zum Hashen\n\nPrinzip: Minimale Rechte (Least Privilege), Defense in Depth',
+            'SQL-Injection verhindern: Prepared Statements verwenden\nXSS verhindern: User-Input escapen/sanitizen\nCSRF: Tokens verwenden\nPasswörter: Niemals im Klartext, sondern mit bcrypt/argon2 hashen\n\nPrinzip: Minimale Rechte (Least Privilege), Defense in Depth',
       },
     ],
   },
@@ -428,7 +428,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Bedrohungsarten',
         'text':
-            'Malware: Viren, Trojaner, Ransomware, Spyware, Rootkits\nSocial Engineering: Phishing, Spear-Phishing, Vishing (Telefon), Pretexting\nInsider-Bedrohungen: Böswillige oder fahrlässige Mitarbeiter\nAPT: Advanced Persistent Threat — langfristige, gezielte Angriffe',
+            'Malware: Viren, Trojaner, Ransomware, Spyware, Rootkits\nSocial Engineering: Phishing, Spear-Phishing, Vishing (Telefon), Pretexting\nInsider-Bedrohungen: Böswillige oder fahrlässige Mitarbeiter\nAPT: Advanced Persistent Threat (langfristige, gezielte Angriffe)',
       },
       {
         'heading': 'Schutzmaßnahmen (technisch)',
@@ -482,7 +482,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Symmetrische Verschlüsselung',
         'text':
-            'Gleicher Schlüssel zum Ver- und Entschlüsseln.\nVorteil: Schnell\nNachteil: Schlüsselaustausch-Problem\n\nAlgorithmen: AES (128/256 Bit) — Standard heute\nVeraltet: DES (56 Bit — unsicher!), 3DES',
+            'Gleicher Schlüssel zum Ver- und Entschlüsseln.\nVorteil: Schnell\nNachteil: Schlüsselaustausch-Problem\n\nAlgorithmen: AES (128/256 Bit), heute Standard\nVeraltet: DES (56 Bit, unsicher!), 3DES',
       },
       {
         'heading': 'Asymmetrische Verschlüsselung',
@@ -575,7 +575,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Grundlegende Befehle',
         'text':
-            'pwd — Aktuellen Pfad anzeigen\nls -la — Dateien auflisten (inkl. versteckte)\ncd /pfad — Verzeichnis wechseln\nmkdir name — Ordner erstellen\nrm -rf ordner — Ordner löschen (Vorsicht!)\ncp quelle ziel — Kopieren\nmv quelle ziel — Verschieben/Umbenennen\ncat datei — Inhalt anzeigen',
+            'pwd → Aktuellen Pfad anzeigen\nls -la → Dateien auflisten (inkl. versteckte)\ncd /pfad → Verzeichnis wechseln\nmkdir name → Ordner erstellen\nrm -rf ordner → Ordner löschen (Vorsicht!)\ncp quelle ziel → Kopieren\nmv quelle ziel → Verschieben/Umbenennen\ncat datei → Inhalt anzeigen',
       },
     ],
   },
@@ -587,22 +587,22 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Textverarbeitung',
         'text':
-            'grep "muster" datei — Text suchen\ngrep -r "muster" /pfad — Rekursiv suchen\nsed \'s/alt/neu/g\' datei — Text ersetzen\nawk \'{print \$1}\' datei — Spalten verarbeiten\ncut -d"," -f1 datei — Spalten ausschneiden\nsort datei — Sortieren\nuniq — Duplikate entfernen',
+            'grep "muster" datei → Text suchen\ngrep -r "muster" /pfad → Rekursiv suchen\nsed \'s/alt/neu/g\' datei → Text ersetzen\nawk \'{print \$1}\' datei → Spalten verarbeiten\ncut -d"," -f1 datei → Spalten ausschneiden\nsort datei → Sortieren\nuniq → Duplikate entfernen',
       },
       {
         'heading': 'Pipes & Redirects',
         'text':
-            '| (Pipe): Ausgabe als Eingabe weiterleiten\nls -la | grep ".txt" — Nur .txt Dateien\n\n> — Ausgabe in Datei (überschreiben)\n>> — Ausgabe anhängen\n< — Eingabe aus Datei\n2> — Fehlerausgabe umleiten\n\nBeispiel: ls /etc 2>/dev/null | sort > liste.txt',
+            '| (Pipe) → Ausgabe als Eingabe weiterleiten\nls -la | grep ".txt" → Nur .txt Dateien\n\n> → Ausgabe in Datei (überschreiben)\n>> → Ausgabe anhängen\n< → Eingabe aus Datei\n2> → Fehlerausgabe umleiten\n\nBeispiel: ls /etc 2>/dev/null | sort > liste.txt',
       },
       {
         'heading': 'Paketverwaltung',
         'text':
-            'Debian/Ubuntu (apt):\napt update — Paketliste aktualisieren\napt install paket — Installieren\napt remove paket — Deinstallieren\napt upgrade — Alle Pakete aktualisieren\n\nRHEL/CentOS (yum/dnf):\ndnf install paket\ndnf update',
+            'Debian/Ubuntu (apt):\napt update → Paketliste aktualisieren\napt install paket → Installieren\napt remove paket → Deinstallieren\napt upgrade → Alle Pakete aktualisieren\n\nRHEL/CentOS (yum/dnf):\ndnf install paket\ndnf update',
       },
       {
         'heading': 'Hilfsbefehle',
         'text':
-            'man befehl — Handbuch anzeigen\nbefehl --help — Kurzhilfe\nwhich befehl — Pfad des Befehls\nhistory — Befehlshistorie\ntab — Autovervollständigung\nstrg+c — Prozess abbrechen\nstrg+z — Prozess pausieren',
+            'man befehl → Handbuch anzeigen\nbefehl --help → Kurzhilfe\nwhich befehl → Pfad des Befehls\nhistory → Befehlshistorie\ntab → Autovervollständigung\nstrg+c → Prozess abbrechen\nstrg+z → Prozess pausieren',
       },
     ],
   },
@@ -614,12 +614,12 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Linux-Dateisystem',
         'text':
-            '/ — Root\n/home — Benutzerverzeichnisse\n/etc — Konfigurationsdateien\n/var — Variable Daten (Logs)\n/tmp — Temporäre Dateien\n/bin, /usr/bin — Programme\n/lib — Bibliotheken\n/proc — Kernel-Infos (virtuell)',
+            '/ → Root\n/home → Benutzerverzeichnisse\n/etc → Konfigurationsdateien\n/var → Variable Daten (Logs)\n/tmp → Temporäre Dateien\n/bin, /usr/bin → Programme\n/lib → Bibliotheken\n/proc → Kernel-Infos (virtuell)',
       },
       {
         'heading': 'Berechtigungen (rwx)',
         'text':
-            'r (read=4), w (write=2), x (execute=1)\n\n-rwxr-xr-- = Besitzer: rwx, Gruppe: r-x, Andere: r--\n\nOktal: 755 = rwxr-xr-x\n       644 = rw-r--r--\n       600 = rw-------\n\nchmod 755 datei — Rechte setzen\nchown user:gruppe datei — Besitzer ändern',
+            'r (read=4), w (write=2), x (execute=1)\n\n-rwxr-xr-- = Besitzer: rwx, Gruppe: r-x, Andere: r--\n\nOktal: 755 = rwxr-xr-x\n       644 = rw-r--r--\n       600 = rw-------\n\nchmod 755 datei → Rechte setzen\nchown user:gruppe datei → Besitzer ändern',
       },
       {
         'heading': 'Spezielle Berechtigungen',
@@ -629,7 +629,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Links & Suche',
         'text':
-            'Hard Link: ln quelle ziel — Zeigt auf gleiche Inode\nSymbolic Link: ln -s quelle ziel — Wie Verknüpfung\n\nfind /pfad -name "*.log" — Dateien suchen\nfind /pfad -mtime -7 — Letzte 7 Tage geändert\nfind /pfad -size +100M — Größer als 100MB\nlocate dateiname — Schnellsuche (Index)',
+            'Hard Link: ln quelle ziel (zeigt auf gleiche Inode)\nSymbolic Link: ln -s quelle ziel (wie Verknüpfung)\n\nfind /pfad -name "*.log" → Dateien suchen\nfind /pfad -mtime -7 → Letzte 7 Tage geändert\nfind /pfad -size +100M → Größer als 100MB\nlocate dateiname → Schnellsuche (Index)',
       },
     ],
   },
@@ -641,7 +641,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Prozessverwaltung',
         'text':
-            'ps aux — Alle Prozesse anzeigen\ntop / htop — Prozesse live beobachten\nkill PID — Prozess beenden (SIGTERM)\nkill -9 PID — Prozess zwangsbeenden (SIGKILL)\npkill name — Nach Name beenden\nnohup befehl & — Im Hintergrund, auch nach Logout',
+            'ps aux → Alle Prozesse anzeigen\ntop / htop → Prozesse live beobachten\nkill PID → Prozess beenden (SIGTERM)\nkill -9 PID → Prozess zwangsbeenden (SIGKILL)\npkill name → Nach Name beenden\nnohup befehl & → Im Hintergrund, auch nach Logout',
       },
       {
         'heading': 'Prozess-Zustände',
@@ -651,12 +651,12 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Systemd & Services',
         'text':
-            'systemctl start dienst — Starten\nsystemctl stop dienst — Stoppen\nsystemctl restart dienst — Neustart\nsystemctl status dienst — Status anzeigen\nsystemctl enable dienst — Autostart aktivieren\nsystemctl disable dienst — Autostart deaktivieren\njournalctl -u dienst — Logs anzeigen',
+            'systemctl start dienst → Starten\nsystemctl stop dienst → Stoppen\nsystemctl restart dienst → Neustart\nsystemctl status dienst → Status anzeigen\nsystemctl enable dienst → Autostart aktivieren\nsystemctl disable dienst → Autostart deaktivieren\njournalctl -u dienst → Logs anzeigen',
       },
       {
         'heading': 'Cronjobs',
         'text':
-            'crontab -e — Cronjobs bearbeiten\n\nFormat: Minute Stunde Tag Monat Wochentag Befehl\n\n* * * * * — Jede Minute\n0 2 * * * — Täglich um 2:00 Uhr\n0 9 * * 1 — Jeden Montag um 9:00 Uhr\n*/5 * * * * — Alle 5 Minuten\n\n@reboot — Bei Systemstart',
+            'crontab -e → Cronjobs bearbeiten\n\nFormat: Minute Stunde Tag Monat Wochentag Befehl\n\n* * * * * → Jede Minute\n0 2 * * * → Täglich um 2:00 Uhr\n0 9 * * 1 → Jeden Montag um 9:00 Uhr\n*/5 * * * * → Alle 5 Minuten\n\n@reboot → Bei Systemstart',
       },
     ],
   },
@@ -668,22 +668,22 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'SSH',
         'text':
-            'ssh user@host — Verbinden\nssh -p 2222 user@host — Anderer Port\nssh-keygen — Schlüsselpaar erzeugen\nssh-copy-id user@host — Public Key übertragen\n\nKonfiguration: /etc/ssh/sshd_config\nWichtig: PermitRootLogin no, PasswordAuthentication no',
+            'ssh user@host → Verbinden\nssh -p 2222 user@host → Anderer Port\nssh-keygen → Schlüsselpaar erzeugen\nssh-copy-id user@host → Public Key übertragen\n\nKonfiguration: /etc/ssh/sshd_config\nWichtig: PermitRootLogin no, PasswordAuthentication no',
       },
       {
         'heading': 'Bash-Scripting Grundlagen',
         'text':
-            '#!/bin/bash — Shebang (erste Zeile)\nvariable="wert" — Variable setzen\necho \$variable — Ausgeben\n\nif [ "\$var" = "wert" ]; then\n  echo "wahr"\nfi\n\nfor i in 1 2 3; do echo \$i; done\n\nwhile [ \$x -lt 10 ]; do x=\$((x+1)); done',
+            '#!/bin/bash → Shebang (erste Zeile)\nvariable="wert" → Variable setzen\necho \$variable → Ausgeben\n\nif [ "\$var" = "wert" ]; then\n  echo "wahr"\nfi\n\nfor i in 1 2 3; do echo \$i; done\n\nwhile [ \$x -lt 10 ]; do x=\$((x+1)); done',
       },
       {
         'heading': 'Nützliche Sicherheitsbefehle',
         'text':
-            'last — Letzte Logins anzeigen\nwho — Aktuell eingeloggte Nutzer\nnetstat -tulpn / ss -tulpn — Offene Ports\nufw status — Firewall-Status (Ubuntu)\niptables -L — Firewall-Regeln\nfail2ban-client status — Brute-Force-Schutz',
+            'last → Letzte Logins anzeigen\nwho → Aktuell eingeloggte Nutzer\nnetstat -tulpn / ss -tulpn → Offene Ports\nufw status → Firewall-Status (Ubuntu)\niptables -L → Firewall-Regeln\nfail2ban-client status → Brute-Force-Schutz',
       },
       {
         'heading': 'Logs & Diagnose',
         'text':
-            'journalctl -f — Logs live verfolgen\njournalctl --since "1 hour ago" — Letzte Stunde\ntail -f /var/log/syslog — Systemlog verfolgen\ndmesg — Kernel-Meldungen\nlsof -i :80 — Wer nutzt Port 80?\ndf -h — Festplattenplatz\nfree -h — RAM-Auslastung',
+            'journalctl -f → Logs live verfolgen\njournalctl --since "1 hour ago" → Letzte Stunde\ntail -f /var/log/syslog → Systemlog verfolgen\ndmesg → Kernel-Meldungen\nlsof -i :80 → Wer nutzt Port 80?\ndf -h → Festplattenplatz\nfree -h → RAM-Auslastung',
       },
     ],
   },
@@ -815,7 +815,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Diagnose-Tools',
         'text':
-            'memtest86: RAM testen\nCrystalDiskInfo: Festplattenzustand (S.M.A.R.T.)\nHWiNFO/HWMonitor: Temperaturen, Spannungen\nEvent-Viewer (Windows): System-Logs\n\nS.M.A.R.T.: Festplatten-Selbstdiagnose\nReallocated Sectors: Defekte Sektoren — Festplatte tauschen!',
+            'memtest86: RAM testen\nCrystalDiskInfo: Festplattenzustand (S.M.A.R.T.)\nHWiNFO/HWMonitor: Temperaturen, Spannungen\nEvent-Viewer (Windows): System-Logs\n\nS.M.A.R.T.: Festplatten-Selbstdiagnose\nReallocated Sectors: Defekte Sektoren. Festplatte tauschen!',
       },
       {
         'heading': 'Troubleshooting-Methodik',
@@ -839,12 +839,12 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'CSS-Grundlagen',
         'text':
-            'Selektor { Eigenschaft: Wert; }\n\nSelektoren:\n#id — ID-Selektor\n.klasse — Klassen-Selektor\ntag — Element-Selektor\na:hover — Pseudo-Klasse\n\nBox-Modell: Content → Padding → Border → Margin\nFlex/Grid: Moderne Layout-Systeme',
+            'Selektor { Eigenschaft: Wert; }\n\nSelektoren:\n#id (ID-Selektor)\n.klasse (Klassen-Selektor)\ntag (Element-Selektor)\na:hover (Pseudo-Klasse)\n\nBox-Modell: Content → Padding → Border → Margin\nFlex/Grid: Moderne Layout-Systeme',
       },
       {
         'heading': 'HTTP-Grundlagen',
         'text':
-            'HTTP-Methoden:\nGET — Daten abrufen (kein Body)\nPOST — Daten senden\nPUT — Ressource ersetzen\nPATCH — Teilweise aktualisieren\nDELETE — Ressource löschen\n\nStatusCodes: 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error',
+            'HTTP-Methoden:\nGET → Daten abrufen (kein Body)\nPOST → Daten senden\nPUT → Ressource ersetzen\nPATCH → Teilweise aktualisieren\nDELETE → Ressource löschen\n\nStatusCodes: 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error',
       },
       {
         'heading': 'HTTP-Header & Cookies',
@@ -861,7 +861,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'JS-Grundlagen',
         'text':
-            'let/const/var — Variablen\nArrow Functions: const fn = (x) => x * 2\nTemplate Literals: `Hallo \${name}`\nDestructuring: const {a, b} = obj\nSpread: [...arr1, ...arr2]\nOptional Chaining: obj?.property?.value',
+            'let/const/var: Variablen\nArrow Functions: const fn = (x) => x * 2\nTemplate Literals: `Hallo \${name}`\nDestructuring: const {a, b} = obj\nSpread: [...arr1, ...arr2]\nOptional Chaining: obj?.property?.value',
       },
       {
         'heading': 'DOM-Manipulation',
@@ -871,7 +871,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Events',
         'text':
-            'element.addEventListener("click", function(e) {\n  console.log(e.target);\n});\n\nWichtige Events: click, submit, keydown, change, load, DOMContentLoaded\n\ne.preventDefault() — Standardverhalten verhindern\ne.stopPropagation() — Event-Bubbling stoppen',
+            'element.addEventListener("click", function(e) {\n  console.log(e.target);\n});\n\nWichtige Events: click, submit, keydown, change, load, DOMContentLoaded\n\ne.preventDefault() → Standardverhalten verhindern\ne.stopPropagation() → Event-Bubbling stoppen',
       },
       {
         'heading': 'Async JavaScript',
@@ -888,17 +888,17 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'REST-Prinzipien',
         'text':
-            'REST (Representational State Transfer):\n1. Stateless: Jede Anfrage enthält alle Infos\n2. Client-Server-Trennung\n3. Cacheable: Antworten können gecacht werden\n4. Uniform Interface: Einheitliche URLs\n\nRESTful URL-Beispiele:\nGET /users — Alle Nutzer\nGET /users/42 — Nutzer #42\nPOST /users — Neuen Nutzer erstellen\nPUT /users/42 — Nutzer #42 aktualisieren',
+            'REST (Representational State Transfer):\n1. Stateless: Jede Anfrage enthält alle Infos\n2. Client-Server-Trennung\n3. Cacheable: Antworten können gecacht werden\n4. Uniform Interface: Einheitliche URLs\n\nRESTful URL-Beispiele:\nGET /users → Alle Nutzer\nGET /users/42 → Nutzer #42\nPOST /users → Neuen Nutzer erstellen\nPUT /users/42 → Nutzer #42 aktualisieren',
       },
       {
         'heading': 'JSON',
         'text':
-            'JavaScript Object Notation — Standard für API-Daten:\n{\n  "name": "Max",\n  "alter": 25,\n  "aktiv": true,\n  "tags": ["it", "azubi"],\n  "adresse": {\n    "stadt": "Berlin"\n  }\n}\n\nJSON.parse() — String → Objekt\nJSON.stringify() — Objekt → String',
+            'JavaScript Object Notation, der Standard für API-Daten:\n{\n  "name": "Max",\n  "alter": 25,\n  "aktiv": true,\n  "tags": ["it", "azubi"],\n  "adresse": {\n    "stadt": "Berlin"\n  }\n}\n\nJSON.parse() → aus String wird Objekt\nJSON.stringify() → aus Objekt wird String',
       },
       {
         'heading': 'Authentifizierung in APIs',
         'text':
-            'API Key: Einfacher Schlüssel im Header\nBasic Auth: Base64(user:passwort) — nur mit HTTPS!\nJWT (JSON Web Token): Signiertes Token mit Claims\n→ Header.Payload.Signatur\nOAuth 2.0: Delegierte Autorisierung (Login mit Google)\nBearer Token: Authorization: Bearer <token>',
+            'API Key: Einfacher Schlüssel im Header\nBasic Auth: Base64(user:passwort), nur mit HTTPS!\nJWT (JSON Web Token): Signiertes Token mit Claims\n→ Header.Payload.Signatur\nOAuth 2.0: Delegierte Autorisierung (Login mit Google)\nBearer Token: Authorization: Bearer <token>',
       },
       {
         'heading': 'Datenbanken im Backend',
@@ -925,7 +925,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Docker Grundlagen',
         'text':
-            'Image: Vorlage (unveränderlich)\nContainer: Laufende Instanz eines Images\n\ndocker build -t app . — Image bauen\ndocker run -p 3000:3000 app — Container starten\ndocker ps — Laufende Container\ndocker logs container — Logs anzeigen\n\nDockerfile: Anleitung zum Image-Bauen',
+            'Image: Vorlage (unveränderlich)\nContainer: Laufende Instanz eines Images\n\ndocker build -t app . → Image bauen\ndocker run -p 3000:3000 app → Container starten\ndocker ps → Laufende Container\ndocker logs container → Logs anzeigen\n\nDockerfile: Anleitung zum Image-Bauen',
       },
       {
         'heading': 'Umgebungen',
@@ -947,7 +947,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'CORS & CSP',
         'text':
-            'CORS (Cross-Origin Resource Sharing): Browser-Policy die verhindert dass Websites fremde APIs aufrufen.\nAccess-Control-Allow-Origin: * — Alle erlauben (unsicher!)\n\nCSP (Content Security Policy): Verhindert XSS durch Whitelist erlaubter Quellen.\nContent-Security-Policy: default-src \'self\'',
+            'CORS (Cross-Origin Resource Sharing): Browser-Policy die verhindert dass Websites fremde APIs aufrufen.\nAccess-Control-Allow-Origin: * erlaubt alle (unsicher!)\n\nCSP (Content Security Policy): Verhindert XSS durch Whitelist erlaubter Quellen.\nContent-Security-Policy: default-src \'self\'',
       },
       {
         'heading': 'Web Performance',
@@ -971,7 +971,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Cloud-Servicemodelle',
         'text':
-            'IaaS: VM, Storage, Netzwerk — du verwaltest OS + Apps (AWS EC2, Azure VM)\nPaaS: Laufzeitumgebung — du verwaltest nur Apps (Heroku, App Engine)\nSaaS: Fertige Software — du nutzt nur (Gmail, Salesforce)\n\nFaaS/Serverless: Funktionen ausführen ohne Server (AWS Lambda)',
+            'IaaS: VM, Storage, Netzwerk. Du verwaltest OS + Apps (AWS EC2, Azure VM)\nPaaS: Laufzeitumgebung. Du verwaltest nur Apps (Heroku, App Engine)\nSaaS: Fertige Software. Du nutzt sie nur noch (Gmail, Salesforce)\n\nFaaS/Serverless: Funktionen ausführen ohne Server (AWS Lambda)',
       },
       {
         'heading': 'Regionen & Availability Zones',
@@ -998,7 +998,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'CI/CD Grundlagen',
         'text':
-            'Continuous Integration: Automatisch bauen und testen bei jedem Commit\nContinuous Delivery: Jederzeit deploybar — manueller Trigger\nContinuous Deployment: Vollautomatisch deployen\n\nZiel: Schnelle, zuverlässige Releases ohne manuelle Fehler',
+            'Continuous Integration: Automatisch bauen und testen bei jedem Commit\nContinuous Delivery: Jederzeit deploybar, aber mit manuellem Trigger\nContinuous Deployment: Vollautomatisch deployen\n\nZiel: Schnelle, zuverlässige Releases ohne manuelle Fehler',
       },
       {
         'heading': 'GitOps',
@@ -1035,7 +1035,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'kubectl Befehle',
         'text':
-            'kubectl get pods — Pods anzeigen\nkubectl describe pod name — Details\nkubectl logs pod name — Logs\nkubectl apply -f datei.yaml — Ressource erstellen\nkubectl delete pod name — Pod löschen\nkubectl exec -it pod -- bash — Shell öffnen\nkubectl scale deployment app --replicas=3',
+            'kubectl get pods → Pods anzeigen\nkubectl describe pod name → Details\nkubectl logs pod name → Logs\nkubectl apply -f datei.yaml → Ressource erstellen\nkubectl delete pod name → Pod löschen\nkubectl exec -it pod -- bash → Shell öffnen\nkubectl scale deployment app --replicas=3',
       },
       {
         'heading': 'Kubernetes-Konzepte',
@@ -1113,7 +1113,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Big-O Notation',
         'text':
-            'Beschreibt Zeitkomplexität im Worst-Case:\nO(1) — Konstant: Array-Zugriff per Index\nO(log n) — Logarithmisch: Binäre Suche\nO(n) — Linear: Alle Elemente durchgehen\nO(n log n) — Merge Sort, Heap Sort\nO(n²) — Quadratisch: Bubble Sort\nO(2^n) — Exponentiell: Brute Force\n\nZiel: Möglichst kleine Komplexität!',
+            'Beschreibt Zeitkomplexität im Worst-Case:\nO(1): Konstant (Array-Zugriff per Index)\nO(log n): Logarithmisch (Binäre Suche)\nO(n): Linear (alle Elemente durchgehen)\nO(n log n): Merge Sort, Heap Sort\nO(n²): Quadratisch (Bubble Sort)\nO(2^n): Exponentiell (Brute Force)\n\nZiel: Möglichst kleine Komplexität!',
       },
       {
         'heading': 'Rekursion',
@@ -1123,7 +1123,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Arrays',
         'text':
-            'Feste Größe, gleicher Datentyp, Index ab 0.\n\nOperationen:\nZugriff: O(1) — Direktzugriff per Index\nSuche: O(n) — Durchsuchen\nEinfügen am Ende: O(1) amortisiert\nEinfügen in Mitte: O(n) — alle verschieben\nLöschen in Mitte: O(n)\n\nZwei-dimensionales Array: int[3][4] = 3 Zeilen, 4 Spalten',
+            'Feste Größe, gleicher Datentyp, Index ab 0.\n\nOperationen:\nZugriff: O(1), Direktzugriff per Index\nSuche: O(n), alle Elemente durchsuchen\nEinfügen am Ende: O(1) amortisiert\nEinfügen in Mitte: O(n), alle verschieben\nLöschen in Mitte: O(n)\n\nZwei-dimensionales Array: int[3][4] = 3 Zeilen, 4 Spalten',
       },
     ],
   },
@@ -1140,12 +1140,12 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Stack (LIFO)',
         'text':
-            'Last In — First Out\n\nOperationen:\npush(x): Element oben drauflegen — O(1)\npop(): Oberstes Element entfernen — O(1)\npeek(): Oberstes Element ansehen — O(1)\nisEmpty(): Leer? — O(1)\n\nAnwendungen: Undo-Funktion, Klammerüberprüfung, Methodenaufrufe (Call Stack)',
+            'Last In, First Out\n\nOperationen:\npush(x): Element oben drauflegen, O(1)\npop(): Oberstes Element entfernen, O(1)\npeek(): Oberstes Element ansehen, O(1)\nisEmpty(): Prüft, ob leer, O(1)\n\nAnwendungen: Undo-Funktion, Klammerüberprüfung, Methodenaufrufe (Call Stack)',
       },
       {
         'heading': 'Queue (FIFO)',
         'text':
-            'First In — First Out\n\nOperationen:\nenqueue(x): Hinten einfügen — O(1)\ndequeue(): Vorne entfernen — O(1)\nfront(): Vorderstes ansehen — O(1)\n\nVarianten:\nDeque: Beidseitig\nPriority Queue: Höchste Priorität zuerst\n\nAnwendungen: Druckerwarteschlange, BFS, Aufgabenplanung',
+            'First In, First Out\n\nOperationen:\nenqueue(x): Hinten einfügen, O(1)\ndequeue(): Vorne entfernen, O(1)\nfront(): Vorderstes ansehen, O(1)\n\nVarianten:\nDeque: Beidseitig\nPriority Queue: Höchste Priorität zuerst\n\nAnwendungen: Druckerwarteschlange, BFS, Aufgabenplanung',
       },
       {
         'heading': 'ArrayList vs. LinkedList',
@@ -1189,7 +1189,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Graph-Grundlagen',
         'text':
-            'Knoten (Vertices) + Kanten (Edges)\n\nGerichtet: Kanten haben Richtung (A→B)\nUngerichtet: Kanten ohne Richtung (A—B)\nGewichtet: Kanten haben Kosten/Gewicht\n\nDarstellung:\nAdjazenzmatrix: 2D-Array, O(V²) Speicher\nAdjazenzliste: Liste pro Knoten, O(V+E) Speicher',
+            'Knoten (Vertices) + Kanten (Edges)\n\nGerichtet: Kanten haben Richtung (A→B)\nUngerichtet: Kanten ohne Richtung (A-B)\nGewichtet: Kanten haben Kosten/Gewicht\n\nDarstellung:\nAdjazenzmatrix: 2D-Array, O(V²) Speicher\nAdjazenzliste: Liste pro Knoten, O(V+E) Speicher',
       },
       {
         'heading': 'Graphensuche',
@@ -1199,12 +1199,12 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Sortieralgorithmen',
         'text':
-            'Bubble Sort: O(n²) — vergleicht benachbarte Elemente\nSelection Sort: O(n²) — findet immer kleinste Element\nInsertion Sort: O(n²) — fügt in sortierte Liste ein, gut bei fast-sortierten Daten\nMerge Sort: O(n log n) — Divide & Conquer, stabil\nQuick Sort: O(n log n) durchschnittlich — Pivot wählen\nHeap Sort: O(n log n) — Heap nutzen',
+            'Bubble Sort: O(n²), vergleicht benachbarte Elemente\nSelection Sort: O(n²), findet immer kleinste Element\nInsertion Sort: O(n²), fügt in sortierte Liste ein, gut bei fast-sortierten Daten\nMerge Sort: O(n log n), Divide & Conquer, stabil\nQuick Sort: O(n log n) durchschnittlich, Pivot wählen\nHeap Sort: O(n log n), Heap nutzen',
       },
       {
         'heading': 'Wichtige Algorithmen',
         'text':
-            'Lineare Suche: O(n)\nBinäre Suche: O(log n) — nur sortiertes Array\n\nDynamic Programming: Teilprobleme lösen und merken (Memoization)\nGreedy: Immer lokal bestes wählen\nDivide & Conquer: Problem aufteilen, lösen, zusammenführen\n\nFür IHK: Bubble Sort Trace + Binäre Suche können!',
+            'Lineare Suche: O(n)\nBinäre Suche: O(log n), nur sortiertes Array\n\nDynamic Programming: Teilprobleme lösen und merken (Memoization)\nGreedy: Immer lokal bestes wählen\nDivide & Conquer: Problem aufteilen, lösen, zusammenführen\n\nFür IHK: Bubble Sort Trace + Binäre Suche können!',
       },
     ],
   },
@@ -1519,7 +1519,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Agile Grundprinzipien',
         'text':
-            'Agiles Manifest (2001) — 4 Werte:\n1. Individuen > Prozesse\n2. Software > Dokumentation\n3. Kundenzusammenarbeit > Vertragsverhandlung\n4. Reaktion auf Veränderung > Plan befolgen\n\nIterativ: Kurze Zyklen statt langer Planung',
+            'Agiles Manifest (2001) mit 4 Werten:\n1. Individuen > Prozesse\n2. Software > Dokumentation\n3. Kundenzusammenarbeit > Vertragsverhandlung\n4. Reaktion auf Veränderung > Plan befolgen\n\nIterativ: Kurze Zyklen statt langer Planung',
       },
       {
         'heading': 'Scrum-Rollen',
@@ -1561,7 +1561,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'V-Modell',
         'text':
-            'Erweiterung des Wasserfalls — jede Entwicklungsphase hat entsprechende Testphase:\n\nAnforderungsanalyse ↔ Abnahmetest\nSystemdesign ↔ Systemtest\nArchitektur ↔ Integrationstest\nModuldesign ↔ Modultest\n\nV-Modell XT: Deutscher Standard für Behördenprojekte',
+            'Erweiterung des Wasserfalls. Jede Entwicklungsphase hat eine entsprechende Testphase:\n\nAnforderungsanalyse ↔ Abnahmetest\nSystemdesign ↔ Systemtest\nArchitektur ↔ Integrationstest\nModuldesign ↔ Modultest\n\nV-Modell XT: Deutscher Standard für Behördenprojekte',
       },
     ],
   },
@@ -1583,7 +1583,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'Gantt-Diagramm',
         'text':
-            'Balkendiagramm — Zeit auf X-Achse, Vorgänge auf Y-Achse.\n\nVorteile:\n+ Einfach zu verstehen\n+ Übersichtliche Zeitplanung\n+ Zeigt Parallelen und Abhängigkeiten\n\nNachteile:\n- Zeigt keine Ressourcen\n- Bei komplexen Projekten unübersichtlich',
+            'Balkendiagramm: Zeit auf X-Achse, Vorgänge auf Y-Achse.\n\nVorteile:\n+ Einfach zu verstehen\n+ Übersichtliche Zeitplanung\n+ Zeigt Parallelen und Abhängigkeiten\n\nNachteile:\n- Zeigt keine Ressourcen\n- Bei komplexen Projekten unübersichtlich',
       },
       {
         'heading': 'Ressourcenplanung',
@@ -1666,7 +1666,7 @@ const Map<int, Map<String, dynamic>> themenSummaries = {
       {
         'heading': 'SOLID-Prinzipien',
         'text':
-            'S — Single Responsibility: Klasse hat genau eine Aufgabe\nO — Open/Closed: Offen für Erweiterung, geschlossen für Änderung\nL — Liskov Substitution: Unterklassen ersetzen Elternklassen\nI — Interface Segregation: Kleine, spezifische Interfaces\nD — Dependency Inversion: Abhängigkeiten umkehren (Interfaces nutzen)',
+            'S (Single Responsibility): Klasse hat genau eine Aufgabe\nO (Open/Closed): Offen für Erweiterung, geschlossen für Änderung\nL (Liskov Substitution): Unterklassen ersetzen Elternklassen\nI (Interface Segregation): Kleine, spezifische Interfaces\nD (Dependency Inversion): Abhängigkeiten umkehren (Interfaces nutzen)',
       },
       {
         'heading': 'Metriken',

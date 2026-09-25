@@ -126,13 +126,13 @@ const List<Anschluss> anschluesse = [
     name: 'LWL (LC-Duplex)',
     kurzinfo: 'Glasfaser · Licht statt Strom · Duplex-Stecker',
     erklaerung:
-        'LWL steht für Lichtwellenleiter (Glasfaser): Daten werden als Licht übertragen — schnell, über große Distanzen und unempfindlich gegen elektromagnetische Störungen. LC-Duplex hat zwei Stecker: eine Faser pro Richtung.',
+        'LWL steht für Lichtwellenleiter (Glasfaser): Daten werden als Licht übertragen. Das ist schnell, reicht über große Distanzen und ist unempfindlich gegen elektromagnetische Störungen. LC-Duplex hat zwei Stecker: eine Faser pro Richtung.',
   ),
   Anschluss(
     id: 'm2',
     name: 'M.2 (Key M)',
     kurzinfo: 'Interner Steckplatz · NVMe-/SATA-SSDs',
     erklaerung:
-        'M.2 ist der flache Steckplatz direkt auf dem Mainboard, vor allem für moderne NVMe-SSDs. Die Kerbe (Key) bestimmt, welche Karten passen — Key M ist der Standard für schnelle SSDs.',
+        'M.2 ist der flache Steckplatz direkt auf dem Mainboard, vor allem für moderne NVMe-SSDs. Die Kerbe (Key) bestimmt, welche Karten passen. Key M ist der Standard für schnelle SSDs.',
   ),
 ];
