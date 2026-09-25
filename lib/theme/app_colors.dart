@@ -32,7 +32,9 @@ class AppColors {
   static const Color darkBorderStrong = Color(0x24FFFFFF); // 14% white
   static const Color darkText = Color(0xFFF5F5F7);
   static const Color darkTextMid = Color(0xFFA0A0B0);
-  static const Color darkTextDim = Color(0xFF606070);
+  // 25.09.2026: von 606070 (3,0:1 auf darkSurface) auf 8A8A9C (5,5:1),
+  // damit die 10-px-Mono-Metazeilen AA erreichen.
+  static const Color darkTextDim = Color(0xFF8A8A9C);
   static const Color darkAccentSoft = Color(0x247C6DFF);   // 14% accent
 
   // ─── LIGHT THEME (Variante D "Indigo-Wash", 04.09.2026) ───────

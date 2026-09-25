@@ -1,7 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'plattform.dart';
+import 'app_cache_service.dart';
 
 class AuthService {
   final _supabase = Supabase.instance.client;
@@ -37,7 +36,7 @@ class AuthService {
         UserAttributes(
           email: email,
           password: password,
-          data: {'username': username, 'plattform': plattformName},
+          data: {'username': username},
         ),
         emailRedirectTo: 'https://lernarena.app/auth/callback',
       );
@@ -68,9 +67,7 @@ class AuthService {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        // plattform: fuer die Store-Auswertung (profiles.plattform, Signup-
-        // Telegram-Meldung), siehe Migration 20260920030000.
-        data: {'username': username, 'plattform': plattformName},
+        data: {'username': username},
         emailRedirectTo: 'https://lernarena.app/auth/callback',
       );
 
@@ -214,6 +211,13 @@ class AuthService {
           .from('profiles')
           .update(updates)
           .eq('id', currentUser!.id);
+
+      // Sitzungs-Cache mitziehen, sonst zeigt der Lernhub bis zum Neustart
+      // den alten Namen oder Avatar.
+      final cache = AppCacheService();
+      if (cache.cachedMyProfile != null) {
+        cache.cachedMyProfile = {...cache.cachedMyProfile!, ...updates};
+      }
 
       print('✅ Profil in DB aktualisiert');
     } catch (e) {

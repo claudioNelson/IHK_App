@@ -140,7 +140,12 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    final name = _username;
+    // Cache hat Vorrang: der wird beim Umbenennen im Profil aktualisiert,
+    // _username stammt vom ersten Laden des Hubs.
+    final cachedName = AppCacheService().cachedMyProfile?['username'] as String?;
+    final name = (cachedName != null && cachedName.trim().isNotEmpty)
+        ? cachedName.trim()
+        : _username;
 
     if (name == null) {
       if (hour < 11) return 'Guten Morgen.';
@@ -856,14 +861,24 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               ? GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () => setState(() => _planOffen = true),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                    child: Text(
-                      '$weitere weitere',
-                      style: AppTextStyles.mono(
-                        size: 10,
-                        color: AppColors.accent,
-                        weight: FontWeight.w600,
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '+$weitere',
+                        style: AppTextStyles.mono(
+                          size: 10,
+                          color: AppColors.accent,
+                          weight: FontWeight.w600,
+                          letterSpacing: 0,
+                        ),
                       ),
                     ),
                   ),
@@ -877,8 +892,9 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => setState(() => _planOffen = false),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 4),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          alignment: Alignment.centerLeft,
           child: Text(
             'WENIGER',
             style: AppTextStyles.mono(size: 10, color: textDim, weight: FontWeight.w600),
@@ -904,7 +920,10 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       PostenTyp.wiederholen => Icons.replay_rounded,
       PostenTyp.pruefung => Icons.timer_outlined,
     };
-    return GestureDetector(
+    // Der Posten selbst ist antippbar. Ein optionales trailing (z. B. der
+    // "+2"-Chip zum Aufklappen) liegt AUSSERHALB dieses Taps, sonst
+    // gewinnt der Posten und der Chip navigiert statt aufzuklappen.
+    final posten = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => _postenOeffnen(p),
       child: Padding(
@@ -953,7 +972,6 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            if (trailing != null) trailing,
             if (!fertig && p.ziel > 1)
               Text(
                 '${p.erledigt}/${p.ziel}',
@@ -968,6 +986,13 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           ],
         ),
       ),
+    );
+    if (trailing == null) return posten;
+    return Row(
+      children: [
+        Expanded(child: posten),
+        trailing,
+      ],
     );
   }
 
