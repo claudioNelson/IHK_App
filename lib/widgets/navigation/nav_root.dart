@@ -101,6 +101,9 @@ class _NavRootState extends State<NavRoot> {
 
     return Scaffold(
       backgroundColor: bg,
+      // Light: die Pille schwebt ueber dem Inhalt (alle vier Tab-Seiten haben
+      // unten 100 px Platz), statt den Inhalt hart abzuschneiden.
+      extendBody: !isDark,
       body: _pages[_index],
       bottomNavigationBar: isDark
           // Dark: flaechige Leiste mit oberer Linie (unveraendert)
@@ -113,7 +116,7 @@ class _NavRootState extends State<NavRoot> {
             )
           // Light (Variante D): schwebende weisse Pille mit Schatten
           : Container(
-              color: bg,
+              color: Colors.transparent,
               child: SafeArea(
                 top: false,
                 child: Padding(
