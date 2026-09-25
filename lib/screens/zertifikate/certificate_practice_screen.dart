@@ -8,9 +8,6 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/question_validator.dart';
-import '../../services/subscription_service.dart';
-import '../../widgets/premium_lock.dart';
-import '../../widgets/premium_kauf_sheet.dart';
 
 class CertificatePracticeScreen extends StatefulWidget {
   final int zertifikatId;
@@ -277,24 +274,8 @@ class _CertificatePracticeScreenState extends State<CertificatePracticeScreen> {
     final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
     final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
 
-    // ─── PAYWALL ─────────────────────────────
-    // ─── PAYWALL ─────────────────────────────
-    final isPrem = SubscriptionService().isPremium;
-    print('🔒 Certificate Practice — isPremium: $isPrem');
-    if (!isPrem) {
-      return PremiumLock(
-        featureName: 'Zertifikate',
-        description:
-            'Mit Premium bereitest du dich auf alle Cloud-Zertifikate vor: AWS, Azure, GCP und SAP.',
-        icon: Icons.workspace_premium_outlined,
-        onUpgrade: () async {
-          final ok = await showPremiumKaufSheet(context);
-          if (ok == true && context.mounted) {
-            (context as Element).markNeedsBuild();
-          }
-        },
-      );
-    }
+    // Ueben ist kostenlos (Entscheidung 25.09.2026). Premium gilt nur fuer
+    // die Simulation mit Timer (zertifikat_test_screen.dart).
 
     return Scaffold(
       backgroundColor: bg,

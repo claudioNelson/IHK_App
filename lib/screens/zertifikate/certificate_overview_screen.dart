@@ -48,16 +48,7 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
     }
   }
 
-  // Vendor: Kürzel + Name + Icon + Akzentfarbe
-  String _vendorShort(String anbieter) {
-    if (anbieter.contains('AWS') || anbieter.contains('Amazon')) return 'AWS';
-    if (anbieter.contains('Microsoft') || anbieter.contains('Azure'))
-      return 'AZURE';
-    if (anbieter.contains('Google')) return 'GCP';
-    if (anbieter.contains('SAP')) return 'SAP';
-    return anbieter.toUpperCase();
-  }
-
+  // Vendor: Name + Icon + Akzentfarbe
   String _vendorFull(String anbieter) {
     if (anbieter.contains('AWS') || anbieter.contains('Amazon'))
       return 'AMAZON WEB SERVICES';
@@ -88,27 +79,14 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
     return AppColors.accent;
   }
 
-  // Difficulty aus Fragen-Anzahl ableiten
-  String _difficultyLabel(int anzahl) {
-    if (anzahl < 40) return 'EINSTIEG';
-    if (anzahl <= 65) return 'FORTGESCHRITTEN';
-    return 'PROFI';
-  }
-
-  Color _difficultyColor(int anzahl) {
-    if (anzahl < 40) return AppColors.success;
-    if (anzahl <= 65) return AppColors.warning;
-    return AppColors.error;
-  }
-
-  // Geschätzte Lernzeit (~30 Sek pro Frage zum durcharbeiten)
+  // Geschaetzte Lernzeit (etwa 30 Sekunden je Frage zum Durcharbeiten)
   String _estimatedTime(int anzahl) {
     final mins = (anzahl * 0.5).round();
-    if (mins < 60) return '~$mins MIN';
+    if (mins < 60) return 'etwa $mins Min';
     final h = mins ~/ 60;
     final m = mins % 60;
-    if (m == 0) return '~${h}H';
-    return '~${h}H ${m}M';
+    if (m == 0) return 'etwa $h Std';
+    return 'etwa $h Std $m Min';
   }
 
   @override
@@ -120,8 +98,6 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
     final text = isDark ? AppColors.darkText : AppColors.lightText;
     final textMid = isDark ? AppColors.darkTextMid : AppColors.lightTextMid;
     final textDim = isDark ? AppColors.darkTextDim : AppColors.lightTextDim;
-
-    final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
       backgroundColor: bg,
@@ -174,34 +150,9 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Bereite dich auf deine Prüfung vor.',
+                    'Mit Erklärungen üben, ohne Timer. Die Simulation findest du unter Prüfen.',
                     style: AppTextStyles.bodyMedium(textMid),
                   ),
-                  if (!isLoading && certificates.isNotEmpty) ...[
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.accent.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: AppColors.accent.withOpacity(0.3),
-                        ),
-                      ),
-                      child: Text(
-                        '${certificates.length} ZERTIFIKATE VERFÜGBAR',
-                        style: AppTextStyles.mono(
-                          size: 10,
-                          color: AppColors.accent,
-                          weight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -214,24 +165,24 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
                     )
                   : certificates.isEmpty
                   ? _buildEmpty(textMid, textDim)
-                  : GridView.builder(
+                  : ListView(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                       physics: const BouncingScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: isWide ? 3 : 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: isWide ? 0.78 : 0.62,
-                      ),
-                      itemCount: certificates.length,
-                      itemBuilder: (context, index) => _buildCertCard(
-                        certificates[index],
-                        surface,
-                        border,
-                        text,
-                        textMid,
-                        textDim,
-                      ),
+                      children: [
+                        Row(
+                          children: [
+                            Container(width: 16, height: 1, color: AppColors.accent),
+                            const SizedBox(width: 10),
+                            Text(
+                              'ZERTIFIKATE · ${certificates.length}',
+                              style: AppTextStyles.monoLabel(AppColors.accent),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        for (final cert in certificates)
+                          _buildCertRow(cert, surface, border, text, textMid, textDim),
+                      ],
                     ),
             ),
           ],
@@ -253,7 +204,9 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
     );
   }
 
-  Widget _buildCertCard(
+  /// Eine Zeile je Zertifikat, gleicher Aufbau wie die Modulliste:
+  /// Icon-Kachel in Anbieterfarbe, Anbieter als Kicker, Titel, Metazeile.
+  Widget _buildCertRow(
     Map<String, dynamic> cert,
     Color surface,
     Color border,
@@ -262,175 +215,71 @@ class _CertificateOverviewScreenState extends State<CertificateOverviewScreen> {
     Color textDim,
   ) {
     final anbieter = cert['anbieter'] ?? '';
-    final short = _vendorShort(anbieter);
     final fullName = _vendorFull(anbieter);
     final icon = _vendorIcon(anbieter);
     final accentColor = _vendorColor(anbieter);
     final anzahlFragen = cert['anzahl_fragen'] as int? ?? 0;
-    final difficulty = _difficultyLabel(anzahlFragen);
-    final difficultyColor = _difficultyColor(anzahlFragen);
     final time = _estimatedTime(anzahlFragen);
 
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CertificatePracticeScreen(
-            zertifikatId: cert['id'],
-            certName: cert['name'],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CertificatePracticeScreen(
+              zertifikatId: cert['id'],
+              certName: cert['name'],
+            ),
           ),
         ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: border),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            stops: const [0.0, 0.015, 0.015, 1.0],
-            colors: [accentColor, accentColor, surface, surface],
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: border),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
+          child: Row(
             children: [
-              // Top: Icon + Vendor Tag
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(icon, color: accentColor, size: 16),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: accentColor.withOpacity(0.25)),
-                    ),
-                    child: Text(
-                      short,
-                      style: AppTextStyles.mono(
-                        size: 9,
-                        color: accentColor,
-                        weight: FontWeight.w700,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ),
-                ],
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: accentColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: accentColor.withOpacity(0.3)),
+                ),
+                child: Icon(icon, color: accentColor, size: 20),
               ),
-
-              const SizedBox(height: 10),
-
-              // Vendor Full Name (klein)
-              Text(
-                fullName,
-                style: AppTextStyles.monoSmall(textDim),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-
-              const SizedBox(height: 4),
-
-              // Cert Name (Serif) — flexibel, nimmt verfügbaren Platz
+              const SizedBox(width: 14),
               Expanded(
-                child: Text(
-                  cert['name'] ?? '',
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.instrumentSerif(
-                    size: 16,
-                    color: text,
-                    letterSpacing: -0.4,
-                    height: 1.2,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      fullName.toUpperCase(),
+                      style: AppTextStyles.monoSmall(accentColor),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      cert['name'] ?? '',
+                      style: AppTextStyles.h3(text),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$anzahlFragen Fragen · $time',
+                      style: AppTextStyles.monoSmall(textDim),
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 8),
-
-              // Stats: Fragen + Zeit + Difficulty (alle in Wrap, umbricht automatisch)
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.help_outline_rounded,
-                        size: 10,
-                        color: textMid,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        '$anzahlFragen',
-                        style: AppTextStyles.monoSmall(textMid),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.access_time_rounded, size: 10, color: textMid),
-                      const SizedBox(width: 3),
-                      Text(time, style: AppTextStyles.monoSmall(textMid)),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // Difficulty Badge + Arrow
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: difficultyColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(5),
-                        border: Border.all(
-                          color: difficultyColor.withOpacity(0.25),
-                        ),
-                      ),
-                      child: Text(
-                        difficulty,
-                        style: AppTextStyles.mono(
-                          size: 9,
-                          color: difficultyColor,
-                          weight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(Icons.arrow_forward_rounded, size: 12, color: textMid),
-                ],
-              ),
+              const SizedBox(width: 8),
+              Icon(Icons.arrow_forward_ios_rounded, color: textDim, size: 12),
             ],
           ),
         ),
