@@ -114,10 +114,13 @@ export default function RootLayout({
     <html lang="de" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
         {/* Gespeichertes Farbschema VOR dem ersten Paint anwenden, zentral für
-            alle Seiten. Hell ist Standard, "dunkel" setzt data-theme="dark". */}
+            alle Seiten. Dunkel ist Standard, "hell" setzt data-theme="light".
+            Schlüssel "lernarena-modus" (seit 26.09.). Der alte Startseiten-Schlüssel
+            "lernarena-theme" = "light" zählt als bewusste Wahl; "lernarena-farbschema"
+            wird bewusst ignoriert (stand bei jedem Besucher automatisch auf "hell"). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{if(localStorage.getItem("lernarena-farbschema")==="dunkel"){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();`,
+            __html: `(function(){try{var f=localStorage.getItem("lernarena-modus");var alt=localStorage.getItem("lernarena-theme");if(f==="hell"||(f===null&&alt==="light")){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();`,
           }}
         />
       </head>

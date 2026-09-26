@@ -2,27 +2,24 @@
 
 // Startseite lernarena.app (Neuaufbau 23.09.2026, Vorlage lernarena-landing-v2).
 //
-// Kopf, Fuss, Tokens und Buttons kommen aus dem gemeinsamen Rahmen
-// (components/shell, globals.css). Hier stehen nur die Abschnitte der
-// Startseite und ihre Styles. Anker #product / #ablauf / #ada / #pricing /
-// #laden bleiben erhalten (Nav und Footer verlinken darauf).
+// Bewusst erhalten aus der alten Seite: Client-Komponente mit Auth-Nav
+// (Name, Premium-Badge, Logout), Theme-Umschalter mit localStorage-Key
+// "lernarena-modus" (gilt fuer alle Seiten, siehe layout.tsx), die Anker
+// #product / #ada / #pricing und alle Routen. Schrift ist Geist aus
+// layout.tsx (next/font), Farben laufen ueber CSS-Variablen, damit der
+// Hellmodus ohne React-State funktioniert (data-theme am <html>).
 //
 // Screenshots liegen unter /public/screenshots/ (hub.png, pruefung.png,
 // ada.png; 1290x2796). Fehlt eine Datei, bleibt die Flaeche leer.
 
 import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
-import PageShell from "./components/shell/PageShell";
-import { PLAY_URL, APPSTORE_URL } from "./components/shell/SiteFooter";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { useSubscription } from "@/lib/hooks/useSubscription";
 
-const NAV_LINKS = [
-  { href: "#product", label: "Funktionen" },
-  { href: "#ablauf", label: "So läuft es" },
-  { href: "#pricing", label: "Preise" },
-  { href: "/lernen", label: "Lernseiten" },
-  { href: "/kurse", label: "Kurse" },
-  { href: "/pruefungen", label: "Prüfungen" },
-];
+const PLAY_URL = "https://play.google.com/store/apps/details?id=app.lernarena";
+const APPSTORE_URL = "https://apps.apple.com/de/app/id6802045311";
 
 function Check() {
   return (
@@ -65,6 +62,56 @@ function Faq({ q, children }: { q: string; children: ReactNode }) {
 }
 
 export default function LandingPage() {
+  const [isDark, setIsDark] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
+  const subscription = useSubscription();
+
+  // Auth-State laden + auf Aenderungen reagieren (Login/Logout in anderem Tab)
+  useEffect(() => {
+    let alive = true;
+    const loadUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!alive) return;
+      setUsername(user ? ((user.user_metadata?.username as string) ?? user.email ?? "User") : null);
+      setAuthLoaded(true);
+    };
+    loadUser();
+    const { data: { subscription: sub } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!alive) return;
+      const u = session?.user;
+      setUsername(u ? ((u.user_metadata?.username as string) ?? u.email ?? "User") : null);
+    });
+    return () => {
+      alive = false;
+      sub.unsubscribe();
+    };
+  }, [supabase]);
+
+  // Theme: layout.tsx setzt data-theme vor dem ersten Paint; hier nur State
+  // dazu synchronisieren und den Umschalter bedienen.
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const f = localStorage.getItem("lernarena-modus");
+      const alt = localStorage.getItem("lernarena-theme");
+      if (f === "hell" || (f === null && alt === "light")) setIsDark(false);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    try {
+      localStorage.setItem("lernarena-modus", isDark ? "dunkel" : "hell");
+    } catch {}
+    if (isDark) document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", "light");
+  }, [isDark, mounted]);
+
   // Einblenden beim Scrollen (IntersectionObserver, kein Scroll-Listener).
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -92,13 +139,39 @@ export default function LandingPage() {
     return () => io.disconnect();
   }, []);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.refresh();
+  };
+
+  const isPremium = subscription.loaded && subscription.isPremium;
+
   return (
-    <PageShell className="lp" links={NAV_LINKS} cta={{ href: "#laden", label: "App laden" }}>
+    <div className="lp">
       <style>{`
+        .lp {
+          --bg: #0B0B10; --bg-2: #101018; --surface: #14141D; --surface-2: #1B1B27;
+          --line: rgba(255,255,255,.08); --line-2: rgba(255,255,255,.14);
+          --text: #F2F2F6; --text-2: #A9A9B8; --text-3: #7C7C8C;
+          --accent: #7C6DFF; --accent-2: #6B5DF0; --accent-soft: rgba(124,109,255,.14);
+          --ok: #10B981;
+          --r: 14px; --r-btn: 10px; --r-shot: 22px; --wrap: 1200px;
+          background: var(--bg); color: var(--text); min-height: 100vh;
+          font-family: var(--font-geist-sans), system-ui, sans-serif;
+          line-height: 1.5; -webkit-font-smoothing: antialiased;
+        }
+        :root[data-theme="light"] .lp {
+          --bg: #F3F4F9; --bg-2: #ECEDF4; --surface: #FFFFFF; --surface-2: #FFFFFF;
+          --line: rgba(20,26,46,.10); --line-2: rgba(20,26,46,.18);
+          --text: #0F1222; --text-2: #4E5364; --text-3: #7A7F90;
+          --accent: #5B4BE0; --accent-2: #4C3ED0; --accent-soft: rgba(91,75,224,.12);
+        }
         .lp a { color: inherit; text-decoration: none; }
         .lp h1, .lp h2, .lp h3, .lp p, .lp ul, .lp figure { margin: 0; }
         .lp ul { padding: 0; list-style: none; }
         .lp img, .lp svg { display: block; max-width: 100%; }
+        .lp button { font: inherit; }
+        .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding-inline: 20px; }
         .lp section { padding-block: clamp(64px, 8vw, 112px); }
         .lp section + section { border-top: 1px solid var(--line); }
 
@@ -110,27 +183,45 @@ export default function LandingPage() {
         .eyebrow { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 11.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
         .num { font-family: var(--font-geist-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 0 22px; border-radius: var(--r-btn); font-weight: 600; font-size: 15px; white-space: nowrap; border: 1px solid transparent; transition: transform .15s ease, background .2s ease, border-color .2s ease; cursor: pointer; }
+        .btn:active { transform: translateY(1px) scale(.985); }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-2); }
+        .btn-ghost { background: transparent; color: var(--text); border-color: var(--line-2); }
+        .btn-ghost:hover { border-color: var(--accent); }
+
         /* Screenshots in natuerlicher Hoehe (kein Beschneiden); nur ein leerer
            Slot bekommt eine feste Proportion, damit die Flaeche nicht kollabiert. */
         .shot { border-radius: var(--r-shot); border: 1px solid var(--line-2); background: var(--surface); overflow: hidden; }
         .shot:empty { aspect-ratio: 9 / 16; }
         .shot img { width: 100%; height: auto; }
 
+        /* Nav */
+        .lp header { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+        .nav { height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; letter-spacing: -.02em; }
+        .logo-mark { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; }
+        .logo-mark svg { width: 14px; height: 14px; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { font-size: 14.5px; font-weight: 500; color: var(--text-2); }
+        .nav-links a:hover { color: var(--text); }
+        .nav-actions { display: flex; align-items: center; gap: 10px; }
+        .nav-actions .btn { min-height: 42px; padding: 0 16px; font-size: 14px; }
+        .theme-btn { width: 40px; height: 40px; border-radius: var(--r-btn); border: 1px solid var(--line-2); background: transparent; color: var(--text-2); display: grid; place-items: center; cursor: pointer; }
+        .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+        .theme-btn svg { width: 17px; height: 17px; }
+        .nav-user { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--text-2); }
+        .nav-user:hover { color: var(--text); }
+        .nav-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+        .nav-premium { font-family: var(--font-geist-mono), monospace; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 4px 7px; border-radius: 6px; }
+        .burger { display: none; width: 42px; height: 42px; border-radius: var(--r-btn); background: transparent; border: 1px solid var(--line-2); color: var(--text); place-items: center; cursor: pointer; }
+        .burger svg { width: 20px; height: 20px; }
+        .nav-mobile { display: none; flex-direction: column; padding: 6px 0 14px; border-top: 1px solid var(--line); }
+        .nav-mobile a, .nav-mobile button { padding: 12px 4px; font-size: 16px; font-weight: 500; color: var(--text-2); background: none; border: 0; text-align: left; cursor: pointer; }
+        .nav-mobile.open { display: flex; }
+
         /* Hero */
-        .lp .hero { position: relative; overflow: hidden; padding-top: clamp(40px, 6vw, 72px); padding-bottom: clamp(48px, 6vw, 80px); }
-        /* Hintergrund: zwei weiche Farbflecken und ein feines Punktraster, das nach unten ausblendet */
-        .lp .hero::before { content: ""; position: absolute; inset: 0; pointer-events: none;
-          background: radial-gradient(640px 400px at 78% 42%, var(--accent-soft), transparent 70%),
-                      radial-gradient(460px 320px at 10% 18%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%); }
-        .lp .hero::after { content: ""; position: absolute; inset: 0; pointer-events: none;
-          background-image: radial-gradient(color-mix(in srgb, var(--text) 10%, transparent) 1px, transparent 1px);
-          background-size: 22px 22px;
-          -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.85), transparent 90%); mask-image: linear-gradient(180deg, rgba(0,0,0,.85), transparent 90%); }
-        .hero-grid { position: relative; z-index: 1; }
-        .hero-note { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: -6px; font-size: 13.5px; color: var(--text-3); }
-        .hero-note li { display: flex; align-items: center; gap: 7px; }
-        .hero-note svg { width: 15px; height: 15px; color: var(--ok); flex: 0 0 auto; }
-        .hero-shot .shot { box-shadow: 0 40px 80px -30px color-mix(in srgb, var(--accent) 45%, transparent), var(--shadow); }
+        .lp .hero { padding-top: clamp(40px, 6vw, 72px); padding-bottom: clamp(48px, 6vw, 80px); }
         .hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .9fr); gap: clamp(32px, 6vw, 88px); align-items: center; }
         .hero-copy { display: flex; flex-direction: column; gap: 26px; }
         .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -146,13 +237,13 @@ export default function LandingPage() {
 
         /* Funktionen: Bento, 5 Zellen */
         .bento { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: minmax(200px, auto); gap: 14px; margin-top: 40px; }
-        .cell { position: relative; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow); padding: 26px; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; overflow: hidden; }
+        .cell { position: relative; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 26px; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; overflow: hidden; }
         .cell p { color: var(--text-2); font-size: 14.5px; max-width: 40ch; }
         .cell-a { grid-column: span 4; grid-row: span 2; display: grid; grid-template-columns: minmax(0, 1fr) 260px; grid-template-rows: auto 1fr; gap: 20px 28px; align-items: end; }
         .cell-a .ico { grid-column: 1; grid-row: 1; align-self: start; margin-bottom: 0; }
         .cell-a .cell-text { grid-column: 1; grid-row: 2; max-width: none; }
         .cell-a .shot { grid-column: 2; grid-row: 1 / span 2; width: 100%; }
-        .cell-b { grid-column: span 2; background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, transparent), color-mix(in srgb, var(--accent) 4%, transparent) 60%), var(--surface); }
+        .cell-b { grid-column: span 2; background: linear-gradient(160deg, rgba(124,109,255,.22), rgba(124,109,255,.04) 60%), var(--surface); }
         .cell-c { grid-column: span 2; }
         .cell-d { grid-column: span 3; background: var(--bg-2); }
         .cell-e { grid-column: span 3; background: linear-gradient(200deg, rgba(16,185,129,.16), rgba(16,185,129,.02) 55%), var(--surface); }
@@ -178,7 +269,7 @@ export default function LandingPage() {
 
         /* Preise */
         .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 40px; }
-        .plan { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow); padding: 30px; display: flex; flex-direction: column; gap: 22px; }
+        .plan { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 30px; display: flex; flex-direction: column; gap: 22px; }
         .plan.pro { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-soft), transparent 45%), var(--surface); }
         .price { font-size: 40px; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
         .price small { font-size: 15px; color: var(--text-2); font-weight: 500; letter-spacing: 0; margin-left: 6px; }
@@ -201,22 +292,35 @@ export default function LandingPage() {
         .faq p { padding: 0 0 22px; color: var(--text-2); font-size: 15.5px; max-width: 62ch; }
 
         /* Schluss */
-        .cta-box { border: 1px solid var(--line-2); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow); padding: clamp(32px, 5vw, 56px); display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, auto); gap: 32px; align-items: center; }
+        .cta-box { border: 1px solid var(--line-2); border-radius: var(--r); background: var(--surface); padding: clamp(32px, 5vw, 56px); display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, auto); gap: 32px; align-items: center; }
         .stores { display: flex; gap: 12px; flex-wrap: wrap; min-width: 0; }
         .stores a { display: block; }
         .stores img { height: 52px; width: auto; }
 
+        .lp footer { border-top: 1px solid var(--line); padding: 40px 0 32px; }
+        .foot { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; font-size: 14px; }
+        .foot h4 { margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--text); }
+        .foot li { margin: 0 0 8px; }
+        .foot a { color: var(--text-3); }
+        .foot a:hover { color: var(--text); }
+        .foot-tag { color: var(--text-3); margin-top: 10px; max-width: 32ch; }
+        .foot-bottom { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--text-3); }
 
         /* Motion */
         .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1); }
         .reveal.in { opacity: 1; transform: none; }
         @media (prefers-reduced-motion: reduce) {
           .reveal { opacity: 1; transform: none; transition: none; }
-          .faq summary svg { transition: none; }
+          .btn, .faq summary svg { transition: none; }
         }
 
         /* Mobil */
+        @media (max-width: 1023px) {
+          .nav-links, .nav-actions .btn-ghost, .nav-user span.name { display: none; }
+        }
         @media (max-width: 767px) {
+          .nav-actions .btn, .nav-user, .nav-premium { display: none; }
+          .burger { display: grid; }
           .hero-grid, .steps, .split, .plans, .cta-box { grid-template-columns: minmax(0, 1fr); }
           .hero-shot { justify-self: center; width: min(260px, 78%); }
           .stats { grid-template-columns: 1fr 1fr; row-gap: 28px; column-gap: 20px; }
@@ -228,10 +332,80 @@ export default function LandingPage() {
           .cell-a .shot { display: none; }
           .sticky { position: static; }
           .split .shot { order: -1; }
+          .foot { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
 
+      <header>
+        <div className="wrap nav">
+          <Link className="logo" href="/">
+            <span className="logo-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4L19 6" /></svg>
+            </span>
+            Lernarena
+          </Link>
+          <nav className="nav-links" aria-label="Hauptnavigation">
+            <a href="#product">Funktionen</a>
+            <a href="#ablauf">So läuft es</a>
+            <a href="#pricing">Preise</a>
+            <Link href="/lernen">Lernseiten</Link>
+            <Link href="/pruefungen">Prüfungen</Link>
+          </nav>
+          <div className="nav-actions">
+            <button className="theme-btn" onClick={() => setIsDark(!isDark)} aria-label={isDark ? "Hellen Modus einschalten" : "Dunklen Modus einschalten"}>
+              {isDark ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+              )}
+            </button>
+            {authLoaded && (username ? (
+              <>
+                <Link href="/profil" className="nav-user" title="Dein Profil">
+                  <span className="nav-avatar">{username.charAt(0).toUpperCase()}</span>
+                  <span className="name">{username}</span>
+                </Link>
+                {isPremium && <span className="nav-premium" title={subscription.expiryLabel}>Premium</span>}
+                <button className="btn btn-ghost" onClick={handleLogout}>Logout</button>
+              </>
+            ) : (
+              <>
+                <Link className="btn btn-ghost" href="/login">Anmelden</Link>
+                <Link className="btn btn-primary" href="#laden">App laden</Link>
+              </>
+            ))}
+            <button className="burger" aria-label={menuOpen ? "Menü schließen" : "Menü öffnen"} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>
+              {menuOpen ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+              )}
+            </button>
+          </div>
+        </div>
+        <div className="wrap">
+          <nav className={`nav-mobile${menuOpen ? " open" : ""}`} aria-label="Mobile Navigation" onClick={() => setMenuOpen(false)}>
+            <a href="#product">Funktionen</a>
+            <a href="#ablauf">So läuft es</a>
+            <a href="#pricing">Preise</a>
+            <Link href="/lernen">Lernseiten</Link>
+            <Link href="/pruefungen">Prüfungen</Link>
+            {username ? (
+              <>
+                <Link href="/profil">Profil{isPremium ? " · Premium" : ""}</Link>
+                <button onClick={handleLogout}>Logout</button>
+              </>
+            ) : (
+              <>
+                <Link href="/login">Anmelden</Link>
+                <a href="#laden">App laden</a>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
 
+      <main>
         {/* HERO */}
         <section className="hero" aria-labelledby="h-hero">
           <div className="wrap hero-grid">
@@ -242,11 +416,6 @@ export default function LandingPage() {
                 <a className="btn btn-primary" href="#laden">Kostenlos laden</a>
                 <a className="btn btn-ghost" href="#product">Funktionen ansehen</a>
               </div>
-              <ul className="hero-note" aria-label="Kurz und knapp">
-                <li><Check />Ohne Konto ausprobieren</li>
-                <li><Check />Android und iPhone</li>
-                <li><Check />Ada erklärt dir jede Antwort</li>
-              </ul>
             </div>
             <figure className="hero-shot reveal">
               <Shot src="/screenshots/hub.png" alt="Lernarena Startbildschirm: Countdown zur AP1 mit Tagesplan" eager />
@@ -369,7 +538,7 @@ export default function LandingPage() {
                 <Link className="btn btn-primary" href="/upgrade">Premium starten</Link>
               </article>
             </div>
-            <p className="plan-note">In der App über Google Play oder den App Store, im Web per Karte. Jederzeit kündbar. Alle Preise sind Endpreise.</p>
+            <p className="plan-note">In der App über Google Play oder den App Store, im Web per Karte. Jederzeit kündbar, Preise inkl. MwSt.</p>
           </div>
         </section>
 
@@ -407,6 +576,54 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-    </PageShell>
+      </main>
+
+      <footer>
+        <div className="wrap">
+          <div className="foot">
+            <div>
+              <Link className="logo" href="/">
+                <span className="logo-mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4L19 6" /></svg>
+                </span>
+                Lernarena
+              </Link>
+              <p className="foot-tag">Prüfungsvorbereitung für Fachinformatiker. Kein Angebot der IHK.</p>
+            </div>
+            <div>
+              <h4>Produkt</h4>
+              <ul>
+                <li><a href="#product">Funktionen</a></li>
+                <li><a href="#pricing">Preise</a></li>
+                <li><a href="#ada">Ada</a></li>
+                <li><Link href="/pruefungen">Prüfungen</Link></li>
+                <li><Link href="/fachinformatiker-pruefung">Prüfungs-Guide</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4>Konto</h4>
+              <ul>
+                <li><Link href="/lernen">Lernseiten</Link></li>
+                <li><a href={PLAY_URL} target="_blank" rel="noopener noreferrer">Android-App</a></li>
+                <li><a href={APPSTORE_URL} target="_blank" rel="noopener noreferrer">iPhone-App</a></li>
+                <li><Link href="/login">Anmelden</Link></li>
+                <li><Link href="/signup">Registrieren</Link></li>
+                <li><a href="mailto:info@lernarena.app">Kontakt</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4>Rechtliches</h4>
+              <ul>
+                <li><Link href="/impressum">Impressum</Link></li>
+                <li><Link href="/datenschutz">Datenschutz</Link></li>
+                <li><Link href="/agb">AGB</Link></li>
+                <li><Link href="/account-loeschung">Konto löschen</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="foot-bottom">© {new Date().getFullYear()} Lernarena</div>
+        </div>
+      </footer>
+    </div>
   );
 }

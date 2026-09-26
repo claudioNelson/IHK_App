@@ -5,8 +5,8 @@
 // Premium-Badge, Burger-Menue auf dem Handy. Styles liegen in globals.css
 // (.site-header, .nav, ...), Tokens am :root.
 //
-// Farbschema: Hell ist Standard. layout.tsx setzt data-theme="dark" vor dem
-// ersten Paint aus dem localStorage-Key "lernarena-farbschema" ("dunkel").
+// Farbschema: Dunkel ist Standard. layout.tsx setzt data-theme="light" vor dem
+// ersten Paint aus dem localStorage-Key "lernarena-modus" ("hell").
 // Hier wird nur der Umschalter bedient.
 
 import { useEffect, useState } from "react";
@@ -38,23 +38,25 @@ export function LogoMark() {
 }
 
 function useThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     try {
-      if (localStorage.getItem("lernarena-farbschema") === "dunkel") setIsDark(true);
+      const f = localStorage.getItem("lernarena-modus");
+      const alt = localStorage.getItem("lernarena-theme");
+      if (f === "hell" || (f === null && alt === "light")) setIsDark(false);
     } catch {}
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
     try {
-      localStorage.setItem("lernarena-farbschema", isDark ? "dunkel" : "hell");
+      localStorage.setItem("lernarena-modus", isDark ? "dunkel" : "hell");
     } catch {}
-    if (isDark) document.documentElement.setAttribute("data-theme", "dark");
-    else document.documentElement.removeAttribute("data-theme");
+    if (isDark) document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", "light");
   }, [isDark, mounted]);
 
   return { isDark, toggle: () => setIsDark((d) => !d) };

@@ -2,25 +2,12 @@
 
 /* ------------------------------------------------------------------ */
 /* Design-Tokens (Referenz: Startseite, Neuaufbau 23.09.2026)          */
-/* Hell ist Standard (seit 23.09.2026), dunkel ueber data-theme="dark"  */
+/* Dunkel ist Standard (seit 25.09.2026), hell ueber data-theme="light" */
 /* am <html>; layout.tsx setzt es vor dem ersten Paint aus localStorage */
-/* ("lernarena-farbschema" = "dunkel").                                 */
+/* ("lernarena-modus" = "hell"). Gleiche Semantik wie Startseite        */
+/* und die Lernseiten (html[data-theme="light"]).                       */
 /* ------------------------------------------------------------------ */
 :root {
-  --bg: #FBFBFD; --bg-2: #F1F2F7; --surface: #FFFFFF; --surface-2: #F6F7FB;
-  --line: rgba(20,26,46,.13); --line-2: rgba(20,26,46,.22);
-  --shadow: 0 1px 2px rgba(20,26,46,.05), 0 10px 28px -14px rgba(20,26,46,.14);
-  --header-bg: rgba(255,255,255,.86);
-  --text: #0F1222; --text-2: #4E5364; --text-3: #676C7E;
-  --accent: #7C3AED; --accent-2: #6D28D9; --accent-soft: rgba(124,58,237,.12);
-  --ok: #03694B; --warn: #9A4A05; --err: #B42318;
-  --ok-soft: rgba(3,105,75,.08); --warn-soft: rgba(154,74,5,.08); --err-soft: rgba(180,35,24,.07);
-  --r: 14px; --r-btn: 10px; --r-shot: 22px; --wrap: 1200px;
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  color-scheme: light;
-}
-:root[data-theme="dark"] {
   --bg: #0B0B10; --bg-2: #101018; --surface: #14141D; --surface-2: #1B1B27;
   --line: rgba(255,255,255,.08); --line-2: rgba(255,255,255,.14);
   --text: #F2F2F6; --text-2: #A9A9B8; --text-3: #7C7C8C;
@@ -29,7 +16,21 @@
   --ok-soft: rgba(16,185,129,.13); --warn-soft: rgba(245,158,11,.13); --err-soft: rgba(248,113,113,.13);
   --shadow: none;
   --header-bg: color-mix(in srgb, var(--bg) 84%, transparent);
+  --r: 14px; --r-btn: 10px; --r-shot: 22px; --wrap: 1200px;
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #FBFBFD; --bg-2: #F1F2F7; --surface: #FFFFFF; --surface-2: #F6F7FB;
+  --line: rgba(20,26,46,.13); --line-2: rgba(20,26,46,.22);
+  --shadow: 0 1px 2px rgba(20,26,46,.05), 0 10px 28px -14px rgba(20,26,46,.14);
+  --header-bg: rgba(255,255,255,.86);
+  --text: #0F1222; --text-2: #4E5364; --text-3: #676C7E;
+  --accent: #7C3AED; --accent-2: #6D28D9; --accent-soft: rgba(124,58,237,.12);
+  --ok: #03694B; --warn: #9A4A05; --err: #B42318;
+  --ok-soft: rgba(3,105,75,.08); --warn-soft: rgba(154,74,5,.08); --err-soft: rgba(180,35,24,.07);
+  color-scheme: light;
 }
 
 @theme inline {

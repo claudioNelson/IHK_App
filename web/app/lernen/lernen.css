@@ -12,16 +12,16 @@
   --ls-ok-line:   color-mix(in srgb, var(--ok) 45%, transparent);
   --ls-err-line:  color-mix(in srgb, var(--err) 45%, transparent);
   --ls-warn-line: color-mix(in srgb, var(--warn) 45%, transparent);
-  /* Tinte auf den weichen Flaechen (dunkel: hell, hell: dunkel) */
-  --ls-ok-ink: #065F46;
-  --ls-err-ink: #B91C1C;
-  --ls-warn-ink: #92400E;
-  --ls-ease: cubic-bezier(.23, 1, .32, 1);
-}
-:root[data-theme="dark"] {
+  /* Tinte auf den weichen Flaechen (Standard dunkel: hell; hell: dunkel) */
   --ls-ok-ink: #6EE7B7;
   --ls-err-ink: #FCA5A5;
   --ls-warn-ink: #FCD34D;
+  --ls-ease: cubic-bezier(.23, 1, .32, 1);
+}
+:root[data-theme="light"] {
+  --ls-ok-ink: #065F46;
+  --ls-err-ink: #B91C1C;
+  --ls-warn-ink: #92400E;
 }
 
 /* Browser-Flaechen: Auswahl, Fokus, Caret */

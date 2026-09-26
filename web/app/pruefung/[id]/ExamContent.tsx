@@ -452,15 +452,15 @@ function FocusBar({
   );
 }
 
-// Gleiche Logik wie im SiteHeader: localStorage "lernarena-farbschema" und
-// data-theme="dark" am <html>. Hell ist Standard.
+// Gleiche Logik wie im SiteHeader: localStorage "lernarena-modus" und
+// data-theme="light" am <html>. Dunkel ist Standard.
 function ThemeButton() {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
-    let dark = document.documentElement.getAttribute("data-theme") === "dark";
+    let dark = document.documentElement.getAttribute("data-theme") !== "light";
     try {
-      dark = dark || localStorage.getItem("lernarena-farbschema") === "dunkel";
+      if (localStorage.getItem("lernarena-modus") === "hell") dark = false;
     } catch {}
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Farbschema steht erst nach dem Mount fest
     setIsDark(dark);
@@ -470,10 +470,10 @@ function ThemeButton() {
     const nextDark = !isDark;
     setIsDark(nextDark);
     try {
-      localStorage.setItem("lernarena-farbschema", nextDark ? "dunkel" : "hell");
+      localStorage.setItem("lernarena-modus", nextDark ? "dunkel" : "hell");
     } catch {}
-    if (nextDark) document.documentElement.setAttribute("data-theme", "dark");
-    else document.documentElement.removeAttribute("data-theme");
+    if (nextDark) document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", "light");
   };
 
   return (
