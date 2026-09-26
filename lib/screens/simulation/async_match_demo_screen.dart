@@ -973,10 +973,13 @@ class _AsyncMatchDemoPageState extends State<AsyncMatchDemoPage> {
     required Color textDim,
   }) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
       decoration: BoxDecoration(
+        color: surface,
         border: Border.all(color: border, style: BorderStyle.solid),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: AppColors.kartenSchatten,
       ),
       child: Column(
         children: [

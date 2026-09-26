@@ -384,7 +384,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       ),
       child: Container(
         height: height,
-        padding: const EdgeInsets.all(12),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: surface,
           borderRadius: BorderRadius.circular(12),
@@ -396,14 +396,26 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 : border,
             width: isFirst ? 1.5 : 1,
           ),
-          // Top-Accent je Rang
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            stops: const [0.0, 0.02, 0.02, 1.0],
-            colors: [tierColor, tierColor, surface, surface],
+          boxShadow: AppColors.kartenSchatten,
+        ),
+        // Oberkante: feste 3 px in PLATZ-Farbe (Gold, Silber, Bronze). Vorher
+        // ein 2-%-Verlauf in LIGA-Farbe, dadurch je Karte verschieden dick und
+        // #2 wie #3 orange, obwohl es ein Podest sein soll.
+        // (ohne borderRadius: ein einseitiger Rahmen darf keinen Radius haben,
+        // die runde Form kommt vom clipBehavior des Containers)
+        foregroundDecoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: switch (rank) {
+                1 => const Color(0xFFF59E0B),
+                2 => const Color(0xFF94A3B8),
+                _ => const Color(0xFFB45309),
+              },
+              width: 3,
+            ),
           ),
         ),
+        padding: const EdgeInsets.all(12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -471,23 +471,10 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             // Date Label
             Row(
               children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.accent,
-                    boxShadow: AppColors.istHell
-                        ? const []
-                        : [
-                            BoxShadow(
-                              color: AppColors.accent.withOpacity(0.6),
-                              blurRadius: 8,
-                            ),
-                          ],
-                  ),
-                ),
-                const SizedBox(width: 8),
+                // Kicker-Strich wie auf Pruefen, Arena und Profil (vorher ein
+                // Leuchtpunkt, das zweite Kicker-System in der App)
+                Container(width: 16, height: 1, color: AppColors.accent),
+                const SizedBox(width: 10),
                 Text(_getDateLabel(), style: AppTextStyles.monoLabel(textDim)),
               ],
             ),

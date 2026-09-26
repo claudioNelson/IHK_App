@@ -697,8 +697,11 @@ class _ThemenListeState extends State<ThemenListe> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
+                      // gesperrt: leere Kachel mit Rahmen, das Schloss traegt
+                      // die Aussage (vorher Rahmenfarbe als Fuellung, im Dark
+                      // war das Schloss darauf unsichtbar)
                       color: !unlocked
-                          ? border.withOpacity(0.5)
+                          ? Colors.transparent
                           : stil.farbe.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
@@ -718,7 +721,7 @@ class _ThemenListeState extends State<ThemenListe> {
                                 letterSpacing: 0.5,
                               ),
                             )
-                          : Icon(Icons.lock_rounded, color: textDim, size: 16),
+                          : Icon(Icons.lock_rounded, color: textMid, size: 18),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -795,8 +798,15 @@ class _ThemenListeState extends State<ThemenListe> {
                 ),
               ],
 
-              // Locked Info
-              if (!unlocked) ...[
+              // Sperrhinweis: nur beim NAECHSTEN gesperrten Thema (dem, das als
+              // erstes frei wird) und neutral statt in Warnfarbe. Vier orange
+              // Kaesten untereinander lasen sich wie "du darfst nicht", obwohl
+              // es ein normaler Lernpfad ist. Die uebrigen zeigen nur das Schloss.
+              if (!unlocked &&
+                  index > 0 &&
+                  _isUnlocked(
+                    Map<String, dynamic>.from(themen[index - 1] as Map),
+                  )) ...[
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -804,24 +814,24 @@ class _ThemenListeState extends State<ThemenListe> {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.warning.withOpacity(0.08),
+                    color: AppColors.accent.withOpacity(0.06),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AppColors.warning.withOpacity(0.2),
+                      color: AppColors.accent.withOpacity(0.18),
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        Icons.info_outline_rounded,
-                        color: AppColors.warning,
+                        Icons.lock_open_rounded,
+                        color: AppColors.accentText,
                         size: 14,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _getUnlockMessage(thema),
-                          style: AppTextStyles.bodySmall(AppColors.warning),
+                          style: AppTextStyles.bodySmall(textMid),
                         ),
                       ),
                     ],

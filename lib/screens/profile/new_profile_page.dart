@@ -1144,8 +1144,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
               Expanded(
                 child: _statBox(
                   value: '$_streakDays',
-                  unit: 'd',
-                  label: 'STREAK',
+                  label: _streakDays == 1 ? 'TAG STREAK' : 'TAGE STREAK',
                   text: text,
                   textDim: textDim,
                   rightBorder: true,
