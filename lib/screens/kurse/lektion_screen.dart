@@ -5,7 +5,7 @@
 // Zwischenüberschriften aufgeteilt. Weiter geht es per Knopf oder Wischen.
 //
 // Der Screen kennt weder Python noch SQL — er rendert nur Blöcke.
-// Deshalb funktioniert er für alle Kurse (SQL, Python, Struktogramm).
+// Deshalb funktioniert er für alle Kurse (SQL, Python, Struktogramm, UML).
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +18,7 @@ import '../../widgets/kurs/kurs_aufgaben_widgets.dart';
 import '../../widgets/kurs/schreibtischtest_tabelle.dart';
 import '../../widgets/kurs/sql_aufgabe_widget.dart';
 import '../../widgets/kurs/struktogramm_ansicht.dart';
+import '../../widgets/kurs/uml_ansicht.dart';
 
 class LektionScreen extends StatefulWidget {
   final Lektion lektion;
@@ -66,6 +67,8 @@ class _LektionScreenState extends State<LektionScreen> {
   /// Teilt die Lektion in Schritte auf:
   /// - jede Aufgabe wird ein eigener Schritt
   /// - Erklärtexte werden an jeder Zwischenüberschrift getrennt
+  /// - ein UmlBlock mit zurAufgabe direkt vor einer Aufgabe kommt mit auf
+  ///   deren Seite
   ///
   /// Dadurch entstehen kurze, verdauliche Einheiten, ohne dass beim
   /// Schreiben der Inhalte etwas Zusätzliches angegeben werden muss.
@@ -91,8 +94,21 @@ class _LektionScreenState extends State<LektionScreen> {
           aktuell.add(block);
           abschliessen();
         } else {
+          // Diagramme, die zur Aufgabe gehören, wandern mit auf ihre Seite.
+          final mit = <LektionsBlock>[];
+          while (aktuell.isNotEmpty &&
+              aktuell.last is UmlBlock &&
+              (aktuell.last as UmlBlock).zurAufgabe) {
+            mit.insert(0, aktuell.removeLast());
+          }
+          // Bleibt davor nur die Überschrift übrig, kommt sie ebenfalls mit.
+          if (mit.isNotEmpty &&
+              aktuell.length == 1 &&
+              aktuell.first is UeberschriftBlock) {
+            mit.insert(0, aktuell.removeLast());
+          }
           abschliessen();
-          schritte.add([block]);
+          schritte.add([...mit, block]);
         }
       } else if (block is UeberschriftBlock) {
         abschliessen();
@@ -531,6 +547,10 @@ class _BlockAnsicht extends StatelessWidget {
           zeilen: b.zeilen,
           unterschrift: b.unterschrift,
           aenderungenMarkieren: b.aenderungenMarkieren,
+        ),
+      UmlBlock b => UmlAnsicht(
+          diagramm: b.diagramm,
+          unterschrift: b.unterschrift,
         ),
       AufgabenBlock b => switch (b.aufgabe) {
           SqlAufgabe a => SqlAufgabeWidget(

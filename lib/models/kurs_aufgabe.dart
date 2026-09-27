@@ -1,13 +1,14 @@
 // lib/models/kurs_aufgabe.dart
 //
-// Datenmodell für interaktive Kursaufgaben (Python-, SQL- und
-// Struktogramm-Kurs).
+// Datenmodell für interaktive Kursaufgaben (Python-, SQL-, Struktogramm-
+// und UML-Kurs).
 //
 // Grundgedanke: Kursinhalte sind DATEN, keine handgeschriebenen Screens.
 // Eine neue Lektion ist dann ein Eintrag in einer Liste, kein neuer Widget-Baum.
 // Genau daran krankt der Web-Kurs — dort ist jede Lektion eine eigene TSX-Datei.
 
 import 'struktogramm.dart';
+import 'uml.dart';
 
 /// Gemeinsame Basis aller Aufgabentypen.
 sealed class KursAufgabe {
@@ -285,6 +286,24 @@ class SchreibtischtestBlock extends LektionsBlock {
     this.unterschrift,
     this.aenderungenMarkieren = true,
   });
+}
+
+/// UML-Diagramm (Use-Case, Klassen, Aktivität, Sequenz, Zustand), gezeichnet
+/// von widgets/kurs/uml_ansicht.dart. Die Diagramme stehen als Konstanten
+/// oben in der Lektionsdatei, siehe models/uml.dart.
+class UmlBlock extends LektionsBlock {
+  final UmlDiagramm diagramm;
+
+  /// Bildunterschrift.
+  final String? unterschrift;
+
+  /// Gehört zur direkt folgenden Aufgabe: Der LektionScreen zeigt das
+  /// Diagramm dann auf der Aufgabenseite mit an, statt auf der Seite davor.
+  /// So muss niemand zurückblättern, um eine Frage zum Diagramm zu lösen.
+  /// Dieselbe Diagramm-Konstante darf dafür mehrfach vorkommen.
+  final bool zurAufgabe;
+
+  const UmlBlock(this.diagramm, {this.unterschrift, this.zurAufgabe = false});
 }
 
 class Lektion {
