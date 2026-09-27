@@ -2,6 +2,8 @@
 //
 // Zentrale Schalter fuer die Kurse.
 
+import 'package:flutter/foundation.dart' show kDebugMode;
+
 /// Premium-Gate fuer Kurslektionen.
 ///
 /// false: der komplette Kurs ist kostenlos, das premium-Flag der
@@ -19,4 +21,8 @@ const bool kursPremiumAktiv = false;
 ///        geloest sind. Verriegelte Kacheln sind abgedunkelt und zeigen
 ///        ein graues Schloss.
 /// false: alle Lektionen sind frei anwaehlbar (praktisch zum Testen).
-const bool kursReihenfolgeAktiv = true;
+///
+/// Im Debug-Build aus, damit neue Lektionen ohne Durchspielen der
+/// vorherigen testbar sind (27.09.2026). Store-Builds (Release) sind
+/// davon nicht betroffen, dort gilt die Reihenfolge weiter.
+const bool kursReihenfolgeAktiv = !kDebugMode;

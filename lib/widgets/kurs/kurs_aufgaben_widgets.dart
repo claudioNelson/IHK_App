@@ -108,7 +108,7 @@ class _AufgabenKarte extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Text(frage, style: Theme.of(context).textTheme.bodyLarge),
+          _mitCode(context, frage, Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 14),
           inhalt,
 
@@ -207,8 +207,11 @@ class _Rueckmeldung extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               border: Border(left: BorderSide(color: farbe, width: 3)),
             ),
-            child: Text(erklaerung!,
-                style: Theme.of(context).textTheme.bodyMedium),
+            child: _mitCode(
+              context,
+              erklaerung!,
+              Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
         ],
         if (!richtig) ...[
@@ -249,6 +252,41 @@ const _monoStil = TextStyle(
   height: 1.6,
   color: Color(0xFFE6EDF3),
 );
+
+/// Text, in dem `so markierte` Stellen in Monospace erscheinen. Für Frage,
+/// Erklärung und Antwortoptionen (Struktogramm-Kurs: `x == 5`).
+/// Ausgewertet werden nur Backticks, kein **fett**, weil Python `**` als
+/// Operator kennt. Ohne Backticks oder bei ungerader Anzahl bleibt der
+/// Text unverändert.
+Widget _mitCode(BuildContext context, String text, TextStyle? stil) {
+  final teile = text.split('`');
+  if (teile.length < 3 || teile.length.isEven) {
+    return Text(text, style: stil);
+  }
+  final hinterlegt = Theme.of(context)
+      .colorScheme
+      .surfaceContainerHighest
+      .withValues(alpha: 0.7);
+  return Text.rich(
+    TextSpan(
+      style: stil,
+      children: [
+        for (var i = 0; i < teile.length; i++)
+          if (i.isOdd)
+            TextSpan(
+              text: teile[i],
+              style: TextStyle(
+                fontFamily: _monoStil.fontFamily,
+                fontSize: (stil?.fontSize ?? 14) * 0.92,
+                backgroundColor: hinterlegt,
+              ),
+            )
+          else
+            TextSpan(text: teile[i]),
+      ],
+    ),
+  );
+}
 
 // ───────────────────────────────────────────────────────────────────────────
 // 1. Lückentext
@@ -832,7 +870,13 @@ class _AuswahlWidgetState extends State<_AuswahlWidget> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(child: Text(widget.aufgabe.optionen[i])),
+                      Expanded(
+                        child: _mitCode(
+                          context,
+                          widget.aufgabe.optionen[i],
+                          DefaultTextStyle.of(context).style,
+                        ),
+                      ),
                     ],
                   ),
                 ),
