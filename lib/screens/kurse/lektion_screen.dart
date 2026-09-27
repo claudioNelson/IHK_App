@@ -5,7 +5,7 @@
 // Zwischenüberschriften aufgeteilt. Weiter geht es per Knopf oder Wischen.
 //
 // Der Screen kennt weder Python noch SQL — er rendert nur Blöcke.
-// Deshalb funktioniert er für beide Kurse.
+// Deshalb funktioniert er für alle Kurse (SQL, Python, Struktogramm).
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +15,9 @@ import '../../theme/kurs_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/kurs/ada_kurs_sheet.dart';
 import '../../widgets/kurs/kurs_aufgaben_widgets.dart';
+import '../../widgets/kurs/schreibtischtest_tabelle.dart';
 import '../../widgets/kurs/sql_aufgabe_widget.dart';
+import '../../widgets/kurs/struktogramm_ansicht.dart';
 
 class LektionScreen extends StatefulWidget {
   final Lektion lektion;
@@ -517,6 +519,19 @@ class _BlockAnsicht extends StatelessWidget {
         ),
       CodeBlock b => _CodeAnsicht(block: b),
       HinweisBlock b => _HinweisAnsicht(text: b.text),
+      StruktogrammBlock b => StruktogrammAnsicht(
+          bloecke: b.bloecke,
+          titel: b.titel,
+          unterschrift: b.unterschrift,
+          breite: b.breite,
+          klein: b.klein,
+        ),
+      SchreibtischtestBlock b => SchreibtischtestTabelle(
+          spalten: b.spalten,
+          zeilen: b.zeilen,
+          unterschrift: b.unterschrift,
+          aenderungenMarkieren: b.aenderungenMarkieren,
+        ),
       AufgabenBlock b => switch (b.aufgabe) {
           SqlAufgabe a => SqlAufgabeWidget(
               aufgabe: a,

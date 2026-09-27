@@ -1,10 +1,13 @@
 // lib/models/kurs_aufgabe.dart
 //
-// Datenmodell für interaktive Kursaufgaben (Python- und SQL-Kurs).
+// Datenmodell für interaktive Kursaufgaben (Python-, SQL- und
+// Struktogramm-Kurs).
 //
 // Grundgedanke: Kursinhalte sind DATEN, keine handgeschriebenen Screens.
 // Eine neue Lektion ist dann ein Eintrag in einer Liste, kein neuer Widget-Baum.
 // Genau daran krankt der Web-Kurs — dort ist jede Lektion eine eigene TSX-Datei.
+
+import 'struktogramm.dart';
 
 /// Gemeinsame Basis aller Aufgabentypen.
 sealed class KursAufgabe {
@@ -219,6 +222,69 @@ class HinweisBlock extends LektionsBlock {
 class AufgabenBlock extends LektionsBlock {
   final KursAufgabe aufgabe;
   const AufgabenBlock(this.aufgabe);
+}
+
+/// Ein Struktogramm (Nassi-Shneiderman), gezeichnet von
+/// widgets/kurs/struktogramm_ansicht.dart. Die Bausteine stehen in
+/// models/struktogramm.dart.
+class StruktogrammBlock extends LektionsBlock {
+  final List<SgBlock> bloecke;
+
+  /// Überschrift im Kopf, bei Unterprogrammen die Signatur.
+  final String? titel;
+
+  /// Bildunterschrift.
+  final String? unterschrift;
+
+  /// Mindestbreite in Pixeln, siehe StruktogrammAnsicht.
+  final double? breite;
+
+  /// Kompakte Darstellung für Übersichten.
+  final bool klein;
+
+  const StruktogrammBlock(
+    this.bloecke, {
+    this.titel,
+    this.unterschrift,
+    this.breite,
+    this.klein = false,
+  });
+}
+
+/// Ein Schreibtischtest (Wertetabelle): jede Zeile ein Zeitpunkt im
+/// Ablauf, jede Spalte eine Variable. Gezeichnet von
+/// widgets/kurs/schreibtischtest_tabelle.dart.
+///
+/// Beispiel „Summe von 1 bis n“ für n = 3:
+/// ```dart
+/// SchreibtischtestBlock(
+///   spalten: ['Schritt', 'i', 'summe', 'Ausgabe'],
+///   zeilen: [
+///     ['Start', '', '0', ''],
+///     ['Durchlauf 1', '1', '1', ''],
+///   ],
+/// )
+/// ```
+class SchreibtischtestBlock extends LektionsBlock {
+  /// Spaltenköpfe. Die erste Spalte beschriftet die Zeilen.
+  final List<String> spalten;
+
+  /// Werte als Text, leerer Text heißt: noch kein Wert.
+  final List<List<String>> zeilen;
+
+  /// Bildunterschrift.
+  final String? unterschrift;
+
+  /// Werte hervorheben, die sich gegenüber der Zeile darüber geändert
+  /// haben. Hilft Einsteigern, den Ablauf zu verfolgen.
+  final bool aenderungenMarkieren;
+
+  const SchreibtischtestBlock({
+    required this.spalten,
+    required this.zeilen,
+    this.unterschrift,
+    this.aenderungenMarkieren = true,
+  });
 }
 
 class Lektion {

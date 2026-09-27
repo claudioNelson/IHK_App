@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../screens/module/modul_liste_screen.dart';
@@ -19,6 +20,7 @@ import '../levels/level_module_screen.dart';
 import '../kurse/kurs_uebersicht_screen.dart';
 import '../../data/kurse/sql_kurs.dart';
 import '../../data/kurse/python_kurs.dart';
+import '../../data/kurse/struktogramm_kurs.dart';
 import '../../widgets/header_wash.dart';
 import '../../services/ziel_service.dart';
 import '../../services/lernplan_service.dart';
@@ -424,6 +426,35 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                       _loadCounts();
                     },
                   ),
+                  // Struktogramm-Kurs im Aufbau (Release 1.8.0): nur im
+                  // Debug-Build sichtbar, im Store-Build fehlt die Zeile.
+                  if (kDebugMode) ...[
+                    const SizedBox(height: 10),
+                    _buildKursRow(
+                      tag: 'SG',
+                      tagColor: AppColors.success,
+                      title: struktogrammKurs.titel,
+                      sub: 'Vorschau, nur im Debug-Build sichtbar',
+                      count: 'in Arbeit',
+                      neu: true,
+                      surface: surface,
+                      border: border,
+                      text: text,
+                      textMid: textMid,
+                      textDim: textDim,
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const KursUebersichtScreen(
+                              kurs: struktogrammKurs,
+                            ),
+                          ),
+                        );
+                        _loadCounts();
+                      },
+                    ),
+                  ],
 
                   const SizedBox(height: 36),
 
