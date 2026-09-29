@@ -1,7 +1,7 @@
 // lib/data/kurse/uml/lektion_09.dart
 //
 // UML-Kurs der App, Lektion 9: Sequenzdiagramm.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import 'dart:ui' show Offset;
 
@@ -96,13 +96,16 @@ const umlLektion9 = Lektion(
     UmlBlock(
       _login,
       unterschrift: 'Drei Beteiligte nebeneinander. Die Nachrichten laufen '
-          'von oben nach unten.',
+          'von oben nach unten. Wer die App anstößt, also der Nutzer, ist '
+          'hier weggelassen. In Prüfungen steht dafür oft ein Strichmännchen '
+          'ganz links.',
     ),
     TextBlock(
       '- Oben stehen die Beteiligten in Kästen. `:Server` heißt: ein Objekt '
       'der Klasse Server. Vor dem Doppelpunkt könnte ein eigener Name '
-      'stehen, er ist hier weggelassen. Wie bei Objekten in Lektion 4 ist '
-      'der Text unterstrichen.\n'
+      'stehen, er ist hier weggelassen. Oft wird der Text wie bei Objekten '
+      'in Lektion 4 unterstrichen. Pflicht ist das im Sequenzdiagramm '
+      'nicht, beides wird in der Prüfung akzeptiert.\n'
       '- Unter jedem Kasten hängt eine gestrichelte Linie. Sie heißt '
       '**Lebenslinie**. Die **Zeit läuft nach unten**: Was weiter oben steht, '
       'passiert früher.\n'
@@ -207,14 +210,14 @@ const umlLektion9 = Lektion(
       'Zwei weitere Fragmente kommen in Prüfungen vor:\n'
       '- `opt`: Gibt der Kunde einen Rabattcode ein, prüft der Server ihn. '
       'Gibt er keinen ein, passiert an dieser Stelle nichts.\n'
-      '- `loop`: Die App fragt so lange beim Server nach neuen Nachrichten, '
-      'bis keine mehr kommen.',
+      '- `loop`: Der Server schickt jedem Empfänger nacheinander eine '
+      'Rechnung, einmal je Empfänger.',
     ),
     SchreibtischtestBlock(
       spalten: ['Fragment', 'Bedeutung', 'Wie im Struktogramm'],
       zeilen: [
         ['alt', 'genau einer von mehreren Bereichen',
-            'zweiseitige Verzweigung'],
+            'Verzweigung (zwei oder mehr Fälle)'],
         ['opt', 'ein Bereich, nur wenn die Bedingung stimmt',
             'einseitige Verzweigung'],
         ['loop', 'Bereich wird wiederholt', 'Schleife'],
@@ -266,7 +269,8 @@ const umlLektion9 = Lektion(
       'Beteiligten**. Es geht darum, wer mit wem redet und in welcher '
       'Reihenfolge.\n'
       '\n'
-      'Stehen in der Aufgabe Wörter wie „Client“, „Server“, „Nachricht“, '
+      'Stehen in der Aufgabe Wörter wie „Client“ (das Programm beim Nutzer, '
+      'etwa Browser oder App), „Server“, „Nachricht“, '
       '„Anfrage“ oder „Antwort“, ist fast immer das Sequenzdiagramm gemeint.',
     ),
     AufgabenBlock(LueckenAufgabe(

@@ -13,7 +13,7 @@ import '../../../models/struktogramm.dart';
 // Neu: Tauschen mit Hilfsvariable, Bubblesort (Idee, Struktogramm,
 // Schreibtischtest), Unterprogramm, Funktion, Prozedur, Signatur,
 // Parameter, Datentyp, Rückgabe, Aufruf, Argument, Lücken ergänzen.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 const _tauschFalsch = <SgBlock>[
   SgAnw('a = b'),
@@ -27,8 +27,8 @@ const _tauschRichtig = <SgBlock>[
 ];
 
 const _bubblesort = <SgBlock>[
-  SgFuer('für durchlauf = 1 bis n - 1', [
-    SgFuer('für i = 1 bis n - durchlauf', [
+  SgFuer('für durchgang = 1 bis n - 1', [
+    SgFuer('für i = 1 bis n - durchgang', [
       SgWenn('zahlen[i] > zahlen[i + 1]', [
         SgAnw('hilf = zahlen[i]'),
         SgAnw('zahlen[i] = zahlen[i + 1]'),
@@ -84,7 +84,7 @@ const struktogrammLektion8 = Lektion(
     TextBlock(
       'Du hast ein Glas mit Saft und ein Glas mit Wasser. Jetzt sollen die '
       'Inhalte getauscht werden. Kippst du den Saft einfach ins Wasserglas, '
-      'läuft es über. Du brauchst ein **drittes, leeres Glas** zum '
+      'vermischt sich beides, und das Wasser ist verloren. Du brauchst ein **drittes, leeres Glas** zum '
       'Zwischenlagern.\n'
       '\n'
       'Bei Variablen ist es genauso. Auf `a` steht 5, auf `b` steht 8. Der '
@@ -101,8 +101,8 @@ const struktogrammLektion8 = Lektion(
         ['a = b', '8', '8'],
         ['b = a', '8', '8'],
       ],
-      unterschrift: 'Nach `a = b` ist die 5 überschrieben. Sie ist weg, und '
-          '`b = a` kopiert nur noch die 8.',
+      unterschrift: 'Nach a = b ist die 5 überschrieben. Sie ist weg, und '
+          'b = a kopiert nur noch die 8.',
     ),
     TextBlock(
       'Richtig geht es mit einer **Hilfsvariable**, dem dritten Glas:',
@@ -163,7 +163,8 @@ const struktogrammLektion8 = Lektion(
       'zum Ende.\n'
       '\n'
       'Nach so einem Durchgang ist die größte Zahl ganz hinten angekommen. '
-      'Sie ist nach oben gestiegen wie eine Luftblase im Wasser. „Bubble“ '
+      'Sie ist ans Ende gewandert, so wie eine Luftblase im Wasser nach '
+      'oben steigt. „Bubble“ '
       'ist das englische Wort für Blase, daher der Name.\n'
       '\n'
       'Der erste Durchgang für das Feld 5, 2, 4, 1:',
@@ -213,7 +214,7 @@ const struktogrammLektion8 = Lektion(
       'n - 1 Durchgänge. Dann ist jede Zahl außer der ersten hinten '
       'einsortiert, und die erste steht von selbst richtig.\n'
       '- Die **innere Schleife** geht die Nachbarpaare durch. Sie läuft nur '
-      'bis n - durchlauf, weil hinten schon sortiert ist.\n'
+      'bis n - durchgang, weil hinten schon sortiert ist.\n'
       '- Die **Verzweigung** vergleicht ein Fach mit seinem rechten '
       'Nachbarn `zahlen[i + 1]`.\n'
       '- Im Ja-Zweig steht der **Tausch** mit Hilfsvariable.',
@@ -226,8 +227,8 @@ const struktogrammLektion8 = Lektion(
       'eingerückt:',
     ),
     CodeBlock(
-      'FÜR durchlauf = 1 BIS n - 1\n'
-      '    FÜR i = 1 BIS n - durchlauf\n'
+      'FÜR durchgang = 1 BIS n - 1\n'
+      '    FÜR i = 1 BIS n - durchgang\n'
       '        WENN zahlen[i] > zahlen[i + 1] DANN\n'
       '            hilf = zahlen[i]\n'
       '            zahlen[i] = zahlen[i + 1]\n'
@@ -245,7 +246,7 @@ const struktogrammLektion8 = Lektion(
       'Der vollständige Schreibtischtest für 5, 2, 4, 1 mit n = 4:',
     ),
     SchreibtischtestBlock(
-      spalten: ['durchlauf', 'i', 'Vergleich', 'Tauschen?', 'Feld danach'],
+      spalten: ['durchgang', 'i', 'Vergleich', 'Tauschen?', 'Feld danach'],
       zeilen: [
         ['1', '1', '5 > 2', 'ja', '2, 5, 4, 1'],
         ['1', '2', '5 > 4', 'ja', '2, 4, 5, 1'],
@@ -269,7 +270,7 @@ const struktogrammLektion8 = Lektion(
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-8-4',
-      frage: 'Warum läuft die innere Schleife nur bis `n - durchlauf` und '
+      frage: 'Warum läuft die innere Schleife nur bis `n - durchgang` und '
           'nicht bis n?',
       optionen: [
         'Weil ein Zähler nie n erreichen darf',
@@ -314,7 +315,8 @@ const struktogrammLektion8 = Lektion(
       titel: 'doppelt(zahl: Ganzzahl): Ganzzahl',
     ),
     TextBlock(
-      'Neu ist die Überschrift. Sie heißt **Signatur** und hat drei Teile:\n'
+      'Neu ist, was in der Überschrift steht. Diese Form heißt **Signatur** '
+      'und hat drei Teile:\n'
       '- den **Namen**: `doppelt`\n'
       '- in Klammern die **Parameter**: `zahl: Ganzzahl`. Ein Parameter ist '
       'ein Zettel, den der Aufrufer beschreibt, bevor die Funktion '
@@ -325,9 +327,19 @@ const struktogrammLektion8 = Lektion(
       '„Ganzzahl“ ist ein **Datentyp**. Er sagt, welche Art von Wert auf '
       'einem Zettel stehen darf. Die vier wichtigsten: **Ganzzahl** (wie 7), '
       '**Kommazahl** (wie 5,5), **Text** (wie `"Hallo"`) und '
-      '**Wahrheitswert** (wahr oder falsch).\n'
-      '\n'
-      'So wird die Funktion aufgerufen:',
+      '**Wahrheitswert** (wahr oder falsch).',
+    ),
+    HinweisBlock(
+      'In Prüfungen heißt ein Unterprogramm oft **Methode**. Die Datentypen '
+      'stehen oft auf Englisch: integer (Ganzzahl), double (Kommazahl), '
+      'string (Text), boolean (Wahrheitswert). Manchmal steht der Typ vor '
+      'dem Namen: `int zahl`. Gemeint ist immer dasselbe.',
+    ),
+
+    // ── Seite: Funktion aufrufen ───────────────────────────────────────
+    UeberschriftBlock('Eine Funktion aufrufen'),
+    TextBlock(
+      'So wird die Funktion `doppelt` aufgerufen:',
     ),
     StruktogrammBlock(
       [SgAnw('ergebnis = doppelt(7)')],
@@ -350,7 +362,7 @@ const struktogrammLektion8 = Lektion(
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-8-5',
-      frage: 'Die Funktion `doppelt` ist wie oben definiert. Welchen Wert '
+      frage: 'Die Funktion `doppelt` verdoppelt eine Zahl. Welchen Wert '
           'bekommt x bei `x = doppelt(5) + 1`?',
       optionen: [
         '11',
@@ -375,6 +387,9 @@ const struktogrammLektion8 = Lektion(
       titel: 'summe(zahlen: Feld, n: Ganzzahl): Ganzzahl',
     ),
     TextBlock(
+      'Die Variable in der Funktion heißt jetzt `ergebnis` statt `summe`, '
+      'weil `summe` schon der Name der Funktion ist.\n'
+      '\n'
       'Und eine Prozedur, die alle Werte ausgibt. Sie hat keinen '
       'Rückgabetyp, weil sie nichts zurückgibt:',
     ),
@@ -399,7 +414,22 @@ const struktogrammLektion8 = Lektion(
       '\n'
       'Die Argumente stehen in derselben Reihenfolge wie die Parameter in '
       'der Signatur. Für das Feld 4, 9, 2, 7 gibt das Hauptprogramm erst '
-      '4, 9, 2 und 7 aus, danach 22.',
+      '4, 9, 2 und 7 aus, danach 22.\n'
+      '\n'
+      'Als Pseudocode sehen die Prozedur und das Hauptprogramm so aus:',
+    ),
+    CodeBlock(
+      'PROZEDUR ausgabeFeld(zahlen: Feld, n: Ganzzahl)\n'
+      '    FÜR i = 1 BIS n\n'
+      '        AUSGABE zahlen[i]\n'
+      '    ENDE FÜR\n'
+      'ENDE PROZEDUR\n'
+      '\n'
+      'ausgabeFeld(zahlen, n)\n'
+      'gesamt = summe(zahlen, n)\n'
+      'AUSGABE gesamt',
+      titel: 'Pseudocode',
+      sprache: 'pseudocode',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-8-6',
@@ -455,6 +485,10 @@ const struktogrammLektion8 = Lektion(
           'max=zahlen[i]',
           'max = zahlen [i]',
           'max=zahlen [i]',
+          'max = zahlen[ i ]',
+          'max=zahlen[ i ]',
+          'max = zahlen[i];',
+          'max=zahlen[i];',
         ],
       ],
       erklaerung: 'Ist der aktuelle Wert größer als das bisherige Maximum, '
@@ -471,7 +505,7 @@ const struktogrammLektion8 = Lektion(
       '- **Bubblesort** vergleicht Nachbarn und tauscht, wenn links der '
       'größere Wert steht. Nach jedem Durchgang steht eine weitere große '
       'Zahl hinten.\n'
-      '- Äußere Schleife bis n - 1, innere bis n - durchlauf.\n'
+      '- Äußere Schleife bis n - 1, innere bis n - durchgang.\n'
       '- Ein **Unterprogramm** ist ein Ablauf mit Namen, der aufgerufen '
       'wird.\n'
       '- **Funktion**: gibt mit „Rückgabe“ ein Ergebnis zurück. '

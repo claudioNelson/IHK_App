@@ -13,7 +13,7 @@ import '../../../models/struktogramm.dart';
 // Neu: alle Bausteine als Pseudocode im Überblick, andere Schreibweisen
 // (:=, ←, englische Wörter), Übersetzen Struktogramm zu Pseudocode,
 // Prüfliste zur Fehlersuche, Fehleraufgaben im Prüfungsstil.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 const _countdown = <SgBlock>[
   SgAnw('Eingabe start'),
@@ -86,7 +86,7 @@ const struktogrammLektion9 = Lektion(
       '\n'
       'Zwei Regeln helfen dir:\n'
       '- Gibt die Aufgabe eine Schreibweise vor, übernimm genau diese.\n'
-      '- Schreibst du selbst, bleib bei **einer** Schreibweise. Wechsel nicht '
+      '- Schreibst du selbst, bleib bei **einer** Schreibweise. Wechsle nicht '
       'mittendrin.',
     ),
     AufgabenBlock(AuswahlAufgabe(
@@ -199,6 +199,8 @@ const struktogrammLektion9 = Lektion(
         'WENN alter>= 18 DANN',
         'WENN alter > 17 DANN',
         'WENN alter>17 DANN',
+        'WENN alter >17 DANN',
+        'WENN alter> 17 DANN',
       ],
       tipp: 'Prüfe die Grenze: Gehört die 18 dazu?',
       erklaerung: '„Ab 18“ schließt die 18 ein. Mit `alter > 18` ist die '
@@ -223,6 +225,12 @@ const struktogrammLektion9 = Lektion(
         'i=i+1',
         'i = i+1',
         'i=i + 1',
+        'i = i +1',
+        'i = i+ 1',
+        'i =i+1',
+        'i= i + 1',
+        'i = 1 + i',
+        'i=1+i',
       ],
       tipp: 'Welche Variable steht in der Bedingung, und wie ändert sie '
           'sich im Rumpf?',
@@ -246,6 +254,8 @@ const struktogrammLektion9 = Lektion(
       korrekturen: [
         'b = hilf',
         'b=hilf',
+        'b =hilf',
+        'b= hilf',
       ],
       tipp: 'Wo steht der alte Wert von a nach der zweiten Zeile noch?',
       erklaerung: 'Ein Fehler bei der Zuweisung: Rechts steht a, aber der '
@@ -277,11 +287,18 @@ const struktogrammLektion9 = Lektion(
         'WENN zahlen[i]> max DANN',
         'WENN max < zahlen[i] DANN',
         'WENN max<zahlen[i] DANN',
+        'WENN zahlen[i] >= max DANN',
+        'WENN zahlen[i]>=max DANN',
+        'WENN zahlen[i] >=max DANN',
+        'WENN zahlen[i]>= max DANN',
+        'WENN max <= zahlen[i] DANN',
+        'WENN max<=zahlen[i] DANN',
       ],
       tipp: 'Wann soll ein Wert das neue Maximum werden?',
       erklaerung: 'Ein Wert soll nur dann das neue Maximum werden, wenn er '
           'größer ist als das bisherige. Mit `<` merkt sich die Funktion '
-          'immer den kleineren Wert. Richtig ist `zahlen[i] > max`.',
+          'immer den kleineren Wert. Richtig ist `zahlen[i] > max`. Auch '
+          '`>=` ist richtig, dann gewinnt bei gleichen Werten der spätere.',
     )),
 
     UeberschriftBlock('Fehler 5: der Ort'),

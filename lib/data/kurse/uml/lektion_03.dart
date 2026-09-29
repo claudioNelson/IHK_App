@@ -2,7 +2,7 @@
 //
 // UML-Kurs der App, Lektion 3: include, extend und Generalisierung im
 // Use-Case-Diagramm.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import 'dart:ui' show Offset;
 
@@ -117,7 +117,7 @@ const umlLektion3 = Lektion(
       '\n'
       'Nein. Man macht aus „Bezahlen“ einen eigenen Anwendungsfall und '
       'verbindet ihn mit den anderen beiden. Für solche Verbindungen zwischen '
-      'Anwendungsfällen hat UML zwei feste Beziehungen:\n'
+      'Anwendungsfällen hat UML vor allem zwei feste Beziehungen:\n'
       '- **include**: Der andere Fall ist **immer** dabei.\n'
       '- **extend**: Der andere Fall kommt **nur manchmal** dazu.\n'
       '\n'
@@ -145,9 +145,10 @@ const umlLektion3 = Lektion(
           'jedes Mal dazu.',
     ),
     TextBlock(
-      'Den Anwendungsfall, von dem der Pfeil ausgeht, nennt man '
-      '**Basisfall**. Hier gibt es zwei: „Rad buchen“ und „Buchung '
-      'verlängern“.\n'
+      'Den Anwendungsfall, um den es dem Akteur eigentlich geht und der den '
+      'anderen Fall braucht, nennt man **Basisfall**. Hier gibt es zwei: '
+      '„Rad buchen“ und „Buchung verlängern“. „Bezahlen“ ist der '
+      '**eingebundene Fall**.\n'
       '\n'
       'Der Pfeil zeigt **vom Basisfall zum eingebundenen Fall**. Stell dir '
       'ein Kochrezept vor, in dem steht: „Teig nach Grundrezept S. 12 '
@@ -155,7 +156,12 @@ const umlLektion3 = Lektion(
       'umgekehrt. Genauso verweist „Rad buchen“ auf „Bezahlen“.\n'
       '\n'
       'Der Zahlungsanbieter hängt nur an „Bezahlen“, denn nur dort macht er '
-      'mit.',
+      'mit.\n'
+      '\n'
+      'Der Kunde braucht keine eigene Linie zu „Bezahlen“ mehr. Er kommt '
+      'über „Rad buchen“ dorthin, denn das Bezahlen gehört ja jedes Mal '
+      'dazu. In Lektion 2 hatten wir die Linie noch gezeichnet, weil wir '
+      'include noch nicht kannten.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'uml-3-1',
@@ -195,7 +201,11 @@ const umlLektion3 = Lektion(
       '\n'
       'Die **Bedingung**, wann die Erweiterung dazukommt, schreibst du in '
       'eine **Notiz**. Eine Notiz ist ein Zettel mit umgeknickter Ecke, der '
-      'mit einer gestrichelten Linie an den Pfeil gehängt wird.',
+      'mit einer gestrichelten Linie an den Pfeil gehängt wird.\n'
+      '\n'
+      'Manche Musterlösungen schreiben die Bedingung stattdessen in eckigen '
+      'Klammern an den Pfeil: «extend» [Kunde wünscht Zubehör]. Beides ist '
+      'richtig.',
     ),
     HinweisBlock(
       'Merksatz: **include zeigt weg, extend zeigt hin.** Gemeint ist der '

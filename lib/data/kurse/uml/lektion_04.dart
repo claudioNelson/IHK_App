@@ -1,7 +1,7 @@
 // lib/data/kurse/uml/lektion_04.dart
 //
 // UML-Kurs der App, Lektion 4: Klassen und Objekte (Klassendiagramm I).
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import '../../../models/kurs_aufgabe.dart';
 import '../../../models/uml.dart';
@@ -253,6 +253,8 @@ const umlLektion4 = Lektion(
       korrekturen: [
         '+ istVerfuegbar(): boolean',
         '+istVerfuegbar(): boolean',
+        '+ istVerfuegbar() : boolean',
+        '+istVerfuegbar() : boolean',
       ],
       tipp: 'Woran erkennt man eine Methode?',
       erklaerung: 'Eine Methode hat immer runde Klammern, auch wenn sie nichts '
@@ -277,7 +279,7 @@ const umlLektion4 = Lektion(
         ['+', 'public (öffentlich)', 'alle'],
         ['-', 'private (privat)', 'nur die eigene Klasse'],
         ['#', 'protected (geschützt)',
-            'die Klasse und ihre Unterklassen (Lektion 6)'],
+            'die Klasse und ihre Unterklassen (siehe unten)'],
         ['~', 'package (Paket)',
             'Klassen im selben Paket, also derselben Gruppe von Klassen; '
                 'selten'],
@@ -287,7 +289,13 @@ const umlLektion4 = Lektion(
     TextBlock(
       'Eine **Unterklasse** ist eine Klasse, die alles von einer anderen '
       'Klasse übernimmt und noch etwas dazu hat. Genauer lernst du sie in '
-      'Lektion 6 kennen. Für die Prüfung reicht '
+      'Lektion 6 kennen.',
+    ),
+
+    // ── Seite: Vollständige Klasse ─────────────────────────────────────
+    UeberschriftBlock('Die vollständige Klasse'),
+    TextBlock(
+      'Für die Prüfung reicht '
       'meist eine Faustregel: **Attribute privat, Methoden öffentlich.** '
       'Die Daten sind geschützt, und nur über die Methoden kommt man heran. '
       'Das nennt man **Datenkapselung**.',
@@ -341,19 +349,19 @@ const umlLektion4 = Lektion(
       'Name, Ausweisnummer, Titel, Signatur.\n'
       '- **Methoden** kommen aus Verben, die eine Fähigkeit beschreiben: '
       '„prüfen, ob ausgeliehen“ wird `istAusgeliehen(): boolean` im Medium.\n'
-      '- Das Programm selbst („Stadtbibliothek“) wird meistens **keine** '
-      'Klasse. Nur wenn die Aufgabe ausdrücklich Beziehungen zu ihm verlangt, '
-      'bekommt es eine eigene Klasse.',
+      '- Das Programm selbst („Stadtbibliothek“) wird nur dann eine Klasse, '
+      'wenn es selbst Daten oder Methoden braucht, etwa eine Liste aller '
+      'Medien. Im Zweifel: erst die Fachklassen, das System zuletzt.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'uml-4-9',
       frage: 'Text: „Ein Hotel verwaltet Zimmer mit Zimmernummer und Preis pro '
           'Nacht.“ Was wird eine Klasse?',
-      optionen: ['Zimmernummer', 'Hotel', 'Zimmer', 'Preis pro Nacht'],
+      optionen: ['Zimmernummer', 'Nacht', 'Zimmer', 'Preis pro Nacht'],
       richtig: 2,
       erklaerung: 'Zimmer gibt es viele, und jedes hat eigene Daten. '
           'Zimmernummer und Preis pro Nacht sind nur Eigenschaften, also '
-          'Attribute. Das Hotel ist hier das Programm selbst.',
+          'Attribute. „Nacht“ ist nur Teil einer Eigenschaft.',
     )),
     AufgabenBlock(LueckenAufgabe(
       id: 'uml-4-10',
@@ -384,7 +392,7 @@ const umlLektion4 = Lektion(
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'uml-4-11',
-      frage: 'Welche Zeile ist korrekt aufgeschrieben?',
+      frage: 'Welche Zeile folgt allen Regeln aus dieser Lektion?',
       optionen: [
         '+ Preis: double',
         '- preis: double',

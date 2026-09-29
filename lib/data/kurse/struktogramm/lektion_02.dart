@@ -13,7 +13,7 @@ import '../../../models/struktogramm.dart';
 // Baut auf dem Zettel-Bild aus Lektion 1 auf. Neu: Variable, Zuweisung,
 // Überschreiben, Rechnen (+, -, *), x = x + 1, Initialisierung, erster
 // Schreibtischtest. Noch keine Bedingungen, keine Schleifen.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 const _guthaben = <SgBlock>[
   SgAnw('guthaben = 10'),
@@ -111,6 +111,9 @@ const struktogrammLektion2 = Lektion(
       '- `*` mal. Auf der Tastatur gibt es kein Malkreuz, deshalb nimmt '
       'man den Stern.\n'
       '\n'
+      'Teilen gibt es natürlich auch. Das hat beim Programmieren aber eine '
+      'Besonderheit, deshalb kommt es erst in Lektion 4.\n'
+      '\n'
       'Rechts dürfen auch Namen von Variablen stehen. Dann nimmt der '
       'Computer den Wert, der gerade auf diesem Zettel steht:',
     ),
@@ -189,8 +192,10 @@ const struktogrammLektion2 = Lektion(
     ),
     TextBlock(
       'Das Mitschreiben machst du in einer Tabelle. Jede **Zeile** ist ein '
-      'Schritt. Jede **Spalte** ist eine Variable. Farbig markiert ist, '
-      'was sich im jeweiligen Schritt geändert hat.',
+      'Schritt. Die erste Spalte nennt den Schritt. Dann kommt für jede '
+      'Variable eine eigene **Spalte**. Ganz rechts steht, was der Computer '
+      'in diesem Schritt ausgibt. Farbig markiert ist, was sich im '
+      'jeweiligen Schritt geändert hat.',
     ),
     SchreibtischtestBlock(
       spalten: ['Schritt', 'guthaben', 'Ausgabe'],

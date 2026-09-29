@@ -12,7 +12,7 @@ import '../../../models/struktogramm.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 // Neu: UND, ODER, NICHT, Klammern, Text vergleichen, DIV, MOD, gerade und
 // ungerade, Teilbarkeit. Verschachtelte Verzweigungen erst in Lektion 6.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 const _versand = <SgBlock>[
   SgAnw('Eingabe bestellwert'),
@@ -100,7 +100,8 @@ const struktogrammLektion4 = Lektion(
     TextBlock(
       'Neu ist hier `land == "DE"`: Man kann auch **Text** vergleichen. '
       'Der Text steht in Anführungszeichen. `==` prüft, ob er Buchstabe für '
-      'Buchstabe genau gleich ist.',
+      'Buchstabe genau gleich ist. Auch Groß- und Kleinschreibung zählt: '
+      '`"de"` ist nicht gleich `"DE"`.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-4-1',
@@ -131,6 +132,10 @@ const struktogrammLektion4 = Lektion(
       'Vorsicht: Im Alltag meint man mit „oder“ oft „entweder oder“, also '
       'genau eins von beiden. Im Programm nicht. Hier ist ODER auch dann '
       'wahr, wenn beide Seiten stimmen.',
+    ),
+    TextBlock(
+      'In der Tabelle stehen A und B für zwei beliebige Bedingungen, zum '
+      'Beispiel „ist ein Kind“ und „ist Mitglied“.',
     ),
     SchreibtischtestBlock(
       spalten: ['A', 'B', 'A ODER B'],
@@ -213,6 +218,8 @@ const struktogrammLektion4 = Lektion(
     ),
     StruktogrammBlock(
       [
+        SgAnw('Eingabe tag'),
+        SgAnw('Eingabe wetter'),
         SgWenn(
           '(tag == 6 ODER tag == 7) UND wetter == "Sonne"',
           [SgAnw('Ausgabe "Ausflug"')],
@@ -258,7 +265,8 @@ const struktogrammLektion4 = Lektion(
       'gleich viele ganze Kekse. Jedes bekommt 3, denn 5 mal 3 ist 15. '
       '2 Kekse bleiben übrig.\n'
       '\n'
-      '**DIV** beantwortet die Frage: Wie oft passt die Zahl ganz hinein? '
+      '**DIV** beantwortet die Frage: Wie oft passt die zweite Zahl ganz in '
+      'die erste? Bei `17 DIV 5` also: Wie oft passt 5 in 17? '
       'Der Rest wird einfach weggelassen.\n'
       '- `17 DIV 5` ergibt **3**.\n'
       '- `20 DIV 5` ergibt **4**.\n'
@@ -288,7 +296,10 @@ const struktogrammLektion4 = Lektion(
     TextBlock(
       'Die letzte Zeile ist eine beliebte Falle: Ist die erste Zahl kleiner, '
       'passt die zweite kein Mal hinein. Dann bleibt die erste Zahl ganz '
-      'als Rest übrig.',
+      'als Rest übrig.\n'
+      '\n'
+      'In manchen Aufgaben steht statt MOD das Zeichen `%`. Es bedeutet '
+      'dasselbe.',
     ),
     AufgabenBlock(LueckenAufgabe(
       id: 'struktogramm-4-5',
@@ -296,8 +307,8 @@ const struktogrammLektion4 = Lektion(
       vorlage: '23 DIV 4 ergibt ___\n'
           '23 MOD 4 ergibt ___',
       loesungen: [
-        ['5'],
-        ['3'],
+        ['5', 'fünf'],
+        ['3', 'drei'],
       ],
       erklaerung: '4 passt fünfmal in 23, denn 4 * 5 = 20. Also ergibt '
           '23 DIV 4 die 5. Übrig bleiben 23 - 20 = 3. Also ergibt 23 MOD 4 '
@@ -352,7 +363,8 @@ const struktogrammLektion4 = Lektion(
       '- Klammern werden zuerst ausgewertet. Bei gemischten Bedingungen '
       'immer Klammern setzen.\n'
       '- Text vergleichst du mit `==`, der Text steht in Anführungszeichen.\n'
-      '- **DIV**: Wie oft passt die Zahl ganz hinein? `17 DIV 5` ist 3.\n'
+      '- **DIV**: Wie oft passt die zweite Zahl ganz in die erste? '
+      '`17 DIV 5` ist 3.\n'
       '- **MOD**: Was bleibt übrig? `17 MOD 5` ist 2.\n'
       '- Teilbar heißt `MOD ... == 0`. Gerade: `zahl MOD 2 == 0`.',
     ),

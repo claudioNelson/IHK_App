@@ -14,7 +14,7 @@ import '../../../models/struktogramm.dart';
 // Summe, Durchschnitt (/ statt DIV), Maximum mit Position, Zählen mit
 // Bedingung, Wahrheitswert-Variable als Merker, lineare Suche (mit und ohne
 // Abbruch), Muster im Aufgabentext erkennen.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 const _alleAusgeben = <SgBlock>[
   SgFuer('für i = 1 bis n', [
@@ -160,8 +160,18 @@ const struktogrammLektion7 = Lektion(
       '\n'
       'Viele Prüfungsaufgaben fangen aber bei **0** an, weil die meisten '
       'Programmiersprachen das so machen. Dann ist das erste Fach '
-      '`zahlen[0]` und das letzte `zahlen[n - 1]`.\n'
-      '\n'
+      '`zahlen[0]` und das letzte `zahlen[n - 1]`:',
+    ),
+    SchreibtischtestBlock(
+      spalten: ['Index', '0', '1', '2', '3'],
+      zeilen: [
+        ['Wert', '4', '9', '2', '7'],
+      ],
+      unterschrift: 'Dasselbe Feld, gezählt ab 0: zahlen[0] ist die 4, '
+          'zahlen[3] ist die 7. Ein zahlen[4] gibt es hier nicht.',
+      aenderungenMarkieren: false,
+    ),
+    TextBlock(
       'Welche Zählweise gilt, steht in der Aufgabe. Lies das immer nach, '
       'bevor du anfängst, und bleib dann dabei. Der häufigste Fehler bei '
       'Feldern ist ein Fach zu viel oder zu wenig.',
@@ -285,7 +295,10 @@ const struktogrammLektion7 = Lektion(
       'Warum nicht einfach `max = 0` als Startwert? Stehen im Feld nur '
       'Minuszahlen, zum Beispiel -5 und -3, ist keine davon größer als 0. '
       'Dann käme 0 heraus, obwohl die 0 gar nicht im Feld steht. Mit dem '
-      'ersten Fach als Startwert passiert das nie.',
+      'ersten Fach als Startwert passiert das nie.\n'
+      '\n'
+      'Den **kleinsten** Wert findest du genauso, nur mit `<` statt `>`: '
+      '`zahlen[i] < min`.',
     ),
 
     // ── Seite: Maximum Schreibtischtest ────────────────────────────────
@@ -395,7 +408,10 @@ const struktogrammLektion7 = Lektion(
       'hört sie auf.\n'
       '\n'
       'Weil das keine Zählschleife ist, musst du den Zähler selbst '
-      'verwalten: `i = 1` vor der Schleife und `i = i + 1` im Rumpf.',
+      'verwalten: `i = 1` vor der Schleife und `i = i + 1` im Rumpf.\n'
+      '\n'
+      'Statt `gefunden == falsch` steht in Lösungen oft kurz '
+      '`NICHT gefunden`. Beides bedeutet: Es wurde noch nichts gefunden.',
     ),
     SchreibtischtestBlock(
       spalten: ['Schritt', 'i', 'zahlen[i]', 'gefunden', 'position'],
@@ -447,6 +463,7 @@ const struktogrammLektion7 = Lektion(
         ['„insgesamt“, „Gesamtbetrag“', 'Summe'],
         ['„im Mittel“, „durchschnittlich“', 'Durchschnitt'],
         ['„der größte“, „der teuerste“', 'Maximum'],
+        ['„der kleinste“, „der günstigste“', 'Minimum (wie Maximum, mit <)'],
         ['„wie viele“, „die Anzahl“', 'Zählen'],
         ['„ob … vorkommt“, „an welcher Stelle“', 'Suchen'],
       ],
@@ -480,7 +497,9 @@ const struktogrammLektion7 = Lektion(
       'falsch.\n'
       '- Durchschnitt mit `/`, nicht mit DIV.\n'
       '- Ein **Merker** speichert nur wahr oder falsch.\n'
-      '- Die Ausgabe steht nach der Schleife, nicht im Rumpf.',
+      '- Das **Ergebnis** eines Musters (Summe, Durchschnitt, Anzahl, '
+      'Maximum, Fundstelle) wird nach der Schleife ausgegeben, nicht im '
+      'Rumpf.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-7-7',

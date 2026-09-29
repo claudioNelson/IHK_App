@@ -1,7 +1,7 @@
 // lib/data/kurse/uml/lektion_07.dart
 //
 // UML-Kurs der App, Lektion 7: Vom Klassendiagramm zum Code (Java).
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import 'dart:ui' show Offset;
 
@@ -93,9 +93,11 @@ const umlLektion7 = Lektion(
     TextBlock(
       'Das fällt auf:\n'
       '- `class Lastenrad { … }`: Alles, was zur Klasse gehört, steht '
-      'zwischen den geschweiften Klammern.\n'
+      'zwischen den geschweiften Klammern. Das `public` davor schreibst du '
+      'einfach immer hin. Es heißt: Die Klasse darf überall benutzt werden.\n'
       '- Aus `-` wird das Wort `private`, aus `+` wird `public`, aus `#` '
-      'wird `protected`.\n'
+      'wird `protected`. Für `~` gibt es kein Wort: Steht vor dem Typ '
+      'nichts, ist das die Paket-Sichtbarkeit.\n'
       '- **Der Datentyp steht vorne.** In UML heißt es `radNr: int`, in Java '
       '`int radNr`. Das ist der häufigste Stolperstein.\n'
       '- Jede Attributzeile endet mit einem Semikolon `;`.\n'
@@ -198,6 +200,11 @@ const umlLektion7 = Lektion(
       'ist die andere Klasse, `Lastenrad`. Das Attribut steht in der Klasse, '
       'bei der der Pfeil beginnt, nicht bei der Spitze.\n'
       '\n'
+      'Hat die Linie **keine** Pfeilspitze, dürfen sich beide Klassen '
+      'kennen. Dann bekommt jede Seite ein Attribut mit dem Rollennamen der '
+      'anderen Seite. In der Prüfung reicht meist die Richtung, die die '
+      'Aufgabe braucht.\n'
+      '\n'
       'Und wenn es **viele** sind? Ein Kunde hat beliebig viele Buchungen:',
     ),
     UmlBlock(
@@ -265,7 +272,9 @@ const umlLektion7 = Lektion(
       '- `abstract`: abstrakte Klasse, im Diagramm kursiv mit {abstract}.\n'
       '\n'
       'Die Zeile mit `//` ist ein **Kommentar**, also eine Notiz für '
-      'Menschen. Das Programm beachtet sie nicht.\n'
+      'Menschen. Das Programm beachtet sie nicht. Im Interface fehlt vor '
+      '`void verlaengern()` das Wort `public`: Dort sind alle Methoden '
+      'automatisch öffentlich.\n'
       '\n'
       'Und Aggregation und Komposition? Die siehst du im Code nicht. Beide '
       'werden wie eine normale Linie zu einem Attribut mit dem Typ der '
@@ -305,7 +314,7 @@ const umlLektion7 = Lektion(
       '- Jede Zeile `private Typ name;` wird `- name: Typ`.\n'
       '- Steht als Typ eine andere Klasse **aus dem Diagramm**, zeichnest du '
       'eine Linie statt eines Attributs. Bei `List<…>` kommt `*` an das '
-      'Ende.\n'
+      'Linienende bei der anderen Klasse.\n'
       '- Eingebaute Typen wie `String`, `int`, `double`, `boolean` und `Date` '
       'bleiben normale Attribute, auch wenn `Date` wie eine Klasse '
       'aussieht.\n'
@@ -344,7 +353,7 @@ const umlLektion7 = Lektion(
       ],
       richtig: 1,
       erklaerung: 'Der Datentyp ist eine andere Klasse. Also zeichnest du eine '
-          'Linie zu Patient. Es ist kein List, deshalb höchstens ein Patient '
+          'Linie zu Patient. Es ist keine Liste, deshalb höchstens ein Patient '
           'je Termin. Der Attributname wird zum Rollennamen.',
     )),
 

@@ -2,7 +2,7 @@
 //
 // UML-Kurs der App, Lektion 5: Beziehungen und Multiplizitäten
 // (Klassendiagramm II).
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import 'dart:ui' show Offset;
 
@@ -27,7 +27,7 @@ const _kb1 = UmlDiagramm(
   elemente: [
     UmlKlasse(x: 20, y: 25, b: 120, name: 'Kunde'),
     UmlKlasse(x: 320, y: 25, b: 120, name: 'Buchung'),
-    UmlKante(punkte: [Offset(140, 40), Offset(320, 40)], von: '1', nach: '*', name: 'legt an'),
+    UmlKante(punkte: [Offset(140, 40), Offset(320, 40)], von: '1', nach: '*', name: 'legt an ▸'),
   ],
 );
 
@@ -130,7 +130,11 @@ const umlLektion5 = Lektion(
       'am **Kunden**.\n'
       '\n'
       'Das Wort „legt an“ in der Mitte ist der **Name** der Beziehung. Er ist '
-      'freiwillig, macht das Diagramm aber leichter lesbar.',
+      'freiwillig, macht das Diagramm aber leichter lesbar.\n'
+      '\n'
+      'Neben dem Namen steht oft ein kleines schwarzes **Dreieck**. Es zeigt '
+      'die **Leserichtung**: Kunde legt an Buchung, nicht umgekehrt. Ohne '
+      'Dreieck liest man von links nach rechts oder von oben nach unten.',
     ),
     HinweisBlock(
       'Die wichtigste Regel: Die Multiplizität steht an der Klasse, **deren '
@@ -217,7 +221,7 @@ const umlLektion5 = Lektion(
     UmlBlock(
       _dienstwagen,
       unterschrift: '„Ein Mitarbeiter hat 0..1 Dienstwagen.“ „Ein Dienstwagen '
-          'gehört 0..1 Mitarbeitern.“ Beide Sätze stimmen.',
+          'hat 0..1 Mitarbeiter.“ Beide Sätze stimmen.',
     ),
     AufgabenBlock(LueckenAufgabe(
       id: 'uml-5-4',
@@ -266,7 +270,7 @@ const umlLektion5 = Lektion(
       id: 'uml-5-5',
       frage: 'Was bedeutet die Pfeilspitze am Lastenrad?',
       optionen: [
-        'Das Lastenrad erbt von der Buchung.',
+        'Das Lastenrad ist wichtiger als die Buchung.',
         'Die Buchung kennt ihr Lastenrad.',
         'Das Lastenrad kennt alle seine Buchungen.',
         'Es gibt mehr Lastenräder als Buchungen.',
@@ -295,7 +299,11 @@ const umlLektion5 = Lektion(
     TextBlock(
       'Merke: Hat eine Beziehung **eigene Daten**, wird sie oft zu einer '
       'eigenen Klasse. Typische Beispiele sind Ausleihe, Buchung, Bestellung '
-      'und Termin.',
+      'und Termin.\n'
+      '\n'
+      'In manchen Diagrammen hängt so eine Klasse stattdessen mit einer '
+      'gestrichelten Linie an der Linie zwischen Leser und Medium. Das heißt '
+      '**Assoziationsklasse** und bedeutet dasselbe.',
     ),
     UmlBlock(_ausleihe, zurAufgabe: true),
     AufgabenBlock(AuswahlAufgabe(
@@ -331,7 +339,8 @@ const umlLektion5 = Lektion(
       '- **Multiplizität** an jedem Ende: 1, 0..1, *, 1..*, 2..4.\n'
       '- Die Zahl steht an der Klasse, deren Anzahl sie beschreibt. Satzprobe: '
       '„Ein A hat [Zahl bei B] B.“\n'
-      '- **Rollenname** am Linienende, **Name** der Beziehung in der Mitte.\n'
+      '- **Rollenname** am Linienende, **Name** der Beziehung in der Mitte. '
+      'Ein Dreieck neben dem Namen zeigt die Leserichtung.\n'
       '- Offene **Pfeilspitze**: nur in diese Richtung navigierbar.\n'
       '- Beziehung mit eigenen Daten: eigene Klasse in der Mitte.',
     ),

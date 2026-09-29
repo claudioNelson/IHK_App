@@ -1,7 +1,7 @@
 // lib/data/kurse/uml/lektion_02.dart
 //
 // UML-Kurs der App, Lektion 2: Use-Case-Diagramm (Grundlagen).
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import 'dart:ui' show Offset;
 
@@ -32,9 +32,9 @@ const _leihGrund = UmlDiagramm(
 const _bibliothek = UmlDiagramm(
   breite: 510,
   hoehe: 240,
-  beschreibung: 'Use-Case-Diagramm Stadtbibliothek: Leser leiht aus und verlängert, Bibliothekar nimmt Rückgaben an.',
+  beschreibung: 'Use-Case-Diagramm Bibliotheksprogramm: Leser leiht aus und verlängert, Bibliothekar nimmt Rückgaben an.',
   elemente: [
-    UmlRahmen(x: 130, y: 10, b: 250, h: 220, titel: 'Stadtbibliothek'),
+    UmlRahmen(x: 130, y: 10, b: 250, h: 220, titel: 'Bibliotheksprogramm'),
     UmlUseCase(cx: 255, cy: 72, rx: 84, text: 'Medium ausleihen'),
     UmlUseCase(cx: 255, cy: 132, rx: 92, text: 'Ausleihe verlängern'),
     UmlUseCase(cx: 255, cy: 192, rx: 90, text: 'Rückgabe annehmen'),
@@ -69,7 +69,7 @@ const umlLektion2 = Lektion(
       '\n'
       'Wie das Programm innen arbeitet, zeigt es bewusst nicht. Man nennt das '
       'den **Blick von außen**. Deshalb zeichnet man es ganz am Anfang eines '
-      'Projekts, oft zusammen mit dem Kunden, der noch nichts von '
+      'Projekts, oft zusammen mit dem Auftraggeber, der nichts von '
       'Programmierung verstehen muss.',
     ),
     TextBlock('Das Diagramm besteht aus nur vier Bausteinen:'),
@@ -139,7 +139,8 @@ const umlLektion2 = Lektion(
     AufgabenBlock(AuswahlAufgabe(
       id: 'uml-2-2',
       frage: 'Ein Onlineshop schickt Pakete über einen fremden Paketdienst '
-          'und fragt dafür dessen Schnittstelle an. Wie erscheint der '
+          'und schickt ihm dafür die Paketdaten über das Internet. Wie '
+          'erscheint der '
           'Paketdienst im Use-Case-Diagramm des Shops?',
       optionen: [
         'Gar nicht, weil er kein Mensch ist',
@@ -176,14 +177,14 @@ const umlLektion2 = Lektion(
       frage: 'Welcher Name ist ein guter Anwendungsfall für einen Onlineshop?',
       optionen: [
         'Bestellung aufgeben',
-        'Warenkorb-Button drücken',
-        'INSERT in Tabelle bestellung',
+        'Knopf „Kaufen“ drücken',
+        'Bestelldaten in Tabelle speichern',
         'Kunde',
       ],
       richtig: 0,
       erklaerung: '„Bestellung aufgeben“ ist ein Ziel mit Nutzen, in der Form '
-          'Nomen plus Verb. Den Button zu drücken ist nur ein Handgriff, das '
-          'INSERT passiert innen im Programm, und „Kunde“ ist ein Akteur.',
+          'Nomen plus Verb. Den Knopf zu drücken ist nur ein Handgriff, das '
+          'Speichern passiert innen im Programm, und „Kunde“ ist ein Akteur.',
     )),
 
     // ── Seite: Systemgrenze ────────────────────────────────────────────
@@ -236,7 +237,10 @@ const umlLektion2 = Lektion(
       'Eine solche Linie zwischen Akteur und Anwendungsfall heißt '
       '**Assoziation**. Sie bedeutet: Dieser Akteur macht bei diesem '
       'Anwendungsfall mit. Die Linie hat normalerweise **keine Pfeilspitze**. Sie zeigt nur, wer '
-      'beteiligt ist, nicht in welche Richtung etwas läuft.',
+      'beteiligt ist, nicht in welche Richtung etwas läuft.\n'
+      '\n'
+      '„Bezahlen“ hängt eng mit „Rad buchen“ zusammen. Wie man das genauer '
+      'zeichnet, lernst du in Lektion 3. Vorerst reicht die einfache Linie.',
     ),
     UmlBlock(_leihGrund, zurAufgabe: true),
     AufgabenBlock(AuswahlAufgabe(
@@ -297,7 +301,7 @@ const umlLektion2 = Lektion(
       ],
       richtig: 2,
       erklaerung: 'Einen Datensatz anzulegen ist innere Technik. Der Leser '
-          'will ein Medium ausleihen, dass dabei ein Datensatz entsteht, '
+          'will ein Medium ausleihen. Dass dabei ein Datensatz entsteht, '
           'sieht er nicht.',
     )),
 
@@ -311,9 +315,9 @@ const umlLektion2 = Lektion(
       'Medien **ausleihen** und ihre Ausleihe **verlängern** können. '
       '**Bibliothekare** nehmen zurückgegebene Medien **an**.“\n'
       '\n'
-      'Der Trick: Die **Nomen für Personen** werden Akteure, die '
-      '**Tätigkeiten** werden Anwendungsfälle. Die Bibliothek selbst ist das '
-      'Programm, also die Systemgrenze.',
+      'Der Trick: Die **Nomen für Personen und fremde Systeme** werden '
+      'Akteure, die **Tätigkeiten** werden Anwendungsfälle. Das neue '
+      'Programm der Bibliothek ist unser System, also die Systemgrenze.',
     ),
     UmlBlock(
       _bibliothek,

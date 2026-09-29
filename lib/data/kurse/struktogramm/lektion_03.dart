@@ -13,7 +13,7 @@ import '../../../models/struktogramm.dart';
 // Neu: Bedingung, wahr/falsch, Vergleiche, zweiseitige und einseitige
 // Verzweigung, ∅, Grenzen („ab“, „über“), Pseudocode als Text-Zwilling,
 // Startwert vor einseitiger Verzweigung. Noch kein UND/ODER (Lektion 4).
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 const _bewertung = <SgBlock>[
   SgAnw('Eingabe punkte'),
@@ -99,7 +99,10 @@ const struktogrammLektion3 = Lektion(
       'aus Lektion 2 weißt.\n'
       '\n'
       'Ein Vergleich ändert nichts. Er schaut nur nach und antwortet mit '
-      'wahr oder falsch.',
+      'wahr oder falsch.\n'
+      '\n'
+      'In Prüfungsaufgaben steht für „ungleich“ manchmal auch `<>` oder '
+      '`≠`. Das bedeutet dasselbe wie `!=`.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-3-1',
@@ -161,7 +164,8 @@ const struktogrammLektion3 = Lektion(
     UeberschriftBlock('Auf die Grenze kommt es an'),
     TextBlock(
       'In Aufgaben steht die Bedingung meist als Satz. Dann musst du genau '
-      'lesen, ob der Grenzwert selbst dazugehört:\n'
+      'lesen, ob der **Grenzwert** selbst dazugehört, also die Zahl, an der '
+      'sich die Entscheidung dreht:\n'
       '- „**ab** 50“ oder „mindestens 50“ heißt: 50 gehört dazu. '
       'Also `>= 50`.\n'
       '- „**über** 50“ oder „mehr als 50“ heißt: 50 gehört nicht dazu. '
@@ -233,8 +237,8 @@ const struktogrammLektion3 = Lektion(
     TextBlock(
       'Ein Struktogramm zu zeichnen, dauert. Deshalb schreibt man denselben '
       'Ablauf oft einfach als Text auf. Das heißt **Pseudocode**. „Pseudo“ '
-      'bedeutet „so ähnlich wie“: Es sieht aus wie ein Programm, ist aber '
-      'für Menschen gedacht und nicht für einen Computer.\n'
+      'bedeutet „unecht“: Es sieht aus wie ein Programm, ist aber keins. '
+      'Es ist für Menschen gedacht und nicht für einen Computer.\n'
       '\n'
       'Die Bewertung als Pseudocode:',
     ),
@@ -253,6 +257,12 @@ const struktogrammLektion3 = Lektion(
       '- Die Wörter in Großbuchstaben sind feste Wörter, auch '
       '**Schlüsselwörter** genannt: EINGABE, AUSGABE, WENN, DANN, SONST, '
       'ENDE WENN.\n'
+      '- Im Struktogramm haben wir Eingabe und Ausgabe normal geschrieben. '
+      'Im Pseudocode schreibt man diese festen Wörter groß, damit man sie '
+      'sofort von Variablennamen unterscheidet. Gemeint ist dasselbe.\n'
+      '- Die Zeilen unter WENN sind ein Stück nach rechts geschoben. Man '
+      'sagt: Sie sind **eingerückt**. So sieht man sofort, was zur '
+      'Verzweigung gehört.\n'
       '- Was unter WENN eingerückt ist, ist die linke Spalte (ja). '
       'Was unter SONST eingerückt ist, ist die rechte Spalte (nein).\n'
       '- ENDE WENN schließt die Verzweigung ab. Danach geht es für alle '
@@ -357,8 +367,8 @@ const struktogrammLektion3 = Lektion(
       '„unter“ nicht.\n'
       '- **Pseudocode** ist derselbe Ablauf als Text, mit festen Wörtern '
       'wie EINGABE, AUSGABE, WENN, DANN, SONST, ENDE WENN.\n'
-      '- Wird eine Variable nach einer einseitigen Verzweigung gebraucht, '
-      'braucht sie vorher einen Startwert.',
+      '- Bekommt eine Variable nur im Ja-Fall einen Wert und wird sie '
+      'danach gelesen, braucht sie vorher einen Startwert.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-3-7',

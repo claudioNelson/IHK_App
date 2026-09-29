@@ -13,7 +13,7 @@ import '../../../models/struktogramm.dart';
 // Neu: Schleife, Rumpf, Durchlauf, kopfgesteuert (solange), Endlosschleife,
 // fußgesteuert (wiederhole bis), Zählschleife (für), Anzahl Durchläufe,
 // Summe von 1 bis n, Wahl der Schleife, ein Durchlauf zu viel.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 const _bisDrei = <SgBlock>[
   SgAnw('zahl = 1'),
@@ -191,7 +191,8 @@ const struktogrammLektion5 = Lektion(
       'Hier steht die Bedingung **unten**, im Fuß. Deshalb heißt diese '
       'Schleife **fußgesteuert**. Der Ablauf:\n'
       '- Erst läuft der Rumpf: Frage anzeigen, Zahl einlesen.\n'
-      '- Dann wird unten geprüft: Liegt die Zahl zwischen 1 und 6?\n'
+      '- Dann wird unten geprüft: Liegt die Zahl im Bereich von 1 bis 6, '
+      '1 und 6 eingeschlossen?\n'
       '- Wenn nicht, geht es zurück nach oben in den Rumpf.\n'
       '\n'
       'Weil erst getan und dann geprüft wird, läuft der Rumpf '
@@ -224,8 +225,10 @@ const struktogrammLektion5 = Lektion(
     TextBlock(
       'Gut zu wissen: Manche Aufgaben schreiben unten „solange“ statt '
       '„bis“. Dann steht dort das Gegenteil, also wann es **weitergehen** '
-      'soll. Lies bei fußgesteuerten Schleifen immer genau, welches Wort '
-      'dasteht.',
+      'soll. Bei unserem Würfel stünde dann unten '
+      '`solange wurf < 1 ODER wurf > 6`, also: weitermachen, solange die '
+      'Zahl ungültig ist. Lies bei fußgesteuerten Schleifen immer genau, '
+      'welches Wort dasteht.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-5-3',
@@ -275,7 +278,10 @@ const struktogrammLektion5 = Lektion(
       'Wie viele Durchläufe hat eine Zählschleife? Rechne: **Endwert minus '
       'Startwert plus 1**. Bei „für i = 1 bis 5“ sind das 5 - 1 + 1 = 5. '
       'Das „plus 1“ vergisst man leicht, weil Start und Ende beide '
-      'mitzählen.',
+      'mitzählen.\n'
+      '\n'
+      'Ist der Endwert kleiner als der Startwert, zum Beispiel „für i = 5 '
+      'bis 3“, läuft die Zählschleife **keinmal**.',
     ),
     AufgabenBlock(LueckenAufgabe(
       id: 'struktogramm-5-4',

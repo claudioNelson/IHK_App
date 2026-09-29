@@ -12,7 +12,7 @@ import '../../../models/struktogramm.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 // Startet bei null: kein Vorwissen, keine Variablen, keine Bedingungen.
 // Nur Schritte der Reihe nach, Eingabe und Ausgabe. Autor Opus 5.5
-// (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 const _tee = <SgBlock>[
   SgAnw('Teebeutel in die Tasse hängen'),
@@ -92,11 +92,12 @@ const struktogrammLektion1 = Lektion(
         'Wasserkocher einschalten',
         'Warten, bis das Wasser kocht',
         'Wasser in die Tasse gießen',
+        'Drei Minuten warten',
         'Teebeutel herausnehmen',
       ],
       erklaerung: 'Erst Wasser einfüllen, dann einschalten, dann warten. '
           'Erst wenn das Wasser kocht, kommt es in die Tasse. '
-          'Der Teebeutel kommt ganz zum Schluss heraus.',
+          'Nach drei Minuten Ziehen kommt der Teebeutel heraus.',
     )),
 
     // ── Seite: Computer ────────────────────────────────────────────────
@@ -189,14 +190,14 @@ const struktogrammLektion1 = Lektion(
       '- `Ausgabe name` hat **keine** Anführungszeichen. Deshalb erscheint '
       'nicht das Wort „name“, sondern das, was auf dem Zettel steht.\n'
       '\n'
-      'Tippst du „Lena“ ein, steht auf dem Bildschirm erst **Hallo** und '
-      'dann **Lena**. Wie solche Zettel genau funktionieren, lernst du in '
+      'Tippst du „Lena“ ein, gibt das Programm danach erst **Hallo** und '
+      'dann **Lena** aus. Wie solche Zettel genau funktionieren, lernst du in '
       'Lektion 2.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-1-4',
       frage: 'Beim Programm „Begrüßung“ tippt jemand „Tom“ ein. '
-          'Was steht danach auf dem Bildschirm?',
+          'Was gibt das Programm nach der Eingabe aus?',
       optionen: [
         'Erst name, dann Hallo',
         'Erst Hallo, dann name',

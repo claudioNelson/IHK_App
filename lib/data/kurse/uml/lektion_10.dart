@@ -1,7 +1,7 @@
 // lib/data/kurse/uml/lektion_10.dart
 //
 // UML-Kurs der App, Lektion 10: Zustandsdiagramm.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import 'dart:ui' show Offset;
 
@@ -46,18 +46,18 @@ const _lampe = UmlDiagramm(
 );
 
 const _pin = UmlDiagramm(
-  breite: 480,
+  breite: 580,
   hoehe: 205,
-  beschreibung: 'Geldautomat: Im Zustand PIN-Eingabe führt pinEingeben mit korrekt zur Auswahl, mit falsch zurück in PIN-Eingabe und zählt hoch, bei zaehler gleich 3 nach gesperrt.',
+  beschreibung: 'Geldautomat: Beim Start wird zaehler auf 0 gesetzt. Im Zustand PIN-Eingabe führt pinEingeben mit korrekt zur Auswahl, mit falsch zurück in PIN-Eingabe und zählt hoch, bei zaehler gleich 3 nach gesperrt.',
   elemente: [
     UmlStart(x: 18, y: 90),
-    UmlAktion(x: 40, y: 70, b: 130, text: 'PIN-Eingabe', zustand: true),
-    UmlAktion(x: 340, y: 70, b: 120, text: 'Auswahl', zustand: true),
-    UmlAktion(x: 340, y: 150, b: 120, text: 'gesperrt', zustand: true),
-    UmlPfeil(punkte: [Offset(27, 90), Offset(40, 90)]),
-    UmlPfeil(punkte: [Offset(170, 90), Offset(340, 90)], text: 'pinEingeben [korrekt]'),
-    UmlPfeil(punkte: [Offset(80, 70), Offset(80, 40), Offset(130, 40), Offset(130, 70)], text: 'pinEingeben [falsch] / zaehler++', textSegment: 1, textAusrichtung: 1),
-    UmlPfeil(punkte: [Offset(105, 110), Offset(105, 170), Offset(340, 170)], text: '[zaehler = 3]', textSegment: 1),
+    UmlAktion(x: 140, y: 70, b: 130, text: 'PIN-Eingabe', zustand: true),
+    UmlAktion(x: 440, y: 70, b: 120, text: 'Auswahl', zustand: true),
+    UmlAktion(x: 440, y: 150, b: 120, text: 'gesperrt', zustand: true),
+    UmlPfeil(punkte: [Offset(27, 90), Offset(140, 90)], text: '/ zaehler = 0'),
+    UmlPfeil(punkte: [Offset(270, 90), Offset(440, 90)], text: 'pinEingeben [korrekt]'),
+    UmlPfeil(punkte: [Offset(180, 70), Offset(180, 40), Offset(230, 40), Offset(230, 70)], text: 'pinEingeben [falsch] / zaehler++', textSegment: 1, textAusrichtung: 1),
+    UmlPfeil(punkte: [Offset(205, 110), Offset(205, 170), Offset(440, 170)], text: '[zaehler = 3]', textSegment: 1),
   ],
 );
 const umlLektion10 = Lektion(
@@ -80,7 +80,10 @@ const umlLektion10 = Lektion(
       'Das **Zustandsdiagramm** zeigt für **ein einziges Ding**, in welchen '
       'Zuständen es sein kann und was es von einem Zustand in den nächsten '
       'bringt. Es beantwortet die Frage: **In welchen Zuständen kann etwas '
-      'sein, und wodurch wechselt es?**',
+      'sein, und wodurch wechselt es?**\n'
+      '\n'
+      'In Prüfungen heißt es manchmal auch **Zustandsübergangsdiagramm** '
+      'oder **Zustandsautomat**. Gemeint ist dasselbe.',
     ),
 
     // ── Seite: Buchung ─────────────────────────────────────────────────
@@ -101,6 +104,9 @@ const umlLektion10 = Lektion(
       '- Ein Pfeil heißt **Übergang**. Daran steht das **Ereignis**, das den '
       'Wechsel auslöst: Wird die Buchung bezahlt, wechselt sie von '
       '„angelegt“ nach „bezahlt“.\n'
+      '- Ein Pfeil **ohne** Beschriftung wird sofort genommen, sobald der '
+      'Zustand fertig ist. So kommen hier „storniert“ und „abgeschlossen“ '
+      'zum Ende.\n'
       '\n'
       'Sieht aus wie ein Aktivitätsdiagramm? Der Unterschied steckt in den '
       'Kästen. Im Aktivitätsdiagramm steht darin ein **Tun** („Rad '
@@ -159,7 +165,10 @@ const umlLektion10 = Lektion(
       'Bedingung. So ein Übergang wird geprüft, sobald der Zustand erreicht '
       'ist. Weil jeder Fehlversuch zurück in „PIN-Eingabe“ führt, wird er '
       'nach jedem Versuch neu geprüft. Steht der Zähler auf 3, wird die '
-      'Karte gesperrt.\n'
+      'Karte gesperrt. Im Wächter bedeutet `=` „ist gleich“, nicht '
+      '„bekommt“.\n'
+      '- Schon der Startpfeil hat eine Aktion: `/ zaehler = 0` setzt den '
+      'Zähler am Anfang auf 0.\n'
       '\n'
       'Die volle Beschriftung eines Übergangs hat also drei Teile:',
     ),
@@ -250,8 +259,9 @@ const umlLektion10 = Lektion(
       'So gehst du vor:\n'
       '- Suche Wörter, die beschreiben, **wie** das Ding gerade ist: offen, '
       'bezahlt, versendet, storniert. Das werden die Zustände.\n'
-      '- Suche, **wodurch** es wechselt: Zahlung, Versand, Stornierung. Das '
-      'werden die Ereignisse an den Pfeilen.\n'
+      '- Suche, **wodurch** es wechselt: Zahlung, Versand, Stornierung. An '
+      'die Pfeile schreibst du das als Ereignis: „zahlen“, „versenden“, '
+      '„stornieren“.\n'
       '- Prüfe genau, **aus welchem** Zustand ein Wechsel möglich ist. Hier '
       'darf nur aus „offen“ storniert werden.',
     ),

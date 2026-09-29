@@ -2,7 +2,7 @@
 //
 // UML-Kurs der App, Lektion 11: Prüfungstraining mit einem durchgehenden
 // Fall (Kino-App) über alle fünf Diagrammarten.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import 'dart:ui' show Offset;
 
@@ -12,21 +12,22 @@ import '../../../models/uml.dart';
 const _kinoUC = UmlDiagramm(
   breite: 650,
   hoehe: 300,
-  beschreibung: 'Musterlösung Use-Case-Diagramm Kino-App: Besucher reserviert Plätze und storniert, Plätze reservieren bindet Anmelden ein, Snacks vorbestellen erweitert Plätze reservieren, Mitarbeiter legt Vorstellungen an.',
+  beschreibung: 'Musterlösung Use-Case-Diagramm Kino-App: Besucher reserviert Plätze und storniert, Plätze reservieren bindet Anmelden ein, Snacks vorbestellen erweitert Plätze reservieren, Mitarbeiter legt Vorstellungen an. Eine Notiz nennt die Bedingung für extend.',
   elemente: [
     UmlRahmen(x: 120, y: 10, b: 400, h: 280, titel: 'Kino-App'),
     UmlUseCase(cx: 250, cy: 70, rx: 82, text: 'Plätze reservieren'),
     UmlUseCase(cx: 460, cy: 70, rx: 52, text: 'Anmelden'),
     UmlUseCase(cx: 250, cy: 160, rx: 86, text: 'Snacks vorbestellen'),
     UmlUseCase(cx: 250, cy: 245, rx: 100, text: 'Reservierung stornieren'),
-    UmlUseCase(cx: 440, cy: 200, rx: 72, text: 'Vorstellung anlegen'),
+    UmlUseCase(cx: 440, cy: 240, rx: 72, text: 'Vorstellung anlegen'),
     UmlAkteur(x: 50, y: 120, name: 'Besucher'),
-    UmlAkteur(x: 590, y: 175, name: 'Mitarbeiter'),
+    UmlAkteur(x: 590, y: 214, name: 'Mitarbeiter'),
     UmlKante(punkte: [Offset(66, 146), Offset(202.6, 89.6)]),
     UmlKante(punkte: [Offset(66, 146), Offset(209.3, 223.1)]),
-    UmlKante(punkte: [Offset(574, 201), Offset(512, 200.5)]),
+    UmlKante(punkte: [Offset(574, 240), Offset(512, 240)]),
     UmlKante(punkte: [Offset(332, 70), Offset(408, 70)], art: UmlKantenArt.abhaengigkeit, name: '«include»'),
     UmlKante(punkte: [Offset(250, 136), Offset(250, 94)], art: UmlKantenArt.abhaengigkeit, name: '«extend»'),
+    UmlNotiz(x: 352, y: 112, b: 150, text: 'Bedingung:\nBesucher wünscht\nSnacks', anker: Offset(250, 128), ankerVon: Offset(352, 140)),
   ],
 );
 
@@ -86,7 +87,8 @@ const umlLektion11 = Lektion(
       '- **Text markieren.** Rollen, Nomen mit eigenen Daten, Tätigkeiten, '
       'Signalwörter wie „immer“, „auf Wunsch“, „gleichzeitig“, „solange“.\n'
       '- **Erst sammeln, dann zeichnen.** Eine kurze Liste auf dem '
-      'Konzeptpapier spart Radiergummi.\n'
+      'Konzeptpapier (das Schmierpapier, das du in der Prüfung bekommst) '
+      'spart Korrekturen.\n'
       '- **Sauber zeichnen.** Raute, Dreieck, gestrichelt oder nicht: Jedes '
       'Zeichen zählt.\n'
       '- **Probe machen.** Beim Klassendiagramm jede Linie mit der Satzprobe '
@@ -170,8 +172,8 @@ const umlLektion11 = Lektion(
     UeberschriftBlock('Lösung Teil 1'),
     UmlBlock(
       _kinoUC,
-      unterschrift: 'Eine mögliche Musterlösung. Eine Notiz mit der Bedingung '
-          'am extend-Pfeil gäbe noch einen Pluspunkt.',
+      unterschrift: 'Eine mögliche Musterlösung. Die Notiz nennt die '
+          'Bedingung für extend, wie in Lektion 3.',
     ),
     TextBlock(
       'Vergleiche Punkt für Punkt: zwei Akteure außen, Systemgrenze mit '
@@ -186,21 +188,21 @@ const umlLektion11 = Lektion(
       id: 'uml-11-4',
       frage: 'Welche Beziehung besteht zwischen Saal und Sitzplatz?',
       optionen: [
-        'Aggregation, leere Raute am Saal',
-        'Komposition, gefüllte Raute am Saal',
-        'Vererbung, Sitzplatz erbt von Saal',
-        'Komposition, gefüllte Raute am Sitzplatz',
+        'Aggregation',
+        'Komposition',
+        'Vererbung',
+        'Abhängigkeit',
       ],
       richtig: 1,
       erklaerung: '„Ein Saal besteht aus Sitzplätzen“ und die Sitzplätze '
-          'verschwinden mit dem Saal: Komposition. Die Raute sitzt am Ganzen, '
-          'dem Saal.',
+          'verschwinden mit dem Saal: Komposition.',
     )),
     AufgabenBlock(LueckenAufgabe(
       id: 'uml-11-5',
       frage: '„Eine Reservierung gilt für einen oder mehrere Sitzplätze.“ '
           'Welche Multiplizität steht an der Klasse Sitzplatz?',
-      vorlage: 'Multiplizität am Sitzplatz: ___',
+      vorlage: 'Multiplizität am Sitzplatz-Ende der Linie zu Reservierung: '
+          '___',
       loesungen: [
         ['1..*'],
       ],
@@ -215,7 +217,7 @@ const umlLektion11 = Lektion(
           'genau einen Fehler. Welchen?',
       optionen: [
         'Die Raute sitzt am Sitzplatz statt am Saal.',
-        'An Saal müsste `*` stehen statt `1`.',
+        'An Saal müsste gegenüber Vorstellung `*` stehen statt `1`.',
         'Reservierung darf keine Linie zu Sitzplatz haben.',
         'Sitzplatz müsste von Saal erben.',
       ],
@@ -255,7 +257,8 @@ const umlLektion11 = Lektion(
       ],
       erklaerung: 'Erst die Vorstellung, dann die Plätze darin. Ob sie frei '
           'sind, lässt sich erst prüfen, wenn sie gewählt sind. Auf dem Weg '
-          '[Plätze frei] wird gespeichert, dann endet der Ablauf.',
+          '[Plätze frei] wird gespeichert, dann endet der Ablauf. Das '
+          'Anmelden davor ist hier weggelassen.',
     )),
     AufgabenBlock(AuswahlAufgabe(
       id: 'uml-11-9',
@@ -276,7 +279,12 @@ const umlLektion11 = Lektion(
 
     // ── Seite: Zustand ─────────────────────────────────────────────────
     UeberschriftBlock('Teil 4: Zustandsdiagramm'),
-    TextBlock('Aus dem letzten Absatz des Textes entsteht dieses Diagramm:'),
+    TextBlock(
+      'Aus dem letzten Absatz des Textes entsteht dieses Diagramm. Das '
+      'Stornieren aus dem ersten Absatz lassen wir hier bewusst weg, damit '
+      'das Diagramm klein bleibt. In der Prüfung müsstest du einen Zustand '
+      '„storniert“ ergänzen.',
+    ),
     UmlBlock(
       _reservierungZ,
       unterschrift: 'Eine Reservierung verfällt nur, solange sie noch nicht '
@@ -329,7 +337,9 @@ const umlLektion11 = Lektion(
       '- Multiplizität am falschen Ende. Satzprobe machen!\n'
       '- Raute am Teil statt am Ganzen.\n'
       '- Vererbungsdreieck an der Unterklasse statt an der Oberklasse.\n'
-      '- Bedingungen an Rauten ohne eckige Klammern oder mit Lücken.\n'
+      '- Bedingungen an Rauten ohne eckige Klammern, oder so, dass ein Fall '
+      'fehlt (zum Beispiel `[alter > 18]` und `[alter < 18]`, aber nichts für '
+      'genau 18).\n'
       '- Im Sequenzdiagramm Antwort nicht gestrichelt.',
     ),
     AufgabenBlock(AuswahlAufgabe(

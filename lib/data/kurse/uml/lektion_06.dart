@@ -2,7 +2,7 @@
 //
 // UML-Kurs der App, Lektion 6: Vererbung, Aggregation, Komposition,
 // abstrakte Klasse und Interface (Klassendiagramm III).
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import 'dart:ui' show Offset;
 
@@ -103,7 +103,9 @@ const umlLektion6 = Lektion(
       '\n'
       'Gezeichnet wird eine durchgezogene Linie mit **hohlem Dreieck an der '
       'Oberklasse**. Das kennst du schon aus Lektion 3, dort hieß es '
-      'Generalisierung. Beides meint dasselbe.',
+      'Generalisierung. Das ist der Name der Beziehung in UML, im Programm '
+      'nennt man sie Vererbung. In der Prüfung darfst du beide '
+      'Wörter benutzen.',
     ),
     HinweisBlock(
       'Die Probe für Vererbung: Stimmt der Satz „Ein [Unterklasse] **ist '
@@ -180,6 +182,12 @@ const umlLektion6 = Lektion(
       unterschrift: 'Medium ist abstrakt. Objekte gibt es nur von Buch und '
           'DVD.',
     ),
+    TextBlock(
+      'Auch eine einzelne **Methode** kann abstrakt sein. Sie wird dann '
+      'ebenfalls kursiv geschrieben und hat in der Oberklasse keinen Inhalt. '
+      'Zum Beispiel `+ leihfrist(): int` in Medium: Buch und DVD müssen sie '
+      'selbst ausfüllen, weil die Leihfrist je nach Medium anders ist.',
+    ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'uml-6-4',
       frage: 'Was gilt für eine abstrakte Klasse?',
@@ -226,7 +234,9 @@ const umlLektion6 = Lektion(
     HinweisBlock(
       'Abstrakte Klasse oder Interface? Haben die Unterklassen gemeinsame '
       '**Attribute**, nimm eine abstrakte Klasse. Geht es nur um ein '
-      'Versprechen, dass bestimmte **Methoden** da sind, nimm ein Interface.',
+      'Versprechen, dass bestimmte **Methoden** da sind, nimm ein Interface. '
+      'Außerdem: Eine Klasse hat nur **eine** Oberklasse, kann aber '
+      '**mehrere** Interfaces umsetzen.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'uml-6-5',
@@ -255,13 +265,16 @@ const umlLektion6 = Lektion(
     ),
     UmlBlock(
       _aggregation,
-      unterschrift: 'Aggregation: leere Raute am Team.',
+      unterschrift: 'Aggregation: leere Raute am Team. Ein Mitarbeiter '
+          'gehört zu keinem oder einem Team, ein Team hat mindestens einen '
+          'Mitarbeiter.',
     ),
     TextBlock(
       'Löst sich ein Team auf, gibt es die Mitarbeiter weiterhin. Sie gehen '
       'in ein anderes Team oder arbeiten allein. Die Teile können also ohne '
       'das Ganze existieren. Das ist eine **Aggregation**, gezeichnet mit '
-      '**leerer Raute**.',
+      '**leerer Raute**. Weil die Teile auch ohne das Ganze existieren, darf '
+      'am Ganzen 0..1 oder sogar * stehen.',
     ),
     UmlBlock(
       _komposition,

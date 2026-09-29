@@ -13,7 +13,7 @@ import '../../../models/struktogramm.dart';
 // Neu: Verzweigung in Verzweigung, Mehrfachauswahl (falls, sonst),
 // Wahl zwischen Mehrfachauswahl und Verzweigung, Verzweigung in Schleife,
 // Schleife in Schleife, Schreibtischtest bei verschachtelten Abläufen.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 const _porto = <SgBlock>[
   SgAnw('Eingabe gewicht'),
@@ -165,7 +165,10 @@ const struktogrammLektion6 = Lektion(
       'passt, zum Beispiel bei einer 9.\n'
       '\n'
       'Wie bei der Verzweigung läuft immer **genau eine** Spalte. Danach '
-      'geht es unter dem Kasten weiter.',
+      'geht es unter dem Kasten weiter.\n'
+      '\n'
+      'In Prüfungen heißt dieser Baustein auch **Fallunterscheidung** oder '
+      '**Fallauswahl**. Gemeint ist dasselbe.',
     ),
     CodeBlock(
       'EINGABE auswahl\n'
@@ -242,7 +245,7 @@ const struktogrammLektion6 = Lektion(
     TextBlock(
       'Die Verzweigung wird bei **jedem** Durchlauf neu geprüft, einmal für '
       'jedes i. Wichtig ist, wo `anzahl = 0` steht: **vor** der Schleife. '
-      'Stünde es im Rumpf, würde der Zähler bei jedem Durchlauf wieder auf 0 '
+      'Stünde es im Rumpf, würde anzahl bei jedem Durchlauf wieder auf 0 '
       'gesetzt.',
     ),
     SchreibtischtestBlock(
@@ -338,7 +341,8 @@ const struktogrammLektion6 = Lektion(
     ),
     TextBlock(
       'Die innere Schleife läuft `bis i`. Beim ersten äußeren Durchlauf '
-      'läuft sie also einmal, beim zweiten zweimal, beim dritten dreimal. '
+      'ist i = 1, also läuft j nur von 1 bis 1. Die innere Schleife läuft '
+      'also einmal, beim zweiten zweimal, beim dritten dreimal. '
       'Nimm dir Papier und schreib die Tabelle, bevor du weiterblätterst.',
     ),
     AufgabenBlock(LueckenAufgabe(
@@ -379,7 +383,9 @@ const struktogrammLektion6 = Lektion(
         ['i = 3, j = 3', '3', '3', '10', ''],
         ['innere Schleife fertig', '3', '', '10', '10'],
       ],
-      unterschrift: 'In der Prüfung gibt es oft für jede richtige Zeile '
+      unterschrift: 'In den Zeilen „innere Schleife fertig“ bleibt j '
+          'leer, weil die innere Schleife dort schon vorbei ist. '
+          'In der Prüfung gibt es oft für jede richtige Zeile '
           'Punkte, nicht nur für das Endergebnis. Die ganze Tabelle lohnt '
           'sich also.',
     ),
@@ -394,7 +400,8 @@ const struktogrammLektion6 = Lektion(
       'für alles andere. Genau eine Spalte läuft.\n'
       '- Für Bereiche („bis 20 Gramm“) nimmst du Verzweigungen.\n'
       '- Eine Verzweigung im Rumpf wird bei jedem Durchlauf neu geprüft. '
-      'Zähler vor der Schleife auf 0 setzen.\n'
+      'Die Variable, die zählt (hier anzahl), vor der Schleife auf 0 '
+      'setzen.\n'
       '- Schleife in Schleife: Die innere läuft für jeden äußeren Durchlauf '
       'komplett. Anzahl der Durchläufe multiplizieren.\n'
       '- Schreibtischtest: eine Zeile je innerstem Durchlauf, Bedingungen '

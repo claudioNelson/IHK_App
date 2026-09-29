@@ -13,7 +13,7 @@ import '../../../models/struktogramm.dart';
 // Drei Aufgaben im Stil der AP1 (aus Web-Lektion 8), umgebaut auf die
 // Aufgabentypen der App: Schreibtischtest als Lücken, Fehlersuche, Lücken
 // ergänzen, Reihenfolge. Zeichenaufgaben verweisen auf Papier.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 const _nachbestellung = <SgBlock>[
   SgAnw('Eingabe minimum'),
@@ -153,8 +153,7 @@ const struktogrammLektion10 = Lektion(
       ],
       erklaerung: 'Geprüft werden bestand[1] bis bestand[4], also 8, 15, 4, '
           '12. Unter 10 liegen die 8 (fehlt 2) und die 4 (fehlt 6). anzahl '
-          'ist 2, fehlmenge ist 2 + 6 = 8. Die 30 in bestand[0] wird nie '
-          'angeschaut, das ändert hier aber nichts.',
+          'ist 2, fehlmenge ist 2 + 6 = 8.',
     )),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-10-2',
@@ -195,6 +194,10 @@ const struktogrammLektion10 = Lektion(
       korrekturen: [
         'FÜR i = 0 BIS 4',
         'FÜR i=0 BIS 4',
+        'FÜR i =0 BIS 4',
+        'FÜR i= 0 BIS 4',
+        'für i = 0 bis 4',
+        'für i=0 bis 4',
       ],
       tipp: 'Bei welchem Index beginnt das Feld, und bei welchem die '
           'Schleife?',
@@ -267,12 +270,31 @@ const struktogrammLektion10 = Lektion(
           'minuten MOD 60 != 0',
           'minuten MOD 60!=0',
           'minuten MOD 60 <> 0',
+          'minuten MOD 60 >= 1',
+          'minuten MOD 60>=1',
+          '(minuten MOD 60) > 0',
+          '(minuten mod 60) > 0',
+          'minuten > stunden * 60',
+          'minuten>stunden*60',
+          'minuten > stunden*60',
+          'stunden * 60 < minuten',
+          'stunden*60<minuten',
+          'minuten % 60 > 0',
+          'minuten % 60 != 0',
         ],
-        ['satz = 2', 'satz=2'],
-        ['gebuehr = 20', 'gebuehr=20', 'gebühr = 20', 'gebühr=20'],
+        ['satz = 2', 'satz=2', 'satz := 2', 'satz:=2'],
+        [
+          'gebuehr = 20',
+          'gebuehr=20',
+          'gebühr = 20',
+          'gebühr=20',
+          'gebuehr := 20',
+          'gebühr := 20',
+        ],
       ],
       erklaerung: '(1) Bleibt beim Teilen durch 60 ein Rest, ist eine '
-          'weitere Stunde angefangen: `minuten MOD 60 > 0`. (2) Dauerparker '
+          'weitere Stunde angefangen: `minuten MOD 60 > 0`. Auch '
+          '`minuten > stunden * 60` ist richtig. (2) Dauerparker '
           'zahlen 2 Euro: `satz = 2`. (3) Mehr als 20 Euro werden nicht '
           'berechnet: `gebuehr = 20`.',
     )),
@@ -298,8 +320,8 @@ const struktogrammLektion10 = Lektion(
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-10-6',
       frage: 'Teil c) etwa 10 Punkte. Die Parkdauer soll nur weiterverarbeitet werden, wenn '
-          'sie von 1 bis 1440 Minuten reicht. Sonst soll neu eingegeben '
-          'werden. Welche Schleife um die Eingabe ist richtig?',
+          'sie zwischen 1 und 1440 Minuten liegt, 1 und 1440 eingeschlossen. '
+          'Sonst soll neu eingegeben werden. Welche Schleife um die Eingabe ist richtig?',
       optionen: [
         'WIEDERHOLE Eingabe BIS minuten >= 1 UND minuten <= 1440',
         'WIEDERHOLE Eingabe BIS minuten < 1 ODER minuten > 1440',
@@ -311,7 +333,8 @@ const struktogrammLektion10 = Lektion(
           'unten, wann Schluss ist, also wenn die Eingabe gültig ist. Die '
           'zweite Option hört genau bei einer ungültigen Eingabe auf. Die '
           'dritte Bedingung ist nie wahr, denn keine Zahl ist zugleich '
-          'kleiner als 1 und größer als 1440.',
+          'kleiner als 1 und größer als 1440. Eine Zählschleife passt nicht, '
+          'weil vorher nicht feststeht, wie oft eingegeben wird.',
     )),
 
     // ── Aufgabe 3 ──────────────────────────────────────────────────────
@@ -351,7 +374,8 @@ const struktogrammLektion10 = Lektion(
     )),
     AufgabenBlock(AuswahlAufgabe(
       id: 'struktogramm-10-8',
-      frage: 'Teil b) etwa 5 Punkte. Genau 0 Grad ist kein Frosttag. Welche Bedingung gehört '
+      frage: 'Teil b) etwa 5 Punkte. Angenommen, die Station zählt auch '
+          'Tage mit genau 0 Grad als Frosttag. Welche Bedingung gehört dann '
           'in die Verzweigung?',
       optionen: [
         'temperaturen[i] <= 0',
@@ -359,9 +383,10 @@ const struktogrammLektion10 = Lektion(
         'temperaturen[i] == 0',
         'temperaturen[i] > 0',
       ],
-      richtig: 1,
-      erklaerung: '„Unter 0 Grad“ schließt die 0 nicht ein, also `< 0`. Mit '
-          '`<= 0` würde ein Tag mit genau 0 Grad falsch mitgezählt.',
+      richtig: 0,
+      erklaerung: '„Höchstens 0 Grad“ schließt die 0 ein, also `<= 0`. Im '
+          'Original mit „unter 0 Grad“ ist es `< 0`. Mit `== 0` würden nur '
+          'die Tage mit genau 0 Grad gezählt.',
     )),
     AufgabenBlock(LueckenAufgabe(
       id: 'struktogramm-10-9',

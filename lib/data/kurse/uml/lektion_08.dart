@@ -1,7 +1,7 @@
 // lib/data/kurse/uml/lektion_08.dart
 //
 // UML-Kurs der App, Lektion 8: Aktivitätsdiagramm.
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import 'dart:ui' show Offset;
 
@@ -207,7 +207,8 @@ const umlLektion8 = Lektion(
       'belegt]`. So eine Bedingung heißt **Wächter**.\n'
       '- Die Bedingungen müssen sich **ausschließen**, und zusammen müssen '
       'sie **alle Fälle** abdecken. Es darf nie unklar sein, welcher Weg '
-      'gilt. Oft schreibt man deshalb beim zweiten Weg einfach `[sonst]`.\n'
+      'gilt. Oft schreibt man deshalb beim zweiten Weg einfach `[sonst]`, '
+      'in vielen Prüfungsvorlagen englisch `[else]`.\n'
       '- Unten treffen sich die Wege wieder in einer Raute. Sie heißt '
       '**Zusammenführung**: mehrere Pfeile hinein, einer hinaus.',
     ),
@@ -257,7 +258,10 @@ const umlLektion8 = Lektion(
     TextBlock(
       'Die untere Raute entscheidet: weitermachen oder aufhören. Der Pfeil '
       'zurück endet an der oberen Raute, einer Zusammenführung. Dort treffen '
-      'sich der Weg vom Start und der Weg zurück.',
+      'sich der Weg vom Start und der Weg zurück.\n'
+      '\n'
+      'In Prüfungslösungen zeigt der Pfeil zurück oft direkt auf „Artikel '
+      'scannen“, ohne Raute. Beides ist richtig.',
     ),
     UmlBlock(_schleife, zurAufgabe: true),
     AufgabenBlock(AuswahlAufgabe(
@@ -289,7 +293,9 @@ const umlLektion8 = Lektion(
       '**alle** Wege angekommen sind.\n'
       '\n'
       'Vorsicht, Verwechslungsgefahr: Bei der **Raute** wird **ein** Weg '
-      'gewählt. Beim **Balken** laufen **alle** Wege.',
+      'gewählt. Beim **Balken** laufen **alle** Wege.\n'
+      '\n'
+      'Beide Balken zusammen heißen auch **Synchronisationsbalken**.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'uml-8-5',
@@ -389,7 +395,8 @@ const umlLektion8 = Lektion(
       'der Kunde den Betrag, und das Geld wird ausgegeben.“\n'
       '\n'
       'So gehst du vor: Jedes Verb wird eine Aktion. Jedes „wenn“, „falls“ '
-      'oder „ist … “ wird eine Raute mit Bedingungen. „Gleichzeitig“ wird ein '
+      'oder ein Satz wie „Ist die PIN falsch, …“ wird eine Raute mit '
+      'Bedingungen. „Gleichzeitig“, „während“ oder „parallel“ wird ein '
       'Balken. „Solange“ oder „bis“ wird ein Pfeil zurück.',
     ),
     AufgabenBlock(ReihenfolgeAufgabe(

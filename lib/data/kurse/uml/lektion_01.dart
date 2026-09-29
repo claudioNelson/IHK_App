@@ -3,7 +3,7 @@
 // UML-Kurs der App, Lektion 1. Reine Daten, gezeichnet vom LektionScreen,
 // Diagramme von widgets/kurs/uml_ansicht.dart. Kursplan: PROJECT_STATE.md,
 // Eintrag „UML-Kurs in der App“ (11 Lektionen, Start bei null).
-// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig), Fable offen.
+// Autor Opus 5.5 (27.09.2026), Gutachten Sonnet (vorläufig) und Fable (29.09.2026), eingearbeitet.
 
 import 'dart:ui' show Offset;
 
@@ -101,8 +101,9 @@ const umlLektion1 = Lektion(
       'UML-Diagramme gibt es in genau diesen zwei Arten:\n'
       '- **Struktur**: Was gibt es im Programm, und wie hängt es zusammen? '
       'Das zeigt vor allem das **Klassendiagramm**.\n'
-      '- **Verhalten**: Was passiert, und in welcher Reihenfolge? Das zeigen '
-      'alle anderen Diagramme dieses Kurses.\n'
+      '- **Verhalten**: Was tut das Programm, und was passiert dabei? Das '
+      'zeigen alle anderen Diagramme dieses Kurses. Drei davon (Aktivität, '
+      'Sequenz, Zustand) zeigen auch die Reihenfolge.\n'
       '\n'
       'Wenn du in einer Aufgabe unsicher bist, frag dich: Geht es um Dinge '
       'oder um Abläufe?',
@@ -145,7 +146,8 @@ const umlLektion1 = Lektion(
     TextBlock(
       'Das **Klassendiagramm** kommt in der Prüfung am häufigsten vor, '
       'deshalb hat es vier Lektionen. In der Abschlussprüfung Teil 1 (AP1) '
-      'kann UML in jeder Fachrichtung vorkommen. In Teil 2 ist es vor allem '
+      'kann UML in jeder Fachrichtung vorkommen. In Teil 2 (AP2) ist es vor '
+      'allem '
       'bei Anwendungsentwicklern ein großes Thema.',
     ),
 
@@ -162,7 +164,7 @@ const umlLektion1 = Lektion(
             'Use-Case'],
         ['„Klassen“, „Attribute“, „Beziehungen“', 'Klassen'],
         ['„Ablauf“, „Prozess“, „Verzweigungen“', 'Aktivität'],
-        ['„Nachrichten“, „zeitliche Abfolge“, „Client und Server“',
+        ['„Nachrichten“, „zeitliche Abfolge“, „App und Server“',
             'Sequenz'],
         ['„Zustände“, „Status wechselt“', 'Zustand'],
       ],
@@ -172,7 +174,8 @@ const umlLektion1 = Lektion(
       'Die häufigste Verwechslung: Aktivitäts- und Sequenzdiagramm. Geht es '
       'um die **Schritte eines Ablaufs** mit Entscheidungen, ist es das '
       'Aktivitätsdiagramm. Geht es darum, **wer mit wem redet**, zum Beispiel '
-      'App, Server und Datenbank, ist es das Sequenzdiagramm.',
+      'App, Server (der Rechner im Internet, der antwortet) und Datenbank, '
+      'ist es das Sequenzdiagramm.',
     ),
     AufgabenBlock(AuswahlAufgabe(
       id: 'uml-1-3',
@@ -224,8 +227,8 @@ const umlLektion1 = Lektion(
     UeberschriftBlock('So gibt es Punkte'),
     TextBlock(
       'UML-Aufgaben werden in der Prüfung meist **Stück für Stück** bewertet: '
-      'ein Punkt für jede richtige Klasse, einer für die richtigen Linien, '
-      'einer für die Zahlen an den Linien und so weiter.\n'
+      'ein Punkt für jedes richtige Kästchen, einer für jede richtige Linie, '
+      'einer für jede richtige Beschriftung und so weiter.\n'
       '\n'
       'Das heißt zweierlei:\n'
       '- Auch ein unvollständiges Diagramm bringt Punkte. Lass eine '
