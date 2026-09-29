@@ -64,6 +64,12 @@ dependencies:
   # Offizielles Store-Bewertungsfenster (Play In-App Review / App Store)
   in_app_review: ^2.0.9
 
+  # Hinweis auf neue App-Version (1.8.0): installierte Versionsnummer lesen
+  # und auf Android das offizielle Update-Fenster von Google Play zeigen
+  # (nur bei Installation aus Google Play, nicht per flutter run testbar).
+  package_info_plus: ^10.2.1
+  in_app_update: ^5.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
