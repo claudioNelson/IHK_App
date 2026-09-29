@@ -1364,9 +1364,23 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Titel bekommt die volle Breite, sonst bricht
+                  // „Struktogramm“ mitten im Wort um (Handytest 29.09.).
+                  Text(title, style: AppTextStyles.h3(text)),
+                  const SizedBox(height: 2),
+                  Text(sub, style: AppTextStyles.bodySmall(textMid)),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      Flexible(child: Text(title, style: AppTextStyles.h3(text))),
+                      Text(
+                        count,
+                        style: AppTextStyles.mono(
+                          size: 11,
+                          color: textDim,
+                          weight: FontWeight.w600,
+                          letterSpacing: 0,
+                        ),
+                      ),
                       if (neu) ...[
                         const SizedBox(width: 8),
                         Container(
@@ -1391,18 +1405,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(sub, style: AppTextStyles.bodySmall(textMid)),
                 ],
-              ),
-            ),
-            Text(
-              count,
-              style: AppTextStyles.mono(
-                size: 11,
-                color: textDim,
-                weight: FontWeight.w600,
-                letterSpacing: 0,
               ),
             ),
             const SizedBox(width: 8),
