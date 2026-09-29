@@ -18,6 +18,8 @@ import 'services/subscription_service.dart';
 import 'services/deep_link_service.dart';
 import 'services/billing_service.dart';
 import 'services/rating_service.dart';
+import 'services/update_service.dart';
+import 'widgets/update_hinweis.dart';
 
 /// Globaler Navigator-Key: erlaubt Navigation außerhalb des Widget-Baums
 /// (z. B. Passwort-Reset-Screen öffnen, wenn der Mail-Link die App öffnet).
@@ -148,16 +150,28 @@ class _AppInitializerState extends State<AppInitializer> {
         setState(() => _initialized = true);
       }
 
-      // Store-Bewertung: Start zaehlen und nach ein paar Sekunden pruefen,
-      // ob die Abfrage faellig ist (erst ab dem 5. Start, siehe
-      // RatingService). Nur fuer eingeloggte Nutzer, damit das Fenster
-      // nicht ueber dem Login liegt.
+      // Store-Bewertung: Start zaehlen (erst ab dem 5. Start wird gefragt,
+      // siehe RatingService).
       await RatingService().appStartRegistrieren();
-      if (session != null) {
-        Future.delayed(const Duration(seconds: 10), () {
-          RatingService().vielleichtFragen();
-        });
-      }
+
+      // Hinweis auf neue App-Version (ab 1.8.0, siehe UpdateService): fuer
+      // alle Nutzer, auch auf dem Login-Screen, kurz nach dem Start.
+      // Kam ein Update-Fenster, gibt es in dieser Sitzung keine
+      // Bewertungsabfrage. Sonst wie bisher: Bewertung nur fuer
+      // eingeloggte Nutzer, damit das Fenster nicht ueber dem Login liegt.
+      Future.delayed(const Duration(seconds: 2), () async {
+        var updateFenster = false;
+        final stand = await UpdateService().pruefen();
+        final ctx = navigatorKey.currentState?.overlay?.context;
+        if (stand != null && ctx != null && ctx.mounted) {
+          updateFenster = await updateHinweisZeigen(ctx, stand);
+        }
+        if (!updateFenster && session != null) {
+          Future.delayed(const Duration(seconds: 8), () {
+            RatingService().vielleichtFragen();
+          });
+        }
+      });
     } catch (e) {
       print('❌ Fehler bei Initialisierung: $e');
       if (mounted) {
