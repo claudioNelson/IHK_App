@@ -10,21 +10,27 @@
 //                 geschafft ab Schwelle des Levels)
 //   SQL-Kurs    = geloeste Aufgaben / alle Aufgaben (kurs_fortschritt)
 //   Python-Kurs = geloeste Aufgaben / alle Aufgaben (kurs_fortschritt)
+//   Struktogramm-Kurs und UML-Kurs genauso (seit 1.8.0, Entscheidung User
+//   29.09.2026: sofort mitzaehlen, auch wenn die Gesamtzahl beim Update
+//   sinkt)
 //
 // Die Gesamt-Bereitschaft ist der Durchschnitt der Bereichs-Prozente
 // (jeder Bereich zaehlt gleich viel). So passt die grosse Zahl immer
-// zu den vier kleinen, die man in der Aufschluesselung sieht.
+// zu den kleinen Werten, die man in der Aufschluesselung sieht.
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/kurse/python_kurs.dart';
 import '../data/kurse/sql_kurs.dart';
+import '../data/kurse/struktogramm_kurs.dart';
+import '../data/kurse/uml_kurs.dart';
 import '../models/kurs_aufgabe.dart';
 import 'kurs_fortschritt_service.dart';
 
 class BereitschaftsBereich {
-  final String schluessel; // 'module' | 'levels' | 'sql' | 'python'
+  // 'module' | 'levels' | 'sql' | 'python' | 'struktogramm' | 'uml'
+  final String schluessel;
   final String name;
   final int gesamt;
   final int geschafft;
@@ -99,6 +105,8 @@ class BereitschaftsService {
         _bereichLevels(levels, levelProgress),
         _bereichKurs('sql', 'SQL-Kurs', sqlKurs),
         _bereichKurs('python', 'Python-Kurs', pythonKurs),
+        _bereichKurs('struktogramm', 'Struktogramm-Kurs', struktogrammKurs),
+        _bereichKurs('uml', 'UML-Kurs', umlKurs),
       ]);
     } catch (e) {
       debugPrint('Bereitschaft laden fehlgeschlagen: $e');

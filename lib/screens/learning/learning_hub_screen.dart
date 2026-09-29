@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../screens/module/modul_liste_screen.dart';
@@ -427,61 +426,57 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                       _loadCounts();
                     },
                   ),
-                  // Struktogramm- und UML-Kurs im Aufbau (Release 1.8.0):
-                  // nur im Debug-Build sichtbar, im Store-Build fehlen die
-                  // Zeilen.
-                  if (kDebugMode) ...[
-                    const SizedBox(height: 10),
-                    _buildKursRow(
-                      tag: 'SG',
-                      tagColor: AppColors.success,
-                      title: struktogrammKurs.titel,
-                      sub: 'Vorschau, nur im Debug-Build sichtbar',
-                      count: 'in Arbeit',
-                      neu: true,
-                      surface: surface,
-                      border: border,
-                      text: text,
-                      textMid: textMid,
-                      textDim: textDim,
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const KursUebersichtScreen(
-                              kurs: struktogrammKurs,
-                            ),
+                  // Struktogramm- und UML-Kurs, neu in 1.8.0.
+                  const SizedBox(height: 10),
+                  _buildKursRow(
+                    tag: 'SG',
+                    tagColor: AppColors.success,
+                    title: struktogrammKurs.titel,
+                    sub: 'Abläufe lesen und entwerfen wie in der AP1',
+                    count: '${struktogrammKurs.lektionen.length} Lektionen',
+                    neu: true,
+                    surface: surface,
+                    border: border,
+                    text: text,
+                    textMid: textMid,
+                    textDim: textDim,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const KursUebersichtScreen(
+                            kurs: struktogrammKurs,
                           ),
-                        );
-                        _loadCounts();
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    _buildKursRow(
-                      tag: 'UM',
-                      tagColor: AppColors.accent,
-                      title: umlKurs.titel,
-                      sub: 'Vorschau, nur im Debug-Build sichtbar',
-                      count: 'in Arbeit',
-                      neu: true,
-                      surface: surface,
-                      border: border,
-                      text: text,
-                      textMid: textMid,
-                      textDim: textDim,
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const KursUebersichtScreen(
-                              kurs: umlKurs,
-                            ),
+                        ),
+                      );
+                      _loadCounts();
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _buildKursRow(
+                    tag: 'UM',
+                    tagColor: AppColors.accent,
+                    title: umlKurs.titel,
+                    sub: 'Alle fünf Prüfungsdiagramme von Grund auf',
+                    count: '${umlKurs.lektionen.length} Lektionen',
+                    neu: true,
+                    surface: surface,
+                    border: border,
+                    text: text,
+                    textMid: textMid,
+                    textDim: textDim,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const KursUebersichtScreen(
+                            kurs: umlKurs,
                           ),
-                        );
-                        _loadCounts();
-                      },
-                    ),
-                  ],
+                        ),
+                      );
+                      _loadCounts();
+                    },
+                  ),
 
                   const SizedBox(height: 36),
 

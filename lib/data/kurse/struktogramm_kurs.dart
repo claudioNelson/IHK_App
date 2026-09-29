@@ -5,11 +5,9 @@
 // App“). Jede Lektion liegt in einer eigenen Datei unter
 // lib/data/kurse/struktogramm/, reine Daten, gezeichnet vom LektionScreen.
 //
-// Stand 27.09.2026: Lektionen 1 bis 10 geschrieben (Autor Opus 5.5),
-// vorläufig von Sonnet begutachtet, Fable-Gutachten vor Release 1.8.0
-// offen. Der Kurs ist im Lern-Tab nur im Debug-Build sichtbar (kDebugMode
-// in learning_hub_screen.dart). Die Vorschau-Lektion mit allen Bausteinen
-// ist seit 27.09. entfernt, alle Bausteine kommen in den Lektionen vor.
+// Stand 29.09.2026: Lektionen 1 bis 10 geschrieben (Autor Opus 5.5),
+// Gutachten Sonnet (vorläufig) und Fable (29.09.) eingearbeitet. Ab
+// Release 1.8.0 im Lern-Tab für alle sichtbar.
 
 import '../../models/kurs_aufgabe.dart';
 import 'struktogramm/lektion_01.dart';

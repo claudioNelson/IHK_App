@@ -7,10 +7,9 @@
 // (Format: models/uml.dart) und werden von widgets/kurs/uml_ansicht.dart
 // gezeichnet.
 //
-// Stand 27.09.2026: Lektionen 1 bis 11 geschrieben (Autor Opus 5.5),
-// vorläufig von Sonnet begutachtet, Fable-Gutachten vor Release 1.8.0
-// offen. Der Kurs ist im Lern-Tab nur im Debug-Build sichtbar (kDebugMode
-// in learning_hub_screen.dart).
+// Stand 29.09.2026: Lektionen 1 bis 11 geschrieben (Autor Opus 5.5),
+// Gutachten Sonnet (vorläufig) und Fable (29.09.) eingearbeitet. Ab
+// Release 1.8.0 im Lern-Tab für alle sichtbar.
 
 import '../../models/kurs_aufgabe.dart';
 import 'uml/lektion_01.dart';

@@ -1305,7 +1305,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
     );
   }
 
-  /// Icon und Farbe je Bereich (bewusst fest verdrahtet, es sind nur vier).
+  /// Icon und Farbe je Bereich (bewusst fest verdrahtet, es sind nur sechs).
   ({IconData icon, Color farbe}) _bereichsStil(String schluessel) {
     switch (schluessel) {
       case 'module':
@@ -1316,6 +1316,10 @@ class _NewProfilePageState extends State<NewProfilePage> {
         return (icon: Icons.storage_rounded, farbe: AppColors.info);
       case 'python':
         return (icon: Icons.code_rounded, farbe: AppColors.success);
+      case 'struktogramm':
+        return (icon: Icons.view_agenda_outlined, farbe: AppColors.accentCyan);
+      case 'uml':
+        return (icon: Icons.schema_outlined, farbe: AppColors.accent);
       default:
         return (icon: Icons.school_outlined, farbe: AppColors.accent);
     }
