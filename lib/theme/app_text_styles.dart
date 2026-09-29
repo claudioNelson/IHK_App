@@ -46,6 +46,13 @@ class AppTextStyles {
     );
   }
 
+  /// Ligaturen von JetBrains Mono aus: `>=`, `<=`, `!=` und `->` bleiben
+  /// zwei Zeichen, so wie man sie in der Pruefung und im Code tippt.
+  static const List<FontFeature> ohneLigaturen = [
+    FontFeature.disable('calt'),
+    FontFeature.disable('liga'),
+  ];
+
   static TextStyle mono({
     required double size,
     FontWeight weight = FontWeight.w500,
@@ -57,6 +64,7 @@ class AppTextStyles {
       fontWeight: weight,
       color: color,
       letterSpacing: letterSpacing ?? 1.0,
+      fontFeatures: ohneLigaturen,
     );
   }
 

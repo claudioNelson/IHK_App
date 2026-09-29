@@ -7,9 +7,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/kurs_aufgabe.dart';
 import '../../services/sound_service.dart';
+import '../../theme/app_text_styles.dart';
 
 /// Einstiegspunkt: wählt anhand des Typs das passende Widget.
 class KursAufgabeWidget extends StatelessWidget {
@@ -246,11 +248,14 @@ class _CodeFlaeche extends StatelessWidget {
   }
 }
 
-const _monoStil = TextStyle(
-  fontFamily: 'monospace',
+// JetBrains Mono statt 'monospace': Die Systemschrift fällt auf Windows
+// und im Web auf eine proportionale Schrift zurück, dann verrutschen
+// Einrückungen im Pseudocode.
+final _monoStil = GoogleFonts.jetBrainsMono(
+  fontFeatures: AppTextStyles.ohneLigaturen,
   fontSize: 13.5,
   height: 1.6,
-  color: Color(0xFFE6EDF3),
+  color: const Color(0xFFE6EDF3),
 );
 
 /// Text, in dem `so markierte` Stellen in Monospace erscheinen. Für Frage,
@@ -275,8 +280,8 @@ Widget _mitCode(BuildContext context, String text, TextStyle? stil) {
           if (i.isOdd)
             TextSpan(
               text: teile[i],
-              style: TextStyle(
-                fontFamily: _monoStil.fontFamily,
+              style: GoogleFonts.jetBrainsMono(
+                fontFeatures: AppTextStyles.ohneLigaturen,
                 fontSize: (stil?.fontSize ?? 14) * 0.92,
                 backgroundColor: hinterlegt,
               ),
@@ -386,8 +391,8 @@ class _LueckenWidgetState extends State<_LueckenWidget> {
               ),
               child: Text(
                 '${i + 1}',
-                style: TextStyle(
-                  fontFamily: 'monospace',
+                style: GoogleFonts.jetBrainsMono(
+                  fontFeatures: AppTextStyles.ohneLigaturen,
                   fontSize: 12.5,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary,
@@ -419,8 +424,7 @@ class _LueckenWidgetState extends State<_LueckenWidget> {
         children: widget.aufgabe.bausteine.map((baustein) {
           final aktiv = _gewaehlt[i] == baustein;
           return ChoiceChip(
-            label: Text(baustein,
-                style: const TextStyle(fontFamily: 'monospace')),
+            label: Text(baustein, style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen)),
             selected: aktiv,
             onSelected: gesperrt
                 ? null
@@ -434,7 +438,7 @@ class _LueckenWidgetState extends State<_LueckenWidget> {
     return TextField(
       controller: _felder[i],
       enabled: !gesperrt,
-      style: const TextStyle(fontFamily: 'monospace'),
+      style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen),
       textInputAction: TextInputAction.next,
       inputFormatters: [LengthLimitingTextInputFormatter(60)],
       decoration: InputDecoration(
@@ -771,7 +775,7 @@ class _FehlerWidgetState extends State<_FehlerWidget> {
             TextField(
               controller: _korrektur,
               enabled: !gesperrt,
-              style: const TextStyle(fontFamily: 'monospace'),
+              style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen),
               maxLines: null,
               autocorrect: false,
               enableSuggestions: false,

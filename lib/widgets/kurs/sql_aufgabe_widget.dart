@@ -8,11 +8,13 @@
 // wer WHERE ort LIKE 'Köln' schreibt, bekommen beide ihren Haken.
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../data/kurse/sql_datensaetze.dart';
 import '../../models/kurs_aufgabe.dart';
 import '../../services/sound_service.dart';
 import '../../services/sql_sandbox.dart';
+import '../../theme/app_text_styles.dart';
 
 class SqlAufgabeWidget extends StatefulWidget {
   final SqlAufgabe aufgabe;
@@ -125,9 +127,7 @@ class _SqlAufgabeWidgetState extends State<SqlAufgabeWidget> {
             for (final eintrag in datensatz.tabellen.entries) ...[
               Text(
                 eintrag.key,
-                style: const TextStyle(
-                  fontFamily: 'monospace',
-                  fontWeight: FontWeight.bold,
+                style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen, fontWeight: FontWeight.bold,
                   fontSize: 15,
                 ),
               ),
@@ -138,8 +138,7 @@ class _SqlAufgabeWidgetState extends State<SqlAufgabeWidget> {
                 children: eintrag.value
                     .map((spalte) => Chip(
                           label: Text(spalte,
-                              style: const TextStyle(
-                                  fontFamily: 'monospace', fontSize: 12)),
+                              style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen, fontSize: 12)),
                           visualDensity: VisualDensity.compact,
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
@@ -230,18 +229,14 @@ class _SqlAufgabeWidgetState extends State<SqlAufgabeWidget> {
                 autocorrect: false,
                 enableSuggestions: false,
                 textCapitalization: TextCapitalization.none,
-                style: const TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 13.5,
+                style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen, fontSize: 13.5,
                   height: 1.5,
-                  color: Color(0xFFE6EDF3),
+                  color: const Color(0xFFE6EDF3),
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: 'SELECT ...',
-                  hintStyle: TextStyle(
-                    fontFamily: 'monospace',
-                    color: Color(0xFF6E7681),
+                  hintStyle: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen, color: const Color(0xFF6E7681),
                   ),
                 ),
               ),
@@ -358,12 +353,10 @@ class _BausteinEingabe extends StatelessWidget {
                 color: farben.outlineVariant.withValues(alpha: 0.4)),
           ),
           child: gewaehlt.isEmpty
-              ? const Text(
+              ? Text(
                   'Tipp unten die Bausteine an',
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 13,
-                    color: Color(0xFF6E7681),
+                  style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen, fontSize: 13,
+                    color: const Color(0xFF6E7681),
                   ),
                 )
               : Wrap(
@@ -388,10 +381,8 @@ class _BausteinEingabe extends StatelessWidget {
                           ),
                           child: Text(
                             gewaehlt[i],
-                            style: const TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 13,
-                              color: Color(0xFFE6EDF3),
+                            style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen, fontSize: 13,
+                              color: const Color(0xFFE6EDF3),
                             ),
                           ),
                         ),
@@ -409,9 +400,7 @@ class _BausteinEingabe extends StatelessWidget {
                 Expanded(
                   child: Text(
                     abfrage,
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 11.5,
+                    style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen, fontSize: 11.5,
                       color: farben.onSurfaceVariant,
                     ),
                     maxLines: 2,
@@ -464,9 +453,7 @@ class _BausteinEingabe extends StatelessWidget {
                       ),
                       child: Text(
                         baustein,
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 13.5,
+                        style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen, fontSize: 13.5,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -575,9 +562,7 @@ class _Ergebnistabelle extends StatelessWidget {
                 .map((s) => DataColumn(
                       label: Text(
                         s,
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 12,
+                        style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen, fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: farben.primary,
                         ),
@@ -590,9 +575,7 @@ class _Ergebnistabelle extends StatelessWidget {
                           .map((wert) => DataCell(
                                 Text(
                                   _zelle(wert),
-                                  style: TextStyle(
-                                    fontFamily: 'monospace',
-                                    fontSize: 12.5,
+                                  style: GoogleFonts.jetBrainsMono(fontFeatures: AppTextStyles.ohneLigaturen, fontSize: 12.5,
                                     color: wert == null
                                         ? const Color(0xFF6E7681)
                                         : const Color(0xFFE6EDF3),

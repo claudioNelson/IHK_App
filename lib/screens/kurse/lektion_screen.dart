@@ -8,9 +8,11 @@
 // Deshalb funktioniert er für alle Kurse (SQL, Python, Struktogramm, UML).
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/kurs_aufgabe.dart';
+import '../../theme/app_text_styles.dart';
 import '../../theme/kurs_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/kurs/ada_kurs_sheet.dart';
@@ -589,8 +591,8 @@ class _MiniMarkdown extends StatelessWidget {
       } else {
         spans.add(TextSpan(
           text: treffer.group(2),
-          style: TextStyle(
-            fontFamily: 'monospace',
+          style: GoogleFonts.jetBrainsMono(
+            fontFeatures: AppTextStyles.ohneLigaturen,
             fontSize: 13,
             backgroundColor: Theme.of(context)
                 .colorScheme
@@ -697,11 +699,11 @@ class _CodeAnsicht extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               child: SelectableText(
                 block.code,
-                style: const TextStyle(
-                  fontFamily: 'monospace',
+                style: GoogleFonts.jetBrainsMono(
+                  fontFeatures: AppTextStyles.ohneLigaturen,
                   fontSize: 13,
                   height: 1.6,
-                  color: Color(0xFFE6EDF3),
+                  color: const Color(0xFFE6EDF3),
                 ),
               ),
             ),
