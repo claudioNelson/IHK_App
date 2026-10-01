@@ -630,5 +630,18 @@ test("Tab: man BEFEHL und ..", () => {
   assert.equal(ergaenze("cd ../..", 8, z).zeile, "cd ../../");
 });
 
+test("vergessenes Leerzeichen zwischen Befehl und Argument", () => {
+  const z = start();
+  const a = lauf(z, "cd../www/html");
+  assert.equal(a.fehler, "bash: cd../www/html: No such file or directory\n");
+  assert.ok(a.hinweis.includes("cd ../www/html") && a.hinweis.includes("Windows"));
+  const b = lauf(z, "cd..");
+  assert.equal(b.fehler, "bash: cd..: command not found\n");
+  assert.ok(b.hinweis.includes("cd .."));
+  assert.ok(lauf(z, "ls-la").hinweis.includes("ls -la"));
+  assert.ok(lauf(z, "cd/var").hinweis.includes("cd /var"));
+  assert.ok(!lauf(z, "lss").hinweis.includes("Leerzeichen"));
+});
+
 console.log(`\n${bestanden} bestanden, ${gescheitert} gescheitert`);
 if (gescheitert > 0) process.exit(1);

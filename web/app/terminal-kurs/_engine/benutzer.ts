@@ -13,6 +13,7 @@ export const BENUTZER: Benutzer[] = [
 
 export const GRUPPEN: Gruppe[] = [
   { name: "root", gid: 0, mitglieder: [] },
+  { name: "adm", gid: 4, mitglieder: [] },
   { name: "sudo", gid: 27, mitglieder: ["azubi"] },
   { name: "www-data", gid: 33, mitglieder: [] },
   { name: "azubi", gid: 1000, mitglieder: [] },

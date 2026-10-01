@@ -239,6 +239,18 @@ function schreibe(s: Sammler, pfad: string, text: string) {
 
 /* ---------- Sonderfaelle, die kein eigener Befehl sind ---------- */
 
+/**
+ * Erkennt ein vergessenes Leerzeichen zwischen Befehl und Argument
+ * ("cd..", "cd../www", "ls-la", "cd/var") und liefert den passenden Hinweis.
+ */
+function fehlendesLeerzeichen(name: string): string | null {
+  const m = /^([a-z]+)([.\/~-].*)$/.exec(name);
+  if (!m || !BEFEHLE.has(m[1])) return null;
+  const gemeint = `${m[1]} ${m[2]}`;
+  const windows = m[1] === "cd" && m[2].startsWith("..") ? " In der Windows-cmd geht cd.. auch ohne, unter Linux nicht." : "";
+  return `Hinweis: Zwischen Befehl und Argument fehlt ein Leerzeichen. Gemeint war wohl: ${gemeint}.${windows}`;
+}
+
 const EDITOREN = new Set(["nano", "vim", "vi", "emacs", "pico", "gedit"]);
 
 function sonderfall(name: string): BefehlErgebnis | null {
@@ -368,7 +380,7 @@ function starteEinzeln(args: string[], u: Umgebung): BefehlErgebnis & { name: st
       }
       return { name, fehler: "", hinweis: "Hinweis: Eigene Skripte ausführen kann das Übungs-Terminal noch nicht. Das kommt mit der Lektion zu Skripten.", code: 0 };
     } else {
-      return { name, fehler: `bash: ${name}: ${grundText(fund.grund)}\n`, hinweis: grundHinweis(fund.grund, name), code: 127 };
+      return { name, fehler: `bash: ${name}: ${grundText(fund.grund)}\n`, hinweis: fehlendesLeerzeichen(name) ?? grundHinweis(fund.grund, name), code: 127 };
     }
   }
 
@@ -378,9 +390,9 @@ function starteEinzeln(args: string[], u: Umgebung): BefehlErgebnis & { name: st
     return {
       name,
       fehler: `bash: ${name}: command not found\n`,
-      hinweis: v
+      hinweis: fehlendesLeerzeichen(name) ?? (v
         ? `Hinweis: Diesen Befehl kennt das Übungs-Terminal nicht. Meintest du ${v}? Tippe help für alle Befehle.`
-        : "Hinweis: Diesen Befehl kennt das Übungs-Terminal nicht. Tippe help für alle Befehle.",
+        : "Hinweis: Diesen Befehl kennt das Übungs-Terminal nicht. Tippe help für alle Befehle."),
       code: 127,
     };
   }

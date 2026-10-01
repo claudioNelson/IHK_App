@@ -98,6 +98,8 @@
 .tk-kurs .ls-table { min-width: 0; }
 .tk-kurs .ls-table td.txt { min-width: 0; }
 .tk-kurs .ls-table td:not(.txt) { white-space: nowrap; }
+/* Lange Pfade in der letzten Spalte duerfen am Handy umbrechen */
+.tk-kurs .ls-table td.tk-umbruch { white-space: normal; }
 @media (max-width: 520px) {
   .tk-kurs .ls-table th, .tk-kurs .ls-table td { padding: 10px 12px; }
   .tk-kurs .ls-table td.txt { font-size: 14px; }

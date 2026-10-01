@@ -2,22 +2,10 @@
 // Kursuebersicht. Befehle dieser Lektion: whoami, date, echo, pwd, ls, help,
 // man, history, clear.
 
-import { absolut } from "../../_engine/pfade";
 import { szenario } from "../../_engine/szenarien";
 import type { ProtokollEintrag } from "../../_engine/typen";
 import { benutzt, eigenes, hatOption, type Aufgabe } from "../../_engine/ziele";
-
-/**
- * Zeitpunkt vor einigen Tagen, 09:30 UTC. Relativ zu heute, damit ls -l immer
- * Datum und Uhrzeit zeigt (Dateien aelter als ein halbes Jahr zeigen das Jahr).
- */
-const vorTagen = (tage: number) => {
-  const d = new Date(Date.now() - tage * 86_400_000);
-  d.setUTCHours(9, 30, 0, 0);
-  return d;
-};
-
-const HOME = "/home/azubi";
+import { HOME, pfade, vorTagen } from "./_hilfen";
 
 /** Home-Ordner der Lektion: sichtbare und versteckte Eintraege mit verschiedenen Zeiten (fuer ls -t). */
 const heim = () =>
@@ -48,9 +36,6 @@ Probier zum Start: ls, dann ls -la, dann help
 const BEGRUESSUNG_FREI = `Willkommen im Übungs-Terminal von Lernarena.
 Tippe help und drücke Enter, um alle Befehle zu sehen.
 `;
-
-/** Argumente ohne Optionen, als absolute Pfade vom Ordner beim Aufruf aus. */
-const pfade = (e: ProtokollEintrag) => e.args.filter((a) => !a.startsWith("-")).map((a) => absolut(e.cwd, a));
 
 /** ls lief ohne Ordnerwechsel auf /etc: der Ordner stand als Argument da. */
 const listetEtc = (e: ProtokollEintrag) =>

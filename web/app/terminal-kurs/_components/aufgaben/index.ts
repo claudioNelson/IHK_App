@@ -5,7 +5,9 @@
 
 import type { Aufgabe } from "../../_engine/ziele";
 import { lektion1 } from "./lektion1";
+import { lektion2 } from "./lektion2";
 
 export const AUFGABEN: Record<string, Aufgabe> = {
   ...lektion1,
+  ...lektion2,
 };
