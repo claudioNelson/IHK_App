@@ -11,7 +11,7 @@ import { grundHinweis, grundText } from "./hinweise";
 import { kurzhilfe } from "./kurzhilfe";
 import { absolut, absolutMitEnde, endetMitSchraegstrich, teile as pfadTeile } from "./pfade";
 import { darf } from "./rechte";
-import type { BefehlErgebnis, Kontext, Teil, Zustand } from "./typen";
+import type { BefehlErgebnis, Kontext, ProtokollEintrag, Teil, Zustand } from "./typen";
 import { zerlege, type EinfacherBefehl, type Wort } from "./zerleger";
 
 export type AusfuehrOptionen = {
@@ -28,7 +28,7 @@ export type Ausfuehrung = {
   /** true, wenn clear lief: vorherige Anzeige loeschen */
   leeren: boolean;
   /** Je ausgefuehrtem Befehl Name, Argumente, stdout und Rueckgabewert (fuer Aufgabenpruefung) */
-  protokoll: { name: string; args: string[]; ausgabe: string; code: number }[];
+  protokoll: ProtokollEintrag[];
 };
 
 /* ---------- Ersetzungen: Variablen, ~, Platzhalter ---------- */
@@ -298,7 +298,19 @@ type Umgebung = {
   sudo?: boolean;
 };
 
-function starteBefehl(args: string[], u: Umgebung): BefehlErgebnis & { name: string } {
+type Gestartet = BefehlErgebnis & {
+  /** Name fuer das Protokoll (eigentlicher Befehl) */
+  name: string;
+  /** Argumente des eigentlichen Befehls (bei sudo ohne "sudo") */
+  protokollArgs: string[];
+  sudo?: boolean;
+};
+
+function starteBefehl(args: string[], u: Umgebung): Gestartet {
+  return { protokollArgs: args.slice(1), ...starteEinzeln(args, u) };
+}
+
+function starteEinzeln(args: string[], u: Umgebung): BefehlErgebnis & { name: string; protokollArgs?: string[]; sudo?: boolean } {
   const { eingabe, z, jetzt, breite, tty, ausgabeDatei } = u;
   const name = args[0];
   const rest = args.slice(1);
@@ -321,7 +333,7 @@ function starteBefehl(args: string[], u: Umgebung): BefehlErgebnis & { name: str
     const erg = starteBefehl(rest, { ...u, z: { ...z, benutzer: "root" }, sudo: true });
     // Zustand uebernehmen (Dateisystem), aber Benutzer und Ordner bleiben die des Aufrufers
     const neu = erg.zustand ? { ...erg.zustand, benutzer: z.benutzer, cwd: z.cwd, vorher: z.vorher } : undefined;
-    return { ...erg, name, zustand: neu };
+    return { ...erg, zustand: neu, sudo: true };
   }
 
   if (u.sudo && (EINGEBAUT.has(name) || EDITOREN.has(name) || (!name.includes("/") && !BEFEHLE.has(name)))) {
@@ -376,11 +388,11 @@ function starteBefehl(args: string[], u: Umgebung): BefehlErgebnis & { name: str
   const endeOptionen = rest.indexOf("--");
   const vorEnde = endeOptionen < 0 ? rest : rest.slice(0, endeOptionen);
   if (vorEnde.includes("--help") && befehlsName !== "echo") {
-    return { name, ausgabe: kurzhilfe(befehl), code: 0 };
+    return { name: befehlsName, ausgabe: kurzhilfe(befehl), code: 0 };
   }
 
   const kontext: Kontext = { name: befehlsName, args: rest, eingabe, zustand: z, jetzt, breite, tty, ausgabeDatei, befehle: BEFEHLE };
-  return { ...befehl.lauf(kontext), name };
+  return { ...befehl.lauf(kontext), name: befehlsName };
 }
 
 /* ---------- Eine Pipeline ---------- */
@@ -485,7 +497,7 @@ function fuehrePipelineAus(
     const ausgabe = ergebnis.ausgabe ?? "";
     const fehler = ergebnis.fehler ?? "";
     code = ergebnis.code ?? 0;
-    protokoll.push({ name: ergebnis.name, args: args.slice(1), ausgabe, code });
+    protokoll.push({ name: ergebnis.name, args: ergebnis.protokollArgs, ausgabe, code, cwd: z0.cwd, sudo: ergebnis.sudo === true });
 
     let naechsteEingabe = "";
     const verteile = (text: string, ziel: Ziel, istFehler: boolean) => {

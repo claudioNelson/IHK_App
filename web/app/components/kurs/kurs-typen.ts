@@ -1,4 +1,4 @@
-// Gemeinsame Typen und Helfer fuer die Web-Kurse (Python-Kurs, UML-Kurs).
+// Gemeinsame Typen und Helfer fuer die Web-Kurse (Python-, UML-, Struktogramm- und Terminal-Kurs).
 // Jeder Kurs beschreibt sich mit einem Kurs-Objekt; LektionLayout,
 // KursplanNav und die Uebersichtsseiten lesen daraus Pfad-Basis, Titel und
 // Lektionsliste.
@@ -24,7 +24,7 @@ export type Lektion = {
 
 export type Kurs = {
   /** Pfad-Basis, die Lektionen liegen unter /{slug}/{lektion.slug} */
-  slug: "python-kurs" | "uml-kurs" | "struktogramm-kurs";
+  slug: "python-kurs" | "uml-kurs" | "struktogramm-kurs" | "terminal-kurs";
   /** Kurzname fuer den Pfad (Breadcrumb), z. B. "Python-Kurs" */
   titel: string;
   lektionen: Lektion[];

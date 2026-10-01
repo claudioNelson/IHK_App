@@ -87,7 +87,9 @@ export function zerlegeOptionen(name: string, args: string[], spec: OptionSpec):
             name,
             `invalid option -- '${c}'`,
             spec,
-            `Hinweis: Die Option „-${c}“ kennt ${name} im Übungs-Terminal nicht. Mit man ${name} siehst du die wichtigsten Optionen.`,
+            c === "-"
+              ? "Hinweis: Zwischen zwei Optionen gehört ein Leerzeichen, oder du schreibst sie hinter einem Minus zusammen, zum Beispiel -la statt -l-a."
+              : `Hinweis: Die Option „-${c}“ kennt ${name} im Übungs-Terminal nicht. Mit man ${name} siehst du die wichtigsten Optionen.`,
           );
         }
         flags.add(c);

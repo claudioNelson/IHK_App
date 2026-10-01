@@ -43,6 +43,14 @@ export type Zustand = {
 export type Stil = "ordner" | "ausfuehrbar" | "geraet" | "fehler" | "hinweis" | "fett";
 export type Teil = { text: string; stil?: Stil };
 
+/**
+ * Je ausgefuehrtem Befehl (fuer die Aufgabenpruefung): Name des eigentlichen
+ * Befehls (bei "sudo ls" also "ls", bei "/usr/bin/ls" ebenfalls "ls"),
+ * seine Argumente, stdout, Rueckgabewert, der Ordner beim Aufruf und ob er
+ * ueber sudo lief.
+ */
+export type ProtokollEintrag = { name: string; args: string[]; ausgabe: string; code: number; cwd: string; sudo: boolean };
+
 /** Ergebnis eines einzelnen Befehls. */
 export type BefehlErgebnis = {
   /** Standardausgabe (stdout), geht in Pipes und Umleitungen */

@@ -1,0 +1,116 @@
+/* ------------------------------------------------------------------ */
+/* Terminal-Kurs lernarena.app: Ergaenzung zu lernen.css + kurs.css     */
+/* (Praefix tk-). Das Terminal ist immer dunkel wie der Python-Runner   */
+/* und nutzt dessen Palette (--pk-run-*). Farben der Ausgabe wie unter  */
+/* Ubuntu (Tango-Palette): Prompt gruen/blau, Ordner blau, ausfuehrbar  */
+/* gruen. Code-Schrift ohne Ligaturen, damit 2> und -> echt aussehen.   */
+/* ------------------------------------------------------------------ */
+
+.tk-block { margin: 18px 0 0; }
+.pk-aufgabe .tk-block { margin-top: 16px; }
+
+.tk-terminal { border-radius: var(--r); background: var(--pk-run-bg); border: 1px solid var(--pk-run-line-2); box-shadow: var(--pk-run-shadow); overflow: hidden; color: var(--pk-run-text); }
+.tk-terminal:focus-within { border-color: color-mix(in srgb, var(--pk-run-accent) 60%, transparent); }
+.tk-terminal[data-fertig] { border-color: color-mix(in srgb, #8AE234 45%, transparent); }
+
+/* Titelleiste */
+.tk-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 6px 6px 14px; background: var(--pk-run-bar); border-bottom: 1px solid var(--pk-run-line); }
+.tk-titel { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-family: var(--font-mono); font-size: 12.5px; color: var(--pk-run-text-2); }
+.tk-titel > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-titel svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.tk-knopf { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 11px; border-radius: 8px; font: inherit; font-size: 13px; font-weight: 600; color: var(--pk-run-text-2); background: transparent; border: 1px solid var(--pk-run-line-2); cursor: pointer; transition: color .15s ease, border-color .15s ease, transform .16s var(--ls-ease); }
+.tk-knopf svg { width: 14px; height: 14px; }
+.tk-knopf:hover { color: var(--pk-run-text); border-color: rgba(255,255,255,.3); }
+.tk-knopf:active { transform: scale(.97); }
+.tk-terminal :focus-visible { outline: 2px solid var(--pk-run-accent); outline-offset: 2px; border-radius: 6px; }
+
+/* Bildschirm */
+.tk-schirm { position: relative; overflow: auto; padding: 12px 14px 14px; font-family: var(--font-mono); font-size: 14px; line-height: 1.55; font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; cursor: text; overscroll-behavior: contain; scrollbar-color: rgba(255,255,255,.25) transparent; }
+.tk-mess { position: absolute; visibility: hidden; white-space: pre; pointer-events: none; }
+/* Wie im echten Terminal bleibt jede Zeile eine Zeile: breite Ausgaben (ls -l
+   auf dem Handy) scrollen seitlich, statt mitten in der Spalte umzubrechen */
+.tk-zeile, .tk-aus { white-space: pre; }
+.tk-schirm ::selection { background: rgba(143,130,255,.4); color: #fff; }
+
+.tk-p-benutzer { color: #8AE234; font-weight: 700; }
+.tk-p-pfad { color: #729FCF; font-weight: 700; }
+.tk-s-ordner { color: #729FCF; font-weight: 700; }
+.tk-s-ausfuehrbar { color: #8AE234; font-weight: 700; }
+.tk-s-geraet { color: #FCE94F; font-weight: 700; }
+.tk-s-fett { font-weight: 700; }
+.tk-s-fehler { color: var(--pk-run-err); }
+/* Deutsche Hilfe zu Fehlern: bewusst anders gesetzt als echte Terminal-Ausgabe */
+.tk-s-hinweis { display: block; margin: 4px 0 8px; padding: 6px 10px; border-left: 2px solid var(--pk-run-accent); border-radius: 0 6px 6px 0; background: rgba(143,130,255,.1); font-family: var(--font-sans); font-size: 13.5px; line-height: 1.45; color: #D9D4FF; white-space: normal; }
+
+/* Eingabezeile */
+.tk-eingabe { display: flex; align-items: baseline; white-space: pre; }
+.tk-eingabe label { flex: 0 0 auto; cursor: text; }
+.tk-input { flex: 1 1 auto; min-width: 2ch; padding: 0; margin: 0; background: transparent; border: 0; color: var(--pk-run-text); caret-color: var(--pk-run-accent); font: inherit; font-variant-ligatures: none; }
+.tk-input:focus, .tk-input:focus-visible { outline: none; }
+
+/* Sondertasten fuer Handys (nur bei Touch sichtbar) */
+.tk-tasten { display: none; flex-wrap: wrap; gap: 6px; padding: 8px; border-top: 1px solid var(--pk-run-line); background: var(--pk-run-bar); }
+.tk-tasten button { flex: 1 0 auto; min-width: 40px; min-height: 40px; padding: 0 10px; border-radius: 8px; font-family: var(--font-mono); font-size: 15px; font-weight: 600; color: var(--pk-run-text); background: rgba(255,255,255,.06); border: 1px solid var(--pk-run-line-2); cursor: pointer; touch-action: manipulation; }
+.tk-tasten button:active { background: rgba(143,130,255,.25); }
+
+/* Bedienhinweis: immer da (sonst springt beim Fokuswechsel das Layout und
+   der erste Klick auf „Tipp“ geht daneben), ohne Fokus nur blasser */
+.tk-hilfe { margin: 0; padding: 7px 14px 9px; border-top: 1px solid var(--pk-run-line); font-size: 12.5px; color: var(--pk-run-text-2); opacity: .6; transition: opacity .15s ease; }
+.tk-terminal:focus-within .tk-hilfe { opacity: 1; }
+
+/* Schmale Bildschirme: kleinere Schrift, damit mehr Zeichen in eine Zeile passen */
+@media (max-width: 520px) {
+  .tk-schirm { font-size: 12.5px; padding: 10px 10px 12px; }
+  .tk-bar { padding-left: 10px; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .tk-tasten { display: flex; }
+  .tk-input { font-size: 16px; } /* verhindert das automatische Zoomen unter iOS */
+  .tk-hilfe { display: none; }
+}
+
+/* Ziele und Tipps unter dem Terminal */
+.tk-ziele { margin-top: 10px; padding: 12px 16px 14px; border: 1px solid var(--line); border-radius: var(--r-btn); background: var(--surface); }
+.tk-ziele[data-fertig] { border-color: color-mix(in srgb, var(--ok) 55%, transparent); }
+.tk-ziele-titel { margin: 0 0 6px; font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; color: var(--text-3); }
+.tk-ziele > ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.tk-ziele > ul > li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; color: var(--text-2); line-height: 1.45; }
+.tk-ziele > ul > li svg { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 2px; color: var(--text-3); }
+.tk-ziele > ul > li[data-ok] { color: var(--text); }
+.tk-ziele > ul > li[data-ok] svg { color: var(--ok); }
+.tk-geschafft { margin: 0; font-size: 14.5px; font-weight: 600; color: var(--ok); }
+.tk-geschafft:not(:empty) { margin-top: 10px; }
+.tk-tipps { margin-top: 10px; }
+.tk-tipp-liste { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; font-size: 14.5px; color: var(--text); }
+.tk-tipps strong { font-weight: 600; color: var(--accent); }
+.tk-tipp-knopf { display: inline-flex; align-items: center; gap: 10px; min-height: 36px; padding: 0 12px; border-radius: 8px; font: inherit; font-size: 13.5px; font-weight: 600; color: var(--accent); background: transparent; border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); cursor: pointer; }
+.tk-tipp-knopf:hover { background: var(--accent-soft); }
+.tk-tipp-zahl { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--text-3); }
+
+/* Abstaende im Artikel des Terminal-Kurses: Absatz nach Liste oder Tabelle */
+.tk-kurs .ls-article ul:not([class]) + p,
+.tk-kurs .ls-article .ls-table-wrap + p,
+.tk-kurs .ls-article .tk-block + p { margin-top: 14px; }
+
+/* Tabellen mit Fliesstext: auf dem Handy umbrechen statt seitlich zu scrollen
+   (lernen.css gibt td.txt eine Mindestbreite von 200px) */
+.tk-kurs .ls-table { min-width: 0; }
+.tk-kurs .ls-table td.txt { min-width: 0; }
+.tk-kurs .ls-table td:not(.txt) { white-space: nowrap; }
+@media (max-width: 520px) {
+  .tk-kurs .ls-table th, .tk-kurs .ls-table td { padding: 10px 12px; }
+  .tk-kurs .ls-table td.txt { font-size: 14px; }
+}
+
+/* Kursuebersicht: Terminal im Kopf, geplante Lektionen */
+.pk-head .tk-block { margin: 0; min-width: 0; }
+.tk-geplant { list-style: none; padding: 0; margin: 0; }
+.tk-geplant li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); color: var(--text-3); }
+.tk-geplant .pk-lesson-nr { color: var(--text-3); }
+.tk-geplant h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text-2); }
+.tk-geplant p { margin-top: 2px; font-size: 14px; }
+.tk-bald { font-size: 12px; font-weight: 600; color: var(--text-3); border: 1px solid var(--line-2); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+@media (max-width: 1023px) {
+  .pk-head .tk-block { max-width: 640px; }
+}

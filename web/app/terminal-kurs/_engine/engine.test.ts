@@ -4,6 +4,8 @@
 
 import assert from "node:assert/strict";
 import { knotenBei } from "./dateisystem";
+import { ergaenze } from "./ergaenzung";
+import { benutzt, hatOption, imOrdner, istOrdner } from "./ziele";
 import { ausfuehren, prompt } from "./shell";
 import { szenario } from "./szenarien";
 import type { Teil, Zustand } from "./typen";
@@ -558,6 +560,74 @@ test("C: kleinere Befunde", () => {
   assert.ok(knotenBei(lauf(z, "echo a | mkdir neu").z.wurzel, "/home/azubi/neu"));
   assert.equal(lauf(z, "history -5").code, 2);
   assert.equal(lauf(z, "cp -rv projekte pk").aus, "'projekte' -> 'pk'\n'projekte/webshop' -> 'pk/webshop'\n'projekte/webshop/index.html' -> 'pk/webshop/index.html'\n'projekte/webshop/style.css' -> 'pk/webshop/style.css'\n");
+});
+
+/* ---------------- Tab-Ergaenzung ---------------- */
+
+test("Tab ergaenzt Befehle", () => {
+  const z = start();
+  assert.equal(ergaenze("who", 3, z).zeile, "whoami ");
+  assert.deepEqual(ergaenze("c", 1, z).vorschlaege, ["cat", "cd", "clear", "cp"]);
+  assert.equal(ergaenze("m", 1, z).zeile, "m");
+  assert.deepEqual(ergaenze("m", 1, z).vorschlaege, ["man", "mkdir", "mv"]);
+  assert.equal(ergaenze("sudo wh", 7, z).zeile, "sudo whoami ");
+  assert.equal(ergaenze("ls | ca", 7, z).zeile, "ls | cat ");
+});
+
+test("Tab ergaenzt Pfade", () => {
+  const z = start();
+  assert.equal(ergaenze("cd pro", 6, z).zeile, "cd projekte/");
+  assert.equal(ergaenze("cd projekte/w", 13, z).zeile, "cd projekte/webshop/");
+  assert.equal(ergaenze("cat no", 6, z).zeile, "cat notizen.txt ");
+  assert.equal(ergaenze("cat projekte/webshop/i", 22, z).zeile, "cat projekte/webshop/index.html ");
+  assert.equal(ergaenze("ls /et", 6, z).zeile, "ls /etc/");
+  assert.equal(ergaenze("ls ~/bi", 7, z).zeile, "ls ~/bilder/");
+  assert.equal(ergaenze("cat .g", 6, z).zeile, "cat .geheim ");
+  assert.deepEqual(ergaenze("ls ", 3, z).vorschlaege, ["bilder/", "notizen.txt", "projekte/", "skript.sh", "todo.txt"]);
+  assert.equal(ergaenze("ls /root/", 9, z).zeile, "ls /root/");
+  const mitLeer = lauf(z, "mkdir 'mein ordner'").z;
+  assert.equal(ergaenze("cd me", 5, mitLeer).zeile, "cd mein\\ ordner/");
+  // Cursor in der Mitte: Rest bleibt stehen
+  const e = ergaenze("cd pro && ls", 6, z);
+  assert.equal(e.zeile, "cd projekte/ && ls");
+  assert.equal(e.cursor, 12);
+});
+
+/* ---------------- Ziele ---------------- */
+
+test("Ziele pruefen Zustand und Verlauf", () => {
+  let z = start();
+  const verlauf: import("./typen").ProtokollEintrag[] = [];
+  for (const zeile of ["ls -la", "mkdir backup", "cd backup"]) {
+    const a = lauf(z, zeile);
+    verlauf.push(...a.protokoll);
+    z = a.z;
+  }
+  assert.ok(istOrdner("/home/azubi/backup", "").pruefe(z, verlauf));
+  assert.ok(imOrdner("/home/azubi/backup", "").pruefe(z, verlauf));
+  assert.ok(benutzt("ls", "", (a) => hatOption(a, "a", "all")).pruefe(z, verlauf));
+  assert.ok(!benutzt("ls", "", (a) => hatOption(a, "R")).pruefe(z, verlauf));
+  assert.ok(!benutzt("cd", "", (a) => a[0] === "nix").pruefe(z, verlauf));
+});
+
+test("Protokoll: eigentlicher Befehl, Ordner, sudo", () => {
+  const z = start();
+  const a = lauf(z, "sudo ls -la /root");
+  assert.deepEqual(a.protokoll.map((e) => [e.name, e.args, e.sudo, e.cwd]), [["ls", ["-la", "/root"], true, "/home/azubi"]]);
+  const b = lauf(z, "/usr/bin/ls -a");
+  assert.equal(b.protokoll[0].name, "ls");
+  const c = kette(z, "cd /etc", "ls");
+  assert.equal(c.protokoll[0].cwd, "/etc");
+  assert.equal(lauf(z, "cd /tmp").protokoll[0].cwd, "/home/azubi");
+  assert.equal(lauf(z, "date -u").code, 0);
+  assert.ok(lauf(z, "ls -l-a").hinweis.includes("Leerzeichen"));
+});
+
+test("Tab: man BEFEHL und ..", () => {
+  const z = start();
+  assert.equal(ergaenze("man mk", 6, z).zeile, "man mkdir ");
+  assert.equal(ergaenze("cd ..", 5, z).zeile, "cd ../");
+  assert.equal(ergaenze("cd ../..", 8, z).zeile, "cd ../../");
 });
 
 console.log(`\n${bestanden} bestanden, ${gescheitert} gescheitert`);

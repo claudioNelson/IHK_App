@@ -51,7 +51,9 @@ export const date: Befehl = {
     ],
     beispiele: [["date +%F", "gut für Dateinamen, zum Beispiel backup-2026-09-30"]],
   },
-  lauf: ({ args, jetzt }) => {
+  lauf: ({ args: alle, jetzt }) => {
+    // -u / --utc aendert nichts: der Uebungs-Server laeuft ohnehin in UTC
+    const args = alle.filter((a) => a !== "-u" && a !== "--utc" && a !== "--universal");
     if (args.length === 0) return { ausgabe: formatiereDatum(jetzt, "%a %b %e %T %Z %Y") + "\n", code: 0 };
     if (args.length === 1 && args[0].startsWith("+")) return { ausgabe: formatiereDatum(jetzt, args[0].slice(1)) + "\n", code: 0 };
     if (args[0].startsWith("+")) {
