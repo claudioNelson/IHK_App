@@ -63,6 +63,12 @@ class _AufgabenKarte extends StatelessWidget {
   final VoidCallback? onNochmal;
   final String? tipp;
 
+  /// Lösung zum Aufdecken nach einem falschen Versuch: ein Satz und/oder
+  /// Code. Wunsch aus der Play-Bewertung 27.09.2026 („keine Möglichkeit,
+  /// sich die richtige Antwort anzeigen zu lassen“).
+  final String? loesungText;
+  final String? loesungCode;
+
   const _AufgabenKarte({
     required this.frage,
     required this.inhalt,
@@ -71,6 +77,8 @@ class _AufgabenKarte extends StatelessWidget {
     this.onPruefen,
     this.onNochmal,
     this.tipp,
+    this.loesungText,
+    this.loesungCode,
   });
 
   @override
@@ -158,6 +166,8 @@ class _AufgabenKarte extends StatelessWidget {
               stand: stand,
               erklaerung: erklaerung,
               onNochmal: onNochmal,
+              loesungText: loesungText,
+              loesungCode: loesungCode,
             ),
         ],
       ),
@@ -165,19 +175,38 @@ class _AufgabenKarte extends StatelessWidget {
   }
 }
 
-class _Rueckmeldung extends StatelessWidget {
+class _Rueckmeldung extends StatefulWidget {
   final _Stand stand;
   final String? erklaerung;
   final VoidCallback? onNochmal;
+  final String? loesungText;
+  final String? loesungCode;
 
   const _Rueckmeldung({
     required this.stand,
     this.erklaerung,
     this.onNochmal,
+    this.loesungText,
+    this.loesungCode,
   });
 
   @override
+  State<_Rueckmeldung> createState() => _RueckmeldungState();
+}
+
+class _RueckmeldungState extends State<_Rueckmeldung> {
+  /// Hat der Nutzer die Lösung aufgedeckt? Wird mit „Nochmal versuchen“
+  /// automatisch zurückgesetzt, weil die Rückmeldung dann verschwindet.
+  bool _loesungOffen = false;
+
+  bool get _hatLoesung =>
+      widget.loesungText != null || widget.loesungCode != null;
+
+  @override
   Widget build(BuildContext context) {
+    final stand = widget.stand;
+    final erklaerung = widget.erklaerung;
+    final onNochmal = widget.onNochmal;
     final richtig = stand == _Stand.richtig;
     final farbe =
         richtig ? const Color(0xFF5FD98A) : const Color(0xFFFF6B63);
@@ -211,20 +240,105 @@ class _Rueckmeldung extends StatelessWidget {
             ),
             child: _mitCode(
               context,
-              erklaerung!,
+              erklaerung,
               Theme.of(context).textTheme.bodyMedium,
             ),
           ),
         ],
         if (!richtig) ...[
           const SizedBox(height: 10),
-          TextButton.icon(
-            onPressed: onNochmal,
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Nochmal versuchen'),
+          Wrap(
+            spacing: 4,
+            children: [
+              TextButton.icon(
+                onPressed: onNochmal,
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Nochmal versuchen'),
+              ),
+              if (_hatLoesung)
+                TextButton.icon(
+                  onPressed: () =>
+                      setState(() => _loesungOffen = !_loesungOffen),
+                  icon: Icon(
+                    _loesungOffen
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    size: 18,
+                  ),
+                  label: Text(
+                      _loesungOffen ? 'Lösung ausblenden' : 'Lösung zeigen'),
+                ),
+            ],
           ),
+          if (_loesungOffen) ...[
+            const SizedBox(height: 6),
+            _LoesungsKasten(
+              text: widget.loesungText,
+              code: widget.loesungCode,
+              erklaerung: erklaerung,
+            ),
+          ],
         ],
       ],
+    );
+  }
+}
+
+/// Aufgedeckte Lösung: Satz, Code und die Erklärung, die sonst erst nach
+/// der richtigen Antwort erscheint. Gelöst ist die Aufgabe damit noch
+/// nicht, dafür muss man sie mit „Nochmal versuchen“ selbst eingeben.
+class _LoesungsKasten extends StatelessWidget {
+  final String? text;
+  final String? code;
+  final String? erklaerung;
+
+  const _LoesungsKasten({this.text, this.code, this.erklaerung});
+
+  @override
+  Widget build(BuildContext context) {
+    final farbe = Theme.of(context).colorScheme.primary;
+    final stil = Theme.of(context).textTheme.bodyMedium;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: farbe.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border(left: BorderSide(color: farbe, width: 3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'LÖSUNG',
+            style: TextStyle(
+              fontSize: 11,
+              letterSpacing: 1.5,
+              fontWeight: FontWeight.w700,
+              color: farbe,
+            ),
+          ),
+          if (text != null) ...[
+            const SizedBox(height: 8),
+            _mitCode(context, text!, stil),
+          ],
+          if (code != null) ...[
+            const SizedBox(height: 8),
+            _CodeFlaeche(child: Text(code!, style: _monoStil)),
+          ],
+          if (erklaerung != null) ...[
+            const SizedBox(height: 10),
+            _mitCode(context, erklaerung!, stil),
+          ],
+          const SizedBox(height: 8),
+          Text(
+            'Tippe auf „Nochmal versuchen“ und löse die Aufgabe selbst, '
+            'dann zählt sie als gelöst.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -365,6 +479,22 @@ class _LueckenWidgetState extends State<_LueckenWidget> {
     });
   }
 
+  /// Vorlage mit der ersten akzeptierten Antwort in jeder Lücke.
+  String get _loesungsCode {
+    final a = widget.aufgabe;
+    final teile = a.vorlage.split('___');
+    final puffer = StringBuffer(teile.first);
+    for (var i = 1; i < teile.length; i++) {
+      final l = i - 1 < a.loesungen.length && a.loesungen[i - 1].isNotEmpty
+          ? a.loesungen[i - 1].first
+          : '?';
+      puffer
+        ..write(l)
+        ..write(teile[i]);
+    }
+    return puffer.toString();
+  }
+
   /// Vorlage anzeigen, Lücken als ⟨1⟩ ⟨2⟩ nummeriert.
   Widget _vorlageAnzeigen() {
     final teile = widget.aufgabe.vorlage.split('___');
@@ -457,6 +587,7 @@ class _LueckenWidgetState extends State<_LueckenWidget> {
       stand: _stand,
       onPruefen: _pruefen,
       onNochmal: _zuruecksetzen,
+      loesungCode: _loesungsCode,
       inhalt: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -552,6 +683,10 @@ class _ReihenfolgeWidgetState extends State<_ReihenfolgeWidget> {
       stand: _stand,
       onPruefen: _pruefen,
       onNochmal: _zuruecksetzen,
+      loesungCode: [
+        for (var i = 0; i < widget.aufgabe.zeilen.length; i++)
+          '${'    ' * widget.aufgabe.tiefe(i)}${widget.aufgabe.zeilen[i]}',
+      ].join('\n'),
       inhalt: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -690,6 +825,11 @@ class _FehlerWidgetState extends State<_FehlerWidget> {
       erklaerung: _stand == _Stand.offen ? null : widget.aufgabe.erklaerung,
       stand: _stand,
       tipp: widget.aufgabe.tipp,
+      loesungText: 'Zeile ${widget.aufgabe.fehlerZeile + 1} ist falsch. '
+          'So ist sie richtig:',
+      loesungCode: widget.aufgabe.korrekturen.isEmpty
+          ? null
+          : widget.aufgabe.korrekturen.first,
       onPruefen: (_markiert == null || _korrektur.text.trim().isEmpty)
           ? null
           : _pruefen,
@@ -828,6 +968,12 @@ class _AuswahlWidgetState extends State<_AuswahlWidget> {
       erklaerung: _stand == _Stand.offen ? null : widget.aufgabe.erklaerung,
       stand: _stand,
       onPruefen: _gewaehlt == null ? null : _pruefen,
+      loesungText: widget.aufgabe.richtig >= 0 &&
+              widget.aufgabe.richtig < widget.aufgabe.optionen.length
+          ? 'Richtig ist '
+              '${String.fromCharCode(65 + widget.aufgabe.richtig)}) '
+              '${widget.aufgabe.optionen[widget.aufgabe.richtig]}'
+          : null,
       onNochmal: () => setState(() {
         _gewaehlt = null;
         _stand = _Stand.offen;

@@ -43,6 +43,11 @@ class _SqlAufgabeWidgetState extends State<SqlAufgabeWidget> {
   bool? _richtig;
   int _versuche = 0;
 
+  /// Musterlösung aufgedeckt? Erst nach zwei Fehlversuchen möglich
+  /// (Play-Bewertung 27.09.2026). Gelöst ist die Aufgabe damit nicht,
+  /// die Abfrage muss trotzdem selbst ausgeführt werden.
+  bool _loesungOffen = false;
+
   bool get _bausteinModus => widget.aufgabe.bausteinModus && !_tastatur;
 
   @override
@@ -97,6 +102,7 @@ class _SqlAufgabeWidgetState extends State<SqlAufgabeWidget> {
       _ergebnis = meins;
       _richtig = passt;
       _versuche++;
+      if (passt) _loesungOffen = false;
     });
 
     if (passt) widget.onErgebnis(true);
@@ -307,6 +313,82 @@ class _SqlAufgabeWidgetState extends State<SqlAufgabeWidget> {
               erklaerung: widget.aufgabe.erklaerung,
             ),
           ],
+
+          // Wie der Tipp erst ab dem zweiten Versuch, weil der erste oft
+          // nur an einem Tippfehler scheitert.
+          if (_versuche >= 2 && _richtig != true) ...[
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () => setState(() => _loesungOffen = !_loesungOffen),
+              icon: Icon(
+                _loesungOffen
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                size: 18,
+              ),
+              label: Text(
+                  _loesungOffen ? 'Lösung ausblenden' : 'Lösung zeigen'),
+            ),
+            if (_loesungOffen) _musterloesung(context),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _musterloesung(BuildContext context) {
+    final farbe = Theme.of(context).colorScheme.primary;
+    final stil = Theme.of(context).textTheme.bodyMedium;
+    final erklaerung = widget.aufgabe.erklaerung;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: farbe.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border(left: BorderSide(color: farbe, width: 3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'MUSTERLÖSUNG',
+            style: TextStyle(
+              fontSize: 11,
+              letterSpacing: 1.5,
+              fontWeight: FontWeight.w700,
+              color: farbe,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0D1117),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: SelectableText(
+              widget.aufgabe.musterloesung.trim(),
+              style: GoogleFonts.jetBrainsMono(
+                fontFeatures: AppTextStyles.ohneLigaturen,
+                fontSize: 13.5,
+                height: 1.5,
+                color: const Color(0xFFE6EDF3),
+              ),
+            ),
+          ),
+          if (erklaerung != null) ...[
+            const SizedBox(height: 10),
+            Text(erklaerung, style: stil),
+          ],
+          const SizedBox(height: 8),
+          Text(
+            'Andere Schreibweisen zählen auch, geprüft wird das Ergebnis. '
+            'Führe die Abfrage selbst aus, dann zählt die Aufgabe als gelöst.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
         ],
       ),
     );
