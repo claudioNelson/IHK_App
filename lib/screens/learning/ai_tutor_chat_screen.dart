@@ -7,6 +7,7 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/limit_reached_dialog.dart';
 import '../../widgets/premium_kauf_sheet.dart';
+import '../../widgets/ada_markdown.dart';
 import '../../widgets/limit_indicator_pill.dart';
 import '../../services/usage_tracker.dart';
 
@@ -493,15 +494,22 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
                 ),
                 border: isUser ? null : Border.all(color: border),
               ),
-              child: SelectableText(
-                message.text,
-                style: AppTextStyles.interTight(
-                  size: 14,
-                  weight: FontWeight.w400,
-                  color: isUser ? bg : text,
-                  height: 1.6,
-                ),
-              ),
+              child: isUser
+                  ? SelectableText(
+                      message.text,
+                      style: AppTextStyles.interTight(
+                        size: 14,
+                        weight: FontWeight.w400,
+                        color: bg,
+                        height: 1.6,
+                      ),
+                    )
+                  : AdaMarkdown(
+                      message.text,
+                      farbe: text,
+                      gedimmt: textMid,
+                      rahmen: border,
+                    ),
             ),
           ),
           if (isUser) ...[

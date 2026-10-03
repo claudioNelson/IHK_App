@@ -12,6 +12,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/gemini_service.dart';
+import '../ada_markdown.dart';
 import '../premium_kauf_sheet.dart';
 
 /// Öffnet das Ada-Sheet. [lektionsTitel] ist Pflicht, [aufgabenText] nur
@@ -282,6 +283,15 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
                         );
                       }
                       final n = _verlauf[i];
+                      final inhalt = n.vonAda
+                          ? AdaMarkdown(
+                              n.text,
+                              farbe: farben.onSurface,
+                              gedimmt: farben.onSurfaceVariant,
+                              rahmen: farben.outlineVariant,
+                            )
+                          : SelectableText(n.text,
+                              style: const TextStyle(height: 1.45));
                       return Align(
                         alignment: n.vonAda
                             ? Alignment.centerLeft
@@ -303,8 +313,7 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
                               ? Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    SelectableText(n.text,
-                                        style: const TextStyle(height: 1.45)),
+                                    inhalt,
                                     const SizedBox(height: 10),
                                     FilledButton.icon(
                                       onPressed: _premiumOeffnen,
@@ -315,8 +324,7 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
                                     ),
                                   ],
                                 )
-                              : SelectableText(n.text,
-                                  style: const TextStyle(height: 1.45)),
+                              : inhalt,
                         ),
                       );
                     },

@@ -5,6 +5,7 @@ import '../../services/gemini_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
+import '../../widgets/ada_markdown.dart';
 import '../../widgets/premium_kauf_sheet.dart';
 
 /// Bottom-Sheet zum Chatten mit Ada im Lernarena-Style
@@ -399,7 +400,12 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(msg.text, style: AppTextStyles.bodyMedium(text)),
+                        AdaMarkdown(
+                          msg.text,
+                          farbe: text,
+                          gedimmt: textMid,
+                          rahmen: border,
+                        ),
                         const SizedBox(height: 10),
                         FilledButton.icon(
                           onPressed: _premiumOeffnen,
@@ -415,11 +421,16 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
                         ),
                       ],
                     )
-                  : Text(
+                  : msg.isUser
+                  ? Text(
                       msg.text,
-                      style: AppTextStyles.bodyMedium(
-                        msg.isUser ? Colors.white : text,
-                      ),
+                      style: AppTextStyles.bodyMedium(Colors.white),
+                    )
+                  : AdaMarkdown(
+                      msg.text,
+                      farbe: text,
+                      gedimmt: textMid,
+                      rahmen: border,
                     ),
             ),
           ),
