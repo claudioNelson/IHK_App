@@ -14,12 +14,15 @@ import 'package:flutter/material.dart';
 import '../../services/gemini_service.dart';
 
 /// Öffnet das Ada-Sheet. [lektionsTitel] ist Pflicht, [aufgabenText] nur
-/// gesetzt, wenn der Nutzer gerade auf einer Aufgabenseite steht.
+/// gesetzt, wenn der Nutzer gerade auf einer Aufgabenseite steht,
+/// [seitenText] auf einer Erklärseite. Beide baut `adaKontextFuerSchritt`
+/// (ada_kontext.dart).
 Future<void> zeigeAdaKursSheet(
   BuildContext context, {
   required String kursTitel,
   required String lektionsTitel,
   String? aufgabenText,
+  String? seitenText,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -33,6 +36,7 @@ Future<void> zeigeAdaKursSheet(
         kursTitel: kursTitel,
         lektionsTitel: lektionsTitel,
         aufgabenText: aufgabenText,
+        seitenText: seitenText,
       ),
     ),
   );
@@ -42,11 +46,13 @@ class _AdaKursSheet extends StatefulWidget {
   final String kursTitel;
   final String lektionsTitel;
   final String? aufgabenText;
+  final String? seitenText;
 
   const _AdaKursSheet({
     required this.kursTitel,
     required this.lektionsTitel,
     this.aufgabenText,
+    this.seitenText,
   });
 
   @override
@@ -78,16 +84,26 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
         'meist 3 bis 6 Sätze. Verwende keine Gedankenstriche.';
 
     final aufgabe = widget.aufgabenText != null
-        ? '\nDer Azubi arbeitet gerade an dieser Aufgabe:\n'
-            '${widget.aufgabenText}\n'
+        ? '\nDer Azubi steht gerade auf dieser Aufgabenseite. Du siehst '
+            'dasselbe wie er (Code, Lücken, Optionen, Tabellen, Diagramme '
+            'als Text) und zusätzlich die Lösung:\n\n'
+            '${widget.aufgabenText}\n\n'
+            'Beziehe dich in deinen Antworten konkret auf genau diese '
+            'Aufgabe. Fragt der Azubi, worum es geht oder was er tun soll, '
+            'erkläre die Aufgabe mit eigenen Worten.\n'
             'LÖSUNGS-REGEL: Sag die fertige Lösung nicht ungefragt vor. '
             'Erkläre zuerst das Konzept oder den nächsten Denkschritt. '
             'ABER: Wenn der Azubi ausdrücklich nach der Lösung fragt '
             '(zum Beispiel "zeig mir die Lösung", "wie lautet die Abfrage"), '
             'dann gib sie ihm vollständig und erkläre in ein bis zwei '
             'einfachen Sätzen, warum sie funktioniert. Niemals die Lösung '
-            'verweigern, wenn direkt danach gefragt wird.'
-        : '';
+            'verweigern, wenn direkt danach gefragt wird. Nutze dafür die '
+            'Lösung oben, rate nicht.'
+        : widget.seitenText != null
+            ? '\nDer Azubi liest gerade diese Erklärseite:\n\n'
+                '${widget.seitenText}\n\n'
+                'Beziehe dich auf diese Seite, wenn er etwas dazu fragt.'
+            : '';
 
     return 'Kurs: ${widget.kursTitel}, '
         'Lektion: ${widget.lektionsTitel}.$stil$aufgabe';
@@ -110,6 +126,8 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
       _eingabe.clear();
     });
     _nachUntenScrollen();
+
+    _verlaufKuerzen();
 
     String antwort;
     try {
@@ -139,6 +157,21 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
       _laedt = false;
     });
     _nachUntenScrollen();
+  }
+
+  /// Die Edge Function lehnt Anfragen über 20.000 Zeichen ab. Damit lange
+  /// Gespräche nicht plötzlich scheitern, fliegen die ältesten Frage-
+  /// Antwort-Paare raus, bis Kontext, Verlauf und neue Frage passen.
+  /// 2.000 Zeichen Luft für den festen Prompt in GeminiService.
+  void _verlaufKuerzen() {
+    const grenze = 18000;
+    int laenge() =>
+        _kontext.length +
+        _verlauf.last.text.length + // die gerade gestellte Frage
+        _historie.fold<int>(0, (s, m) => s + (m['content']?.length ?? 0));
+    while (_historie.length >= 2 && laenge() > grenze) {
+      _historie.removeRange(0, 2);
+    }
   }
 
   void _nachUntenScrollen() {
@@ -183,7 +216,9 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
                       Text(
                         widget.aufgabenText != null
                             ? 'Sie kennt deine aktuelle Aufgabe'
-                            : widget.lektionsTitel,
+                            : widget.seitenText != null
+                                ? 'Sie kennt diese Seite'
+                                : widget.lektionsTitel,
                         style: TextStyle(
                             fontSize: 12, color: farben.onSurfaceVariant),
                         overflow: TextOverflow.ellipsis,

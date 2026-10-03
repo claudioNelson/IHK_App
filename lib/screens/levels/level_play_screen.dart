@@ -548,13 +548,13 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
     final q = _fragen[_currentIndex];
     final frageText = q['frage'] as String? ?? '';
     final erklaerung = q['erklaerung'] as String? ?? '';
-    // Kontext: bei Lehr-Karten = Erklärung, bei Fragen = Frage + (falls
-    // schon beantwortet) Erklärung
+    // Kontext: bei Lehr-Karten = Erklärung, bei Fragen = Frage mit
+    // Antwortmöglichkeiten, bisheriger Eingabe und Lösung (nur auf
+    // Nachfrage), nach dem Antworten zusätzlich die Erklärung.
+    // Vorher bekam Ada nur den Fragetext (Bewertung 27.09.2026).
     final contextText = q['frage_typ'] == 'lehr_karte'
         ? erklaerung
-        : (_hasAnswered && erklaerung.isNotEmpty
-              ? '$frageText\n\n$erklaerung'
-              : frageText);
+        : _adaFragenKontext(q, frageText, erklaerung);
 
     LevelAdaSheet.show(
       context,
@@ -562,6 +562,67 @@ class _LevelPlayScreenState extends State<LevelPlayScreen> {
       topic: '${widget.modulName} · ${widget.level.titel}',
       initialPrompt: initialPrompt,
     );
+  }
+
+  /// Frage als Text für Ada: Optionen, was der Azubi gewählt oder
+  /// eingegeben hat, und die richtige Antwort, markiert als „nur für
+  /// dich". Ada nennt sie laut Prompt nur auf ausdrückliche Nachfrage.
+  String _adaFragenKontext(
+    Map<String, dynamic> q,
+    String frageText,
+    String erklaerung,
+  ) {
+    final out = StringBuffer(frageText);
+    final antworten = (q['antworten'] as List?) ?? const [];
+    // Nicht filtern, sonst passen die Buchstaben nicht mehr zur Anzeige.
+    final mitText = antworten.whereType<Map>().toList();
+    final hatOptionen = mitText
+        .any((a) => (a['text']?.toString() ?? '').trim().isNotEmpty);
+
+    if (hatOptionen) {
+      out.write('\n\nAntwortmöglichkeiten:');
+      for (var i = 0; i < mitText.length; i++) {
+        out.write('\n${String.fromCharCode(65 + i)}) ${mitText[i]['text']}');
+      }
+      final richtige = mitText
+          .where((a) => a['ist_richtig'] == true)
+          .map((a) => a['text'])
+          .join(' / ');
+      if (_selectedAnswerId != null) {
+        final gewaehlt = mitText.firstWhere(
+          (a) => a['id'] == _selectedAnswerId,
+          orElse: () => const {},
+        );
+        if (gewaehlt.isNotEmpty) {
+          out.write('\n\nDer Azubi hat gewählt: ${gewaehlt['text']} '
+              '(${_wasCorrect ? 'richtig' : 'falsch'}).');
+        }
+      }
+      if (richtige.isNotEmpty) {
+        out.write(_hasAnswered
+            ? '\nRichtige Antwort: $richtige'
+            : '\n\nRichtige Antwort (nur für dich, nicht ungefragt '
+                'verraten): $richtige');
+      }
+    } else {
+      final calc = q['calculation_data'];
+      final eingabe = _textController.text.trim();
+      if (eingabe.isNotEmpty) {
+        out.write('\n\nBisherige Eingabe des Azubis: $eingabe');
+      }
+      if (calc is Map) {
+        final loesung = (calc['answer'] ?? calc['expected'])?.toString();
+        if (loesung != null && loesung.trim().isNotEmpty) {
+          out.write('\n\nRichtige Antwort (nur für dich, nicht ungefragt '
+              'verraten): $loesung');
+        }
+      }
+    }
+
+    if (_hasAnswered && erklaerung.isNotEmpty) {
+      out.write('\n\nErklärung: $erklaerung');
+    }
+    return out.toString();
   }
 
   /// Header-Label: bei Lehr-Karten "KONZEPT", bei Fragen "FRAGE X / Y"

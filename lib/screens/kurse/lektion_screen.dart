@@ -16,6 +16,7 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/kurs_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/kurs/ada_kurs_sheet.dart';
+import '../../widgets/kurs/ada_kontext.dart';
 import '../../widgets/kurs/kurs_aufgaben_widgets.dart';
 import '../../widgets/kurs/schreibtischtest_tabelle.dart';
 import '../../widgets/kurs/sql_aufgabe_widget.dart';
@@ -198,8 +199,9 @@ class _LektionScreenState extends State<LektionScreen> {
         ),
         actions: [
           // Ada ist auf jeder Seite erreichbar. Steht der Nutzer gerade
-          // auf einer Aufgabe, bekommt sie deren Text als Kontext mit,
-          // darf aber laut Prompt die Loesung nicht verraten.
+          // auf einer Aufgabe, bekommt sie die ganze Aufgabe samt Loesung
+          // als Kontext mit, nennt die Loesung laut Prompt aber nur auf
+          // ausdrueckliche Nachfrage.
           // Deutlich sichtbarer Ada-Knopf: Pill mit Symbol und Text,
           // damit Azubis die Hilfe auch wirklich finden (ein nacktes
           // Icon hat im Test niemand als Ada erkannt).
@@ -209,16 +211,23 @@ class _LektionScreenState extends State<LektionScreen> {
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
-                onTap: () => zeigeAdaKursSheet(
-                  context,
-                  kursTitel: widget.kursTitel.isEmpty
-                      ? 'Kurs'
-                      : widget.kursTitel,
-                  lektionsTitel:
-                      'Lektion ${widget.lektion.nr}: ${widget.lektion.titel}',
-                  aufgabenText:
-                      istAbschluss ? null : _aufgabeVon(_aktuell)?.frage,
-                ),
+                onTap: () {
+                  // Ada bekommt die ganze Seite: Aufgabe mit Code, Lücken,
+                  // Optionen, Tabellen und Diagrammen, dazu die Erklärseite
+                  // davor und die Lösung (nur auf Nachfrage). Vorher nur
+                  // die Frage, Bewertung 27.09.2026.
+                  final kontext = adaKontextFuerSchritt(_schritte, _aktuell);
+                  zeigeAdaKursSheet(
+                    context,
+                    kursTitel: widget.kursTitel.isEmpty
+                        ? 'Kurs'
+                        : widget.kursTitel,
+                    lektionsTitel:
+                        'Lektion ${widget.lektion.nr}: ${widget.lektion.titel}',
+                    aufgabenText: istAbschluss ? null : kontext.aufgabe,
+                    seitenText: istAbschluss ? null : kontext.seite,
+                  );
+                },
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
