@@ -1298,8 +1298,10 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Fehler: $e'),
-            backgroundColor: AppColors.error,
+            content: Text(GeminiService.fehlerText(e)),
+            backgroundColor: e is LimitReachedException
+                ? AppColors.warning
+                : AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
         );

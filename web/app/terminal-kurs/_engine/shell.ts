@@ -214,7 +214,7 @@ function oeffne(s: Sammler, getippt: string, anhaengen: boolean): { ok: true; zi
     if (!darf(fund.knoten, z.benutzer, "w")) {
       return { ok: false, fehler: `bash: ${getippt}: Permission denied\n`, hinweis: grundHinweis("verweigert", getippt) };
     }
-    if (!anhaengen) s.zustand = { ...z, wurzel: setze(z.wurzel, pfad, { ...fund.knoten, inhalt: "", geaendert: s.jetzt }, s.jetzt) };
+    if (!anhaengen) s.zustand = { ...z, wurzel: setze(z.wurzel, pfad, { ...fund.knoten, inhalt: "", geaendert: s.jetzt }, s.jetzt, false) };
     return { ok: true, ziel: { art: "datei", pfad } };
   }
   if (fund.grund !== "fehlt") {
@@ -234,7 +234,7 @@ function schreibe(s: Sammler, pfad: string, text: string) {
   const z = s.zustand;
   const k = finde({ ...z, benutzer: "root" }, pfad);
   if (!k.ok || k.knoten.art !== "datei") return;
-  s.zustand = { ...z, wurzel: setze(z.wurzel, pfad, { ...k.knoten, inhalt: k.knoten.inhalt + text, geaendert: s.jetzt }, s.jetzt) };
+  s.zustand = { ...z, wurzel: setze(z.wurzel, pfad, { ...k.knoten, inhalt: k.knoten.inhalt + text, geaendert: s.jetzt }, s.jetzt, false) };
 }
 
 /* ---------- Sonderfaelle, die kein eigener Befehl sind ---------- */
@@ -378,7 +378,7 @@ function starteEinzeln(args: string[], u: Umgebung): BefehlErgebnis & { name: st
       if (!darf(fund.knoten, z.benutzer, "x")) {
         return { name, fehler: `bash: ${name}: Permission denied\n`, hinweis: `Hinweis: Die Datei ist nicht ausführbar. Das x-Recht setzt du mit chmod +x ${name}.`, code: 126 };
       }
-      return { name, fehler: "", hinweis: "Hinweis: Eigene Skripte ausführen kann das Übungs-Terminal noch nicht. Das kommt mit der Lektion zu Skripten.", code: 0 };
+      return { name, fehler: "", hinweis: "Hinweis: Das x-Recht ist gesetzt, auf einem echten Server würde das Skript jetzt laufen. Eigene Skripte führt das Übungs-Terminal nicht aus.", code: 0 };
     } else {
       return { name, fehler: `bash: ${name}: ${grundText(fund.grund)}\n`, hinweis: fehlendesLeerzeichen(name) ?? grundHinweis(fund.grund, name), code: 127 };
     }
@@ -509,7 +509,7 @@ function fuehrePipelineAus(
     const ausgabe = ergebnis.ausgabe ?? "";
     const fehler = ergebnis.fehler ?? "";
     code = ergebnis.code ?? 0;
-    protokoll.push({ name: ergebnis.name, args: ergebnis.protokollArgs, ausgabe, code, cwd: z0.cwd, sudo: ergebnis.sudo === true });
+    protokoll.push({ name: ergebnis.name, args: ergebnis.protokollArgs, ausgabe, code, cwd: z0.cwd, sudo: ergebnis.sudo === true, fehlerNach: fd2.art });
 
     let naechsteEingabe = "";
     const verteile = (text: string, ziel: Ziel, istFehler: boolean) => {

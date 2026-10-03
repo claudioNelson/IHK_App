@@ -567,7 +567,7 @@ test("C: kleinere Befunde", () => {
 test("Tab ergaenzt Befehle", () => {
   const z = start();
   assert.equal(ergaenze("who", 3, z).zeile, "whoami ");
-  assert.deepEqual(ergaenze("c", 1, z).vorschlaege, ["cat", "cd", "clear", "cp"]);
+  assert.deepEqual(ergaenze("c", 1, z).vorschlaege, ["cat", "cd", "chmod", "chown", "clear", "cp", "cut"]);
   assert.equal(ergaenze("m", 1, z).zeile, "m");
   assert.deepEqual(ergaenze("m", 1, z).vorschlaege, ["man", "mkdir", "mv"]);
   assert.equal(ergaenze("sudo wh", 7, z).zeile, "sudo whoami ");
@@ -641,6 +641,170 @@ test("vergessenes Leerzeichen zwischen Befehl und Argument", () => {
   assert.ok(lauf(z, "ls-la").hinweis.includes("ls -la"));
   assert.ok(lauf(z, "cd/var").hinweis.includes("cd /var"));
   assert.ok(!lauf(z, "lss").hinweis.includes("Leerzeichen"));
+});
+
+function lesen(): Zustand {
+  return szenario({
+    "/home/azubi/namen.txt": "Mia\nBen\nanna\nZoe\nben\nMia\n",
+    "/home/azubi/zahlen.txt": "10\n2\n33\n4\n",
+    "/home/azubi/log.txt": "Jan 1 sshd: Failed password for root from 1.2.3.4\nJan 1 sshd: Accepted publickey for azubi\nJan 2 sshd: Failed password for admin from 5.6.7.8\n",
+    "/home/azubi/ohne.txt": "eins\nzwei",
+    "/home/azubi/p/a.txt": "TODO eins\n",
+    "/home/azubi/p/sub/b.txt": "nichts\nTODO zwei\n",
+    "/home/azubi/skript.sh": "echo hi\n",
+    "/home/mia/geheim.txt": { inhalt: "x\n", rechte: 0o600 },
+  });
+}
+
+test("head und tail", () => {
+  const z = lesen();
+  assert.equal(lauf(z, "head -n 2 namen.txt").aus, "Mia\nBen\n");
+  assert.equal(lauf(z, "head -2 namen.txt").aus, "Mia\nBen\n");
+  assert.equal(lauf(z, "tail -n 2 namen.txt").aus, "ben\nMia\n");
+  assert.equal(lauf(z, "tail -n +5 namen.txt").aus, "ben\nMia\n");
+  assert.equal(lauf(z, "head -1 namen.txt zahlen.txt").aus, "==> namen.txt <==\nMia\n\n==> zahlen.txt <==\n10\n");
+  assert.equal(lauf(z, "tail -1 ohne.txt").aus, "zwei");
+  assert.equal(lauf(z, "head -n x namen.txt").fehler, "head: invalid number of lines: 'x'\n");
+  assert.equal(lauf(z, "cat namen.txt | head -n 1").aus, "Mia\n");
+  assert.ok(lauf(z, "tail -f log.txt").hinweis.includes("Strg+C"));
+  assert.ok(lauf(z, "head").hinweis.includes("Tastatur"));
+});
+
+test("grep", () => {
+  const z = lesen();
+  assert.equal(lauf(z, "grep Failed log.txt").aus.split("\n").length, 3);
+  assert.equal(lauf(z, "grep -c Failed log.txt").aus, "2\n");
+  assert.equal(lauf(z, "grep -ci failed log.txt").aus, "2\n");
+  assert.equal(lauf(z, "grep -n Accepted log.txt").aus, "2:Jan 1 sshd: Accepted publickey for azubi\n");
+  assert.equal(lauf(z, "grep -v Failed log.txt").aus, "Jan 1 sshd: Accepted publickey for azubi\n");
+  assert.equal(lauf(z, "grep -r TODO p").aus, "p/a.txt:TODO eins\np/sub/b.txt:TODO zwei\n");
+  assert.equal(lauf(z, "grep -rl TODO .").aus, "./p/a.txt\n./p/sub/b.txt\n");
+  assert.equal(lauf(z, "grep -oE '([0-9]+\\.){3}[0-9]+' log.txt").aus, "1.2.3.4\n5.6.7.8\n");
+  assert.equal(lauf(z, "grep -o '[0-9]*\\.[0-9]*\\.[0-9]*\\.[0-9]*' log.txt").aus, "1.2.3.4\n5.6.7.8\n");
+  assert.equal(lauf(z, "grep -w for log.txt").aus.split("\n").length, 4);
+  assert.equal(lauf(z, "grep 'a\\|Z' namen.txt").aus, "Mia\nanna\nZoe\nMia\n");
+  assert.equal(lauf(z, "grep nix log.txt").code, 1);
+  assert.equal(lauf(z, "grep x nix.txt").code, 2);
+  assert.ok(lauf(z, "grep TODO p").fehler.includes("Is a directory"));
+  assert.equal(lauf(z, "cat log.txt | grep -c Failed").aus, "2\n");
+  // Farben nur auf dem Bildschirm
+  const farbig = lauf(z, "grep Failed log.txt");
+  assert.ok(farbig.teile.some((t) => t.stil === "treffer" && t.text === "Failed"));
+  assert.ok(!lauf(z, "grep Failed log.txt | cat").teile.some((t) => t.stil === "treffer"));
+});
+
+test("wc wie GNU", () => {
+  const z = lesen();
+  assert.equal(lauf(z, "wc namen.txt").aus, " 6  6 25 namen.txt\n");
+  assert.equal(lauf(z, "wc -l namen.txt").aus, "6 namen.txt\n");
+  assert.equal(lauf(z, "wc -l namen.txt zahlen.txt").aus, " 6 namen.txt\n 4 zahlen.txt\n10 total\n");
+  assert.equal(lauf(z, "cat namen.txt | wc -l").aus, "6\n");
+  assert.equal(lauf(z, "cat namen.txt | wc").aus, "      6       6      25\n");
+});
+
+test("sort, uniq, cut, tee", () => {
+  const z = lesen();
+  assert.equal(lauf(z, "sort namen.txt").aus, "anna\nben\nBen\nMia\nMia\nZoe\n");
+  assert.equal(lauf(z, "sort zahlen.txt").aus, "10\n2\n33\n4\n");
+  assert.equal(lauf(z, "sort -n zahlen.txt").aus, "2\n4\n10\n33\n");
+  assert.equal(lauf(z, "sort -nr zahlen.txt").aus, "33\n10\n4\n2\n");
+  assert.equal(lauf(z, "sort -u namen.txt").aus, "anna\nben\nBen\nMia\nZoe\n");
+  assert.equal(lauf(z, "sort -t: -k3 -n /etc/passwd | cut -d: -f1").aus, "root\nwww-data\nsyslog\nazubi\nmia\n");
+  assert.equal(lauf(z, "sort -t: -k3,3nr /etc/passwd | cut -d: -f1 | head -1").aus, "mia\n");
+  assert.equal(lauf(z, "cat zahlen.txt | sort -k1,1n").aus, "2\n4\n10\n33\n");
+  assert.ok(lauf(z, "sort -k0 namen.txt").fehler.includes("field number is zero"));
+  assert.equal(lauf(z, "sort namen.txt | uniq -c").aus, "      1 anna\n      1 ben\n      1 Ben\n      2 Mia\n      1 Zoe\n");
+  assert.equal(lauf(z, "uniq namen.txt").aus, "Mia\nBen\nanna\nZoe\nben\nMia\n");
+  assert.equal(lauf(z, "cut -d: -f1,7 /etc/passwd").aus.split("\n")[0], "root:/bin/bash");
+  assert.equal(lauf(z, "cut -c1-2 namen.txt").aus.split("\n")[2], "an");
+  assert.ok(lauf(z, "cut namen.txt").fehler.startsWith("cut: you must specify"));
+  const t = lauf(z, "ls | tee liste.txt");
+  assert.ok(t.aus.includes("namen.txt"));
+  assert.ok(inhalt(t.z, "/home/azubi/liste.txt")?.includes("namen.txt"));
+  const a = kette(z, "echo eins > x.txt", "echo zwei | tee -a x.txt");
+  assert.equal(inhalt(a.z, "/home/azubi/x.txt"), "eins\nzwei\n");
+});
+
+test("chmod", () => {
+  const z = lesen();
+  const rechte = (zz: Zustand, p: string) => knotenBei(zz.wurzel, p)?.rechte;
+  assert.equal(rechte(lauf(z, "chmod 755 skript.sh").z, "/home/azubi/skript.sh"), 0o755);
+  assert.equal(rechte(lauf(z, "chmod u+x skript.sh").z, "/home/azubi/skript.sh"), 0o744);
+  assert.equal(rechte(lauf(z, "chmod +x skript.sh").z, "/home/azubi/skript.sh"), 0o755);
+  assert.equal(rechte(lauf(z, "chmod +w skript.sh").z, "/home/azubi/skript.sh"), 0o664);
+  assert.equal(rechte(lauf(z, "chmod a+w skript.sh").z, "/home/azubi/skript.sh"), 0o666);
+  assert.equal(rechte(lauf(z, "chmod go-r skript.sh").z, "/home/azubi/skript.sh"), 0o600);
+  assert.equal(rechte(lauf(z, "chmod u=rwx,go=rx skript.sh").z, "/home/azubi/skript.sh"), 0o755);
+  assert.equal(rechte(lauf(z, "chmod o= skript.sh").z, "/home/azubi/skript.sh"), 0o640);
+  assert.equal(rechte(lauf(z, "chmod -r skript.sh").z, "/home/azubi/skript.sh"), 0o200);
+  assert.equal(rechte(lauf(z, "chmod -R 700 p").z, "/home/azubi/p/sub/b.txt"), 0o700);
+  assert.equal(lauf(z, "chmod -v 600 skript.sh").aus, "mode of 'skript.sh' changed from 0644 (rw-r--r--) to 0600 (rw-------)\n");
+  assert.ok(lauf(z, "chmod abc skript.sh").fehler.startsWith("chmod: invalid mode: 'abc'"));
+  assert.ok(lauf(z, "chmod 600 /etc/hosts").fehler.includes("Operation not permitted"));
+  assert.equal(rechte(lauf(z, "sudo chmod 600 /etc/hosts").z, "/etc/hosts"), 0o600);
+  assert.ok(lauf(z, "chmod 600 nix").fehler.startsWith("chmod: cannot access 'nix'"));
+  // Zeit der Datei und des Ordners bleibt
+  const vorher = knotenBei(z.wurzel, "/home/azubi")?.geaendert;
+  assert.deepEqual(knotenBei(lauf(z, "chmod 600 skript.sh").z.wurzel, "/home/azubi")?.geaendert, vorher);
+});
+
+test("chown, id, groups", () => {
+  const z = lesen();
+  assert.ok(lauf(z, "chown mia skript.sh").fehler.includes("Operation not permitted"));
+  const a = lauf(z, "sudo chown mia skript.sh");
+  assert.equal(knotenBei(a.z.wurzel, "/home/azubi/skript.sh")?.besitzer, "mia");
+  const b = lauf(z, "sudo chown www-data:www-data skript.sh");
+  assert.equal(knotenBei(b.z.wurzel, "/home/azubi/skript.sh")?.gruppe, "www-data");
+  const c = lauf(z, "sudo chown mia: skript.sh");
+  assert.equal(knotenBei(c.z.wurzel, "/home/azubi/skript.sh")?.gruppe, "mia");
+  assert.equal(lauf(z, "sudo chown nobody skript.sh").fehler, "chown: invalid user: 'nobody'\n");
+  assert.equal(lauf(z, "sudo chown mia:nix skript.sh").fehler, "chown: invalid group: 'mia:nix'\n");
+  const r = lauf(z, "sudo chown -R mia p");
+  assert.equal(knotenBei(r.z.wurzel, "/home/azubi/p/sub/b.txt")?.besitzer, "mia");
+  assert.equal(lauf(z, "id").aus, "uid=1000(azubi) gid=1000(azubi) groups=1000(azubi),4(adm),27(sudo)\n");
+  assert.equal(lauf(z, "id mia").aus, "uid=1001(mia) gid=1001(mia) groups=1001(mia)\n");
+  assert.equal(lauf(z, "id -un").aus, "azubi\n");
+  assert.equal(lauf(z, "sudo id -u").aus, "0\n");
+  assert.equal(lauf(z, "groups").aus, "azubi adm sudo\n");
+  assert.equal(lauf(z, "groups mia").aus, "mia : mia\n");
+  assert.equal(lauf(z, "id nix").fehler, "id: 'nix': no such user\n");
+});
+
+test("less zeigt Inhalt mit Hinweis", () => {
+  const z = lesen();
+  const a = lauf(z, "less namen.txt");
+  assert.ok(a.aus.startsWith("Mia\n") && a.hinweis.includes("q beendet"));
+  assert.equal(lauf(z, "less namen.txt | head -1").hinweis, "");
+});
+
+test("Nachbesserungen aus den Gutachten (Lektionen 3 bis 6)", () => {
+  const z = lesen();
+  // grep mit mehreren -e
+  assert.equal(lauf(z, "grep -e Zoe -e anna namen.txt").aus, "anna\nZoe\n");
+  // cp -r ordner/. in vorhandenes Ziel kopiert den Inhalt
+  const c = kette(z, "mkdir ziel", "cp -r p/. ziel");
+  assert.ok(knotenBei(c.z.wurzel, "/home/azubi/ziel/a.txt"));
+  assert.ok(!knotenBei(c.z.wurzel, "/home/azubi/ziel/p"));
+  // chmod = loescht auch Sonderbits, ohne Klasse gilt die umask
+  const s = kette(z, "chmod 4755 skript.sh", "chmod u=rwx,g=rx,o= skript.sh");
+  assert.equal(knotenBei(s.z.wurzel, "/home/azubi/skript.sh")?.rechte, 0o750);
+  const u = kette(z, "chmod 777 skript.sh", "chmod =rw skript.sh");
+  assert.equal(knotenBei(u.z.wurzel, "/home/azubi/skript.sh")?.rechte, 0o664);
+  // chmod -R ohne Recht meldet jeden Eintrag
+  assert.ok(lauf(z, "chmod -R 700 /etc").fehler.split("\n").filter((x) => x.includes("Operation not permitted")).length > 3);
+  // chown nur Gruppe ohne Recht
+  assert.ok(lauf(z, "chown :www-data skript.sh").fehler.startsWith("chown: changing group of 'skript.sh'"));
+  // Protokoll merkt sich, wohin die Fehler gingen
+  assert.equal(lauf(z, "ls nix 2>/dev/null").protokoll[0].fehlerNach, "null");
+  assert.equal(lauf(z, "ls nix").protokoll[0].fehlerNach, "bildschirm");
+  // head mit mehreren Namen, einer fehlt: Ueberschrift bleibt
+  assert.ok(lauf(z, "head -1 namen.txt nix.txt").aus.startsWith("==> namen.txt <=="));
+  assert.ok(lauf(z, "head p").fehler.startsWith("head: error reading 'p': Is a directory"));
+  // tee: Fehler vor der Ausgabe
+  const t = lauf(z, "echo hi | tee p");
+  assert.equal(t.teile[0].stil, "fehler");
+  // syslog-Benutzer und Gruppen
+  assert.equal(lauf(z, "id syslog").aus, "uid=102(syslog) gid=102(syslog) groups=102(syslog),4(adm)\n");
 });
 
 console.log(`\n${bestanden} bestanden, ${gescheitert} gescheitert`);

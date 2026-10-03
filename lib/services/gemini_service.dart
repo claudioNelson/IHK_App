@@ -159,16 +159,9 @@ $vorstellung'''
         },
       );
 
-      // Limit erreicht
-      if (response.status == 429) {
-        final data = response.data as Map<String, dynamic>?;
-        throw LimitReachedException(
-          limit: data?['limit'] ?? 5,
-          used: data?['used'] ?? 5,
-        );
-      }
-
-      // Andere Fehler
+      // Hinweis: Ein Status außer 2xx kommt hier nie an. functions_client
+      // wirft dafür eine FunctionException, siehe unten. Die Prüfung bleibt
+      // nur als Absicherung.
       if (response.status != 200) {
         final data = response.data as Map<String, dynamic>?;
         final errorMsg = data?['error'] ?? 'HTTP ${response.status}';
@@ -187,12 +180,43 @@ $vorstellung'''
 
       debugPrint('✅ AI-Tutor Antwort von Provider: $provider');
       return content;
-    } on LimitReachedException {
+    } on FunctionException catch (e) {
+      // functions_client wirft bei jedem Status außer 2xx eine
+      // FunctionException (bei Verbindungsfehlern mit status 0). Bis
+      // 03.10.2026 wurde 429 deshalb nie als Limit erkannt, und die Nutzer
+      // lasen „nicht erreichbar, prüf deine Internetverbindung“
+      // (Play-Bewertung 27.09.2026).
+      if (e.status == 429) {
+        final details = e.details;
+        final limit = details is Map ? details['limit'] : null;
+        final used = details is Map ? details['used'] : null;
+        throw LimitReachedException(
+          limit: limit is int ? limit : 5,
+          used: used is int ? used : 5,
+        );
+      }
+      debugPrint('❌ AI-Tutor Edge Function Fehler: ${e.status} ${e.details}');
       rethrow;
     } catch (e) {
       debugPrint('❌ AI-Tutor Aufruf fehlgeschlagen: $e');
       rethrow;
     }
+  }
+
+  /// Verständliche Meldung für jeden Fehler aus diesem Service, damit kein
+  /// Screen mehr rohe Exception-Texte anzeigt.
+  static String fehlerText(Object fehler) {
+    if (fehler is LimitReachedException) {
+      return 'Du hast deine ${fehler.limit} kostenlosen Ada-Fragen für heute '
+          'aufgebraucht. Morgen geht es weiter, mit Premium fragst du ohne '
+          'Limit.';
+    }
+    if (fehler is FunctionException && fehler.status == 0) {
+      return 'Keine Verbindung zu Ada. Prüf deine Internetverbindung und '
+          'versuch es gleich nochmal.';
+    }
+    return 'Ada hat gerade ein technisches Problem. Versuch es in ein paar '
+        'Minuten nochmal.';
   }
 }
 

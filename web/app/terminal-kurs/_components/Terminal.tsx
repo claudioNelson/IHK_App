@@ -53,6 +53,10 @@ const STIL_KLASSE: Record<Stil, string> = {
   fehler: "tk-s-fehler",
   hinweis: "tk-s-hinweis",
   fett: "tk-s-fett",
+  treffer: "tk-s-treffer",
+  dateiname: "tk-s-dateiname",
+  zeilennr: "tk-s-zeilennr",
+  trenner: "tk-s-trenner",
 };
 
 let naechsteId = 1;

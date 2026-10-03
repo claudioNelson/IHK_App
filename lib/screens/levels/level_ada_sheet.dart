@@ -143,7 +143,7 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
       setState(() {
         _messages.add(
           _ChatMsg(
-            text: 'Hm, da ist was schiefgelaufen. Versuch es nochmal. ($e)',
+            text: GeminiService.fehlerText(e),
             isUser: false,
           ),
         );

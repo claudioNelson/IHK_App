@@ -60,6 +60,78 @@ const FAELLE: Record<string, { loesungen: string[][]; falsch?: string[][] }> = {
     loesungen: [["tree projekte", "cd projekte/intranet/doku/netzwerk"], ["ls -R", "cd /var", "cd ~/projekte/intranet/doku/netzwerk"]],
     falsch: [["tree projekte", "cd projekte/intranet", "cd doku", "cd netzwerk"], ["echo serverliste.txt", "cd projekte/intranet/doku/netzwerk"]],
   },
+
+  "l3-anlegen": {
+    loesungen: [["mkdir rechnungen", "touch rechnungen/liste.txt", "mkdir -p archiv/2026/oktober"], ["mkdir -p rechnungen archiv/2026/oktober", "cd rechnungen", "touch liste.txt"]],
+    falsch: [["mkdir rechnungen", "touch rechnungen/liste.txt", "mkdir archiv/2026/oktober"], ["mkdir rechnungen", "touch rechnungen/liste.txt", "mkdir archiv", "mkdir archiv/2026", "mkdir archiv/2026/oktober"]],
+  },
+  "l3-kopieren": {
+    loesungen: [["cp notizen.txt backup/", "mv todo.txt aufgaben.txt", "mv bericht-entwurf.txt projekte/"], ["cp notizen.txt backup/notizen.txt", "mv todo.txt aufgaben.txt", "mv bericht-entwurf.txt projekte"]],
+    falsch: [["mv notizen.txt backup/", "mv todo.txt aufgaben.txt", "mv bericht-entwurf.txt projekte/"], ["cp notizen.txt backup/", "cp todo.txt aufgaben.txt", "cp bericht-entwurf.txt projekte/"], ["touch backup/notizen.txt", "mv todo.txt aufgaben.txt", "mv bericht-entwurf.txt projekte/"]],
+  },
+  "l3-loeschen": {
+    loesungen: [["rm downloads/*.tmp", "rmdir alt", "rm -r papierkorb"], ["cd downloads", "rm setup.tmp cache.tmp", "cd", "rm -r alt papierkorb"]],
+    falsch: [["rm downloads/*", "rmdir alt", "rm -r papierkorb"], ["rm downloads/*.tmp", "rmdir alt", "rmdir papierkorb"]],
+  },
+  "l3-knobel": {
+    loesungen: [["cp -r projekte/webshop webshop-backup", "mkdir bilder", "mv downloads/*.jpg bilder/"], ["mkdir webshop-backup", "cp -r projekte/webshop/. webshop-backup", "mkdir bilder", "mv downloads/foto* bilder/"], ["cp -r projekte/webshop ~/webshop-backup", "mkdir bilder", "mv downloads/foto1.jpg downloads/foto2.jpg bilder"]],
+    falsch: [["cp projekte/webshop webshop-backup", "mkdir bilder", "mv downloads/*.jpg bilder/"], ["cp -r projekte/webshop webshop-backup", "mkdir bilder", "mv downloads/foto1.jpg bilder", "mv downloads/foto2.jpg bilder"]],
+  },
+
+  "l4-lesen": {
+    loesungen: [["cat -n notizen.txt", "tail -n 5 /var/log/syslog"], ["cat -n ~/notizen.txt", "cd /var/log", "tail -5 syslog"], ["cat -n notizen.txt", "cat /var/log/syslog | tail -n 5"], ["cat --number notizen.txt", "tail --lines=5 /var/log/syslog"]],
+    falsch: [["cat notizen.txt", "tail -n 5 /var/log/syslog"], ["cat -n notizen.txt", "tail /var/log/syslog"]],
+  },
+  "l4-grep": {
+    loesungen: [["grep Failed /var/log/auth.log", "grep -c Failed /var/log/auth.log"], ["cd /var/log", "grep Failed auth.log", "grep Failed auth.log | wc -l"], ["cat /var/log/auth.log | grep Failed", "grep --count Failed /var/log/auth.log"]],
+    falsch: [["grep failed /var/log/auth.log", "grep -c failed /var/log/auth.log"], ["grep -c Failed /var/log/auth.log"], ["grep sshd /var/log/auth.log", "grep -c Failed /var/log/auth.log"]],
+  },
+  "l4-suchen": {
+    loesungen: [["grep -in error /var/log/syslog", "grep -r TODO projekte"], ["grep -i -n error /var/log/syslog", "cd projekte", "grep -rn TODO ."]],
+    falsch: [["grep -n error /var/log/syslog", "grep -r TODO projekte"], ["grep -in error /var/log/syslog", "grep TODO projekte/webshop/app.js"]],
+  },
+  "l4-knobel": {
+    loesungen: [["grep Failed /var/log/auth.log", "grep -c 'from 203.0.113.45' /var/log/auth.log"], ["grep Failed /var/log/auth.log", "grep Failed /var/log/auth.log | grep -c 203.0.113.45"], ["cat /var/log/auth.log", "grep -cE 'Failed.*203\\.0\\.113\\.45' /var/log/auth.log"]],
+    falsch: [["grep Failed /var/log/auth.log", "grep -c 203.0.113.45 /var/log/auth.log"]],
+  },
+
+  "l5-lesen": {
+    loesungen: [["id", "ls -l backup.sh"], ["groups", "ls -l"], ["id azubi", "ls -l backup.sh"]],
+    falsch: [["id mia", "ls -l backup.sh"], ["id", "ls backup.sh"], ["id -u", "ls -l backup.sh"], ["sudo id", "ls -l backup.sh"]],
+  },
+  "l5-chmod": {
+    loesungen: [["chmod u+x backup.sh", "chmod 600 zugang.txt"], ["chmod 755 backup.sh", "chmod go-r zugang.txt"]],
+    falsch: [["chmod g+x backup.sh", "chmod 600 zugang.txt"], ["chmod u+x backup.sh", "chmod 640 zugang.txt"], ["chmod 777 backup.sh", "chmod 600 zugang.txt"]],
+  },
+  "l5-chown": {
+    loesungen: [["sudo chown www-data:www-data /var/www/html/index.html /var/www/html/kontakt.html"], ["cd /var/www/html", "sudo chown -R www-data:www-data ."], ["sudo chown www-data:www-data /var/www/html/*"]],
+    falsch: [["chown www-data:www-data /var/www/html/index.html /var/www/html/kontakt.html"], ["sudo chown www-data /var/www/html/index.html /var/www/html/kontakt.html"]],
+  },
+  "l5-knobel": {
+    loesungen: [["mkdir team", "chmod 750 team", "touch team/plan.txt", "chmod 640 team/plan.txt"], ["mkdir team", "touch team/plan.txt", "chmod o-rwx team", "chmod g-w team", "chmod 640 team/plan.txt"]],
+    falsch: [["mkdir team", "chmod 755 team", "touch team/plan.txt", "chmod 640 team/plan.txt"], ["mkdir team", "chmod 750 team", "touch team/plan.txt", "chmod 644 team/plan.txt"], ["mkdir -p team/plan.txt", "chmod 750 team", "chmod 640 team/plan.txt"]],
+  },
+
+  "l6-umleiten": {
+    loesungen: [['echo "Server web01 geprüft" > protokoll.txt', 'echo "Backup ok" >> protokoll.txt', "ls -l > liste.txt"], ["echo Server web01 geprüft > protokoll.txt", "echo Backup ok | tee -a protokoll.txt", "ls -l | tee liste.txt"]],
+    falsch: [['echo "Server web01 geprüft" > protokoll.txt', 'echo "Backup ok" > protokoll.txt', "ls -l > liste.txt"], ['echo "Server web01 geprüft" > protokoll.txt', 'echo "Backup ok" >> protokoll.txt', "ls > liste.txt"], ['echo "Server web01 geprüft" > protokoll.txt', 'echo "Backup ok" >> protokoll.txt', "ls -l /etc > liste.txt"]],
+  },
+  "l6-pipes": {
+    loesungen: [["cat /etc/passwd | wc -l", "cut -d: -f1 /etc/passwd | sort"], ["wc -l < /etc/passwd", "cat /etc/passwd | cut -d: -f1 | sort"], ["cat /etc/passwd | wc -l", "sort /etc/passwd | cut -d: -f1"]],
+    falsch: [["wc -l /etc/passwd", "cut -d: -f1 /etc/passwd"]],
+  },
+  "l6-fehler": {
+    loesungen: [["ls gibtsnicht 2> fehler.txt", "grep -r PermitRootLogin /etc 2>/dev/null"], ["ls gibtsnicht 2>fehler.txt", "grep -rn PermitRootLogin /etc/ 2> /dev/null"], ["ls gibtsnicht 2> fehler.txt", "grep -r PermitRootLogin /etc 2>'/dev/null'"]],
+    falsch: [["ls gibtsnicht > fehler.txt", "grep -r PermitRootLogin /etc 2>/dev/null"], ["ls gibtsnicht 2> fehler.txt", "grep -r PermitRootLogin /etc"], ["ls gibtsnicht 2> fehler.txt", "grep -r PermitRootLogin /etc", "echo grep 2>/dev/null"]],
+  },
+  "l6-knobel": {
+    loesungen: [
+      ["grep Failed /var/log/auth.log | grep -o 'from [0-9.]*' | sort | uniq -c | sort -nr > rangliste.txt"],
+      ["grep Failed /var/log/auth.log | grep -oE '([0-9]+\\.){3}[0-9]+' | sort | uniq -c | sort -rn | tee rangliste.txt"],
+      ["grep Failed /var/log/auth.log | grep -o 'from [0-9.]*' | sort | uniq -c | sort -k1,1nr > rangliste.txt"],
+    ],
+    falsch: [["grep Failed /var/log/auth.log | grep -o 'from [0-9.]*' | sort | uniq -c > rangliste.txt"], ["grep Failed /var/log/auth.log | grep -o 'from [0-9.]*' | sort | uniq -c | sort -nr | head -1 > rangliste.txt"], ["grep Failed /var/log/auth.log | grep -o 'from [0-9.]*' | uniq -c | sort -nr > rangliste.txt"], ["grep Failed /var/log/auth.log | grep -o 'from [0-9.]*' | sort | uniq -c | sort -n > rangliste.txt"]],
+  },
 };
 
 let bestanden = 0;

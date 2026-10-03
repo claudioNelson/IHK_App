@@ -145,10 +145,8 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
           'Du hast deine ${e.limit} kostenlosen Ada-Fragen für heute '
           'aufgebraucht. Morgen geht es weiter, oder du schaust dir den '
           'Tipp bei der Aufgabe an. Mit Premium fragst du ohne Limit.';
-    } catch (_) {
-      antwort =
-          'Ada ist gerade nicht erreichbar. Prüf deine Internetverbindung '
-          'und versuch es gleich nochmal.';
+    } catch (e) {
+      antwort = GeminiService.fehlerText(e);
     }
 
     if (!mounted) return;

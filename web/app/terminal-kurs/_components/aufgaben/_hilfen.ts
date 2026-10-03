@@ -45,25 +45,27 @@ export const betrifftOrdner = (e: ProtokollEintrag, ordner: string) => {
   return p.length === 0 ? e.cwd === ordner : p.every((x) => x === ordner);
 };
 
-/** Englische Kurznamen der Monate wie in Logdateien. */
-const MONAT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-/** Zeitstempel im Format von syslog: "Sep 30 06:25:01". */
-export const logZeit = (d: Date) =>
-  `${MONAT[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2, " ")} ${[d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()]
-    .map((n) => String(n).padStart(2, "0"))
-    .join(":")}`;
+/**
+ * Zeitstempel wie rsyslog unter Ubuntu 24.04 (RFC 3339 mit Mikrosekunden):
+ * "2026-10-01T06:25:01.482113+00:00". Die Mikrosekunden ergeben sich fest aus der Zeit.
+ */
+export const logZeit = (d: Date) => {
+  const mikro = String((Math.floor(d.getTime() / 1000) * 7919) % 1_000_000).padStart(6, "0");
+  return d.toISOString().slice(0, 19) + "." + mikro + "+00:00";
+};
 
 /**
  * Erzeugt eine Logdatei aus wiederkehrenden Zeilen, damit ls -lh glaubwuerdige
  * Groessen zeigt. Die Zeilen laufen ueber die letzten Tage, alle paar Minuten eine.
+ * Format "syslog": Zeitstempel, Rechnername, Meldung. Format "dpkg": "2026-09-28 14:02:11 Meldung".
  */
-export const logDatei = (zeilen: string[], anzahl: number, abstandMinuten = 7) => {
+export const logDatei = (zeilen: string[], anzahl: number, abstandMinuten = 7, format: "syslog" | "dpkg" = "syslog") => {
   const ende = vorTagen(0, 6, 0).getTime();
   const teile: string[] = [];
   for (let i = 0; i < anzahl; i++) {
     const t = new Date(ende - (anzahl - i) * abstandMinuten * 60_000 + (i % 50) * 1000);
-    teile.push(`${logZeit(t)} lernarena ${zeilen[i % zeilen.length].replace("{pid}", String(800 + ((i * 37) % 9000)))}`);
+    const text = zeilen[i % zeilen.length].replaceAll("{pid}", String(800 + ((i * 37) % 9000)));
+    teile.push(format === "dpkg" ? `${t.toISOString().slice(0, 19).replace("T", " ")} ${text}` : `${logZeit(t)} lernarena ${text}`);
   }
   return teile.join("\n") + "\n";
 };

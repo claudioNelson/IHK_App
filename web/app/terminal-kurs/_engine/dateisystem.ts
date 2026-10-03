@@ -65,8 +65,12 @@ export function pruefeEltern(z: Zustand, pfad: string): { ok: true; eltern: Ordn
   return { ok: true, eltern: fund.knoten };
 }
 
-/** Ersetzt den Knoten unter pfad (oder legt ihn an). Elternordner muss existieren. */
-export function setze(wurzel: Ordner, pfad: string, neu: Knoten, jetzt: Date): Ordner {
+/**
+ * Ersetzt den Knoten unter pfad (oder legt ihn an). Elternordner muss existieren.
+ * elternStempeln=false: Zeit des Elternordners bleibt (Inhalt oder Rechte einer
+ * vorhandenen Datei aendern, wie unter Linux).
+ */
+export function setze(wurzel: Ordner, pfad: string, neu: Knoten, jetzt: Date, elternStempeln = true): Ordner {
   const namen = teile(normalisiere(pfad));
   if (namen.length === 0) {
     if (neu.art !== "ordner") throw new Error("Wurzel muss ein Ordner sein");
@@ -75,7 +79,7 @@ export function setze(wurzel: Ordner, pfad: string, neu: Knoten, jetzt: Date): O
   const rekursiv = (ordner: Ordner, i: number): Ordner => {
     const name = namen[i];
     if (i === namen.length - 1) {
-      return { ...ordner, geaendert: jetzt, kinder: { ...ordner.kinder, [name]: neu } };
+      return { ...ordner, geaendert: elternStempeln ? jetzt : ordner.geaendert, kinder: { ...ordner.kinder, [name]: neu } };
     }
     const kind = ordner.kinder[name];
     if (!kind || kind.art !== "ordner") throw new Error(`Ordner fehlt: ${name}`);

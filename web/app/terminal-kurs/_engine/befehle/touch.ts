@@ -41,7 +41,7 @@ export const touch: Befehl = {
           hinweis ??= grundHinweis("verweigert", getippt);
           continue;
         }
-        z = { ...z, wurzel: setze(z.wurzel, fund.pfad, { ...fund.knoten, geaendert: k.jetzt }, k.jetzt) };
+        z = { ...z, wurzel: setze(z.wurzel, fund.pfad, { ...fund.knoten, geaendert: k.jetzt }, k.jetzt, false) };
         continue;
       }
       if (endetMitSchraegstrich(getippt) && (fund.grund === "fehlt" || fund.grund === "keinOrdner")) {

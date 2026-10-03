@@ -51,8 +51,8 @@ const faq: FaqEintrag[] = [
   },
 ];
 
-// Gesamtdauer der geplanten Linux-Grundlagen (Lektion 1 bis 6), grob geschätzt
-const stundenGeplant = "2,5";
+// Gesamtdauer der Linux-Grundlagen (Lektion 1 bis 6), aus den Lektionsdauern
+const stundenGeplant = (lektionen.reduce((s, l) => s + l.dauer, 0) / 60).toLocaleString("de-DE", { maximumFractionDigits: 1 });
 
 export default function TerminalKursSeite() {
   return (
@@ -118,8 +118,8 @@ export default function TerminalKursSeite() {
           <LsAbschnitt id="kursplan" titel="Der Kursplan">
             <p>
               Sechs Lektionen zu den Linux-Grundlagen: erst die Bedienung, dann Ordner und Dateien,
-              Lesen und Suchen, Rechte und zum Schluss das Verketten von Befehlen. Lektion 1 ist
-              fertig, die weiteren folgen Schritt für Schritt.
+              Lesen und Suchen, Rechte und zum Schluss das Verketten von Befehlen. Danach kannst du
+              im freien Terminal alles kombinieren.
             </p>
             <ol className="pk-lessons">
               {lektionen.map((l) => (
@@ -139,6 +139,7 @@ export default function TerminalKursSeite() {
                 </li>
               ))}
             </ol>
+            {geplant.length > 0 && (
             <ol className="tk-geplant" aria-label="Geplante Lektionen">
               {geplant.map((l) => (
                 <li key={l.nr}>
@@ -151,6 +152,7 @@ export default function TerminalKursSeite() {
                 </li>
               ))}
             </ol>
+            )}
           </LsAbschnitt>
 
           <LsAbschnitt id="ablauf" titel="So funktioniert der Kurs">

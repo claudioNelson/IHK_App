@@ -102,7 +102,7 @@ class _AiTutorChatScreenState extends State<AiTutorChatScreen> {
       setState(() {
         _messages.add(
           ChatMessage(
-            text: 'Fehler: $e',
+            text: GeminiService.fehlerText(e),
             isUser: false,
             timestamp: DateTime.now(),
           ),

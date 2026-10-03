@@ -312,7 +312,7 @@ azubi@lernarena:~$`}
               <tr>
                 <td>ls -lh</td>
                 <td className="txt">
-                  Die lange Form mit lesbaren Größen (human-readable): <code>59K</code> statt einer
+                  Die lange Form mit lesbaren Größen (human-readable): <code>69K</code> statt einer
                   langen Zahl in Byte. K steht für Kilobyte, M für Megabyte, G für Gigabyte, eine
                   Zahl ohne Buchstaben sind Byte.
                 </td>

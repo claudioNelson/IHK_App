@@ -147,8 +147,10 @@ export const cp: Befehl = {
         continue;
       }
       const name = basisname(qPfad);
-      const ziel = zielIstOrdner ? (zielPfad === "/" ? `/${name}` : `${zielPfad}/${name}`) : zielPfad;
-      const zAnzeige = zielIstOrdner ? verbinde(zielGetippt, name) : zielGetippt;
+      // "cp -r ordner/. ziel" kopiert den Inhalt in ein vorhandenes Ziel, nicht den Ordner selbst
+      const nurInhalt = qGetippt === "." || qGetippt.endsWith("/.");
+      const ziel = zielIstOrdner && !nurInhalt ? (zielPfad === "/" ? `/${name}` : `${zielPfad}/${name}`) : zielPfad;
+      const zAnzeige = zielIstOrdner && !nurInhalt ? verbinde(zielGetippt, name) : zielGetippt;
       if (ziel === qf.pfad) {
         melde(`cp: '${qGetippt}' and '${zAnzeige}' are the same file`, "Hinweis: Quelle und Ziel sind dieselbe Datei. Gib der Kopie einen anderen Namen oder Ordner.");
         continue;

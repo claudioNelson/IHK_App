@@ -39,6 +39,11 @@
 .tk-s-geraet { color: #FCE94F; font-weight: 700; }
 .tk-s-fett { font-weight: 700; }
 .tk-s-fehler { color: var(--pk-run-err); }
+/* grep --color=auto wie unter Ubuntu: Treffer rot fett, Dateiname lila, Zeilennummer gruen, Doppelpunkt cyan */
+.tk-s-treffer { color: #EF2929; font-weight: 700; }
+.tk-s-dateiname { color: #AD7FA8; }
+.tk-s-zeilennr { color: #8AE234; }
+.tk-s-trenner { color: #34E2E2; }
 /* Deutsche Hilfe zu Fehlern: bewusst anders gesetzt als echte Terminal-Ausgabe */
 .tk-s-hinweis { display: block; margin: 4px 0 8px; padding: 6px 10px; border-left: 2px solid var(--pk-run-accent); border-radius: 0 6px 6px 0; background: rgba(143,130,255,.1); font-family: var(--font-sans); font-size: 13.5px; line-height: 1.45; color: #D9D4FF; white-space: normal; }
 
@@ -103,6 +108,10 @@
 @media (max-width: 520px) {
   .tk-kurs .ls-table th, .tk-kurs .ls-table td { padding: 10px 12px; }
   .tk-kurs .ls-table td.txt { font-size: 14px; }
+  /* Lange Befehle in Tabellen und im Fliesstext duerfen am Handy an Leerzeichen umbrechen
+     (lernen.css setzt Code sonst auf nowrap, dann wird die Seite breiter als der Bildschirm) */
+  .tk-kurs .ls-table td:not(.txt) { white-space: normal; overflow-wrap: anywhere; }
+  .tk-kurs .ls-article :is(p, li, td) > code { white-space: normal; overflow-wrap: anywhere; }
 }
 
 /* Kursuebersicht: Terminal im Kopf, geplante Lektionen */

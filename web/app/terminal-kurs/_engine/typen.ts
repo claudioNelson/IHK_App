@@ -40,7 +40,18 @@ export type Zustand = {
 };
 
 /** Ein Stueck Bildschirmausgabe mit optionaler Farbe. */
-export type Stil = "ordner" | "ausfuehrbar" | "geraet" | "fehler" | "hinweis" | "fett";
+export type Stil =
+  | "ordner"
+  | "ausfuehrbar"
+  | "geraet"
+  | "fehler"
+  | "hinweis"
+  | "fett"
+  /** grep auf dem Bildschirm wie unter Ubuntu (--color=auto): Treffer, Dateiname, Zeilennummer, Trenner */
+  | "treffer"
+  | "dateiname"
+  | "zeilennr"
+  | "trenner";
 export type Teil = { text: string; stil?: Stil };
 
 /**
@@ -49,7 +60,16 @@ export type Teil = { text: string; stil?: Stil };
  * seine Argumente, stdout, Rueckgabewert, der Ordner beim Aufruf und ob er
  * ueber sudo lief.
  */
-export type ProtokollEintrag = { name: string; args: string[]; ausgabe: string; code: number; cwd: string; sudo: boolean };
+export type ProtokollEintrag = {
+  name: string;
+  args: string[];
+  ausgabe: string;
+  code: number;
+  cwd: string;
+  sudo: boolean;
+  /** Wohin die Fehlerausgabe (Kanal 2) ging: Bildschirm, Pipe, /dev/null oder Datei */
+  fehlerNach?: "bildschirm" | "pipe" | "null" | "datei";
+};
 
 /** Ergebnis eines einzelnen Befehls. */
 export type BefehlErgebnis = {

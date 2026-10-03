@@ -8,15 +8,14 @@ import type { Kurs, Lektion } from "../../components/kurs/kurs-typen";
 export const lektionen: Lektion[] = [
   { nr: 1, slug: "lektion-1", titel: "Was ist ein Terminal?", untertitel: "Die Eingabeaufforderung lesen, erste Befehle, Befehl, Option und Argument, Hilfe holen.", dauer: 25, projekt: false },
   { nr: 2, slug: "lektion-2", titel: "Im Dateisystem bewegen", untertitel: "pwd, cd, ls und tree, absolute und relative Pfade, der Home-Ordner und die wichtigsten Linux-Ordner.", dauer: 30, projekt: false },
+  { nr: 3, slug: "lektion-3", titel: "Dateien und Ordner", untertitel: "Anlegen, kopieren, verschieben, umbenennen und löschen mit mkdir, touch, cp, mv, rm und rmdir, dazu der Platzhalter *.", dauer: 30, projekt: false },
+  { nr: 4, slug: "lektion-4", titel: "Dateien lesen und durchsuchen", untertitel: "cat, less, head, tail und grep: Protokolle lesen und die Spuren eines Einbruchsversuchs finden.", dauer: 30, projekt: false },
+  { nr: 5, slug: "lektion-5", titel: "Benutzer und Rechte", untertitel: "ls -l lesen, chmod mit Buchstaben und Zahlen wie 755 und 644, chown, sudo, id und groups.", dauer: 35, projekt: false },
+  { nr: 6, slug: "lektion-6", titel: "Pipes und Umleitung", untertitel: "Ausgaben in Dateien schreiben mit > und >>, Fehler umleiten mit 2>, Befehle verketten mit | und auswerten.", dauer: 35, projekt: false },
 ];
 
-/** Geplante Lektionen des ersten Wurfs (Linux-Grundlagen), noch ohne Seite. */
-export const geplant: { nr: number; titel: string; untertitel: string }[] = [
-  { nr: 3, titel: "Dateien und Ordner", untertitel: "Anlegen, kopieren, verschieben, umbenennen und löschen mit mkdir, touch, cp, mv und rm." },
-  { nr: 4, titel: "Dateien lesen und durchsuchen", untertitel: "cat, less, head, tail und grep: Logdateien lesen und Fehler finden." },
-  { nr: 5, titel: "Benutzer und Rechte", untertitel: "ls -l lesen, chmod mit 755 und 644, chown und sudo." },
-  { nr: 6, titel: "Pipes und Umleitung", untertitel: "Befehle verketten mit |, Ausgaben in Dateien schreiben mit > und >>, Fehler umleiten mit 2>." },
-];
+/** Geplante Lektionen (zweiter Teil, noch ohne Seite). Leer: die Uebersicht zeigt dann keine Liste. */
+export const geplant: { nr: number; titel: string; untertitel: string }[] = [];
 
 export const terminalKurs: Kurs = {
   slug: "terminal-kurs",
