@@ -5,6 +5,7 @@ import '../../services/gemini_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_provider.dart';
+import '../../widgets/premium_kauf_sheet.dart';
 
 /// Bottom-Sheet zum Chatten mit Ada im Lernarena-Style
 ///
@@ -105,6 +106,9 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
 
     final history = _messages
         .skip(1) // Welcome ignorieren
+        // Limit- und Fehlerhinweise sind keine Antworten von Ada und
+        // gehören nicht in den Verlauf, den das Modell bekommt.
+        .where((m) => !m.hinweis)
         .where((m) => m.text != text || !m.isUser)
         .map(
           (m) => {'role': m.isUser ? 'user' : 'assistant', 'content': m.text},
@@ -133,6 +137,8 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
                 'Du hast dein tägliches Ada-Limit erreicht. '
                 'Komm morgen wieder oder hol dir Premium für unbegrenzte Fragen.',
             isUser: false,
+            hinweis: true,
+            kaufKnopf: premiumKaufMoeglich,
           ),
         );
         _isLoading = false;
@@ -145,6 +151,7 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
           _ChatMsg(
             text: GeminiService.fehlerText(e),
             isUser: false,
+            hinweis: true,
           ),
         );
         _isLoading = false;
@@ -388,17 +395,54 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
                 ),
                 border: msg.isUser ? null : Border.all(color: border),
               ),
-              child: Text(
-                msg.text,
-                style: AppTextStyles.bodyMedium(
-                  msg.isUser ? Colors.white : text,
-                ),
-              ),
+              child: msg.kaufKnopf
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(msg.text, style: AppTextStyles.bodyMedium(text)),
+                        const SizedBox(height: 10),
+                        FilledButton.icon(
+                          onPressed: _premiumOeffnen,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.accent,
+                            foregroundColor: Colors.white,
+                          ),
+                          icon: const Icon(
+                            Icons.workspace_premium_rounded,
+                            size: 18,
+                          ),
+                          label: const Text('Premium ansehen'),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      msg.text,
+                      style: AppTextStyles.bodyMedium(
+                        msg.isUser ? Colors.white : text,
+                      ),
+                    ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// Kauf-Sheet direkt aus der Limit-Meldung (Wunsch 03.10.2026). Gäste
+  /// sehen dort zuerst die Bitte, ein Konto anzulegen.
+  Future<void> _premiumOeffnen() async {
+    final gekauft = await showPremiumKaufSheet(context);
+    if (gekauft != true || !mounted) return;
+    setState(() {
+      _messages.add(
+        _ChatMsg(
+          text: 'Premium ist aktiv. Frag einfach weiter, jetzt ohne Limit.',
+          isUser: false,
+          hinweis: true,
+        ),
+      );
+    });
+    _scrollToBottom();
   }
 
   Widget _buildTypingBubble(Color textDim) {
@@ -443,5 +487,17 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
 class _ChatMsg {
   final String text;
   final bool isUser;
-  _ChatMsg({required this.text, required this.isUser});
+
+  /// Hinweis der App (Limit, Fehler), keine Antwort von Ada.
+  final bool hinweis;
+
+  /// Unter der Nachricht steht ein Knopf zum Kauf-Sheet.
+  final bool kaufKnopf;
+
+  _ChatMsg({
+    required this.text,
+    required this.isUser,
+    this.hinweis = false,
+    this.kaufKnopf = false,
+  });
 }

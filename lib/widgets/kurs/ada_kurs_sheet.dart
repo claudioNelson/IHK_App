@@ -12,6 +12,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/gemini_service.dart';
+import '../premium_kauf_sheet.dart';
 
 /// Öffnet das Ada-Sheet. [lektionsTitel] ist Pflicht, [aufgabenText] nur
 /// gesetzt, wenn der Nutzer gerade auf einer Aufgabenseite steht,
@@ -62,7 +63,10 @@ class _AdaKursSheet extends StatefulWidget {
 class _Nachricht {
   final String text;
   final bool vonAda;
-  const _Nachricht(this.text, {required this.vonAda});
+
+  /// Unter der Nachricht steht ein Knopf zum Kauf-Sheet (Tageslimit).
+  final bool kaufKnopf;
+  const _Nachricht(this.text, {required this.vonAda, this.kaufKnopf = false});
 }
 
 class _AdaKursSheetState extends State<_AdaKursSheet> {
@@ -130,6 +134,7 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
     _verlaufKuerzen();
 
     String antwort;
+    var kaufKnopf = false;
     try {
       antwort = await GeminiService().chatWithTutor(
         userMessage: frage,
@@ -145,14 +150,31 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
           'Du hast deine ${e.limit} kostenlosen Ada-Fragen für heute '
           'aufgebraucht. Morgen geht es weiter, oder du schaust dir den '
           'Tipp bei der Aufgabe an. Mit Premium fragst du ohne Limit.';
+      kaufKnopf = premiumKaufMoeglich;
     } catch (e) {
       antwort = GeminiService.fehlerText(e);
     }
 
     if (!mounted) return;
     setState(() {
-      _verlauf.add(_Nachricht(antwort, vonAda: true));
+      _verlauf.add(_Nachricht(antwort, vonAda: true, kaufKnopf: kaufKnopf));
       _laedt = false;
+    });
+    _nachUntenScrollen();
+  }
+
+  /// Kauf-Sheet direkt aus der Limit-Meldung (Wunsch 03.10.2026). Gäste
+  /// sehen dort zuerst die Bitte, ein Konto anzulegen. Nach einem Kauf
+  /// geht es im selben Chat weiter, der Server prüft Premium bei jeder
+  /// Anfrage neu.
+  Future<void> _premiumOeffnen() async {
+    final gekauft = await showPremiumKaufSheet(context);
+    if (gekauft != true || !mounted) return;
+    setState(() {
+      _verlauf.add(const _Nachricht(
+        'Premium ist aktiv. Frag einfach weiter, jetzt ohne Limit.',
+        vonAda: true,
+      ));
     });
     _nachUntenScrollen();
   }
@@ -277,8 +299,24 @@ class _AdaKursSheetState extends State<_AdaKursSheet> {
                                 : farben.primary.withValues(alpha: 0.22),
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: SelectableText(n.text,
-                              style: const TextStyle(height: 1.45)),
+                          child: n.kaufKnopf
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SelectableText(n.text,
+                                        style: const TextStyle(height: 1.45)),
+                                    const SizedBox(height: 10),
+                                    FilledButton.icon(
+                                      onPressed: _premiumOeffnen,
+                                      icon: const Icon(
+                                          Icons.workspace_premium_rounded,
+                                          size: 18),
+                                      label: const Text('Premium ansehen'),
+                                    ),
+                                  ],
+                                )
+                              : SelectableText(n.text,
+                                  style: const TextStyle(height: 1.45)),
                         ),
                       );
                     },
