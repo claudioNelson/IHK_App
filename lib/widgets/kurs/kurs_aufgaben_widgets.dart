@@ -12,23 +12,32 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/kurs_aufgabe.dart';
 import '../../services/sound_service.dart';
 import '../../theme/app_text_styles.dart';
+import 'aufgaben_eingaben.dart';
 
 /// Einstiegspunkt: wählt anhand des Typs das passende Widget.
 class KursAufgabeWidget extends StatelessWidget {
   final KursAufgabe aufgabe;
   final ValueChanged<bool> onErgebnis;
 
+  /// Hier melden die Widgets ihre aktuelle Eingabe für Ada an.
+  /// Bisher nur der Lückentext, die übrigen Typen folgen.
+  final AufgabenEingaben? eingaben;
+
   const KursAufgabeWidget({
     super.key,
     required this.aufgabe,
     required this.onErgebnis,
+    this.eingaben,
   });
 
   @override
   Widget build(BuildContext context) {
     return switch (aufgabe) {
-      LueckenAufgabe a =>
-        _LueckenWidget(aufgabe: a, onErgebnis: onErgebnis),
+      LueckenAufgabe a => _LueckenWidget(
+          aufgabe: a,
+          onErgebnis: onErgebnis,
+          eingaben: eingaben,
+        ),
       ReihenfolgeAufgabe a =>
         _ReihenfolgeWidget(aufgabe: a, onErgebnis: onErgebnis),
       FehlerAufgabe a =>
@@ -414,8 +423,13 @@ Widget _mitCode(BuildContext context, String text, TextStyle? stil) {
 class _LueckenWidget extends StatefulWidget {
   final LueckenAufgabe aufgabe;
   final ValueChanged<bool> onErgebnis;
+  final AufgabenEingaben? eingaben;
 
-  const _LueckenWidget({required this.aufgabe, required this.onErgebnis});
+  const _LueckenWidget({
+    required this.aufgabe,
+    required this.onErgebnis,
+    this.eingaben,
+  });
 
   @override
   State<_LueckenWidget> createState() => _LueckenWidgetState();
@@ -434,14 +448,64 @@ class _LueckenWidgetState extends State<_LueckenWidget> {
     final n = widget.aufgabe.anzahlLuecken;
     _felder = List.generate(n, (_) => TextEditingController());
     _gewaehlt = List.filled(n, null);
+    widget.eingaben?.anmelden(widget.aufgabe.id, _eingabeLeser);
   }
 
   @override
   void dispose() {
+    widget.eingaben?.abmelden(widget.aufgabe.id, _eingabeLeser);
     for (final c in _felder) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  /// Feste Referenz, damit abmelden() denselben Leser wiedererkennt.
+  late final EingabeLeser _eingabeLeser = _eingabeFuerAda;
+
+  /// Aktueller Stand für Ada: Vorlage mit den Eingaben, je Lücke einzeln
+  /// und ob schon geprüft wurde.
+  String _eingabeFuerAda() {
+    final a = widget.aufgabe;
+    final werte = [
+      for (var i = 0; i < a.anzahlLuecken; i++)
+        ((_bausteinModus ? _gewaehlt[i] : _felder[i].text) ?? '').trim(),
+    ];
+    if (werte.every((w) => w.isEmpty)) {
+      return 'Er hat noch keine Lücke ausgefüllt.';
+    }
+
+    final teile = a.vorlage.split('___');
+    final gefuellt = StringBuffer(teile.first);
+    for (var i = 1; i < teile.length; i++) {
+      final w = i - 1 < werte.length ? werte[i - 1] : '';
+      gefuellt
+        ..write(w.isEmpty ? '[leer]' : w)
+        ..write(teile[i]);
+    }
+
+    final stand = switch (_stand) {
+      _Stand.offen => 'noch nicht geprüft',
+      _Stand.falsch => 'geprüft, noch nicht richtig',
+      _Stand.richtig => 'geprüft und richtig',
+    };
+
+    final jeLuecke = [
+      for (var i = 0; i < werte.length; i++)
+        'Lücke ${i + 1}: ${werte[i].isEmpty ? '(leer)' : werte[i]}',
+    ].join('\n');
+
+    // Im Baustein-Modus tippt niemand etwas ein. Ohne diesen Satz rät Ada
+    // zu Tastatur-Tipps („Hochkommas oben links“, Test 03.10.2026).
+    final bedienung = _bausteinModus
+        ? '\nEr füllt die Lücken durch Antippen von Bausteinen '
+            '(${widget.aufgabe.bausteine.join(' | ')}), nicht per Tastatur. '
+            'Ein gewählter Baustein lässt sich durch erneutes Antippen '
+            'wieder entfernen.'
+        : '\nEr tippt die Lücken per Tastatur ein.';
+
+    return 'Vorlage mit seinen Eingaben:\n```\n$gefuellt\n```\n'
+        '$jeLuecke\nStand: $stand.$bedienung';
   }
 
   void _pruefen() {

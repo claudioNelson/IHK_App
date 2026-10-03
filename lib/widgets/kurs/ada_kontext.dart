@@ -37,15 +37,20 @@ const int _maxMaterial = 3000;
 const int _maxAufgabe = 3000;
 const int _maxLoesung = 2000;
 const int _maxSeite = 5000;
+const int _maxEingabe = 1500;
 
 /// Kontext für Ada zu Schritt [index] der Lektion.
 ///
 /// `aufgabe` ist gesetzt, wenn der Schritt eine Aufgabe ist, `seite`, wenn
 /// es eine reine Erklärseite ist. Beide null auf der Abschlussseite.
+/// [eingabe] ist der aktuelle Stand des Azubis in der Aufgabe, so wie ihn
+/// das Aufgaben-Widget beschreibt (siehe aufgaben_eingaben.dart), oder null,
+/// wenn der Aufgabentyp ihn noch nicht liefert.
 ({String? aufgabe, String? seite}) adaKontextFuerSchritt(
   List<List<LektionsBlock>> schritte,
-  int index,
-) {
+  int index, {
+  String? eingabe,
+}) {
   if (index < 0 || index >= schritte.length) {
     return (aufgabe: null, seite: null);
   }
@@ -85,6 +90,10 @@ const int _maxSeite = 5000;
   final a = letzter.aufgabe;
   teile.add('AUFGABE (das sieht der Azubi gerade):\n'
       '${_kuerzen(_aufgabeAlsText(a), _maxAufgabe)}');
+  if (eingabe != null) {
+    teile.add('AKTUELLE EINGABE DES AZUBIS (so steht es gerade auf seinem '
+        'Bildschirm):\n${_kuerzen(eingabe, _maxEingabe)}');
+  }
   teile.add('LÖSUNG (nur für dich, nicht ungefragt verraten):\n'
       '${_kuerzen(_loesungAlsText(a), _maxLoesung)}');
 

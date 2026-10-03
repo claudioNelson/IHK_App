@@ -17,6 +17,7 @@ import '../../theme/kurs_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/kurs/ada_kurs_sheet.dart';
 import '../../widgets/kurs/ada_kontext.dart';
+import '../../widgets/kurs/aufgaben_eingaben.dart';
 import '../../widgets/kurs/kurs_aufgaben_widgets.dart';
 import '../../widgets/kurs/schreibtischtest_tabelle.dart';
 import '../../widgets/kurs/sql_aufgabe_widget.dart';
@@ -49,6 +50,9 @@ class LektionScreen extends StatefulWidget {
 
 class _LektionScreenState extends State<LektionScreen> {
   final _seiten = PageController();
+
+  /// Aktuelle Eingaben in den Aufgaben, für Ada (aufgaben_eingaben.dart).
+  final _eingaben = AufgabenEingaben();
 
   late final List<List<LektionsBlock>> _schritte;
   late Set<String> _geloest;
@@ -216,7 +220,14 @@ class _LektionScreenState extends State<LektionScreen> {
                   // Optionen, Tabellen und Diagrammen, dazu die Erklärseite
                   // davor und die Lösung (nur auf Nachfrage). Vorher nur
                   // die Frage, Bewertung 27.09.2026.
-                  final kontext = adaKontextFuerSchritt(_schritte, _aktuell);
+                  final aufgabe =
+                      istAbschluss ? null : _aufgabeVon(_aktuell);
+                  final kontext = adaKontextFuerSchritt(
+                    _schritte,
+                    _aktuell,
+                    eingabe:
+                        aufgabe == null ? null : _eingaben.lesen(aufgabe.id),
+                  );
                   zeigeAdaKursSheet(
                     context,
                     kursTitel: widget.kursTitel.isEmpty
@@ -315,7 +326,11 @@ class _LektionScreenState extends State<LektionScreen> {
                     children: [
                       if (schmuckIcon) const _SeitenIcon(),
                       for (final block in _schritte[index])
-                        _BlockAnsicht(block: block, onErgebnis: _melden),
+                        _BlockAnsicht(
+                          block: block,
+                          onErgebnis: _melden,
+                          eingaben: _eingaben,
+                        ),
                     ],
                   ),
                 ),
@@ -510,8 +525,13 @@ class _SeitenIcon extends StatelessWidget {
 class _BlockAnsicht extends StatelessWidget {
   final LektionsBlock block;
   final void Function(String id, bool richtig) onErgebnis;
+  final AufgabenEingaben eingaben;
 
-  const _BlockAnsicht({required this.block, required this.onErgebnis});
+  const _BlockAnsicht({
+    required this.block,
+    required this.onErgebnis,
+    required this.eingaben,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -567,10 +587,12 @@ class _BlockAnsicht extends StatelessWidget {
           SqlAufgabe a => SqlAufgabeWidget(
               aufgabe: a,
               onErgebnis: (richtig) => onErgebnis(a.id, richtig),
+              eingaben: eingaben,
             ),
           final andere => KursAufgabeWidget(
               aufgabe: andere,
               onErgebnis: (richtig) => onErgebnis(andere.id, richtig),
+              eingaben: eingaben,
             ),
         },
     };

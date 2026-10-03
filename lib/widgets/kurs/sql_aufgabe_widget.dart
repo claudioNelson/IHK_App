@@ -15,15 +15,20 @@ import '../../models/kurs_aufgabe.dart';
 import '../../services/sound_service.dart';
 import '../../services/sql_sandbox.dart';
 import '../../theme/app_text_styles.dart';
+import 'aufgaben_eingaben.dart';
 
 class SqlAufgabeWidget extends StatefulWidget {
   final SqlAufgabe aufgabe;
   final ValueChanged<bool> onErgebnis;
 
+  /// Hier meldet das Widget seine aktuelle Abfrage für Ada an.
+  final AufgabenEingaben? eingaben;
+
   const SqlAufgabeWidget({
     super.key,
     required this.aufgabe,
     required this.onErgebnis,
+    this.eingaben,
   });
 
   @override
@@ -54,12 +59,59 @@ class _SqlAufgabeWidgetState extends State<SqlAufgabeWidget> {
   void initState() {
     super.initState();
     _editor = TextEditingController(text: widget.aufgabe.startCode);
+    widget.eingaben?.anmelden(widget.aufgabe.id, _eingabeLeser);
   }
 
   @override
   void dispose() {
+    widget.eingaben?.abmelden(widget.aufgabe.id, _eingabeLeser);
     _editor.dispose();
     super.dispose();
+  }
+
+  /// Zuletzt ausgeführte Abfrage, kann von der aktuellen abweichen.
+  String? _ausgefuehrt;
+
+  /// Feste Referenz, damit abmelden() denselben Leser wiedererkennt.
+  late final EingabeLeser _eingabeLeser = _eingabeFuerAda;
+
+  /// Aktueller Stand für Ada: Abfrage im Editor bzw. aus Bausteinen,
+  /// zuletzt ausgeführte Abfrage mit Fehler oder Ergebnis.
+  String _eingabeFuerAda() {
+    final jetzt = _abfrage.trim();
+    final puffer = StringBuffer();
+
+    final unveraendert =
+        jetzt.isEmpty || jetzt == widget.aufgabe.startCode.trim();
+    if (unveraendert && _ausgefuehrt == null) {
+      puffer.write('Er hat noch keine eigene Abfrage geschrieben.');
+    } else if (jetzt.isEmpty) {
+      puffer.write('Das Eingabefeld ist gerade leer.');
+    } else {
+      final hinweis = unveraendert ? ' (noch der vorgegebene Startcode)' : '';
+      puffer.write('Seine aktuelle Abfrage$hinweis:\n```sql\n$jetzt\n```');
+    }
+
+    final e = _ergebnis;
+    final zuletzt = _ausgefuehrt?.trim();
+    if (e != null && zuletzt != null) {
+      if (zuletzt != jetzt) {
+        puffer.write('\nZuletzt ausgeführt hat er:\n```sql\n$zuletzt\n```');
+      }
+      if (e.istFehler) {
+        puffer.write('\nErgebnis der letzten Ausführung: Fehler, '
+            '„${e.fehler}“.');
+      } else if (_richtig == true) {
+        puffer.write('\nErgebnis der letzten Ausführung: richtig.');
+      } else {
+        final spalten = e.spalten.join(', ');
+        puffer.write('\nErgebnis der letzten Ausführung: läuft, liefert '
+            'aber nicht das gesuchte Ergebnis (${e.zeilen.length} Zeilen'
+            '${spalten.isEmpty ? '' : ', Spalten: $spalten'}).');
+      }
+    }
+    puffer.write('\nVersuche bisher: $_versuche.');
+    return puffer.toString();
   }
 
   /// Bausteine zu einer Abfrage zusammensetzen.
@@ -80,6 +132,7 @@ class _SqlAufgabeWidgetState extends State<SqlAufgabeWidget> {
   void _ausfuehren() {
     final a = widget.aufgabe;
     final meins = SqlSandbox.ausfuehren(a.datensatz, _abfrage);
+    _ausgefuehrt = _abfrage;
 
     // Läuft die Abfrage nicht, gibt es noch nichts zu vergleichen —
     // dann zeigen wir nur den Fehler und lassen es weiter versuchen.
