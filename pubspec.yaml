@@ -34,7 +34,7 @@ publish_to: 'none'
 # 1.8.0 (29.09.2026): Struktogramm- und UML-Kurs fuer alle, Code in
 # JetBrains Mono ohne Ligaturen, Pruefungsbereitschaft mit sechs Bereichen,
 # Hinweis auf neue App-Version (Tabelle app_versionen), Kotlin 2.2.10.
-version: 1.8.0+29
+version: 1.8.1+30
 environment:
   sdk: ^3.8.1
 dependencies:
