@@ -26,11 +26,19 @@ class GeminiService {
   // ─── PUBLIC API ──────────────────────────────
 
   /// Einfacher One-Shot Prompt (für explainMistake/getHint).
-  Future<String> generateContent(String prompt) async {
+  /// Fuer lange Antworten (Pruefungskorrektur) [maxTokens] hoeher setzen,
+  /// sonst bricht die Antwort mitten im Text ab (Befund 30.09.2026).
+  Future<String> generateContent(
+    String prompt, {
+    int maxTokens = 1000,
+    double temperature = 0.7,
+  }) async {
     return await _callEdgeFunction(
       messages: [
         {'role': 'user', 'content': prompt},
       ],
+      maxTokens: maxTokens,
+      temperature: temperature,
     );
   }
 

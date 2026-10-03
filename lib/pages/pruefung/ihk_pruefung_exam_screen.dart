@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -947,8 +948,10 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                           : const Icon(Icons.auto_awesome_rounded, size: 18),
                       label: Text(
                         _isLoadingKi
-                            ? 'KI analysiert...'
-                            : 'KI-Tutor Korrektur',
+                            ? 'Ada korrigiert gerade'
+                            : _kiKorrektur == null
+                            ? 'Von Ada korrigieren lassen'
+                            : 'Erneut korrigieren lassen',
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accentFill,
@@ -962,7 +965,8 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                     ),
                   ),
 
-                  // KI-Ergebnis
+                  // Korrektur von Ada (Markdown, ohne die GESAMTPUNKTE-Zeile,
+                  // die steht schon in der Bewertungskarte)
                   if (_showKiKorrektur && _kiKorrektur != null) ...[
                     const SizedBox(height: 16),
                     Container(
@@ -971,18 +975,7 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                         color: surface,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.accent.withOpacity(0.3),
-                        ),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: const [0.0, 0.015, 0.015, 1.0],
-                          colors: [
-                            AppColors.accent,
-                            AppColors.accent,
-                            surface,
-                            surface,
-                          ],
+                          color: AppColors.accent.withValues(alpha: 0.35),
                         ),
                       ),
                       child: Column(
@@ -993,21 +986,22 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
                               Container(
                                 width: 16,
                                 height: 1,
-                                color: AppColors.accent,
+                                color: AppColors.accentText,
                               ),
                               const SizedBox(width: 10),
                               Text(
-                                'KI-TUTOR FEEDBACK',
+                                'KORREKTUR VON ADA',
                                 style: AppTextStyles.monoLabel(
-                                  AppColors.accent,
+                                  AppColors.accentText,
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 14),
-                          SelectableText(
-                            _kiKorrektur!,
-                            style: AppTextStyles.bodyMedium(text),
+                          MarkdownBody(
+                            data: _ohneGesamtzeile(_kiKorrektur!),
+                            selectable: true,
+                            styleSheet: _adaStil(text, textMid, border),
                           ),
                         ],
                       ),
@@ -1158,15 +1152,63 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
     );
   }
 
+  /// Die letzte Zeile „GESAMTPUNKTE: x/y“ ist nur fuer die Auswertung da.
+  String _ohneGesamtzeile(String text) => text
+      .split('\n')
+      .where((z) => !RegExp(r'GESAMTPUNKTE\s*:', caseSensitive: false)
+          .hasMatch(z))
+      .join('\n')
+      .trim();
+
+  MarkdownStyleSheet _adaStil(Color text, Color textMid, Color border) {
+    final absatz = AppTextStyles.bodyMedium(text);
+    return MarkdownStyleSheet(
+      p: absatz,
+      h1: AppTextStyles.h2(text),
+      h2: AppTextStyles.h3(text),
+      h3: AppTextStyles.h3(text),
+      h4: absatz.copyWith(fontWeight: FontWeight.w600),
+      h1Padding: const EdgeInsets.only(top: 8),
+      h2Padding: const EdgeInsets.only(top: 12),
+      h3Padding: const EdgeInsets.only(top: 12),
+      strong: const TextStyle(fontWeight: FontWeight.w600),
+      listBullet: AppTextStyles.bodyMedium(textMid),
+      blockSpacing: 10,
+      horizontalRuleDecoration: BoxDecoration(
+        border: Border(top: BorderSide(color: border)),
+      ),
+      tableHead: AppTextStyles.bodySmall(text)
+          .copyWith(fontWeight: FontWeight.w600),
+      tableBody: AppTextStyles.bodySmall(text),
+      tableBorder: TableBorder.all(color: border),
+      code: AppTextStyles.mono(size: 13, color: text),
+    );
+  }
+
   Future<void> _requestKiKorrektur() async {
+    final hatAntworten = answers.values.any((a) => a.trim().isNotEmpty);
+    if (!hatAntworten) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Du hast noch keine Aufgabe bearbeitet. Ada korrigiert, sobald '
+            'mindestens eine Antwort da ist.',
+          ),
+          backgroundColor: AppColors.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     setState(() => _isLoadingKi = true);
     try {
       final buffer = StringBuffer();
       buffer.writeln(
-        'Du bist ein strenger aber fairer IHK-Prüfer für Fachinformatiker.',
+        'Du bist Ada, eine strenge, aber faire IHK-Prüferin für '
+        'Fachinformatiker. Korrigiere diese Übungsprüfung.',
       );
       buffer.writeln(
-        'Bewerte diese Prüfung und vergib Punkte für jede Antwort.',
+        'Vergib für jede Aufgabe Punkte und begründe sie kurz.',
       );
       buffer.writeln('');
       buffer.writeln('=== PRÜFUNGSDATEN ===');
@@ -1184,17 +1226,44 @@ class _IHKPruefungExamScreenState extends State<IHKPruefungExamScreen> {
           buffer.writeln('');
         }
       }
+      buffer.writeln('=== FORMAT DEINER ANTWORT ===');
       buffer.writeln(
-        'Bewerte jede Aufgabe mit Punkten und Feedback. Antworte auf Deutsch.',
+        'Antworte auf Deutsch, kurz und übersichtlich in einfachem Markdown:',
       );
-      buffer.writeln('Nicht beantwortete Aufgaben bekommen 0 Punkte.');
+      buffer.writeln(
+        '- Je Handlungsschritt eine Überschrift mit ##, zum Beispiel '
+        '"## 1. UML-Aktivitätsdiagramm: 12 von 25 Punkten".',
+      );
+      buffer.writeln(
+        '- Darunter je Aufgabe eine fette Zeile mit den Punkten, zum Beispiel '
+        '"**a) Titel: 3 von 5 Punkten**", danach 1 bis 3 Sätze: was gut ist, '
+        'was fehlt und wie es richtig wäre.',
+      );
+      buffer.writeln(
+        '- Nicht beantwortete Aufgaben bekommen 0 Punkte und nur eine Zeile: '
+        '"**a) Titel: 0 von 5 Punkten** (nicht bearbeitet)".',
+      );
+      buffer.writeln(
+        '- Zum Schluss "## Fazit" mit 2 bis 3 Sätzen, was als Nächstes '
+        'zu üben ist.',
+      );
+      buffer.writeln(
+        '- Keine Tabellen, keine Emojis, keine Gedankenstriche, keine '
+        'Einleitung, Aufgabenstellungen nicht wiederholen.',
+      );
       buffer.writeln(
         'WICHTIG: Schreibe als ALLERLETZTE Zeile deiner Antwort exakt in '
         'diesem Format die Summe aller vergebenen Punkte: '
         'GESAMTPUNKTE: <erreicht>/${widget.exam.totalPoints}',
       );
 
-      final response = await _geminiService.generateContent(buffer.toString());
+      // Eine ganze Pruefung braucht deutlich mehr als die 1000 Tokens des
+      // Standards, sonst fehlt am Ende die GESAMTPUNKTE-Zeile (30.09.2026).
+      final response = await _geminiService.generateContent(
+        buffer.toString(),
+        maxTokens: 4000,
+        temperature: 0.3,
+      );
       final bewertung = ExamAttemptService.punkteAusKiText(
         response,
         widget.exam.totalPoints,
