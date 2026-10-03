@@ -113,12 +113,12 @@ Max. 120 Wörter, motivierend!''';
     String? currentQuestion,
     String? topic,
   }) async {
-    // Vorstellen nur beim allerersten Austausch. Sobald es Verlauf gibt,
-    // bekommt das Modell die gegenteilige Anweisung, sonst stellt sich
-    // Ada bei jeder Antwort neu vor.
-    final vorstellung = conversationHistory.isEmpty
-        ? 'Stelle dich in deiner ersten Antwort mit einem kurzen Satz als "Ada" vor, danach nie wieder.'
-        : 'Du hast dich bereits vorgestellt. Stelle dich NICHT erneut vor, keine Begrüßungsfloskeln, antworte direkt auf die Frage.';
+    // Ada stellt sich nie selbst vor (Wunsch 03.10.2026): Jedes Chatfenster
+    // zeigt schon „Ada“ im Kopf, die Level-Ada hat zusätzlich eine eigene
+    // Begrüßung. Vorher stand „Hallo, ich bin Ada …“ doppelt da.
+    const vorstellung =
+        'Stelle dich NICHT vor, keine Begrüßung, keine Einleitung. '
+        'Antworte direkt auf die Frage.';
 
     final systemPrompt = currentQuestion != null
         ? '''Du bist Ada, eine geduldige und freundliche KI-Tutorin für IT-Berufe und IHK-Prüfungen.
@@ -130,8 +130,9 @@ Thema: ${topic ?? 'IT-Grundlagen'}
 
 Beantworte Fragen zum Thema, gib Hinweise und erkläre Schritt für Schritt.
 Bleibe geduldig, motivierend und pädagogisch wertvoll.
-$vorstellung'''
-        : 'Du bist Ada, eine geduldige KI-Tutorin für IT-Berufe. Beantworte Fragen motivierend und verständlich. $vorstellung';
+$vorstellung
+$_stilRegeln'''
+        : 'Du bist Ada, eine geduldige KI-Tutorin für IT-Berufe. Beantworte Fragen motivierend und verständlich. $vorstellung\n$_stilRegeln';
 
     final messages = [
       {'role': 'system', 'content': systemPrompt},
@@ -139,7 +140,38 @@ $vorstellung'''
       {'role': 'user', 'content': userMessage},
     ];
 
-    return await _callEdgeFunction(messages: messages);
+    return _saeubern(await _callEdgeFunction(messages: messages));
+  }
+
+  /// Stilregeln für alle Chat-Antworten von Ada. Die Antworten werden als
+  /// Markdown angezeigt (widgets/ada_markdown.dart).
+  static const _stilRegeln =
+      'SCHREIBSTIL: Verwende keine Emojis. Verwende keine Gedankenstriche '
+      '(– oder —), sondern ein Komma, einen Doppelpunkt oder einen neuen Satz. '
+      'Markdown ist erlaubt: **fett** für wichtige Begriffe, Listen und '
+      '`Code`. Tabellen nur, wenn sie wirklich helfen.';
+
+  /// Das Modell hält sich nicht immer an die Stilregeln (Test 03.10.2026:
+  /// Emojis und Gedankenstriche trotz Prompt). Deshalb zusätzlich hier:
+  /// Emojis entfernen und Gedankenstriche mit Leerzeichen davor und danach
+  /// durch ein Komma ersetzen. Bindestriche (-) und Spannen wie „3–5“
+  /// bleiben unberührt, damit Code und Zahlen nicht kaputtgehen.
+  static String _saeubern(String text) {
+    final emoji = RegExp(
+      r' ?[\u{1F000}-\u{1FAFF}\u{2600}-\u{26FF}\u{FE0F}\u{200D}]+',
+      unicode: true,
+    );
+    // Sicherheitsnetz, falls sich Ada trotzdem vorstellt: erste Zeile weg,
+    // wenn sie eine Begrüßung mit „Ada“ ist und danach noch Text kommt.
+    final vorstellung = RegExp(
+      r'^\s*(hallo|hi|hey)\b[^\n]*\bada\b[^\n]*\n+',
+      caseSensitive: false,
+    );
+    return text
+        .replaceFirst(vorstellung, '')
+        .replaceAll(emoji, '')
+        .replaceAll(RegExp(r' [–—] '), ', ')
+        .trim();
   }
 
   // ─── PRIVATE: Edge Function Call ────────────

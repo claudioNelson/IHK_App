@@ -64,8 +64,8 @@ class _LevelAdaSheetState extends State<LevelAdaSheet> {
     _messages.add(
       _ChatMsg(
         text:
-            'Hi! 👋 Ich bin Ada und sehe gerade:\n\n'
-            '"$preview"\n\n'
+            'Hallo, ich bin Ada. Ich sehe gerade:\n\n'
+            '„$preview“\n\n'
             'Was möchtest du dazu wissen?',
         isUser: false,
       ),
