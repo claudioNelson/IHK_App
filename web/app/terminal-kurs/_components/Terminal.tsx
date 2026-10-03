@@ -372,7 +372,7 @@ export default function Terminal({
 
       {mitZielen && (
         <div className="tk-ziele" data-fertig={fertig ? "" : undefined}>
-          <p className="tk-ziele-titel">Ziele</p>
+          <p className="tk-ziele-titel">{aufgabe.zielTitel ?? "Ziele"}</p>
           <ul>
             {aufgabe.ziele.map((ziel, i) => (
               <li key={i} data-ok={erreicht[i] ? "" : undefined}>
@@ -385,7 +385,7 @@ export default function Terminal({
             ))}
           </ul>
           <p className="tk-geschafft" role="status">
-            {fertig ? "Geschafft, alle Ziele erreicht. Probier ruhig weiter aus, was dir einfällt." : ""}
+            {fertig ? (aufgabe.fertigText ?? "Geschafft, alle Ziele erreicht. Probier ruhig weiter aus, was dir einfällt.") : ""}
           </p>
           {aufgabe.tipps.length > 0 && (
             <div className="tk-tipps">

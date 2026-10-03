@@ -96,9 +96,9 @@ export default function TerminalKursSeite() {
                 Mit Lektion 1 starten
                 <PfeilIcon />
               </Link>
-              <a className="btn btn-ghost" href="#kursplan">
-                Kursplan ansehen
-              </a>
+              <Link className="btn btn-ghost" href="/terminal-kurs/spielwiese">
+                Freies Terminal
+              </Link>
             </div>
           </div>
           <Terminal aufgabe="l0-start" titel="Übungs-Terminal zum Ausprobieren" hoehe={280} />
@@ -119,7 +119,8 @@ export default function TerminalKursSeite() {
             <p>
               Sechs Lektionen zu den Linux-Grundlagen: erst die Bedienung, dann Ordner und Dateien,
               Lesen und Suchen, Rechte und zum Schluss das Verketten von Befehlen. Danach kannst du
-              im freien Terminal alles kombinieren.
+              im <Link href="/terminal-kurs/spielwiese">freien Terminal</Link> alles kombinieren und
+              versteckte Dinge entdecken.
             </p>
             <ol className="pk-lessons">
               {lektionen.map((l) => (

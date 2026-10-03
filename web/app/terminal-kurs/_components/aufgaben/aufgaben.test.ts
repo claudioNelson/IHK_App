@@ -132,6 +132,14 @@ const FAELLE: Record<string, { loesungen: string[][]; falsch?: string[][] }> = {
     ],
     falsch: [["grep Failed /var/log/auth.log | grep -o 'from [0-9.]*' | sort | uniq -c > rangliste.txt"], ["grep Failed /var/log/auth.log | grep -o 'from [0-9.]*' | sort | uniq -c | sort -nr | head -1 > rangliste.txt"], ["grep Failed /var/log/auth.log | grep -o 'from [0-9.]*' | uniq -c | sort -nr > rangliste.txt"], ["grep Failed /var/log/auth.log | grep -o 'from [0-9.]*' | sort | uniq -c | sort -n > rangliste.txt"]],
   },
+
+  spielwiese: {
+    loesungen: [
+      ["ls -a", "cat .geheim", "grep root /var/log/auth.log", "sudo ls /root", "sudo cat /root/schatz.txt", "grep -r TODO projekte", "echo Hallo > hallo.txt"],
+      ["ls -la ~", "less ~/.geheim", "tail /var/log/auth.log", "sudo ls -la /root", "sudo head /root/schatz.txt", "grep -rn TODO .", "echo eins >> liste.txt"],
+    ],
+    falsch: [["ls", "cat .geheim", "grep root /var/log/auth.log", "ls /root", "cat /root/schatz.txt", "grep -r TODO projekte", "echo Hallo"]],
+  },
 };
 
 let bestanden = 0;

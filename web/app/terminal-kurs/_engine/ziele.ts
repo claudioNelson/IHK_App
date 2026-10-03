@@ -32,6 +32,10 @@ export type Aufgabe = {
   tipps: string[];
   /** Text vor der ersten Eingabe (wie die Begruessung beim Anmelden) */
   begruessung?: string;
+  /** Ueberschrift der Zielliste, Standard „Ziele“ (Spielwiese: „Entdecken“) */
+  zielTitel?: string;
+  /** Erfolgszeile, wenn alle Ziele erreicht sind */
+  fertigText?: string;
 };
 
 /* ---------- Zustand des Dateisystems ---------- */

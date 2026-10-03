@@ -10,6 +10,7 @@ import { lektion3 } from "./lektion3";
 import { lektion4 } from "./lektion4";
 import { lektion5 } from "./lektion5";
 import { lektion6 } from "./lektion6";
+import { spielwieseAufgaben } from "./spielwiese";
 
 export const AUFGABEN: Record<string, Aufgabe> = {
   ...lektion1,
@@ -18,4 +19,5 @@ export const AUFGABEN: Record<string, Aufgabe> = {
   ...lektion4,
   ...lektion5,
   ...lektion6,
+  ...spielwieseAufgaben,
 };

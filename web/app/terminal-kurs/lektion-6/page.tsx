@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LsAbschnitt, LsHinweis } from "../../lernen/_components/LsBausteine";
 import QuizFrage from "../../lernen/_components/QuizFrage";
 import LektionLayout from "../../components/kurs/LektionLayout";
@@ -292,7 +293,8 @@ Zweite Zeile`}
         <LsHinweis titel="Geschafft: der erste Teil des Kurses">
           <p>
             Mit diesen sechs Lektionen kennst du die wichtigsten Grundbefehle der Administration.
-            Im freien Terminal kannst du alles kombinieren. Weitere Lektionen zu Prozessen,
+            Im <Link href="/terminal-kurs/spielwiese">freien Terminal</Link> kannst du alles
+            kombinieren, dort sind auch ein paar Dinge versteckt. Weitere Lektionen zu Prozessen,
             Netzwerk, Paketen und Windows sind geplant.
           </p>
         </LsHinweis>
